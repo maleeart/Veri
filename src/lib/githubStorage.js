@@ -67,17 +67,24 @@ async function ensureDataBranch() {
   if (!res.ok && res.status !== 422) throw new Error(`สร้าง branch ไม่สำเร็จ HTTP ${res.status}`);
 }
 
-function datePath(date, type = 'fpg') {
+function sanitizePart(s) {
+  return String(s || '').replace(/[/\\:*?"<>|]/g, '').replace(/\s+/g, '-').replace(/_/g, '-').slice(0, 30);
+}
+
+function datePath(date, type = 'fpg', building = '', floor = '') {
   const safeDate = String(date).replace(/[^0-9-]/g, '');
   const safeType = String(type).replace(/[^a-z]/g, '');
   if (!safeDate || !safeType) throw new Error('date หรือ type ไม่ถูกต้อง');
-  return `data/inspections/${safeType}_${safeDate}.json`;
+  const bld = sanitizePart(building);
+  const flr = sanitizePart(floor);
+  const extra = [bld, flr].filter(Boolean).join('_');
+  return `data/inspections/${safeType}_${safeDate}${extra ? '_' + extra : ''}.json`;
 }
 
 /** โหลดข้อมูลวันที่ระบุ */
-async function loadSessionByDate(date, type = 'fpg') {
+async function loadSessionByDate(date, type = 'fpg', building = '', floor = '') {
   const { owner, repo, branch } = cfg();
-  const path = datePath(date, type);
+  const path = datePath(date, type, building, floor);
   const res = await ghReq(`/repos/${owner}/${repo}/contents/${path}?ref=${branch}`);
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`โหลดไม่สำเร็จ HTTP ${res.status}`);
@@ -86,10 +93,10 @@ async function loadSessionByDate(date, type = 'fpg') {
 }
 
 /** บันทึก session ลงไฟล์ */
-async function saveSessionByDate(date, dayData, type = 'fpg') {
+async function saveSessionByDate(date, dayData, type = 'fpg', building = '', floor = '') {
   const { owner, repo, branch } = cfg();
   await ensureDataBranch();
-  const path = datePath(date, type);
+  const path = datePath(date, type, building, floor);
   const apiPath = `/repos/${owner}/${repo}/contents/${path}`;
 
   let sha;
@@ -120,14 +127,14 @@ async function saveSessionByDate(date, dayData, type = 'fpg') {
 }
 
 /** บันทึกข้อมูลเครื่องเดียว (merge เข้ากับ records ที่มีอยู่) */
-async function saveInspectionRecord(machineId, date, machineData, type = 'fpg') {
-  const existing = await loadSessionByDate(date, type).catch(() => null);
+async function saveInspectionRecord(machineId, date, machineData, type = 'fpg', building = '', floor = '') {
+  const existing = await loadSessionByDate(date, type, building, floor).catch(() => null);
   const dayData = existing || { date, type, records: {} };
   if (machineId === '__session__') {
-    return saveSessionByDate(date, { ...machineData, type }, type);
+    return saveSessionByDate(date, { ...machineData, type }, type, building, floor);
   }
   dayData.records[machineId] = machineData;
-  return saveSessionByDate(date, dayData, type);
+  return saveSessionByDate(date, dayData, type, building, floor);
 }
 
 /**
@@ -143,18 +150,32 @@ async function listInspectionDates() {
   return items
     .filter(i => i.type === 'file' && i.name.endsWith('.json'))
     .map(i => {
-      const name = i.name.replace(/\.json$/, '');       // "fpg_2026-06-24"
-      const sep  = name.indexOf('_');
-      const type = sep >= 0 ? name.slice(0, sep) : 'fpg';
-      const date = sep >= 0 ? name.slice(sep + 1) : name;
-      return { date, type, label: TYPE_LABELS[type] || type.toUpperCase() };
+      const filename = i.name.replace(/\.json$/, '');   // "fpg_2026-06-24" หรือ "emergency_2026-06-24_อาคาร_ชั้น1"
+      const parts    = filename.split('_');
+      const type     = parts[0] || 'fpg';
+      const date     = parts[1] || '';                  // YYYY-MM-DD
+      const building = (parts[2] || '').replace(/-/g, ' ');
+      const floor    = (parts[3] || '').replace(/-/g, ' ');
+      return { date, type, label: TYPE_LABELS[type] || type.toUpperCase(), building, floor, filename };
     })
+    .filter(i => /^\d{4}-\d{2}-\d{2}$/.test(i.date))  // กรองไฟล์ที่ไม่ใช่ format ที่ถูกต้อง
     .sort((a, b) => b.date.localeCompare(a.date));      // เรียงใหม่→เก่า
 }
 
 /** ดึงข้อมูลวันที่ระบุ (alias) */
-async function loadInspectionByDate(date, type = 'fpg') {
-  return loadSessionByDate(date, type);
+async function loadInspectionByDate(date, type = 'fpg', building = '', floor = '') {
+  return loadSessionByDate(date, type, building, floor);
+}
+
+/** ดึงข้อมูลจาก filename โดยตรง (ไม่ต้อง rebuild path) */
+async function loadInspectionByFilename(filename) {
+  const { owner, repo, branch } = cfg();
+  const path = `data/inspections/${filename}.json`;
+  const res = await ghReq(`/repos/${owner}/${repo}/contents/${path}?ref=${branch}`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`โหลดไม่สำเร็จ HTTP ${res.status}`);
+  const json = await res.json();
+  return JSON.parse(Buffer.from(json.content, 'base64').toString('utf-8'));
 }
 
 module.exports = {
@@ -162,5 +183,6 @@ module.exports = {
   saveSessionByDate,
   loadSessionByDate,
   loadInspectionByDate,
+  loadInspectionByFilename,
   listInspectionDates,
 };

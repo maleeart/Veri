@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { generateListReport } from '../../../src/lib/listExporter';
-import { loadInspectionByDate } from '../../../src/lib/githubStorage';
+import { loadInspectionByDate, loadInspectionByFilename } from '../../../src/lib/githubStorage';
 
 export const runtime = 'nodejs';
 
@@ -16,7 +16,10 @@ export async function POST(request) {
     let general = body.general;
     let devices = body.devices;
     if (!devices) {
-      const saved = await loadInspectionByDate(date, type);
+      const { filename, building = '', floor = '' } = body;
+      const saved = filename
+        ? await loadInspectionByFilename(filename)
+        : await loadInspectionByDate(date, type, building, floor);
       if (!saved) return NextResponse.json({ error: 'ไม่พบข้อมูลวันที่นี้' }, { status: 404 });
       general = saved.records?.general || {};
       devices = saved.records?.devices || [];

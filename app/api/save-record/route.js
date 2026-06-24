@@ -17,9 +17,9 @@ export async function POST(request) {
 
     // Option A: session (records object)
     if (body.records) {
-      const { date, records, type = 'fpg' } = body;
+      const { date, records, type = 'fpg', building = '', floor = '' } = body;
       if (!date || !records) return NextResponse.json({ error: 'ต้องระบุ date และ records' }, { status: 400 });
-      const result = await saveInspectionRecord('__session__', date, { date, type, records }, type);
+      const result = await saveInspectionRecord('__session__', date, { date, type, records }, type, building, floor);
       return NextResponse.json({ ok: true, path: result.path });
     }
 

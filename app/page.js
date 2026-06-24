@@ -39,22 +39,23 @@ function HomePageInner() {
   }, []);
 
   // ── handler เดิม ─────────────────────────────────────────────────────────
-  const handleDownload = async (date, type = 'fpg') => {
-    setDownloading(date);
+  const handleDownload = async (date, type = 'fpg', filename = null, building = '', floor = '') => {
+    setDownloading(filename || date);
     try {
       const isList = type === 'emergency' || type === 'smoke';
       const endpoint = isList ? '/api/export-list' : '/api/export-combined';
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date, type }),
+        body: JSON.stringify({ date, type, filename, building, floor }),
       });
       if (!res.ok) { const e = await res.json().catch(() => ({})); alert(e.error || 'ดาวน์โหลดไม่สำเร็จ'); return; }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       const prefix = type === 'fpg' ? 'FPG' : type === 'emergency' ? 'Emergency' : 'Smoke';
-      a.href = url; a.download = `${prefix}_report_${date}.xlsx`;
+      const bldFlr = [building, floor].filter(Boolean).join('_');
+      a.href = url; a.download = `${prefix}_report_${date}${bldFlr ? '_' + bldFlr : ''}.xlsx`;
       document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
     } catch (err) { alert('เกิดข้อผิดพลาด: ' + err.message); }
@@ -148,20 +149,25 @@ function HomePageInner() {
         <section className="history-panel">
           <p className="history-title">ประวัติย้อนหลัง</p>
           {dates?.length === 0 && <p className="history-empty">ยังไม่มีประวัติ</p>}
-          {dates?.map(({ date, type, label }) => (
-            <div key={`${type}_${date}`} className={`hist-row ${date === today ? 'hist-row--today' : ''}`}>
-              <div className="hist-info">
-                <span className="hist-label">{label}</span>
-                <span className="hist-date">{date}{date === today ? ' · วันนี้' : ''}</span>
+          {dates?.map(({ date, type, label, building, floor, filename }) => {
+            const dlKey = filename || date;
+            const location = [building, floor].filter(Boolean).join(' ');
+            return (
+              <div key={filename || `${type}_${date}`} className={`hist-row ${date === today ? 'hist-row--today' : ''}`}>
+                <div className="hist-info">
+                  <span className="hist-label">{label}</span>
+                  {location && <span className="hist-location">{location}</span>}
+                  <span className="hist-date">{date}{date === today ? ' · วันนี้' : ''}</span>
+                </div>
+                <button
+                  className="btn-dl"
+                  disabled={!!downloading}
+                  onClick={() => handleDownload(date, type, filename, building, floor)}>
+                  {downloading === dlKey ? '⏳' : '⬇︎ Excel'}
+                </button>
               </div>
-              <button
-                className="btn-dl"
-                disabled={!!downloading}
-                onClick={() => handleDownload(date, type)}>
-                {downloading === date ? '⏳' : '⬇︎ Excel'}
-              </button>
-            </div>
-          ))}
+            );
+          })}
           {githubOk === false && (
             <p className="history-empty">⚠ ต้องตั้งค่า GitHub token ก่อน</p>
           )}
@@ -367,9 +373,14 @@ function HomePageInner() {
           font-weight: 600;
           color: var(--ink-primary);
         }
+        .hist-location {
+          font-size: 12px;
+          font-weight: 500;
+          color: var(--ink-secondary);
+        }
         .hist-date {
           font-family: var(--font-mono);
-          font-size: 12px;
+          font-size: 11px;
           color: var(--ink-muted);
         }
         .btn-dl {

@@ -100,7 +100,7 @@ export default function FormPage() {
         await fetch('/api/save-record', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ date, type, records: { general, devices } }),
+          body: JSON.stringify({ date, type, building: general.building || '', floor: general.floor || '', records: { general, devices } }),
         });
       } catch {}
 
