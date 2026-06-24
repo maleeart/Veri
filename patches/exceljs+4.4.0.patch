@@ -1,0 +1,40 @@
+diff --git a/node_modules/exceljs/lib/xlsx/xform/drawing/drawing-xform.js b/node_modules/exceljs/lib/xlsx/xform/drawing/drawing-xform.js
+index 6bc4c43..7a8cf40 100644
+--- a/node_modules/exceljs/lib/xlsx/xform/drawing/drawing-xform.js
++++ b/node_modules/exceljs/lib/xlsx/xform/drawing/drawing-xform.js
+@@ -91,7 +91,7 @@ class DrawingXform extends BaseXform {
+   }
+ 
+   reconcile(model, options) {
+-    model.anchors.forEach(anchor => {
++    (model && model.anchors || []).forEach(anchor => {
+       if (anchor.br) {
+         this.map['xdr:twoCellAnchor'].reconcile(anchor, options);
+       } else {
+diff --git a/node_modules/exceljs/lib/xlsx/xform/sheet/worksheet-xform.js b/node_modules/exceljs/lib/xlsx/xform/sheet/worksheet-xform.js
+index b389300..738d1e5 100644
+--- a/node_modules/exceljs/lib/xlsx/xform/sheet/worksheet-xform.js
++++ b/node_modules/exceljs/lib/xlsx/xform/sheet/worksheet-xform.js
+@@ -491,7 +491,7 @@ class WorkSheetXform extends BaseXform {
+       if (match) {
+         const drawingName = match[1];
+         const drawing = options.drawings[drawingName];
+-        drawing.anchors.forEach(anchor => {
++        (drawing && drawing.anchors || []).forEach(anchor => {
+           if (anchor.medium) {
+             const image = {
+               type: 'image',
+diff --git a/node_modules/exceljs/lib/xlsx/xlsx.js b/node_modules/exceljs/lib/xlsx/xlsx.js
+index ff2d9a1..dfd372d 100644
+--- a/node_modules/exceljs/lib/xlsx/xlsx.js
++++ b/node_modules/exceljs/lib/xlsx/xlsx.js
+@@ -97,7 +97,8 @@ class XLSX {
+           o[rel.Id] = rel;
+           return o;
+         }, {});
+-        (drawing.anchors || []).forEach(anchor => {
++        // patch: guard against drawing being undefined (exceljs bug with certain XML namespace formats)
++        ((drawing && drawing.anchors) || []).forEach(anchor => {
+           const hyperlinks = anchor.picture && anchor.picture.hyperlinks;
+           if (hyperlinks && drawingOptions.rels[hyperlinks.rId]) {
+             hyperlinks.hyperlink = drawingOptions.rels[hyperlinks.rId].Target;

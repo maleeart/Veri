@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Test output files
+OUTPUT_TEST_*.xlsx
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code local settings
+.claude/
