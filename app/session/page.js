@@ -23,6 +23,7 @@ import ReferencePhotos from '../components/ReferencePhotos';
 import { buildEmptyFormData, getMachineTemplate } from '../lib/formSchema';
 
 const MACHINE_STEPS = 6; // steps per machine
+const STEP_SHORT = ['ทั่วไป', 'ก่อนเข้า', 'ก่อนเดิน', 'ค่าวัด', 'Test', 'สรุป'];
 
 function SessionPageInner() {
   const router = useRouter();
@@ -186,6 +187,19 @@ function SessionPageInner() {
         ))}
       </div>
 
+      {/* Step sub-bar */}
+      <div className="step-tabs">
+        {stepTitles.map((title, idx) => (
+          <button key={idx}
+            className={`step-tab ${idx === stepIdx ? 'step-tab--active' : ''}`}
+            onClick={() => setStepIdx(idx)}
+            title={title}>
+            <span className="step-tab-num">{idx + 1}</span>
+            <span className="step-tab-lbl">{STEP_SHORT[idx]}</span>
+          </button>
+        ))}
+      </div>
+
       {/* Form body */}
       <section className="body">
         <h2 className="step-title">{stepTitles[stepIdx]}</h2>
@@ -273,6 +287,24 @@ function SessionPageInner() {
         }
         .tab--active { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
         .tab--done { background:var(--status-pass-bg); color:var(--status-pass); border-color:var(--status-pass); }
+
+        /* Step sub-bar */
+        .step-tabs {
+          display:flex; padding:6px 14px; gap:4px;
+          border-bottom:2px solid var(--border-hairline); flex-shrink:0;
+          background:var(--bg-surface-raised);
+        }
+        .step-tab {
+          flex:1; display:flex; flex-direction:column; align-items:center; gap:1px;
+          padding:5px 2px; border-radius:8px; border:none; cursor:pointer;
+          background:transparent; color:var(--ink-muted);
+          transition:background 0.1s;
+        }
+        .step-tab--active {
+          background:var(--accent); color:var(--accent-ink);
+        }
+        .step-tab-num { font-size:13px; font-weight:700; line-height:1; }
+        .step-tab-lbl { font-size:9px; font-weight:500; line-height:1; white-space:nowrap; }
 
         .body { flex:1; padding:14px 14px 140px; overflow-x:hidden; width:100%; box-sizing:border-box; }
         .step-title { font-size:16px; font-weight:700; margin:0 0 12px; }
