@@ -1,0 +1,41 @@
+{
+  "date": "2026-06-24",
+  "type": "smoke",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-06-25",
+      "building": "ทาวว",
+      "floor": "2",
+      "inspector": "",
+      "model": "",
+      "serial": "",
+      "mfg": ""
+    },
+    "devices": [
+      {
+        "location": "",
+        "remarks": "",
+        "zone": "",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "",
+        "remarks": "",
+        "zone": "",
+        "externalCondition": "dirty",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "",
+        "remarks": "",
+        "zone": "",
+        "externalCondition": "dirty",
+        "cleaned": "yes",
+        "workingCondition": "not_working"
+      }
+    ]
+  }
+}
