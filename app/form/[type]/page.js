@@ -95,12 +95,14 @@ export default function FormPage() {
     setSubmitting(true);
     setSubmitError(null);
     try {
+      const saveDate = general.inspectionDate || date;
+
       // save to GitHub
       try {
         await fetch('/api/save-record', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ date, type, building: general.building || '', floor: general.floor || '', records: { general, devices } }),
+          body: JSON.stringify({ date: saveDate, type, building: general.building || '', floor: general.floor || '', records: { general, devices } }),
         });
       } catch {}
 
@@ -108,7 +110,7 @@ export default function FormPage() {
       const res = await fetch('/api/export-list', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, date, general, devices }),
+        body: JSON.stringify({ type, date: saveDate, general, devices }),
       });
       if (res.ok) {
         const blob = await res.blob();
@@ -118,13 +120,13 @@ export default function FormPage() {
         const bld = (general.building || '').replace(/\s+/g, '_');
         const flr = (general.floor || '').replace(/\s+/g, '_');
         const suffix = [bld, flr].filter(Boolean).join('_');
-        a.href = url; a.download = `${label}_report_${date}${suffix ? '_' + suffix : ''}.xlsx`;
+        a.href = url; a.download = `${label}_report_${saveDate}${suffix ? '_' + suffix : ''}.xlsx`;
         document.body.appendChild(a); a.click(); a.remove();
         URL.revokeObjectURL(url);
       }
 
       localStorage.removeItem(DRAFT_KEY);
-      router.push(`/?saved=${date}`);
+      router.push(`/?saved=${saveDate}`);
     } catch (err) {
       setSubmitError(String(err.message || err));
       setSubmitting(false);
@@ -141,7 +143,7 @@ export default function FormPage() {
         <button className="back-btn" onClick={() => step > 0 ? setStep(s => s - 1) : router.push('/')}>‹</button>
         <div>
           <h1 className="title">{cfg.icon} {cfg.title}</h1>
-          <p className="subtitle">{date} · {step === 0 ? 'ข้อมูลทั่วไป' : step === 1 ? `อุปกรณ์ ${devices.length} รายการ` : 'ยืนยัน'}</p>
+          <p className="subtitle">{general.inspectionDate || date} · {step === 0 ? 'ข้อมูลทั่วไป' : step === 1 ? `อุปกรณ์ ${devices.length} รายการ` : 'ยืนยัน'}</p>
         </div>
       </header>
 
@@ -220,7 +222,7 @@ export default function FormPage() {
         <section className="section confirm-section">
           <div className="confirm-icon">{cfg.icon}</div>
           <h2 className="confirm-title">{cfg.title}</h2>
-          <p className="confirm-sub">วันที่ {date}</p>
+          <p className="confirm-sub">วันที่ {general.inspectionDate || date}</p>
           <div className="confirm-stats">
             <div className="stat">
               <span className="stat-num">{devices.length}</span>
