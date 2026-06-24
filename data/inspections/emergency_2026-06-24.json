@@ -4,20 +4,36 @@
   "records": {
     "general": {
       "inspectionDate": "2026-06-24",
-      "building": "อาคาร ท.0007",
-      "floor": "ชั้น1",
-      "inspector": "ธนวิชญ์",
-      "model": ".",
-      "serial": ".",
-      "mfg": "."
+      "building": "ท.0019",
+      "floor": "1",
+      "inspector": "fd",
+      "model": "sdfsd",
+      "serial": "dsfdsf",
+      "mfg": "sdf"
     },
     "devices": [
       {
-        "location": "ห้องน้ำ",
-        "remarks": "LED ชำรุด",
-        "id": "01",
+        "location": "dsfds",
+        "remarks": "",
+        "id": "df",
         "lightCondition": "pass",
-        "statusLight": "abnormal",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "dsfds",
+        "remarks": "",
+        "id": "dafdsf",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "dsffsd",
+        "remarks": "",
+        "id": "asfsaf",
+        "lightCondition": "pass",
+        "statusLight": "normal",
         "testResult": "on"
       }
     ]
