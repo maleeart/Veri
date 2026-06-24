@@ -4,44 +4,20 @@
   "records": {
     "general": {
       "inspectionDate": "2026-06-24",
-      "building": "ท.0019",
-      "floor": "1",
-      "inspector": "แบง",
-      "model": "ทแใแท่",
-      "serial": "สืบ้ด",
-      "mfg": "มดส้"
+      "building": "อาคาร ท.0007",
+      "floor": "ชั้น1",
+      "inspector": "ธนวิชญ์",
+      "model": ".",
+      "serial": ".",
+      "mfg": "."
     },
     "devices": [
       {
-        "location": "สปสแ",
-        "remarks": "",
-        "id": "วดสก",
+        "location": "ห้องน้ำ",
+        "remarks": "LED ชำรุด",
+        "id": "01",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
-      },
-      {
-        "location": "่ด",
-        "remarks": "",
-        "id": "ำี",
-        "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
-      },
-      {
-        "location": "ส้วป",
-        "remarks": "",
-        "id": "่ด",
-        "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
-      },
-      {
-        "location": "สด่",
-        "remarks": "",
-        "id": "มเา",
-        "lightCondition": "pass",
-        "statusLight": "normal",
+        "statusLight": "abnormal",
         "testResult": "on"
       }
     ]
