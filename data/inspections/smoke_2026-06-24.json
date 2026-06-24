@@ -4,8 +4,8 @@
   "records": {
     "general": {
       "inspectionDate": "2026-06-24",
-      "building": "0007",
-      "floor": "1",
+      "building": "0010",
+      "floor": "2",
       "inspector": "",
       "model": "",
       "serial": "",
@@ -13,12 +13,12 @@
     },
     "devices": [
       {
-        "location": "ห้องไฟฟ้า",
+        "location": "",
         "remarks": "",
-        "zone": "1",
+        "zone": "4",
         "externalCondition": "normal",
-        "cleaned": "no",
-        "workingCondition": "not_working"
+        "cleaned": "yes",
+        "workingCondition": "normal"
       }
     ]
   }
