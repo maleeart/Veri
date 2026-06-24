@@ -205,7 +205,7 @@ async function writeMachineData(wb, data) {
       ws2.addImage(imgId, {
         tl: { col: s.col - 1, row: s.row - 1 },
         br: { col: s.col2 - 1, row: s.row2 - 1 },
-        editAs: 'oneCell',
+        editAs: 'twoCell',
       });
     } catch (e) { console.warn('signature error:', e.message); }
   }

@@ -261,16 +261,16 @@
       "approved_by_name": "CY107",
       "approved_by_date": "CY107",
       "signature_inspector": {
-        "col": 41,
+        "col": 42,
         "row": 104,
-        "col2": 81,
-        "row2": 106
+        "col2": 83,
+        "row2": 107
       },
       "signature_approver": {
-        "col": 102,
+        "col": 83,
         "row": 104,
-        "col2": 129,
-        "row2": 106
+        "col2": 103,
+        "row2": 107
       }
     }
   },
@@ -440,16 +440,16 @@
       "approved_by_name": "CY95",
       "approved_by_date": "CY95",
       "signature_inspector": {
-        "col": 41,
+        "col": 42,
         "row": 92,
-        "col2": 81,
-        "row2": 94
+        "col2": 83,
+        "row2": 95
       },
       "signature_approver": {
-        "col": 102,
+        "col": 83,
         "row": 92,
-        "col2": 129,
-        "row2": 94
+        "col2": 103,
+        "row2": 95
       },
       "charge_voltage_cell": "BI65",
       "frequency_cell": "BI71",
