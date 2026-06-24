@@ -23,9 +23,33 @@ function cfg() {
   const token = process.env.GITHUB_TOKEN;
   const owner = process.env.GITHUB_REPO_OWNER;
   const repo = process.env.GITHUB_REPO_NAME;
-  const branch = process.env.GITHUB_REPO_BRANCH || 'main';
+  const branch = process.env.GITHUB_REPO_BRANCH || 'data';
   if (!token || !owner || !repo) throw new Error('ตั้งค่า GitHub ENV ไม่ครบ');
   return { token, owner, repo, branch };
+}
+
+/** สร้าง branch สำหรับเก็บข้อมูลถ้ายังไม่มี (branch off จาก main หรือ branch แรกที่เจอ) */
+async function ensureDataBranch(branch) {
+  const { owner, repo } = cfg();
+  const check = await ghReq(`/repos/${owner}/${repo}/git/ref/heads/${branch}`);
+  if (check.status === 200) return;
+
+  // หา SHA ของ main ก่อน ถ้าไม่มีให้ลอง branch อื่นที่มีอยู่
+  let sha;
+  for (const ref of ['main', 'master']) {
+    const r = await ghReq(`/repos/${owner}/${repo}/git/ref/heads/${ref}`);
+    if (r.status === 200) { sha = (await r.json()).object.sha; break; }
+  }
+  if (!sha) throw new Error('ไม่พบ branch ต้นทางสำหรับสร้าง data branch');
+
+  const res = await ghReq(`/repos/${owner}/${repo}/git/refs`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ref: `refs/heads/${branch}`, sha }),
+  });
+  if (!res.ok && res.status !== 422) {
+    throw new Error(`สร้าง branch ไม่สำเร็จ HTTP ${res.status}`);
+  }
 }
 
 function datePath(date) {
@@ -64,6 +88,7 @@ async function loadSessionByDate(date) {
  */
 async function saveSessionByDate(date, dayData) {
   const { owner, repo, branch } = cfg();
+  await ensureDataBranch(branch);
   const path = datePath(date);
   const apiPath = `/repos/${owner}/${repo}/contents/${path}`;
 
