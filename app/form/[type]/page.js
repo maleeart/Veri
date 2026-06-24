@@ -115,7 +115,10 @@ export default function FormPage() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         const label = type === 'emergency' ? 'Emergency' : 'Smoke';
-        a.href = url; a.download = `${label}_report_${date}.xlsx`;
+        const bld = (general.building || '').replace(/\s+/g, '_');
+        const flr = (general.floor || '').replace(/\s+/g, '_');
+        const suffix = [bld, flr].filter(Boolean).join('_');
+        a.href = url; a.download = `${label}_report_${date}${suffix ? '_' + suffix : ''}.xlsx`;
         document.body.appendChild(a); a.click(); a.remove();
         URL.revokeObjectURL(url);
       }

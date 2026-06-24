@@ -89,7 +89,7 @@ function ChecklistRow({ item, value, options, onResultChange, onRemarkChange }) 
 
   return (
     <li className={`row${isFailLike ? ' row--flagged' : ''}`}>
-      <p className="row__label">{item.label_th}</p>
+      <p className="row__label">{item.label_th || item.label}</p>
       <ToggleGroup
         name={item.label_th}
         options={options}
