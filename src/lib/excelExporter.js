@@ -237,32 +237,32 @@ async function writeMachineData(wb, data) {
   }
 
   // ────────────────────────────────────────────────────────────
-  // ลายเซ็นผู้อนุมัติ — hardcode เสมอ (ไม่ต้องกรอก)
-  //   วาดภาพ signature-approver.png ที่ตำแหน่ง signature_approver
-  //   ชื่อ "ตวงเพชร ชัยยานนท์" เขียนที่ approver_name_cell เสมอ
+  // ลายเซ็นผู้อนุมัติ — วางรูปทับตรงชื่อ "ตวงเพชร ชัยยานนท์"
+  //   ใช้ approver_name_cell (CY106/CY94) เป็นจุดศูนย์กลาง
+  //   ขยายซ้าย-ขวา-บน ให้ภาพลายเซ็นมีขนาดพอเหมาะ
+  //   ไม่เขียน text ซ้ำ — ปล่อยชื่อใน template ไว้เดิม
   // ────────────────────────────────────────────────────────────
-  if (df.signature_approver) {
-    const sigA = df.signature_approver;
+  if (df.approver_name_cell) {
     try {
       const fs = require('fs');
       const sigPath = path.join(process.cwd(), 'public', 'assets', 'shared', 'signature-approver.png');
       const sigBuf = fs.readFileSync(sigPath);
       const imgId = wb.addImage({ buffer: sigBuf, extension: 'png' });
+
+      // แปลง approver_name_cell → col, row (1-indexed)
+      const nameRef = df.approver_name_cell;
+      const m = nameRef.match(/^([A-Z]+)(\d+)$/);
+      let nameCol = 0;
+      for (const ch of m[1]) nameCol = nameCol * 26 + (ch.charCodeAt(0) - 64);
+      const nameRow = parseInt(m[2]);
+
+      // วางลายเซ็นทับตรงชื่อ: กว้าง ±8 col, สูง 2 row (row-2 ถึง row)
       ws2.addImage(imgId, {
-        tl: { col: sigA.col - 1, row: sigA.row - 1 },
-        br: { col: sigA.col2 - 1, row: sigA.row2 - 1 },
+        tl: { col: nameCol - 9, row: nameRow - 3 },  // 0-indexed: ซ้าย 8 col, บน 2 row
+        br: { col: nameCol + 7, row: nameRow },       // 0-indexed: ขวา 7 col, ล่างสุดที่ชื่อ
         editAs: 'twoCell',
       });
     } catch (e) { console.warn('approver signature image error:', e.message); }
-
-    // ชื่อผู้อนุมัติ hardcode
-    const approverRef = df.approver_name_cell || `${colNumToLetter(sigA.col2)}${sigA.row}`;
-    try {
-      const cell = ws2.getCell(approverRef);
-      cell.value = 'ตวงเพชร ชัยยานนท์';
-      cell.font = { name: 'TH SarabunPSK', size: 14, bold: false, color: { argb: 'FF000000' } };
-      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: false };
-    } catch (e) { console.warn('approver name write error:', e.message); }
   }
 }
 
