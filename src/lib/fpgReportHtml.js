@@ -66,127 +66,117 @@ function header(machineInfo, data, logoB64, sheet) {
 </table>`;
 }
 
-/* ---- general data ---- */
-function generalDatas(machineInfo, data) {
+/* ---- PAGE 1: ตารางเดียวรวม General Datas + checklist 0 + รูป ---- */
+function sheet1(machineInfo, data, logoB64, imgB64List) {
+  const isFp  = machineInfo?.type === 'fire_pump';
+  const tmpl  = isFp ? fieldMap.fire_pump_template : fieldMap.generator_template;
+  const items0 = tmpl?.sheet_visual_fields?.checklist_0_items || [];
   const g  = data.generalData || {};
   const a  = data.afterRun    || {};
-  const fp = machineInfo?.type === 'fire_pump';
+
   const fuelBefore = v(g.fuelBefore, '');
   const fuelAfter  = v(a.fuelAfter,  '');
   const hrsBefore  = v(g.runningHoursBefore, '');
   const hrsAfter   = v(a.runningHoursAfter, '');
-  return `
-<table style="margin-bottom:4px;font-size:11px">
-  <tr>
-    <td colspan="9" style="font-weight:bold;padding:2px 4px">General Datas</td>
-    <td style="text-align:right;font-size:10px;white-space:nowrap;padding:2px 4px">Sheet 1/2</td>
-  </tr>
-  <tr>
-    <td style="font-weight:bold;white-space:nowrap">Location</td>
-    <td colspan="2">${v(machineInfo?.location_default)}</td>
-    <td style="font-weight:bold">ชนิด</td>
-    <td>${fp ? 'Vertical' : 'Standby'}</td>
-    <td colspan="2" style="font-weight:bold">Station No.</td>
-    <td colspan="3">${machineInfo?.label || ''}</td>
-  </tr>
-  <tr>
-    <td style="font-weight:bold">Model</td>
-    <td>${v(machineInfo?.model_default)}</td>
-    <td style="font-weight:bold;white-space:nowrap">Serial-Number</td>
-    <td colspan="2">${v(machineInfo?.serial_default)}</td>
-    <td style="font-weight:bold">MFG</td>
-    <td>${v(machineInfo?.mfg_default)}</td>
-    <td style="font-weight:bold;white-space:nowrap">RPM Rating</td>
-    <td colspan="2">${v(machineInfo?.rpm_rating_default)}</td>
-  </tr>
-  <tr>
-    <td colspan="2" style="font-weight:bold;white-space:nowrap">Qty. Of Fuel Liquid</td>
-    <td colspan="2" style="text-align:center;white-space:nowrap">
-      ( ) Gal &nbsp; ( ✓ ) Lit &nbsp; ( ) kg
-    </td>
-    <td style="font-weight:bold;white-space:nowrap">Fuel Level</td>
-    <td style="white-space:nowrap">(Before)&nbsp; ${fuelBefore}</td>
-    <td style="text-align:center">/</td>
-    <td style="white-space:nowrap">(After)&nbsp; ${fuelAfter}</td>
-    <td colspan="2">Liters</td>
-  </tr>
-  <tr>
-    <td style="font-weight:bold;white-space:nowrap">ระยะเวลาที่เครื่องยนต์ทำงาน</td>
-    <td style="text-align:center">${v(g.runDurationMins, '')}</td>
-    <td style="white-space:nowrap">mins.</td>
-    <td style="font-weight:bold;white-space:nowrap">${fp ? 'ความจุถังเชื้อเพลิง' : 'จำนวนครั้งที่ทำงาน'}</td>
-    <td style="text-align:center">${fp ? '' : v(g.runCount, '')}</td>
-    <td style="white-space:nowrap">${fp ? 'Liters' : 'ครั้ง'}</td>
-    <td style="font-weight:bold;white-space:nowrap">ชั่วโมงการทำงาน</td>
-    <td style="white-space:nowrap">(Before)&nbsp; ${hrsBefore}</td>
-    <td style="text-align:center">/</td>
-    <td style="white-space:nowrap">(After)&nbsp; ${hrsAfter}&nbsp; Hrs.</td>
-  </tr>
-</table>`;
-}
 
-/* ---- checklist 0: Pre Visual Inspection ---- */
-function checklist0(items, results) {
-  const rows = items.map((item, i) => {
-    const r = results[i] || {};
+  /* checklist rows — 10 cols: 1=#  2-7=รายการ  8=ผ่าน  9=ไม่ผ่าน  10=หมายเหตุ */
+  const chkRows = items0.map((item, i) => {
+    const r = (data.preVisual || [])[i] || {};
     return `<tr>
-      <td class="num-col">${i + 1}</td>
-      <td>${item.text}</td>
-      <td class="chk">${passBox(r.result)}</td>
-      <td class="chk">${failBox(r.result)}</td>
-      <td style="width:90px">${r.remark || ''}</td>
+      <td style="text-align:center;width:22px;font-size:11px">${i + 1}</td>
+      <td colspan="6" style="font-size:11px">${item.text}</td>
+      <td style="text-align:center;width:28px;font-size:14px">${passBox(r.result)}</td>
+      <td style="text-align:center;width:28px;font-size:14px">${failBox(r.result)}</td>
+      <td style="font-size:11px">${r.remark || ''}</td>
     </tr>`;
   }).join('');
-  return `
-<table style="margin-bottom:4px">
-  <tr>
-    <td colspan="5" class="sec-hdr">0. Pre Visual Inspection</td>
-  </tr>
-  <tr class="thead-row">
-    <th class="num-col">#</th>
-    <th style="text-align:left">รายการตรวจสอบ</th>
-    <th class="chk">ผ่าน</th>
-    <th class="chk">ไม่ผ่าน</th>
-    <th>หมายเหตุ</th>
-  </tr>
-  ${rows}
-</table>`;
-}
 
-/* ---- machine photos ---- */
-function machinePhotos(imgB64List) {
-  if (!imgB64List || imgB64List.length === 0) return '';
+  /* รูปประกอบ */
   const COLS = 4;
-  const padded = [...imgB64List];
-  const rem = padded.length % COLS;
-  if (rem !== 0) for (let i = 0; i < COLS - rem; i++) padded.push(null);
   let photoRows = '';
-  for (let i = 0; i < padded.length; i += COLS) {
-    const rowCells = padded.slice(i, i + COLS).map(b64 =>
-      b64
-        ? `<td class="photo-cell" style="width:${100/COLS}%"><img src="data:image/jpeg;base64,${b64}" style="width:100%;max-height:80px;object-fit:contain;display:block;" /></td>`
-        : `<td class="photo-cell" style="width:${100/COLS}%"></td>`
-    ).join('');
-    photoRows += `<tr>${rowCells}</tr>`;
+  if (imgB64List && imgB64List.length > 0) {
+    const padded = [...imgB64List];
+    const rem = padded.length % COLS;
+    if (rem !== 0) for (let i = 0; i < COLS - rem; i++) padded.push(null);
+    for (let i = 0; i < padded.length; i += COLS) {
+      const cells = padded.slice(i, i + COLS).map(b64 =>
+        b64
+          ? `<td style="text-align:center;padding:2px;border:1px solid #000;width:25%"><img src="data:image/jpeg;base64,${b64}" style="width:100%;max-height:110px;object-fit:contain;display:block;" /></td>`
+          : `<td style="border:1px solid #000;width:25%"></td>`
+      ).join('');
+      photoRows += `<tr>${cells}</tr>`;
+    }
   }
-  return `
-<table>
-  <tr><td colspan="${COLS}" class="sec-hdr">รูปประกอบเครื่อง</td></tr>
-  ${photoRows}
-</table>`;
-}
+  const photoSection = photoRows
+    ? `<tr><td colspan="10" style="font-weight:bold;background:#c6efce;padding:2px 4px;font-size:11px">รูปประกอบเครื่อง</td></tr>
+       <tr><td colspan="10" style="padding:0;border:none"><table style="width:100%;border-collapse:collapse">${photoRows}</table></td></tr>`
+    : '';
 
-/* ---- PAGE 1 ---- */
-function sheet1(machineInfo, data, logoB64, imgB64List) {
-  const isFp = machineInfo?.type === 'fire_pump';
-  const tmpl = isFp ? fieldMap.fire_pump_template : fieldMap.generator_template;
-  const items0 = tmpl?.sheet_visual_fields?.checklist_0_items || [];
   return `
 <div class="page">
   ${header(machineInfo, data, logoB64, 'Sheet 1/2')}
-  ${generalDatas(machineInfo, data)}
-  ${checklist0(items0, data.preVisual || [])}
-  ${machinePhotos(imgB64List)}
+  <table style="font-size:11px;margin-bottom:0">
+    <!-- General Datas header -->
+    <tr>
+      <td colspan="9" style="font-weight:bold;padding:2px 5px">General Datas</td>
+      <td style="text-align:right;font-size:10px;white-space:nowrap;padding:2px 4px">Sheet 1/2</td>
+    </tr>
+    <!-- Row: Location -->
+    <tr>
+      <td style="font-weight:bold;white-space:nowrap">Location</td>
+      <td colspan="2">${v(machineInfo?.location_default)}</td>
+      <td style="font-weight:bold">ชนิด</td>
+      <td>${isFp ? 'Vertical' : 'Standby'}</td>
+      <td colspan="2" style="font-weight:bold">Station No.</td>
+      <td colspan="3">${machineInfo?.label || ''}</td>
+    </tr>
+    <!-- Row: Model -->
+    <tr>
+      <td style="font-weight:bold">Model</td>
+      <td>${v(machineInfo?.model_default)}</td>
+      <td style="font-weight:bold;white-space:nowrap">Serial-Number</td>
+      <td colspan="2">${v(machineInfo?.serial_default)}</td>
+      <td style="font-weight:bold">MFG</td>
+      <td>${v(machineInfo?.mfg_default)}</td>
+      <td style="font-weight:bold;white-space:nowrap">RPM Rating</td>
+      <td colspan="2">${v(machineInfo?.rpm_rating_default)}</td>
+    </tr>
+    <!-- Row: Fuel Liquid -->
+    <tr>
+      <td colspan="2" style="font-weight:bold;white-space:nowrap">Qty. Of Fuel Liquid</td>
+      <td colspan="2" style="text-align:center;white-space:nowrap">( ) Gal &nbsp;( ✓ ) Lit &nbsp;( ) kg</td>
+      <td style="font-weight:bold;white-space:nowrap">Fuel Level</td>
+      <td style="white-space:nowrap">(Before) ${fuelBefore}</td>
+      <td style="text-align:center">/</td>
+      <td style="white-space:nowrap">(After) ${fuelAfter}</td>
+      <td colspan="2">Liters</td>
+    </tr>
+    <!-- Row: Duration / Hours -->
+    <tr>
+      <td style="font-weight:bold;white-space:nowrap">ระยะเวลาที่เครื่องยนต์ทำงาน</td>
+      <td style="text-align:center">${v(g.runDurationMins, '')}</td>
+      <td style="white-space:nowrap">mins.</td>
+      <td style="font-weight:bold;white-space:nowrap">${isFp ? 'ความจุถังเชื้อเพลิง' : 'จำนวนครั้งที่ทำงาน'}</td>
+      <td style="text-align:center">${isFp ? '' : v(g.runCount, '')}</td>
+      <td style="white-space:nowrap">${isFp ? 'Liters' : 'ครั้ง'}</td>
+      <td style="font-weight:bold;white-space:nowrap">ชั่วโมงการทำงาน</td>
+      <td style="white-space:nowrap">(Before) ${hrsBefore}</td>
+      <td style="text-align:center">/</td>
+      <td style="white-space:nowrap">(After) ${hrsAfter} Hrs.</td>
+    </tr>
+    <!-- Checklist 0 header -->
+    <tr><td colspan="10" style="font-weight:bold;padding:2px 5px">0.Pre Visual Inspection</td></tr>
+    <tr style="background:#f2f2f2">
+      <th style="text-align:center;width:22px">#</th>
+      <th colspan="6" style="text-align:left">รายการตรวจสอบ</th>
+      <th style="text-align:center;width:28px">ผ่าน</th>
+      <th style="text-align:center;width:28px">ไม่ผ่าน</th>
+      <th>หมายเหตุ</th>
+    </tr>
+    ${chkRows}
+    <!-- รูปประกอบ -->
+    ${photoSection}
+  </table>
 </div>`;
 }
 
