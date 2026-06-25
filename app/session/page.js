@@ -112,19 +112,17 @@ function SessionPageInner() {
   const goNext = () => {
     setValidationError(null);
     if (isVeryLast) {
-      const missing = machines.filter(m => !records[m.id]?.afterRun?.inspectedBy?.trim());
-      if (missing.length) {
-        setValidationError(`กรุณากรอกชื่อผู้ตรวจสอบของ: ${missing.map(m => m.label.replace('Fire Pump', 'FP').replace('Generator', 'GEN')).join(', ')}`);
+      // ตรวจสอบว่ากรอกชื่อ หรือ วาดลายเซ็น อย่างใดอย่างหนึ่ง
+      const ar = currentData.afterRun || {};
+      if (!ar.inspectedBy?.trim() && !ar.inspectorSignature) {
+        setValidationError('กรุณากรอกชื่อผู้ตรวจสอบ หรือวาดลายเซ็น อย่างใดอย่างหนึ่ง');
         return;
       }
       handleFinalSubmit();
       return;
     }
     if (isLastStep) {
-      if (!currentData.afterRun?.inspectedBy?.trim()) {
-        setValidationError('กรุณากรอกชื่อผู้ตรวจสอบก่อนไปเครื่องถัดไป');
-        return;
-      }
+      // ขั้นตอนระหว่างเครื่อง — ไม่ต้องการชื่อผู้ตรวจ (กรอกที่เดียวตอนสุดท้าย)
       setMachineIdx(i => i + 1);
       setStepIdx(0);
     } else {
@@ -147,18 +145,31 @@ function SessionPageInner() {
     setSubmitState('submitting');
     setSubmitError(null);
     try {
+      // copy ชื่อ/ลายเซ็นผู้ตรวจสอบจากเครื่องสุดท้าย → ทุกเครื่อง
+      const lastMachine = machines[machines.length - 1];
+      const lastAfterRun = records[lastMachine.id]?.afterRun || {};
+      const sharedInspector = {
+        inspectedBy:        lastAfterRun.inspectedBy       || '',
+        inspectorSignature: lastAfterRun.inspectorSignature || null,
+      };
+      const mergedRecords = {};
+      for (const m of machines) {
+        mergedRecords[m.id] = {
+          ...records[m.id],
+          afterRun: { ...records[m.id]?.afterRun, ...sharedInspector },
+        };
+      }
+
       // บันทึกลง GitHub (best-effort)
       try {
         await fetch('/api/save-record', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ date: sessionDate, records, type: 'fpg' }),
+          body: JSON.stringify({ date: sessionDate, records: mergedRecords, type: 'fpg' }),
         });
       } catch {}
 
-      // ลบ draft
       localStorage.removeItem(DRAFT_KEY);
-      // กลับหน้าหลัก — ให้ดาวน์โหลดไฟล์เองจากหน้าหลัก
       router.push(`/?saved=${sessionDate}`);
     } catch (err) {
       setSubmitError(String(err.message || err));
@@ -509,36 +520,38 @@ function AfterRunStep({ data, setData, isGen, conclusionDefault, isVeryLast, mac
   const a = data.afterRun || {};
   const upd = p => setData({ ...data, afterRun: { ...a, ...p } });
   const conclusionVal = a.conclusionText || conclusionDefault;
+
+  // โหมดกรอกชื่อ: 'name' หรือ 'sig' (default คือ 'name' ถ้าไม่มีลายเซ็น)
+  const [inspMode, setInspMode] = useState(a.inspectorSignature ? 'sig' : 'name');
+
   return (
     <div className="stack">
+      {/* ── สรุปทุกเครื่อง (แสดงเฉพาะหน้าสุดท้าย) ── */}
       {isVeryLast && machines && records && (
         <div className="summary-box">
           <div className="summary-title">สรุปทุกเครื่อง</div>
           {machines.map(m => {
             const rec = records[m.id] || {};
-            const inspector = rec.afterRun?.inspectedBy?.trim();
-            const hasSig = !!rec.afterRun?.inspectorSignature;
             const hrBefore = rec.generalData?.runningHoursBefore;
-            const hrAfter = rec.afterRun?.runningHoursAfter;
-            const ok = !!inspector;
+            const hrAfter  = rec.afterRun?.runningHoursAfter;
+            const hasFuel  = !isGen && (rec.generalData?.fuelBefore || rec.afterRun?.fuelAfter);
             return (
-              <div key={m.id} className={`summary-row ${ok ? 'summary-row--ok' : 'summary-row--warn'}`}>
-                <span className="summary-icon">{ok ? '✓' : '!'}</span>
+              <div key={m.id} className="summary-row summary-row--ok">
+                <span className="summary-icon">✓</span>
                 <div className="summary-info">
                   <span className="summary-machine">{m.label.replace('Fire Pump', 'FP').replace('Generator', 'GEN')}</span>
-                  {inspector
-                    ? <span className="summary-detail">ผู้ตรวจ: {inspector} {hasSig ? '· มีลายเซ็น' : '· ไม่มีลายเซ็น'}</span>
-                    : <span className="summary-warn-text">ยังไม่ได้กรอกชื่อผู้ตรวจสอบ</span>
-                  }
-                  {(hrBefore || hrAfter) && (
-                    <span className="summary-detail">Hrs: {hrBefore || '–'} → {hrAfter || '–'}</span>
-                  )}
+                  <span className="summary-detail">
+                    Hrs: {hrBefore || '–'} → {hrAfter || '–'}
+                    {hasFuel && `  ·  น้ำมัน: ${rec.generalData?.fuelBefore || '–'} → ${rec.afterRun?.fuelAfter || '–'} L`}
+                  </span>
                 </div>
               </div>
             );
           })}
         </div>
       )}
+
+      {/* ── ค่าหลัง test-run ── */}
       <div className="abox">
         <div className="abox-label">บันทึกค่าหลังทดสอบ</div>
         <div className="r2">
@@ -549,11 +562,32 @@ function AfterRunStep({ data, setData, isGen, conclusionDefault, isVeryLast, mac
           <NumericField label="ชม. (หลัง)" unit="Hrs" value={a.runningHoursAfter} onChange={v => upd({ runningHoursAfter: v })} />
         </div>
       </div>
+
       <TextField label="หมายเหตุ" multiline value={a.comment} onChange={v => upd({ comment: v })}
         placeholder="เช่น น้ำมันหล่อลื่นรั่วซึม..." />
       <TextField label="สรุปผล" multiline value={conclusionVal} onChange={v => upd({ conclusionText: v })} />
-      <SignaturePad label="ลายเซ็นผู้ตรวจสอบ" value={a.inspectorSignature} onChange={sig => upd({ inspectorSignature: sig })} />
-      <TextField label="ชื่อผู้ตรวจสอบ" value={a.inspectedBy} onChange={v => upd({ inspectedBy: v })} />
+
+      {/* ── ลายเซ็น / ชื่อผู้ตรวจสอบ (แสดงเฉพาะหน้าสุดท้าย) ── */}
+      {isVeryLast && (
+        <div className="insp-box">
+          <div className="insp-title">ผู้ตรวจสอบ (ใช้กับทุกเครื่อง)</div>
+          <div className="insp-tabs">
+            <button
+              className={`insp-tab${inspMode === 'name' ? ' insp-tab--active' : ''}`}
+              onClick={() => { setInspMode('name'); upd({ inspectorSignature: null }); }}
+            >✏️ พิมพ์ชื่อ</button>
+            <button
+              className={`insp-tab${inspMode === 'sig' ? ' insp-tab--active' : ''}`}
+              onClick={() => { setInspMode('sig'); upd({ inspectedBy: '' }); }}
+            >✍️ ลายเซ็น</button>
+          </div>
+          {inspMode === 'name'
+            ? <TextField label="ชื่อผู้ตรวจสอบ" value={a.inspectedBy} onChange={v => upd({ inspectedBy: v })} />
+            : <SignaturePad label="ลายเซ็นผู้ตรวจสอบ" value={a.inspectorSignature} onChange={sig => upd({ inspectorSignature: sig })} />
+          }
+        </div>
+      )}
+
       {/* ผู้อนุมัติ hardcode — ไม่ต้องกรอก */}
       <style jsx>{`
         .stack{display:flex;flex-direction:column;gap:12px;width:100%}
@@ -573,6 +607,11 @@ function AfterRunStep({ data, setData, isGen, conclusionDefault, isVeryLast, mac
         .summary-machine{font-size:13px;font-weight:700;color:var(--ink-primary);}
         .summary-detail{font-size:11px;color:var(--ink-muted);}
         .summary-warn-text{font-size:11px;color:var(--status-fail);font-weight:600;}
+        .insp-box{background:var(--bg-surface);border:1.5px solid var(--status-pass);border-radius:var(--radius-md);padding:12px;display:flex;flex-direction:column;gap:10px;}
+        .insp-title{font-size:11px;font-weight:700;color:var(--status-pass);text-transform:uppercase;letter-spacing:0.05em;}
+        .insp-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+        .insp-tab{padding:8px 0;border:1.5px solid var(--border-hairline);border-radius:var(--radius-sm);background:var(--bg-base);color:var(--ink-secondary);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;}
+        .insp-tab--active{border-color:var(--status-pass);background:var(--status-pass-bg);color:var(--status-pass);}
       `}</style>
     </div>
   );
