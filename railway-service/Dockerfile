@@ -1,12 +1,14 @@
 FROM node:20-slim
 
-# ติดตั้ง LibreOffice + Python UNO + font ภาษาไทย
+# ติดตั้ง LibreOffice + Python + openpyxl + font ภาษาไทย
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
       libreoffice \
-      python3-uno \
+      python3 \
+      python3-pip \
       fonts-thai-tlwg \
       fonts-noto-cjk \
+    && pip3 install --no-cache-dir openpyxl --break-system-packages \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

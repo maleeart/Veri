@@ -1,88 +1,65 @@
 #!/usr/bin/env python3
 """
-แปลง xlsx → pdf ด้วย LibreOffice UNO API
-ตั้ง ScaleToPagesX=1, ScaleToPagesY=0 ให้ทุก sheet (fit 1 page wide, unlimited tall)
+แปลง xlsx → pdf สำหรับ LibreOffice
+1. ใช้ openpyxl ลบ scale ออก + บังคับ fitToWidth=1 ทุก sheet
+2. แปลงด้วย libreoffice --headless --convert-to pdf
 """
 import sys
 import os
 import subprocess
-import time
-import socket
+import shutil
+from openpyxl import load_workbook
+from openpyxl.worksheet.page import PageSetup
 
 
-def wait_for_port(port, timeout=30):
-    start = time.time()
-    while time.time() - start < timeout:
-        try:
-            s = socket.socket()
-            s.settimeout(1)
-            s.connect(('localhost', port))
-            s.close()
-            return True
-        except Exception:
-            time.sleep(0.5)
-    return False
+def fix_and_convert(input_path, output_path):
+    tmp_dir = os.path.dirname(input_path)
+    fixed_path = input_path.replace('.xlsx', '_fixed.xlsx')
 
+    # 1. Fix page setup: ลบ scale, ตั้ง fitToPage + fitToWidth=1
+    wb = load_workbook(input_path)
+    for ws in wb.worksheets:
+        ps = ws.page_setup
+        ps.fitToPage = True
+        ps.fitToWidth = 1
+        ps.fitToHeight = 0
+        ps.scale = None   # ลบ scale ออกเพื่อให้ LibreOffice ใช้ fitToWidth แทน
+    wb.save(fixed_path)
+    print(f'[convert] saved fixed xlsx: {fixed_path}', flush=True)
 
-def convert(input_path, output_path):
-    port = 2002
+    # 2. แปลงด้วย LibreOffice
+    result = subprocess.run(
+        ['libreoffice', '--headless', '--norestore',
+         '--convert-to', 'pdf', fixed_path, '--outdir', tmp_dir],
+        capture_output=True, text=True, timeout=90
+    )
+    print(f'[convert] libreoffice stdout: {result.stdout}', flush=True)
+    print(f'[convert] libreoffice stderr: {result.stderr}', flush=True)
 
-    lo_proc = subprocess.Popen([
-        'libreoffice', '--headless', '--norestore', '--nofirststartwizard',
-        f'--accept=socket,host=localhost,port={port};urp;StarOffice.ServiceManager',
-    ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-    if not wait_for_port(port, timeout=40):
-        lo_proc.kill()
-        raise RuntimeError('LibreOffice UNO socket timeout')
-
+    # ลบไฟล์ temp
     try:
-        import uno
-        from com.sun.star.beans import PropertyValue
+        os.unlink(fixed_path)
+    except Exception:
+        pass
 
-        local_ctx = uno.getComponentContext()
-        resolver = local_ctx.ServiceManager.createInstanceWithContext(
-            'com.sun.star.bridge.UnoUrlResolver', local_ctx)
-        ctx = resolver.resolve(
-            f'uno:socket,host=localhost,port={port};urp;StarOffice.ComponentContext')
-        smgr = ctx.ServiceManager
-        desktop = smgr.createInstanceWithContext('com.sun.star.frame.Desktop', ctx)
+    if result.returncode != 0:
+        raise RuntimeError(f'LibreOffice error: {result.stderr}')
 
-        file_url = 'file://' + input_path
-        open_props = (PropertyValue('Hidden', 0, True, 0),)
-        doc = desktop.loadComponentFromURL(file_url, '_blank', 0, open_props)
+    # LibreOffice ตั้งชื่อ output ตาม input เช่น input_fixed.pdf
+    expected_pdf = fixed_path.replace('.xlsx', '.pdf')
+    if not os.path.exists(expected_pdf):
+        # ลอง path อื่น
+        expected_pdf = os.path.join(tmp_dir, os.path.basename(fixed_path).replace('.xlsx', '.pdf'))
 
-        sheets = doc.getSheets()
-        page_styles = doc.getStyleFamilies().getByName('PageStyles')
+    if not os.path.exists(expected_pdf):
+        raise RuntimeError(f'PDF ไม่ถูกสร้าง expected: {expected_pdf}')
 
-        seen_styles = set()
-        for i in range(sheets.getCount()):
-            sheet = sheets.getByIndex(i)
-            style_name = sheet.PageStyle
-            if style_name in seen_styles:
-                continue
-            seen_styles.add(style_name)
-            style = page_styles.getByName(style_name)
-            # fit ทุก column ใน 1 หน้า, rows ไม่จำกัด (เหมือน Excel fitToWidth=1 fitToHeight=0)
-            style.ScaleToPages = 0
-            style.ScaleToPagesX = 1
-            style.ScaleToPagesY = 0
-
-        pdf_url = 'file://' + output_path
-        pdf_props = (PropertyValue('FilterName', 0, 'calc_pdf_Export', 0),)
-        doc.storeToURL(pdf_url, pdf_props)
-        doc.close(False)
-
-    finally:
-        lo_proc.terminate()
-        try:
-            lo_proc.wait(timeout=5)
-        except Exception:
-            lo_proc.kill()
+    shutil.move(expected_pdf, output_path)
+    print(f'[convert] done: {output_path}', flush=True)
 
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         print('Usage: convert.py <input.xlsx> <output.pdf>', file=sys.stderr)
         sys.exit(1)
-    convert(sys.argv[1], sys.argv[2])
+    fix_and_convert(sys.argv[1], sys.argv[2])
