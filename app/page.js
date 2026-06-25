@@ -190,56 +190,37 @@ function HomePageInner() {
 
           {dates && dates.length > 0 && (
             <>
-              {/* ── Month filter ── */}
-              <div className="filter-section">
-                <div className="filter-label">เดือน</div>
-                <div className="filter-chips">
-                  <button
-                    className={`chip ${!selectedMonth ? 'chip--active' : ''}`}
-                    onClick={() => setSelectedMonth(null)}>
-                    ทั้งหมด
-                  </button>
-                  {availableMonths.map(ym => (
-                    <button
-                      key={ym}
-                      className={`chip ${selectedMonth === ym ? 'chip--active' : ''}`}
-                      onClick={() => setSelectedMonth(ym)}>
-                      {fmtMonth(ym)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* ── Building filter (แสดงเฉพาะถ้ามีหลายอาคาร) ── */}
-              {availableBuildings.length > 1 && (
-                <div className="filter-section">
-                  <div className="filter-label">อาคาร</div>
-                  <div className="filter-chips">
-                    <button
-                      className={`chip ${!selectedBuilding ? 'chip--active' : ''}`}
-                      onClick={() => setSelectedBuilding('')}>
-                      ทั้งหมด
-                    </button>
-                    {availableBuildings.map(b => (
-                      <button
-                        key={b}
-                        className={`chip ${selectedBuilding === b ? 'chip--active' : ''}`}
-                        onClick={() => setSelectedBuilding(b)}>
-                        {b}
-                      </button>
+              <div className="filter-row">
+                <div className="filter-col">
+                  <label className="filter-label">เดือน</label>
+                  <select className="filter-select"
+                    value={selectedMonth || ''}
+                    onChange={e => setSelectedMonth(e.target.value || null)}>
+                    <option value="">ทั้งหมด</option>
+                    {availableMonths.map(ym => (
+                      <option key={ym} value={ym}>{fmtMonth(ym)}</option>
                     ))}
-                  </div>
+                  </select>
                 </div>
-              )}
-
-              {/* ── Result count ── */}
-              {(selectedMonth || selectedBuilding) && (
-                <p className="filter-result">
-                  พบ {filteredDates.length} รายการ
-                  {selectedMonth ? ` · ${fmtMonth(selectedMonth)}` : ''}
-                  {selectedBuilding ? ` · ${selectedBuilding}` : ''}
-                </p>
-              )}
+                {availableBuildings.length > 0 && (
+                  <div className="filter-col">
+                    <label className="filter-label">อาคาร</label>
+                    <select className="filter-select"
+                      value={selectedBuilding}
+                      onChange={e => setSelectedBuilding(e.target.value)}>
+                      <option value="">ทั้งหมด</option>
+                      {availableBuildings.map(b => (
+                        <option key={b} value={b}>{b}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+              <p className="filter-result">
+                พบ {filteredDates.length} รายการ
+                {selectedMonth ? ` · ${fmtMonth(selectedMonth)}` : ''}
+                {selectedBuilding ? ` · ${selectedBuilding}` : ''}
+              </p>
             </>
           )}
 
@@ -461,10 +442,16 @@ function HomePageInner() {
         }
 
         /* ─── Filter bar ─── */
-        .filter-section {
+        .filter-row {
+          display: flex;
+          gap: 10px;
+        }
+        .filter-col {
+          flex: 1;
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 4px;
+          min-width: 0;
         }
         .filter-label {
           font-size: 11px;
@@ -472,35 +459,22 @@ function HomePageInner() {
           color: var(--ink-muted);
           text-transform: uppercase;
           letter-spacing: 0.05em;
-          padding: 0 2px;
         }
-        .filter-chips {
-          display: flex;
-          gap: 6px;
-          flex-wrap: wrap;
-        }
-        .chip {
-          padding: 5px 12px;
-          border-radius: 20px;
+        .filter-select {
+          width: 100%;
+          padding: 8px 10px;
+          border-radius: 10px;
           border: 1.5px solid var(--border-strong);
           background: var(--bg-surface-raised);
-          font-size: 12px;
+          font-size: 13px;
           font-weight: 600;
-          color: var(--ink-secondary);
-          cursor: pointer;
-          white-space: nowrap;
-          -webkit-tap-highlight-color: transparent;
-        }
-        .chip--active {
-          background: var(--accent);
-          color: var(--accent-ink);
-          border-color: var(--accent);
+          color: var(--ink-primary);
+          appearance: auto;
         }
         .filter-result {
           font-size: 12px;
           color: var(--ink-muted);
           margin: 0;
-          padding: 0 2px;
         }
 
         /* Group */
