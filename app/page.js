@@ -1,16 +1,19 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 
-// ─── ไม่แตะ Logic / API / Export / History ─────────────────────────────────
+const THAI_MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+function fmtMonth(ym) { // "2026-06" → "มิ.ย. 69"
+  const [y, m] = ym.split('-');
+  return `${THAI_MONTHS[parseInt(m) - 1]} ${String(parseInt(y) + 543).slice(2)}`;
+}
 
 function HomePageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // ── state เดิมทั้งหมด ───────────────────────────────────────────────────
   const [dates, setDates] = useState(null);
   const [githubOk, setGithubOk] = useState(null);
   const [githubError, setGithubError] = useState('');
@@ -18,8 +21,10 @@ function HomePageInner() {
   const [justSaved, setJustSaved] = useState(false);
   const [hasDraft, setHasDraft] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [comingSoon, setComingSoon] = useState(null); // unused — kept for future
   const [openGroups, setOpenGroups] = useState(new Set(['fpg', 'emergency', 'smoke']));
+  const [selectedMonth, setSelectedMonth] = useState(null);   // "2026-06" | null = ทั้งหมด
+  const [selectedBuilding, setSelectedBuilding] = useState(''); // '' = ทั้งหมด
+
   const toggleGroup = type => setOpenGroups(prev => {
     const next = new Set(prev);
     next.has(type) ? next.delete(type) : next.add(type);
@@ -27,6 +32,33 @@ function HomePageInner() {
   });
   const today = new Date().toISOString().slice(0, 10);
   const SESSION_KEY = `session:${today}`;
+
+  // available months & buildings จากข้อมูลทั้งหมด
+  const availableMonths = useMemo(() => {
+    const s = new Set((dates || []).map(d => d.date.slice(0, 7)).filter(Boolean));
+    return [...s].sort().reverse();
+  }, [dates]);
+
+  const availableBuildings = useMemo(() => {
+    const s = new Set((dates || []).map(d => d.building).filter(Boolean));
+    return [...s].sort();
+  }, [dates]);
+
+  // filtered list
+  const filteredDates = useMemo(() => {
+    return (dates || []).filter(d => {
+      const mOk = !selectedMonth || d.date.startsWith(selectedMonth);
+      const bOk = !selectedBuilding || d.building === selectedBuilding;
+      return mOk && bOk;
+    });
+  }, [dates, selectedMonth, selectedBuilding]);
+
+  // default selectedMonth = เดือนล่าสุดที่มีข้อมูล (ตั้งค่าครั้งเดียวหลังโหลด)
+  useEffect(() => {
+    if (availableMonths.length > 0 && selectedMonth === null) {
+      setSelectedMonth(availableMonths[0]);
+    }
+  }, [availableMonths]);
 
   useEffect(() => {
     try { if (localStorage.getItem(SESSION_KEY)) setHasDraft(true); } catch {}
@@ -153,14 +185,71 @@ function HomePageInner() {
       {/* ── History panel ── */}
       {showHistory && (
         <section className="history-panel">
-          {dates?.length === 0 && <p className="history-empty">ยังไม่มีประวัติ</p>}
           {githubOk === false && <p className="history-empty">⚠ ต้องตั้งค่า GitHub token ก่อน</p>}
+          {dates?.length === 0 && <p className="history-empty">ยังไม่มีประวัติ</p>}
+
+          {dates && dates.length > 0 && (
+            <>
+              {/* ── Month filter ── */}
+              <div className="filter-section">
+                <div className="filter-label">เดือน</div>
+                <div className="filter-chips">
+                  <button
+                    className={`chip ${!selectedMonth ? 'chip--active' : ''}`}
+                    onClick={() => setSelectedMonth(null)}>
+                    ทั้งหมด
+                  </button>
+                  {availableMonths.map(ym => (
+                    <button
+                      key={ym}
+                      className={`chip ${selectedMonth === ym ? 'chip--active' : ''}`}
+                      onClick={() => setSelectedMonth(ym)}>
+                      {fmtMonth(ym)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* ── Building filter (แสดงเฉพาะถ้ามีหลายอาคาร) ── */}
+              {availableBuildings.length > 1 && (
+                <div className="filter-section">
+                  <div className="filter-label">อาคาร</div>
+                  <div className="filter-chips">
+                    <button
+                      className={`chip ${!selectedBuilding ? 'chip--active' : ''}`}
+                      onClick={() => setSelectedBuilding('')}>
+                      ทั้งหมด
+                    </button>
+                    {availableBuildings.map(b => (
+                      <button
+                        key={b}
+                        className={`chip ${selectedBuilding === b ? 'chip--active' : ''}`}
+                        onClick={() => setSelectedBuilding(b)}>
+                        {b}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Result count ── */}
+              {(selectedMonth || selectedBuilding) && (
+                <p className="filter-result">
+                  พบ {filteredDates.length} รายการ
+                  {selectedMonth ? ` · ${fmtMonth(selectedMonth)}` : ''}
+                  {selectedBuilding ? ` · ${selectedBuilding}` : ''}
+                </p>
+              )}
+            </>
+          )}
+
+          {/* ── Grouped list ── */}
           {[
             { type: 'fpg',       icon: '🚒⚡', label: 'Fire Pump & Generator', accent: '#c0392b' },
             { type: 'emergency', icon: '💡',   label: 'Emergency Light',        accent: '#1e7e34' },
             { type: 'smoke',     icon: '🚨',   label: 'Smoke Detector',         accent: '#1a4a8a' },
           ].map(({ type, icon, label, accent }) => {
-            const group = (dates || []).filter(d => d.type === type);
+            const group = filteredDates.filter(d => d.type === type);
             if (!group.length) return null;
             const isOpen = openGroups.has(type);
             return (
@@ -369,6 +458,49 @@ function HomePageInner() {
           font-size: 14px;
           color: var(--ink-muted);
           margin: 0;
+        }
+
+        /* ─── Filter bar ─── */
+        .filter-section {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .filter-label {
+          font-size: 11px;
+          font-weight: 700;
+          color: var(--ink-muted);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          padding: 0 2px;
+        }
+        .filter-chips {
+          display: flex;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+        .chip {
+          padding: 5px 12px;
+          border-radius: 20px;
+          border: 1.5px solid var(--border-strong);
+          background: var(--bg-surface-raised);
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--ink-secondary);
+          cursor: pointer;
+          white-space: nowrap;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .chip--active {
+          background: var(--accent);
+          color: var(--accent-ink);
+          border-color: var(--accent);
+        }
+        .filter-result {
+          font-size: 12px;
+          color: var(--ink-muted);
+          margin: 0;
+          padding: 0 2px;
         }
 
         /* Group */

@@ -1,22 +1,19 @@
 /**
- * githubStorage.js v3
+ * githubStorage.js v4
  *
  * โครงสร้างไฟล์ใน GitHub branch "data":
- *   data/inspections/<type>_<YYYY-MM-DD>.json
- *   เช่น fpg_2026-06-24.json, emergency_2026-06-24.json
+ *   data/inspections/<type>/<YYYY-MM>/<type>_<YYYY-MM-DD>[_building_floor].json
+ *   เช่น data/inspections/fpg/2026-06/fpg_2026-06-24.json
+ *        data/inspections/emergency/2026-06/emergency_2026-06-24_อาคาร-A_1.json
  *
- * รูปแบบ JSON:
- * {
- *   "date": "2026-06-24",
- *   "type": "fpg",
- *   "records": { "fire-pump-1": {...}, ... }
- * }
+ * ใช้ GitHub Trees API (recursive) สำหรับ listInspectionDates
+ * เพื่อรองรับไฟล์จำนวนมาก (ไม่ชน limit 1,000 ของ Contents API)
  *
  * branch "data" แยกจาก "main" (โค้ด) — สร้างอัตโนมัติถ้ายังไม่มี
  */
 
 const BASE = 'https://api.github.com';
-const DATA_BRANCH = 'data'; // hardcode — ไม่ใช้ env var เพื่อป้องกัน override โดยไม่ตั้งใจ
+const DATA_BRANCH = 'data';
 
 const TYPE_LABELS = {
   fpg:       'Fire Pump & Generator',
@@ -71,14 +68,27 @@ function sanitizePart(s) {
   return String(s || '').replace(/[/\\:*?"<>|]/g, '').replace(/\s+/g, '-').replace(/_/g, '-').slice(0, 30);
 }
 
+/** โครงสร้างใหม่: data/inspections/{type}/{YYYY-MM}/{type}_{YYYY-MM-DD}[_bld_flr].json */
 function datePath(date, type = 'fpg', building = '', floor = '') {
   const safeDate = String(date).replace(/[^0-9-]/g, '');
   const safeType = String(type).replace(/[^a-z]/g, '');
   if (!safeDate || !safeType) throw new Error('date หรือ type ไม่ถูกต้อง');
+  const yearMonth = safeDate.slice(0, 7); // "2026-06"
   const bld = sanitizePart(building);
   const flr = sanitizePart(floor);
   const extra = [bld, flr].filter(Boolean).join('_');
-  return `data/inspections/${safeType}_${safeDate}${extra ? '_' + extra : ''}.json`;
+  return `data/inspections/${safeType}/${yearMonth}/${safeType}_${safeDate}${extra ? '_' + extra : ''}.json`;
+}
+
+/** แปลง filename → metadata object */
+function parseFilename(filename) {
+  // filename = "fpg_2026-06-24" หรือ "emergency_2026-06-24_อาคาร-A_ชั้น-1"
+  const parts    = filename.split('_');
+  const type     = parts[0] || 'fpg';
+  const date     = parts[1] || '';
+  const building = (parts[2] || '').replace(/-/g, ' ');
+  const floor    = (parts[3] || '').replace(/-/g, ' ');
+  return { date, type, label: TYPE_LABELS[type] || type.toUpperCase(), building, floor, filename };
 }
 
 /** โหลดข้อมูลวันที่ระบุ */
@@ -138,28 +148,36 @@ async function saveInspectionRecord(machineId, date, machineData, type = 'fpg', 
 }
 
 /**
- * รายการวันที่ทั้งหมดที่มีข้อมูล
- * คืน [{ date, type, label }] เรียงใหม่→เก่า
+ * รายการไฟล์ทั้งหมดโดยใช้ GitHub Trees API (recursive=1)
+ * รองรับได้ถึง ~100,000 ไฟล์ ไม่ชน limit ของ Contents API
+ * คืน [{ date, type, label, building, floor, filename }] เรียงใหม่→เก่า
  */
 async function listInspectionDates() {
   const { owner, repo, branch } = cfg();
-  const res = await ghReq(`/repos/${owner}/${repo}/contents/data/inspections?ref=${branch}`);
-  if (res.status === 404) return [];
-  if (!res.ok) throw new Error(`ดึงรายการไม่สำเร็จ HTTP ${res.status}`);
-  const items = await res.json();
-  return items
-    .filter(i => i.type === 'file' && i.name.endsWith('.json'))
-    .map(i => {
-      const filename = i.name.replace(/\.json$/, '');   // "fpg_2026-06-24" หรือ "emergency_2026-06-24_อาคาร_ชั้น1"
-      const parts    = filename.split('_');
-      const type     = parts[0] || 'fpg';
-      const date     = parts[1] || '';                  // YYYY-MM-DD
-      const building = (parts[2] || '').replace(/-/g, ' ');
-      const floor    = (parts[3] || '').replace(/-/g, ' ');
-      return { date, type, label: TYPE_LABELS[type] || type.toUpperCase(), building, floor, filename };
+
+  // ดึง SHA ของ branch head
+  const refRes = await ghReq(`/repos/${owner}/${repo}/git/ref/heads/${branch}`);
+  if (refRes.status === 404) return []; // branch ยังไม่มี
+  if (!refRes.ok) throw new Error(`ดึง ref ไม่สำเร็จ HTTP ${refRes.status}`);
+  const { object: { sha: treeSha } } = await refRes.json();
+
+  // ดึง tree แบบ recursive
+  const treeRes = await ghReq(`/repos/${owner}/${repo}/git/trees/${treeSha}?recursive=1`);
+  if (!treeRes.ok) throw new Error(`ดึง tree ไม่สำเร็จ HTTP ${treeRes.status}`);
+  const { tree } = await treeRes.json();
+
+  return tree
+    .filter(item =>
+      item.type === 'blob' &&
+      item.path.startsWith('data/inspections/') &&
+      item.path.endsWith('.json')
+    )
+    .map(item => {
+      const filename = item.path.split('/').pop().replace(/\.json$/, '');
+      return parseFilename(filename);
     })
-    .filter(i => /^\d{4}-\d{2}-\d{2}$/.test(i.date))  // กรองไฟล์ที่ไม่ใช่ format ที่ถูกต้อง
-    .sort((a, b) => b.date.localeCompare(a.date));      // เรียงใหม่→เก่า
+    .filter(i => /^\d{4}-\d{2}-\d{2}$/.test(i.date))
+    .sort((a, b) => b.date.localeCompare(a.date));
 }
 
 /** ดึงข้อมูลวันที่ระบุ (alias) */
@@ -167,14 +185,29 @@ async function loadInspectionByDate(date, type = 'fpg', building = '', floor = '
   return loadSessionByDate(date, type, building, floor);
 }
 
-/** ดึงข้อมูลจาก filename โดยตรง (ไม่ต้อง rebuild path) */
+/** ดึงข้อมูลจาก filename โดยตรง — รองรับทั้ง path เก่าและใหม่ */
 async function loadInspectionByFilename(filename) {
   const { owner, repo, branch } = cfg();
-  const path = `data/inspections/${filename}.json`;
-  const res = await ghReq(`/repos/${owner}/${repo}/contents/${path}?ref=${branch}`);
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`โหลดไม่สำเร็จ HTTP ${res.status}`);
-  const json = await res.json();
+
+  // ลอง path ใหม่ก่อน: data/inspections/{type}/{YYYY-MM}/{filename}.json
+  const parts = filename.split('_');
+  const type  = parts[0] || 'fpg';
+  const date  = parts[1] || '';
+  const yearMonth = date.slice(0, 7);
+
+  const newPath = `data/inspections/${type}/${yearMonth}/${filename}.json`;
+  const newRes  = await ghReq(`/repos/${owner}/${repo}/contents/${newPath}?ref=${branch}`);
+  if (newRes.ok) {
+    const json = await newRes.json();
+    return JSON.parse(Buffer.from(json.content, 'base64').toString('utf-8'));
+  }
+
+  // fallback path เก่า: data/inspections/{filename}.json
+  const oldPath = `data/inspections/${filename}.json`;
+  const oldRes  = await ghReq(`/repos/${owner}/${repo}/contents/${oldPath}?ref=${branch}`);
+  if (oldRes.status === 404) return null;
+  if (!oldRes.ok) throw new Error(`โหลดไม่สำเร็จ HTTP ${oldRes.status}`);
+  const json = await oldRes.json();
   return JSON.parse(Buffer.from(json.content, 'base64').toString('utf-8'));
 }
 
