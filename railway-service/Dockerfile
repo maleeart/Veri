@@ -1,10 +1,10 @@
 FROM node:20-slim
 
-# ติดตั้ง LibreOffice + Python + font ภาษาไทย
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
       libreoffice \
       python3 \
+      python3-uno \
       fonts-thai-tlwg \
       fonts-noto-cjk \
     && rm -rf /var/lib/apt/lists/*
@@ -12,8 +12,7 @@ RUN apt-get update && \
 WORKDIR /app
 COPY package.json .
 RUN npm install --omit=dev
-COPY server.js .
-COPY convert.py .
+COPY server.js convert.py ./
 
 EXPOSE 3001
 CMD ["node", "server.js"]
