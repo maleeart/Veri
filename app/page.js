@@ -76,7 +76,7 @@ function HomePageInner() {
       .catch(() => { setDates([]); setGithubOk(false); setGithubError('ไม่สามารถเชื่อมต่อ API ได้'); });
   }, []);
 
-  // ── handler เดิม ─────────────────────────────────────────────────────────
+  // ── download Excel ───────────────────────────────────────────────────────
   const handleDownload = async (date, type = 'fpg', filename = null, building = '', floor = '') => {
     setDownloading(filename || date);
     try {
@@ -94,6 +94,32 @@ function HomePageInner() {
       const prefix = type === 'fpg' ? 'FPG' : type === 'emergency' ? 'Emergency' : 'Smoke';
       const bldFlr = [building, floor].filter(Boolean).join('_');
       a.href = url; a.download = `${prefix}_report_${date}${bldFlr ? '_' + bldFlr : ''}.xlsx`;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) { alert('เกิดข้อผิดพลาด: ' + err.message); }
+    finally { setDownloading(null); }
+  };
+
+  // ── download PDF (xlsx → LibreOffice service → pdf) ──────────────────────
+  const handleDownloadPdf = async (date, type = 'fpg', filename = null) => {
+    const dlKey = `pdf_${filename || date}`;
+    setDownloading(dlKey);
+    try {
+      const res = await fetch('/api/export-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date, type, filename }),
+      });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        alert(e.error || 'ดาวน์โหลด PDF ไม่สำเร็จ');
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `FPG_report_${date}.pdf`;
       document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
     } catch (err) { alert('เกิดข้อผิดพลาด: ' + err.message); }
@@ -253,10 +279,18 @@ function HomePageInner() {
                         <span className="hist-date">{date}{date === today ? ' · วันนี้' : ''}</span>
                       </div>
                       <div className="hist-actions">
-                        <button className="btn-dl btn-dl--pdf"
-                          onClick={() => router.push(`/report/${encodeURIComponent(filename || `${type}_${date}`)}`)}>
-                          📄 PDF
-                        </button>
+                        {type === 'fpg' ? (
+                          <button className="btn-dl btn-dl--pdf"
+                            disabled={!!downloading}
+                            onClick={() => handleDownloadPdf(date, type, filename)}>
+                            {downloading === `pdf_${dlKey}` ? '⏳' : '📄 PDF'}
+                          </button>
+                        ) : (
+                          <button className="btn-dl btn-dl--pdf"
+                            onClick={() => router.push(`/report/${encodeURIComponent(filename || `${type}_${date}`)}`)}>
+                            📄 PDF
+                          </button>
+                        )}
                         <button className="btn-dl" disabled={!!downloading}
                           onClick={() => handleDownload(date, type, filename, building, floor)}>
                           {downloading === dlKey ? '⏳' : '⬇︎ Excel'}
