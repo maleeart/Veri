@@ -252,10 +252,16 @@ function HomePageInner() {
                         {location && <span className="hist-location">{location}</span>}
                         <span className="hist-date">{date}{date === today ? ' · วันนี้' : ''}</span>
                       </div>
-                      <button className="btn-dl" disabled={!!downloading}
-                        onClick={() => handleDownload(date, type, filename, building, floor)}>
-                        {downloading === dlKey ? '⏳' : '⬇︎ Excel'}
-                      </button>
+                      <div className="hist-actions">
+                        <button className="btn-dl btn-dl--pdf"
+                          onClick={() => router.push(`/report/${encodeURIComponent(filename || `${type}_${date}`)}`)}>
+                          📄 PDF
+                        </button>
+                        <button className="btn-dl" disabled={!!downloading}
+                          onClick={() => handleDownload(date, type, filename, building, floor)}>
+                          {downloading === dlKey ? '⏳' : '⬇︎ Excel'}
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -538,16 +544,21 @@ function HomePageInner() {
           font-size: 11px;
           color: var(--ink-muted);
         }
+        .hist-actions { display: flex; gap: 6px; flex-shrink: 0; }
         .btn-dl {
           background: #1a7a3f;
           color: #fff;
           border: none;
           border-radius: 10px;
-          padding: 6px 14px;
-          font-size: 13px;
+          padding: 6px 12px;
+          font-size: 12px;
           font-weight: 600;
           cursor: pointer;
           flex-shrink: 0;
+          white-space: nowrap;
+        }
+        .btn-dl--pdf {
+          background: #c0392b;
         }
         .btn-dl:disabled { opacity: 0.5; }
 
