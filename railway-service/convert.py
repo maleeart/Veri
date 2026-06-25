@@ -90,8 +90,9 @@ def _wait_socket(timeout=60):
 
 
 def convert_via_uno(xlsx_path: str, pdf_path: str):
-    # kill soffice เดิมก่อน (เผื่อค้าง)
-    subprocess.run(['pkill', '-9', '-f', 'soffice'], capture_output=True)
+    # kill soffice เดิมก่อน (เผื่อค้าง) — ใช้ sh เพราะ pkill อาจไม่มีใน slim image
+    subprocess.run(['sh', '-c', 'pkill -9 -f soffice 2>/dev/null; killall -9 soffice 2>/dev/null; true'],
+                   capture_output=True)
     time.sleep(1)
 
     proc = subprocess.Popen([
