@@ -1,0 +1,25 @@
+{
+  "date": "2026-06-25",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-06-25",
+      "building": "ทดสอบ emer",
+      "floor": "11",
+      "inspector": "maleeart",
+      "model": "",
+      "serial": "",
+      "mfg": ""
+    },
+    "devices": [
+      {
+        "location": "ll",
+        "remarks": "",
+        "id": "1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "off"
+      }
+    ]
+  }
+}
