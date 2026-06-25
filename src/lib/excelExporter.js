@@ -204,12 +204,14 @@ async function writeMachineData(wb, data) {
 
   // วันที่บันทึก → ใช้วันที่กรอกข้อมูล (inspectionDate) ไม่ใช่วันนี้
   const inspDate = data.inspectionDate ? new Date(data.inspectionDate) : new Date();
-  // df.inspected_by_date / approved_by_date = เซลล์วันที่จริงใน template (AP107 / CY107)
   setCell(ws2, df.inspected_by_date, inspDate);
   setCell(ws2, df.approved_by_date,  inspDate);
-  // ชื่อผู้อนุมัติ: ใช้ค่า default ใน template (ตวงเพชร) → ไม่ต้องเขียนทับ
 
-  // ลายเซ็นผู้ตรวจสอบ: ใช้ภาพถ้ามี, ไม่มีให้พิมพ์ชื่อที่ตำแหน่งลายเซ็น
+  // ────────────────────────────────────────────────────────────
+  // ลายเซ็น / ชื่อผู้ตรวจสอบ
+  //   มีลายเซ็น → วาดภาพ PNG ที่ตำแหน่ง signature_inspector
+  //   ไม่มีลายเซ็น → พิมพ์ชื่อที่ inspector_name_cell (AP106/AP94)
+  // ────────────────────────────────────────────────────────────
   if (df.signature_inspector) {
     const sig = df.signature_inspector;
     if (afterRun.inspectorSignature) {
@@ -221,12 +223,48 @@ async function writeMachineData(wb, data) {
           br: { col: sig.col2 - 1, row: sig.row2 - 1 },
           editAs: 'twoCell',
         });
-      } catch (e) { console.warn('signature image error:', e.message); }
+      } catch (e) { console.warn('inspector signature image error:', e.message); }
     } else if (afterRun.inspectedBy) {
-      // ไม่มีลายเซ็น → พิมพ์ชื่อเป็นตัวหนังสือที่แถว sig.row (บนของ sig area)
-      const nameCell = `${colNumToLetter(sig.col)}${sig.row}`;
-      setCell(ws2, nameCell, afterRun.inspectedBy);
+      // ไม่มีลายเซ็น → เขียนชื่อด้วย font ดำเพื่อให้แน่ใจว่าแสดงได้
+      const nameRef = df.inspector_name_cell || `${colNumToLetter(sig.col)}${sig.row}`;
+      try {
+        const cell = ws2.getCell(nameRef);
+        cell.value = afterRun.inspectedBy;
+        cell.font = { name: 'TH SarabunPSK', size: 14, bold: false, color: { argb: 'FF000000' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: false };
+      } catch (e) { console.warn('inspector name write error:', e.message); }
     }
+  }
+
+  // ────────────────────────────────────────────────────────────
+  // ลายเซ็น / ชื่อผู้อนุมัติ
+  //   มีลายเซ็น approver → วาดภาพที่ signature_approver
+  //   ไม่มี → เขียนชื่อที่ approver_name_cell (CY106/CY94)
+  //            ถ้าไม่ได้กรอก approvedBy ไว้ → ปล่อยค่า default ใน template
+  // ────────────────────────────────────────────────────────────
+  if (df.signature_approver) {
+    const sigA = df.signature_approver;
+    if (afterRun.approverSignature) {
+      try {
+        const base64 = afterRun.approverSignature.replace(/^data:image\/\w+;base64,/, '');
+        const imgId = wb.addImage({ base64, extension: 'png' });
+        ws2.addImage(imgId, {
+          tl: { col: sigA.col - 1, row: sigA.row - 1 },
+          br: { col: sigA.col2 - 1, row: sigA.row2 - 1 },
+          editAs: 'twoCell',
+        });
+      } catch (e) { console.warn('approver signature image error:', e.message); }
+    } else if (afterRun.approvedBy) {
+      // มีชื่อผู้อนุมัติที่กรอก → เขียนทับค่า default
+      const approverRef = df.approver_name_cell || `${colNumToLetter(sigA.col2)}${sigA.row}`;
+      try {
+        const cell = ws2.getCell(approverRef);
+        cell.value = afterRun.approvedBy;
+        cell.font = { name: 'TH SarabunPSK', size: 14, bold: false, color: { argb: 'FF000000' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: false };
+      } catch (e) { console.warn('approver name write error:', e.message); }
+    }
+    // ไม่กรอก approvedBy → ปล่อยค่า default "ตวงเพชร" ใน template ไว้
   }
 }
 

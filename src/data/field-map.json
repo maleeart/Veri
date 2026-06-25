@@ -258,8 +258,10 @@
       ],
       "inspected_by_name": "AP107",
       "inspected_by_date": "AP107",
+      "inspector_name_cell": "AP106",
       "approved_by_name": "CY107",
       "approved_by_date": "CY107",
+      "approver_name_cell": "CY106",
       "signature_inspector": {
         "col": 42,
         "row": 106,
@@ -437,8 +439,10 @@
       ],
       "inspected_by_name": "AP95",
       "inspected_by_date": "AP95",
+      "inspector_name_cell": "AP94",
       "approved_by_name": "CY95",
       "approved_by_date": "CY95",
+      "approver_name_cell": "CY94",
       "signature_inspector": {
         "col": 42,
         "row": 94,
