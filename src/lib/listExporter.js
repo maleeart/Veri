@@ -20,6 +20,11 @@ async function generateListReport(type, data) {
   const ws = wb.getWorksheet(SHEET_NAMES[type]);
   if (!ws) throw new Error(`ไม่พบ sheet: ${SHEET_NAMES[type]}`);
 
+  // fit all columns on one page width (แก้ปัญหา scale ล้นขอบ)
+  ws.pageSetup.fitToPage   = true;
+  ws.pageSetup.fitToWidth  = 1;
+  ws.pageSetup.fitToHeight = 0; // ไม่จำกัดจำนวนหน้าแนวตั้ง
+
   const g = data.general || {};
   ws.getCell('F6').value = g.inspectionDate || data.date || '';
   ws.getCell('B7').value = g.building  || '';
