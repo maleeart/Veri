@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import path from 'path';
+import fs from 'fs';
 import { loadInspectionByDate } from '../../../src/lib/githubStorage';
 import { generateFpgReportHtml } from '../../../src/lib/fpgReportHtml';
 import fieldMap from '../../../src/data/field-map.json';
@@ -6,15 +8,12 @@ import fieldMap from '../../../src/data/field-map.json';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-/**
- * POST /api/export-pdf
- * Body: { date, records?, type?, filename? }
- *
- * 1. โหลด records
- * 2. generate HTML ของ FPG report (server-side)
- * 3. POST html ไป Railway (puppeteer) → ได้ PDF
- * 4. คืน PDF ให้ client
- */
+function readBase64(filePath) {
+  try {
+    return fs.readFileSync(filePath).toString('base64');
+  } catch { return null; }
+}
+
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -43,18 +42,22 @@ export async function POST(request) {
       return NextResponse.json({ error: 'ไม่พบข้อมูล' }, { status: 404 });
     }
 
-    // หา machine info จาก filename หรือ records key แรก
+    // หา machine info
     const machineId = filename?.replace(/_\d{4}-\d{2}-\d{2}$/, '') || Object.keys(records)[0];
     const machineInfo = (fieldMap.machines || []).find(m => m.id === machineId) || { id: machineId, type };
 
-    // รวม records ถ้ามีหลาย machine (เลือก key แรก)
+    // เลือก record แรก
     const firstKey = Object.keys(records)[0];
     const data = records[firstKey] || records;
 
-    // Generate HTML
-    const html = generateFpgReportHtml(data, machineInfo);
+    // Embed logo + approver signature เป็น base64
+    const logoBase64 = readBase64(path.join(process.cwd(), 'public/assets/shared/egat-logo.jpg'));
+    const approverSigBase64 = readBase64(path.join(process.cwd(), 'public/assets/shared/signature-approver.png'));
 
-    // ส่ง HTML ไปแปลงเป็น PDF ที่ Railway
+    // Generate HTML
+    const html = generateFpgReportHtml(data, machineInfo, logoBase64, approverSigBase64);
+
+    // ส่ง HTML ไปแปลงเป็น PDF ที่ Railway (puppeteer)
     const convertRes = await fetch(`${loUrl.replace(/\/$/, '')}/convert-html`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
