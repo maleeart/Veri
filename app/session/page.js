@@ -506,7 +506,7 @@ function TestRunStep({ data, setData, isGen }) {
 }
 
 function AfterRunStep({ data, setData, isGen, conclusionDefault, isVeryLast, machines, records }) {
-  const a = { approvedBy: 'ตวงเพชร ชัยยานนท์', ...data.afterRun };
+  const a = data.afterRun || {};
   const upd = p => setData({ ...data, afterRun: { ...a, ...p } });
   const conclusionVal = a.conclusionText || conclusionDefault;
   return (
@@ -554,8 +554,7 @@ function AfterRunStep({ data, setData, isGen, conclusionDefault, isVeryLast, mac
       <TextField label="สรุปผล" multiline value={conclusionVal} onChange={v => upd({ conclusionText: v })} />
       <SignaturePad label="ลายเซ็นผู้ตรวจสอบ" value={a.inspectorSignature} onChange={sig => upd({ inspectorSignature: sig })} />
       <TextField label="ชื่อผู้ตรวจสอบ" value={a.inspectedBy} onChange={v => upd({ inspectedBy: v })} />
-      <div style={{ height: 1, background: 'var(--border-hairline)' }} />
-      <TextField label="ชื่อผู้อนุมัติ (กรอกภายหลัง)" value={a.approvedBy} onChange={v => upd({ approvedBy: v })} />
+      {/* ผู้อนุมัติ hardcode — ไม่ต้องกรอก */}
       <style jsx>{`
         .stack{display:flex;flex-direction:column;gap:12px;width:100%}
         .abox{background:var(--bg-surface);border:1px solid var(--status-warn);border-radius:var(--radius-md);padding:10px;}

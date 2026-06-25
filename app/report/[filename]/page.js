@@ -401,7 +401,7 @@ function FpgReport({ data, fieldMap }) {
                       onError={e => { e.currentTarget.style.display = 'none'; }}
                     />
                     <div className="sig-line" />
-                    <div className="sig-name">{v(afterRun.approvedBy) !== '–' ? v(afterRun.approvedBy) : 'ตวงเพชร'}</div>
+                    <div className="sig-name">ตวงเพชร ชัยยานนท์</div>
                     <div className="sig-role">ผู้อนุมัติ / Approver</div>
                     <div className="sig-date">วันที่ {inspDate}</div>
                   </div>

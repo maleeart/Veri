@@ -237,34 +237,32 @@ async function writeMachineData(wb, data) {
   }
 
   // ────────────────────────────────────────────────────────────
-  // ลายเซ็น / ชื่อผู้อนุมัติ
-  //   มีลายเซ็น approver → วาดภาพที่ signature_approver
-  //   ไม่มี → เขียนชื่อที่ approver_name_cell (CY106/CY94)
-  //            ถ้าไม่ได้กรอก approvedBy ไว้ → ปล่อยค่า default ใน template
+  // ลายเซ็นผู้อนุมัติ — hardcode เสมอ (ไม่ต้องกรอก)
+  //   วาดภาพ signature-approver.png ที่ตำแหน่ง signature_approver
+  //   ชื่อ "ตวงเพชร ชัยยานนท์" เขียนที่ approver_name_cell เสมอ
   // ────────────────────────────────────────────────────────────
   if (df.signature_approver) {
     const sigA = df.signature_approver;
-    if (afterRun.approverSignature) {
-      try {
-        const base64 = afterRun.approverSignature.replace(/^data:image\/\w+;base64,/, '');
-        const imgId = wb.addImage({ base64, extension: 'png' });
-        ws2.addImage(imgId, {
-          tl: { col: sigA.col - 1, row: sigA.row - 1 },
-          br: { col: sigA.col2 - 1, row: sigA.row2 - 1 },
-          editAs: 'twoCell',
-        });
-      } catch (e) { console.warn('approver signature image error:', e.message); }
-    } else if (afterRun.approvedBy) {
-      // มีชื่อผู้อนุมัติที่กรอก → เขียนทับค่า default
-      const approverRef = df.approver_name_cell || `${colNumToLetter(sigA.col2)}${sigA.row}`;
-      try {
-        const cell = ws2.getCell(approverRef);
-        cell.value = afterRun.approvedBy;
-        cell.font = { name: 'TH SarabunPSK', size: 14, bold: false, color: { argb: 'FF000000' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: false };
-      } catch (e) { console.warn('approver name write error:', e.message); }
-    }
-    // ไม่กรอก approvedBy → ปล่อยค่า default "ตวงเพชร" ใน template ไว้
+    try {
+      const fs = require('fs');
+      const sigPath = path.join(process.cwd(), 'public', 'assets', 'shared', 'signature-approver.png');
+      const sigBuf = fs.readFileSync(sigPath);
+      const imgId = wb.addImage({ buffer: sigBuf, extension: 'png' });
+      ws2.addImage(imgId, {
+        tl: { col: sigA.col - 1, row: sigA.row - 1 },
+        br: { col: sigA.col2 - 1, row: sigA.row2 - 1 },
+        editAs: 'twoCell',
+      });
+    } catch (e) { console.warn('approver signature image error:', e.message); }
+
+    // ชื่อผู้อนุมัติ hardcode
+    const approverRef = df.approver_name_cell || `${colNumToLetter(sigA.col2)}${sigA.row}`;
+    try {
+      const cell = ws2.getCell(approverRef);
+      cell.value = 'ตวงเพชร ชัยยานนท์';
+      cell.font = { name: 'TH SarabunPSK', size: 14, bold: false, color: { argb: 'FF000000' } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: false };
+    } catch (e) { console.warn('approver name write error:', e.message); }
   }
 }
 
