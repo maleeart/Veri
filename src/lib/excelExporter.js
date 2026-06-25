@@ -187,10 +187,11 @@ async function writeMachineData(wb, data) {
     setCell(ws2, df.system_pressure_cell, numVal(t.systemPressure));
   }
 
-  // After-Run: Anothers (sheet2)
+  // After-Run: Anothers (sheet2) — clear ก่อนเสมอ แล้วค่อยเขียน (ป้องกัน template default ค้าง)
   const remarks = (afterRun.comment || '').split('\n');
   (df.anothers_rows || []).forEach((row, idx) => {
-    if (remarks[idx]) setCell(ws2, `${df.anothers_col}${row}`, remarks[idx]);
+    const cellRef = `${df.anothers_col}${row}`;
+    try { ws2.getCell(cellRef).value = remarks[idx] || null; } catch {}
   });
 
   // Conclusion (sheet2)
