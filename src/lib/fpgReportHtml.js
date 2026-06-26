@@ -290,15 +290,12 @@ function sheet2(machineInfo, data, logoB64, approverSigB64) {
 <div class="page">
   ${header(machineInfo, data, logoB64, 'Sheet 2/2')}
 
-  <!-- 1. Pre-Run Visual Inspection -->
+  <!-- 1. Pre-Run Visual Inspection — ใช้ CG5 เดียวกับตาราง measurement เพื่อให้คอลัมน์ตรงกัน -->
   <table style="table-layout:fixed;width:100%;margin-bottom:2px">
-    <colgroup>
-      <col style="width:4%"><col style="width:45%"><col style="width:9%"><col style="width:9%"><col style="width:9%"><col style="width:24%">
-    </colgroup>
-    <tr><td colspan="6" class="shdr">1. Pre-Run Visual Inspection</td></tr>
+    ${CG5}
+    <tr><td colspan="5" class="shdr">1. Pre-Run Visual Inspection</td></tr>
     <tr class="sub">
-      <th class="val">#</th>
-      <th style="text-align:left">รายการตรวจสอบ</th>
+      <th style="text-align:left">หัวข้อที่ทำการตรวจสอบ</th>
       <th class="val">ปกติ</th>
       <th class="val">ผิดปกติ</th>
       <th class="val">ไม่มี</th>
@@ -307,8 +304,7 @@ function sheet2(machineInfo, data, logoB64, approverSigB64) {
     ${items1.map((item, i) => {
       const res = (data.preRunVisual || [])[i] || {};
       return `<tr>
-        <td class="val">${i + 1}</td>
-        <td>${item.text}</td>
+        <td>${i + 1}. ${item.text}</td>
         <td class="chk val">${normBox(res.result)}</td>
         <td class="chk val">${abnBox(res.result)}</td>
         <td class="chk val">${noneBox(res.result)}</td>
