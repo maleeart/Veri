@@ -275,8 +275,11 @@ function sheet2(machineInfo, data, logoB64, approverSigB64) {
       `<tr><td>${lbl}</td><td class="val">${val}</td><td class="val">${unit}</td><td class="chk val">☐</td><td>${rem}</td></tr>`)
     .join('');
 
-  const afterRunLabel = isFp
-    ? '3. After-Run &nbsp;&nbsp;&nbsp; (FirePump Auto Start : 110 psi. / Jockey Pump Start : 140 psi. Stop : 162 psi.)'
+  const fpAutoStart   = machineInfo?.after_run_fp_auto_start_psi;
+  const jpStart       = machineInfo?.after_run_jockey_start_psi;
+  const jpStop        = machineInfo?.after_run_jockey_stop_psi;
+  const afterRunLabel = isFp && fpAutoStart
+    ? `3. After-Run &nbsp;&nbsp;&nbsp; (FirePump Auto Start : ${fpAutoStart} psi. / Jockey Pump Start : ${jpStart} psi. Stop : ${jpStop} psi.)`
     : '3. After-Run';
 
   const approverImg = approverSigB64

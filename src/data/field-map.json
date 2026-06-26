@@ -18,6 +18,9 @@
       "mfg_default": "CLARKE",
       "rpm_rating_default": 2350,
       "tank_capacity_l": 600,
+      "after_run_fp_auto_start_psi": 110,
+      "after_run_jockey_start_psi": 140,
+      "after_run_jockey_stop_psi": 162,
       "sheet_visual": "FIRE PUMP#1-1",
       "sheet_data": "FIRE PUMP#1-2",
       "image_files": [
@@ -43,6 +46,9 @@
       "mfg_default": "CLARKE",
       "rpm_rating_default": 2350,
       "tank_capacity_l": 1000,
+      "after_run_fp_auto_start_psi": 140,
+      "after_run_jockey_start_psi": 150,
+      "after_run_jockey_stop_psi": 160,
       "sheet_visual": "FIRE PUMP#2-1 ",
       "sheet_data": "FIRE PUMP#2-2",
       "image_files": [
@@ -68,6 +74,9 @@
       "mfg_default": "CLARKE",
       "rpm_rating_default": 2350,
       "tank_capacity_l": 750,
+      "after_run_fp_auto_start_psi": 145,
+      "after_run_jockey_start_psi": 160,
+      "after_run_jockey_stop_psi": 170,
       "sheet_visual": "FIRE PUMP#3-1 ",
       "sheet_data": "FIRE PUMP#3-2",
       "image_files": [
