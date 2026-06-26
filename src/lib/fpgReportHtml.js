@@ -179,9 +179,9 @@ function sheet2(machineInfo, data, logoB64, approverSigB64) {
     || (tmpl?.sheet_data_fields?.conclusion_default || []).join('\n');
   const inspDate = data.inspectionDate || '–';
 
-  /* colgroup measurement table: รายการ | ค่า | หน่วย | สภาพปกติ | หมายเหตุ */
+  /* colgroup: รายการ | col1 | col2 | col3 | หมายเหตุ  — col1-3 เท่ากันทุกตาราง */
   const CG5 = `<colgroup>
-    <col style="width:54%"><col style="width:14%"><col style="width:9%"><col style="width:8%"><col style="width:15%">
+    <col style="width:53%"><col style="width:10%"><col style="width:10%"><col style="width:10%"><col style="width:17%">
   </colgroup>`;
 
   /* Jockey Pump: nested split table (voltage left + current right) ไม่มีเซลว่างขวา */
