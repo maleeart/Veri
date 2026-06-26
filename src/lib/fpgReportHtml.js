@@ -133,21 +133,21 @@ function sheet1(machineInfo, data, logoB64, imgB64List) {
     </tr>
     <tr>
       <td colspan="2" style="${NW}">Qty. Of Fuel Liquid</td>
-      <td colspan="4" class="val">( ) Gal &nbsp;(✓) Lit &nbsp;( ) kg</td>
+      <td colspan="3" class="val">( ) Gal &nbsp;(✓) Lit &nbsp;( ) kg</td>
       <td style="${NW}">Fuel Level</td>
-      <td class="val">${fuelBefore}</td>
+      <td class="val" style="white-space:nowrap">(ก่อน) ${fuelBefore}</td>
       <td class="val">/</td>
-      <td class="val" style="white-space:nowrap">${fuelAfter} &nbsp;Liters</td>
+      <td colspan="2" class="val" style="white-space:nowrap">(หลัง) ${fuelAfter} &nbsp;Liters</td>
     </tr>
     <tr>
       <td style="${NW}">ระยะเวลาที่เครื่องยนต์ทำงาน</td>
       <td colspan="2" class="val" style="white-space:nowrap">${v(g.runDurationMins, '')} &nbsp;mins.</td>
       <td style="${NW}">${tankLabel}</td>
-      <td colspan="2" class="val" style="white-space:nowrap">${tankVal} &nbsp;${tankUnit}</td>
+      <td class="val" style="white-space:nowrap">${tankVal} &nbsp;${tankUnit}</td>
       <td style="${NW}">ชั่วโมงการทำงาน</td>
-      <td class="val">${hrsBefore}</td>
+      <td class="val" style="white-space:nowrap">(ก่อน) ${hrsBefore}</td>
       <td class="val">/</td>
-      <td class="val" style="white-space:nowrap">${hrsAfter} &nbsp;Hrs.</td>
+      <td colspan="2" class="val" style="white-space:nowrap">(หลัง) ${hrsAfter} &nbsp;Hrs.</td>
     </tr>
   </table>
 
