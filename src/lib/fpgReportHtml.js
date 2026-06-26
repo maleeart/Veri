@@ -123,13 +123,13 @@ function sheet1(machineInfo, data, logoB64, imgB64List) {
     </tr>
     <tr>
       <td style="${NW}">Model</td>
-      <td>${v(machineInfo?.model_default)}</td>
+      <td colspan="2" style="white-space:nowrap">${v(machineInfo?.model_default)}</td>
       <td style="${NW}">Serial-Number</td>
-      <td colspan="2">${v(machineInfo?.serial_default)}</td>
+      <td colspan="2" style="white-space:nowrap">${v(machineInfo?.serial_default)}</td>
       <td style="${NW}">MFG</td>
-      <td>${v(machineInfo?.mfg_default)}</td>
-      <td colspan="2" style="${NW}">RPM Rating</td>
-      <td>${v(machineInfo?.rpm_rating_default)}</td>
+      <td style="white-space:nowrap">${v(machineInfo?.mfg_default)}</td>
+      <td style="${NW}">RPM Rating</td>
+      <td style="white-space:nowrap">${v(machineInfo?.rpm_rating_default)}</td>
     </tr>
     <tr>
       <td colspan="2" style="${NW}">Qty. Of Fuel Liquid</td>
@@ -365,7 +365,7 @@ function sheet2(machineInfo, data, logoB64, approverSigB64) {
         <div style="border-top:1px solid #000;display:inline-block;width:72%;padding-top:3px">
           ${inspectorImg}
           <div>ผู้ตรวจสอบ</div>
-          <div style="font-weight:bold;margin:2px 0">${a.inspectedBy || '( ………………………………… )'}</div>
+          <div style="font-weight:bold;margin:2px 0">(${a.inspectedBy || '…………………………………'})</div>
           <div>วันที่ ${inspDate}</div>
         </div>
       </td>
@@ -373,7 +373,7 @@ function sheet2(machineInfo, data, logoB64, approverSigB64) {
         <div style="border-top:1px solid #000;display:inline-block;width:72%;padding-top:3px">
           ${approverImg}
           <div>ผู้อนุมัติ</div>
-          <div style="font-weight:bold;margin:2px 0">${a.approvedBy || 'ตวงเพชร ชัยยานนท์'}</div>
+          <div style="font-weight:bold;margin:2px 0">(${a.approvedBy || 'ตวงเพชร ชัยยานนท์'})</div>
           <div>วันที่ ${inspDate}</div>
         </div>
       </td>
