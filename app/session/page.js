@@ -112,10 +112,14 @@ function SessionPageInner() {
   const goNext = () => {
     setValidationError(null);
     if (isVeryLast) {
-      // ตรวจสอบว่ากรอกชื่อ หรือ วาดลายเซ็น อย่างใดอย่างหนึ่ง
+      // ตรวจสอบว่ากรอกชื่อและวาดลายเซ็นครบทั้งคู่
       const ar = currentData.afterRun || {};
-      if (!ar.inspectedBy?.trim() && !ar.inspectorSignature) {
-        setValidationError('กรุณากรอกชื่อผู้ตรวจสอบ หรือวาดลายเซ็น อย่างใดอย่างหนึ่ง');
+      if (!ar.inspectedBy?.trim()) {
+        setValidationError('กรุณากรอกชื่อผู้ตรวจสอบก่อนบันทึก');
+        return;
+      }
+      if (!ar.inspectorSignature) {
+        setValidationError('กรุณาลงลายเซ็นผู้ตรวจสอบก่อนบันทึก');
         return;
       }
       handleFinalSubmit();
@@ -521,8 +525,6 @@ function AfterRunStep({ data, setData, isGen, conclusionDefault, isVeryLast, mac
   const upd = p => setData({ ...data, afterRun: { ...a, ...p } });
   const conclusionVal = a.conclusionText || conclusionDefault;
 
-  // โหมดกรอกชื่อ: 'name' หรือ 'sig' (default คือ 'name' ถ้าไม่มีลายเซ็น)
-  const [inspMode, setInspMode] = useState(a.inspectorSignature ? 'sig' : 'name');
 
   return (
     <div className="stack">
@@ -567,24 +569,12 @@ function AfterRunStep({ data, setData, isGen, conclusionDefault, isVeryLast, mac
         placeholder="เช่น น้ำมันหล่อลื่นรั่วซึม..." />
       <TextField label="สรุปผล" multiline value={conclusionVal} onChange={v => upd({ conclusionText: v })} />
 
-      {/* ── ลายเซ็น / ชื่อผู้ตรวจสอบ (แสดงเฉพาะหน้าสุดท้าย) ── */}
+      {/* ── ลายเซ็น + ชื่อผู้ตรวจสอบ (บังคับทั้งคู่ แสดงเฉพาะหน้าสุดท้าย) ── */}
       {isVeryLast && (
         <div className="insp-box">
           <div className="insp-title">ผู้ตรวจสอบ (ใช้กับทุกเครื่อง)</div>
-          <div className="insp-tabs">
-            <button
-              className={`insp-tab${inspMode === 'name' ? ' insp-tab--active' : ''}`}
-              onClick={() => { setInspMode('name'); upd({ inspectorSignature: null }); }}
-            >✏️ พิมพ์ชื่อ</button>
-            <button
-              className={`insp-tab${inspMode === 'sig' ? ' insp-tab--active' : ''}`}
-              onClick={() => { setInspMode('sig'); upd({ inspectedBy: '' }); }}
-            >✍️ ลายเซ็น</button>
-          </div>
-          {inspMode === 'name'
-            ? <TextField label="ชื่อผู้ตรวจสอบ" value={a.inspectedBy} onChange={v => upd({ inspectedBy: v })} />
-            : <SignaturePad label="ลายเซ็นผู้ตรวจสอบ" value={a.inspectorSignature} onChange={sig => upd({ inspectorSignature: sig })} />
-          }
+          <SignaturePad label="ลายเซ็นผู้ตรวจสอบ *" value={a.inspectorSignature} onChange={sig => upd({ inspectorSignature: sig })} />
+          <TextField label="ชื่อผู้ตรวจสอบ *" value={a.inspectedBy} onChange={v => upd({ inspectedBy: v })} />
         </div>
       )}
 
