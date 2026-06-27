@@ -8,25 +8,25 @@ const FORM_CONFIG = {
   emergency: {
     title: 'Emergency Light',
     icon: '💡',
-    color: '#1e7e34',
+    color: '#16a34a',
     idLabel: 'ID / รหัสอุปกรณ์',
     idKey: 'id',
     fields: [
-      { key: 'lightCondition', label: 'สภาพโคม',    opts: [{ v: 'pass',   l: 'ผ่าน',    c: '#1a7a3f' }, { v: 'fail',        l: 'ไม่ผ่าน',  c: '#c03232' }] },
-      { key: 'statusLight',   label: 'ไฟสถานะ',    opts: [{ v: 'normal', l: 'ปกติ',    c: '#1a7a3f' }, { v: 'abnormal',    l: 'ผิดปกติ',  c: '#c03232' }] },
-      { key: 'testResult',    label: 'ผลการ Test',  opts: [{ v: 'on',     l: 'ติด',     c: '#1a7a3f' }, { v: 'off',         l: 'ดับ',      c: '#c03232' }] },
+      { key: 'lightCondition', label: 'สภาพโคม',    opts: [{ v: 'pass',   l: 'ผ่าน',    c: '#16a34a' }, { v: 'fail',        l: 'ไม่ผ่าน',  c: '#dc2626' }] },
+      { key: 'statusLight',   label: 'ไฟสถานะ',    opts: [{ v: 'normal', l: 'ปกติ',    c: '#16a34a' }, { v: 'abnormal',    l: 'ผิดปกติ',  c: '#dc2626' }] },
+      { key: 'testResult',    label: 'ผลการ Test',  opts: [{ v: 'on',     l: 'ติด',     c: '#16a34a' }, { v: 'off',         l: 'ดับ',      c: '#dc2626' }] },
     ],
   },
   smoke: {
     title: 'Smoke Detector',
     icon: '🚨',
-    color: '#1a4a8a',
+    color: '#0e7490',
     idLabel: 'Zone / Address',
     idKey: 'zone',
     fields: [
-      { key: 'externalCondition', label: 'สภาพภายนอก',   opts: [{ v: 'normal', l: 'ปกติ',    c: '#1a7a3f' }, { v: 'dirty',       l: 'สกปรก',    c: '#c03232' }] },
-      { key: 'cleaned',           label: 'ทำความสะอาด',   opts: [{ v: 'yes',    l: 'ทำแล้ว', c: '#1a7a3f' }, { v: 'no',          l: 'ไม่ทำ',    c: '#c03232' }] },
-      { key: 'workingCondition',  label: 'สภาพการทำงาน', opts: [{ v: 'normal', l: 'ปกติ',    c: '#1a7a3f' }, { v: 'not_working', l: 'ไม่ทำงาน', c: '#c03232' }] },
+      { key: 'externalCondition', label: 'สภาพภายนอก',   opts: [{ v: 'normal', l: 'ปกติ',    c: '#16a34a' }, { v: 'dirty',       l: 'สกปรก',    c: '#dc2626' }] },
+      { key: 'cleaned',           label: 'ทำความสะอาด',   opts: [{ v: 'yes',    l: 'ทำแล้ว', c: '#16a34a' }, { v: 'no',          l: 'ไม่ทำ',    c: '#dc2626' }] },
+      { key: 'workingCondition',  label: 'สภาพการทำงาน', opts: [{ v: 'normal', l: 'ปกติ',    c: '#16a34a' }, { v: 'not_working', l: 'ไม่ทำงาน', c: '#dc2626' }] },
     ],
   },
 };
@@ -312,7 +312,7 @@ export default function FormPage() {
         .device-header { display: flex; justify-content: space-between; align-items: center; }
         .device-num { font-size: 13px; font-weight: 700; color: var(--ink-muted); }
         .btn-remove { background: none; border: none; font-size: 16px; color: var(--ink-muted); cursor: pointer; padding: 2px 6px; border-radius: 6px; }
-        .btn-remove:hover { background: rgba(200,50,50,0.1); color: #c03232; }
+        .btn-remove:hover { background: rgba(220,38,38,0.1); color: #dc2626; }
 
         .btn-add { padding: 12px; border: 2px dashed var(--border-strong); border-radius: 14px; background: none; font-size: 14px; font-weight: 600; color: var(--ink-secondary); cursor: pointer; }
         .btn-next { padding: 14px; border-radius: 14px; border: none; font-size: 15px; font-weight: 700; color: #fff; cursor: pointer; }
@@ -347,7 +347,7 @@ export default function FormPage() {
         .fail-fields { font-size: 11px; color: var(--status-fail); font-weight: 600; }
 
         .validation-err { color: var(--status-fail); font-size: 13px; font-weight: 600; background: var(--status-fail-bg); border-radius: 8px; padding: 8px 12px; margin: 0; }
-        .error-msg { color: #c03232; font-size: 13px; text-align: center; }
+        .error-msg { color: var(--status-fail); font-size: 13px; text-align: center; }
       `}</style>
     </div>
   );

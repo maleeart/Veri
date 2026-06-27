@@ -252,9 +252,9 @@ function HomePageInner() {
 
           {/* ── Grouped list ── */}
           {[
-            { type: 'fpg',       icon: '🚒⚡', label: 'Fire Pump & Generator', accent: '#c0392b' },
-            { type: 'emergency', icon: '💡',   label: 'Emergency Light',        accent: '#1e7e34' },
-            { type: 'smoke',     icon: '🚨',   label: 'Smoke Detector',         accent: '#1a4a8a' },
+            { type: 'fpg',       icon: '🚒⚡', label: 'Fire Pump & Generator', accent: '#2563eb' },
+            { type: 'emergency', icon: '💡',   label: 'Emergency Light',        accent: '#16a34a' },
+            { type: 'smoke',     icon: '🚨',   label: 'Smoke Detector',         accent: '#0e7490' },
           ].map(({ type, icon, label, accent }) => {
             const group = filteredDates.filter(d => d.type === type);
             if (!group.length) return null;
@@ -383,11 +383,11 @@ function HomePageInner() {
         }
         .card:active { transform: scale(0.97); }
 
-        /* FP&G — full width, gradient */
+        /* FP&G — full width, Royal Blue gradient */
         .card--fpg {
           grid-column: 1 / -1;
-          background: linear-gradient(135deg, #c0392b 0%, #e67e22 100%);
-          box-shadow: 0 8px 24px rgba(192,57,43,0.35);
+          background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+          box-shadow: 0 8px 24px rgba(37,99,235,0.40);
           min-height: 88px;
         }
         .card--fpg .card__title { color: #fff; font-size: 17px; }
@@ -395,10 +395,10 @@ function HomePageInner() {
         .card--fpg .card__icon  { font-size: 30px; }
         .card--fpg .card__arrow { color: rgba(255,255,255,0.7); }
 
-        /* Emergency Light — green */
+        /* Emergency Light — green (Veri accent) */
         .card--emergency {
-          background: linear-gradient(135deg, #1e7e34 0%, #28a745 100%);
-          box-shadow: 0 6px 18px rgba(40,167,69,0.3);
+          background: linear-gradient(135deg, #14532d 0%, #16a34a 100%);
+          box-shadow: 0 6px 18px rgba(22,163,74,0.35);
           min-height: 72px;
           gap: 12px;
         }
@@ -407,10 +407,10 @@ function HomePageInner() {
         .card--emergency .card__sub   { color: rgba(255,255,255,0.75); }
         .card--emergency .card__arrow { color: rgba(255,255,255,0.7); margin-left: auto; }
 
-        /* Smoke Detector — blue */
+        /* Smoke Detector — teal */
         .card--smoke {
-          background: linear-gradient(135deg, #1a4a8a 0%, #2d7dd2 100%);
-          box-shadow: 0 6px 18px rgba(45,125,210,0.3);
+          background: linear-gradient(135deg, #164e63 0%, #0e7490 100%);
+          box-shadow: 0 6px 18px rgba(14,116,144,0.35);
           min-height: 72px;
           gap: 12px;
         }
@@ -566,7 +566,7 @@ function HomePageInner() {
           padding: 10px 14px;
           border-top: 1px solid var(--border-hairline);
         }
-        .hist-row--today { background: rgba(210,87,53,0.05); }
+        .hist-row--today { background: rgba(37,99,235,0.07); }
         .hist-info { display: flex; flex-direction: column; gap: 2px; }
         .hist-location {
           font-size: 13px;
@@ -580,7 +580,7 @@ function HomePageInner() {
         }
         .hist-actions { display: flex; gap: 6px; flex-shrink: 0; }
         .btn-dl {
-          background: #1a7a3f;
+          background: var(--accent);
           color: #fff;
           border: none;
           border-radius: 10px;
@@ -592,7 +592,7 @@ function HomePageInner() {
           white-space: nowrap;
         }
         .btn-dl--pdf {
-          background: #c0392b;
+          background: #b91c1c;
         }
         .btn-dl:disabled { opacity: 0.5; }
 
