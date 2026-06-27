@@ -14,7 +14,7 @@ const PAD = 'padding:1px 3px';
 const CSS = `
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family:'TH SarabunPSK','Sarabun','Angsana New',sans-serif; font-size:10.5px; color:#000; background:#fff; }
-.page { width:210mm; min-height:297mm; padding:6mm 8mm; page-break-after:always; }
+.page { width:210mm; min-height:297mm; padding:6mm 13mm; page-break-after:always; }
 table { border-collapse:collapse; width:100%; }
 td, th { border:1px solid #000; padding:1px 3px; vertical-align:middle; font-size:10.5px; }
 .nb  { border:none !important; }
@@ -364,7 +364,7 @@ function sheet2(machineInfo, data, logoB64, approverSigB64) {
       <td class="nb" style="width:50%;text-align:center;padding-top:8px">
         <div style="border-top:1px solid #000;display:inline-block;width:72%;padding-top:3px">
           ${inspectorImg}
-          <div style="font-weight:bold;margin:2px 0">${a.inspectedBy || '…………………………………'}</div>
+          <div style="font-weight:bold;margin:2px 0">(${a.inspectedBy || '…………………………………'})</div>
           <div>ผู้ตรวจสอบ</div>
           <div>วันที่ ${inspDate}</div>
         </div>
@@ -372,7 +372,7 @@ function sheet2(machineInfo, data, logoB64, approverSigB64) {
       <td class="nb" style="width:50%;text-align:center;padding-top:8px">
         <div style="border-top:1px solid #000;display:inline-block;width:72%;padding-top:3px">
           ${approverImg}
-          <div style="font-weight:bold;margin:2px 0">${a.approvedBy || 'ตวงเพชร ชัยยานนท์'}</div>
+          <div style="font-weight:bold;margin:2px 0">(${a.approvedBy || 'ตวงเพชร ชัยยานนท์'})</div>
           <div>ผู้อนุมัติ</div>
           <div>วันที่ ${inspDate}</div>
         </div>
