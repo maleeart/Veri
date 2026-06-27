@@ -275,6 +275,11 @@ function SessionPageInner() {
         inspectorSignature={lastAfterRun.inspectorSignature || null}
         onUpdateInspector={updateInspector}
         onBack={() => setShowSummaryPage(false)}
+        onGoToMachine={(mId) => {
+          setShowSummaryPage(false);
+          setMachineIdx(machines.findIndex(m => m.id === mId));
+          setStepIdx(5);
+        }}
         onSubmit={handleFinalSubmit}
         submitState={submitState}
         submitError={submitError}
@@ -685,16 +690,29 @@ function AfterRunStep({ data, setData, isGen, conclusionDefault }) {
   );
 }
 
-function SummaryPage({ machines, records, inspectedBy, inspectorSignature, onUpdateInspector, onBack, onSubmit, submitState, submitError, sessionDate }) {
+function SummaryPage({ machines, records, inspectedBy, inspectorSignature, onUpdateInspector, onBack, onGoToMachine, onSubmit, submitState, submitError, sessionDate }) {
   const [localName, setLocalName] = useState(inspectedBy);
   const [localSig, setLocalSig] = useState(inspectorSignature);
   const [error, setError] = useState(null);
+  const [showIncomplete, setShowIncomplete] = useState(false);
+
+  const getIncomplete = () => machines.filter(m => {
+    const rec = records[m.id] || {};
+    const isGenM = m.id?.startsWith('gen');
+    return !rec.generalData?.runningHoursBefore || !rec.afterRun?.runningHoursAfter
+      || (!isGenM && (!rec.generalData?.fuelBefore || !rec.afterRun?.fuelAfter));
+  });
 
   const handleSubmit = () => {
     if (!localName.trim()) { setError('กรุณากรอกชื่อผู้ตรวจสอบ'); return; }
     if (!localSig) { setError('กรุณาลงลายเซ็นผู้ตรวจสอบ'); return; }
+    const incomplete = getIncomplete();
+    if (incomplete.length > 0) { setShowIncomplete(true); return; }
+    doSubmit();
+  };
+
+  const doSubmit = () => {
     onUpdateInspector({ inspectedBy: localName, inspectorSignature: localSig });
-    // delay เล็กน้อยให้ state records อัพก่อน submit
     setTimeout(onSubmit, 0);
   };
 
@@ -760,6 +778,30 @@ function SummaryPage({ machines, records, inspectedBy, inspectorSignature, onUpd
         </button>
       </nav>
 
+      {showIncomplete && (
+        <div className="confirm-overlay">
+          <div className="confirm-box">
+            <p className="confirm-title">ข้อมูลยังไม่ครบ</p>
+            <p className="confirm-sub">เครื่องต่อไปนี้ยังกรอกไม่ครบ กดเพื่อกลับไปกรอก หรือบันทึกต่อไปเลย</p>
+            <div className="inc-list">
+              {getIncomplete().map(m => (
+                <button key={m.id} className="inc-btn" onClick={() => { setShowIncomplete(false); onGoToMachine(m.id); }}>
+                  ‹ {m.label.replace('Fire Pump', 'FP').replace('Generator', 'GEN')}
+                </button>
+              ))}
+            </div>
+            <div className="confirm-btns" style={{marginTop:8}}>
+              <button className="cbtn cbtn--save" onClick={() => { setShowIncomplete(false); doSubmit(); }}>
+                บันทึกต่อไปเลย
+              </button>
+              <button className="cbtn cbtn--skip" onClick={() => setShowIncomplete(false)}>
+                กลับไปตรวจสอบ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style jsx>{`
         .page{min-height:100dvh;display:flex;flex-direction:column;}
         .sum-header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border-hairline);flex-shrink:0;}
@@ -785,6 +827,16 @@ function SummaryPage({ machines, records, inspectedBy, inspectorSignature, onUpd
         .sum-nav{position:sticky;bottom:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:var(--bg-surface);border-top:1px solid var(--border-hairline);}
         .sum-submit{width:100%;min-height:50px;border-radius:var(--radius-md);font-size:15px;font-weight:700;cursor:pointer;border:none;background:var(--status-pass);color:#fff;}
         .sum-submit:disabled{opacity:0.5;}
+        .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px;}
+        .confirm-box{background:var(--bg-surface);border-radius:var(--radius-md);padding:20px;width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px;}
+        .confirm-title{margin:0;font-size:16px;font-weight:700;color:var(--ink-primary);}
+        .confirm-sub{margin:0;font-size:13px;color:var(--ink-muted);}
+        .inc-list{display:flex;flex-direction:column;gap:6px;}
+        .inc-btn{padding:10px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--status-fail);background:var(--status-fail-bg);color:var(--status-fail);font-size:13px;font-weight:700;cursor:pointer;text-align:left;}
+        .confirm-btns{display:flex;flex-direction:column;gap:8px;}
+        .cbtn{min-height:44px;border-radius:var(--radius-md);font-size:14px;font-weight:700;cursor:pointer;border:none;}
+        .cbtn--save{background:var(--status-pass);color:#fff;}
+        .cbtn--skip{background:var(--bg-base);color:var(--ink-secondary);border:1px solid var(--border-hairline);}
       `}</style>
     </main>
   );
