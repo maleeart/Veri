@@ -98,6 +98,7 @@ function SessionPageInner() {
   const [sessionDate, setSessionDate] = useState(date);
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmSaving, setConfirmSaving] = useState(false);
+  const [showSummaryPage, setShowSummaryPage] = useState(false);
   const saveTimerRef = useRef(null);
 
   const handleDateChange = (newDate) => {
@@ -163,20 +164,10 @@ function SessionPageInner() {
   const goNext = () => {
     setValidationError(null);
     if (isVeryLast) {
-      const ar = currentData.afterRun || {};
-      if (!ar.inspectedBy?.trim()) {
-        setValidationError('กรุณากรอกชื่อผู้ตรวจสอบก่อนบันทึก');
-        return;
-      }
-      if (!ar.inspectorSignature) {
-        setValidationError('กรุณาลงลายเซ็นผู้ตรวจสอบก่อนบันทึก');
-        return;
-      }
-      handleFinalSubmit();
+      setShowSummaryPage(true);
       return;
     }
     if (isLastStep) {
-      // สิ้นสุดเครื่องนี้ → popup ยืนยันบันทึก
       setShowConfirm(true);
       return;
     }
@@ -265,6 +256,35 @@ function SessionPageInner() {
   ];
 
   const conclusionDefault = (dataFields?.conclusion_default || []).join('\n');
+
+  const lastMachine = machines[machines.length - 1];
+  const updateInspector = (patch) => {
+    setRecords(prev => ({
+      ...prev,
+      [lastMachine.id]: {
+        ...prev[lastMachine.id],
+        afterRun: { ...prev[lastMachine.id]?.afterRun, ...patch },
+      },
+    }));
+  };
+
+  if (showSummaryPage) {
+    const lastAfterRun = records[lastMachine.id]?.afterRun || {};
+    return (
+      <SummaryPage
+        machines={machines}
+        records={records}
+        inspectedBy={lastAfterRun.inspectedBy || ''}
+        inspectorSignature={lastAfterRun.inspectorSignature || null}
+        onUpdateInspector={updateInspector}
+        onBack={() => setShowSummaryPage(false)}
+        onSubmit={handleFinalSubmit}
+        submitState={submitState}
+        submitError={submitError}
+        sessionDate={sessionDate}
+      />
+    );
+  }
 
   return (
     <main className="page">
@@ -362,8 +382,7 @@ function SessionPageInner() {
         {stepIdx === 5 && (
           <AfterRunStep
             data={currentData} setData={updateCurrentData}
-            isGen={isGen} conclusionDefault={conclusionDefault}
-            isVeryLast={isVeryLast} machines={machines} records={records} />
+            isGen={isGen} conclusionDefault={conclusionDefault} />
         )}
       </section>
 
@@ -384,7 +403,7 @@ function SessionPageInner() {
           onClick={goNext}
           disabled={submitState === 'submitting'}>
           {isVeryLast
-            ? (submitState === 'submitting' ? 'กำลังบันทึก...' : '✓ บันทึกทั้งหมด')
+            ? 'สรุปผล →'
             : (isLastStep ? `ไป ${machines[machineIdx + 1]?.label || ''}` : 'ถัดไป')}
         </button>
       </nav>
@@ -638,40 +657,13 @@ function TestRunStep({ data, setData, isGen }) {
   );
 }
 
-function AfterRunStep({ data, setData, isGen, conclusionDefault, isVeryLast, machines, records }) {
+function AfterRunStep({ data, setData, isGen, conclusionDefault }) {
   const a = data.afterRun || {};
   const upd = p => setData({ ...data, afterRun: { ...a, ...p } });
   const conclusionVal = a.conclusionText || conclusionDefault;
 
-
   return (
     <div className="stack">
-      {/* ── สรุปทุกเครื่อง (แสดงเฉพาะหน้าสุดท้าย) ── */}
-      {isVeryLast && machines && records && (
-        <div className="summary-box">
-          <div className="summary-title">สรุปทุกเครื่อง</div>
-          {machines.map(m => {
-            const rec = records[m.id] || {};
-            const hrBefore = rec.generalData?.runningHoursBefore;
-            const hrAfter  = rec.afterRun?.runningHoursAfter;
-            const hasFuel  = !isGen && (rec.generalData?.fuelBefore || rec.afterRun?.fuelAfter);
-            return (
-              <div key={m.id} className="summary-row summary-row--ok">
-                <span className="summary-icon">✓</span>
-                <div className="summary-info">
-                  <span className="summary-machine">{m.label.replace('Fire Pump', 'FP').replace('Generator', 'GEN')}</span>
-                  <span className="summary-detail">
-                    Hrs: {hrBefore || '–'} → {hrAfter || '–'}
-                    {hasFuel && `  ·  น้ำมัน: ${rec.generalData?.fuelBefore || '–'} → ${rec.afterRun?.fuelAfter || '–'} L`}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* ── ค่าหลัง test-run ── */}
       <div className="abox">
         <div className="abox-label">บันทึกค่าหลังทดสอบ</div>
         <div className="r2">
@@ -682,46 +674,109 @@ function AfterRunStep({ data, setData, isGen, conclusionDefault, isVeryLast, mac
           <NumericField label="ชม. (หลัง)" unit="Hrs" value={a.runningHoursAfter} onChange={v => upd({ runningHoursAfter: v })} />
         </div>
       </div>
-
       <TextField label="หมายเหตุ" multiline value={a.comment} onChange={v => upd({ comment: v })}
         placeholder="เช่น น้ำมันหล่อลื่นรั่วซึม..." />
       <TextField label="สรุปผล" multiline value={conclusionVal} onChange={v => upd({ conclusionText: v })} />
-
-      {/* ── ลายเซ็น + ชื่อผู้ตรวจสอบ (บังคับทั้งคู่ แสดงเฉพาะหน้าสุดท้าย) ── */}
-      {isVeryLast && (
-        <div className="insp-box">
-          <div className="insp-title">ผู้ตรวจสอบ (ใช้กับทุกเครื่อง)</div>
-          <SignaturePad label="ลายเซ็นผู้ตรวจสอบ *" value={a.inspectorSignature} onChange={sig => upd({ inspectorSignature: sig })} />
-          <TextField label="ชื่อผู้ตรวจสอบ *" value={a.inspectedBy} onChange={v => upd({ inspectedBy: v })} />
-        </div>
-      )}
-
-      {/* ผู้อนุมัติ hardcode — ไม่ต้องกรอก */}
       <style jsx>{`
         .stack{display:flex;flex-direction:column;gap:12px;width:100%}
         .abox{background:var(--bg-surface);border:1px solid var(--status-warn);border-radius:var(--radius-md);padding:10px;}
         .abox-label{font-size:11px;font-weight:700;color:var(--status-warn);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;}
         .r2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
         .r2>:global(*){min-width:0}
+      `}</style>
+    </div>
+  );
+}
+
+function SummaryPage({ machines, records, inspectedBy, inspectorSignature, onUpdateInspector, onBack, onSubmit, submitState, submitError, sessionDate }) {
+  const [localName, setLocalName] = useState(inspectedBy);
+  const [localSig, setLocalSig] = useState(inspectorSignature);
+  const [error, setError] = useState(null);
+
+  const handleSubmit = () => {
+    if (!localName.trim()) { setError('กรุณากรอกชื่อผู้ตรวจสอบ'); return; }
+    if (!localSig) { setError('กรุณาลงลายเซ็นผู้ตรวจสอบ'); return; }
+    onUpdateInspector({ inspectedBy: localName, inspectorSignature: localSig });
+    // delay เล็กน้อยให้ state records อัพก่อน submit
+    setTimeout(onSubmit, 0);
+  };
+
+  return (
+    <main className="page">
+      <header className="sum-header">
+        <button className="back-btn" onClick={onBack}>‹ ย้อนกลับ</button>
+        <span className="sum-title">สรุปผลการตรวจสอบ</span>
+        <span className="sum-date">{sessionDate}</span>
+      </header>
+
+      <section className="sum-body">
+        {/* สรุปทุกเครื่อง */}
+        <div className="summary-box">
+          <div className="summary-title">สรุปทุกเครื่อง</div>
+          {machines.map(m => {
+            const rec = records[m.id] || {};
+            const hrBefore = rec.generalData?.runningHoursBefore;
+            const hrAfter  = rec.afterRun?.runningHoursAfter;
+            const fuelBefore = rec.generalData?.fuelBefore;
+            const fuelAfter  = rec.afterRun?.fuelAfter;
+            const isGenM = m.id?.startsWith('gen');
+            return (
+              <div key={m.id} className="summary-row">
+                <span className="summary-icon">✓</span>
+                <div className="summary-info">
+                  <span className="summary-machine">{m.label.replace('Fire Pump', 'FP').replace('Generator', 'GEN')}</span>
+                  <span className="summary-detail">
+                    Hrs: {hrBefore || '–'} → {hrAfter || '–'}
+                    {!isGenM && fuelBefore && `  ·  น้ำมัน: ${fuelBefore} → ${fuelAfter || '–'} L`}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ผู้ตรวจสอบ */}
+        <div className="insp-box">
+          <div className="insp-title">ผู้ตรวจสอบ (ใช้กับทุกเครื่อง)</div>
+          <SignaturePad label="ลายเซ็นผู้ตรวจสอบ *" value={localSig}
+            onChange={sig => { setLocalSig(sig); setError(null); }} />
+          <TextField label="ชื่อผู้ตรวจสอบ *" value={localName}
+            onChange={v => { setLocalName(v); setError(null); }} />
+        </div>
+
+        {(error || submitError) && (
+          <p className="err-banner">{error || submitError}</p>
+        )}
+      </section>
+
+      <nav className="sum-nav">
+        <button className="sum-submit" onClick={handleSubmit} disabled={submitState === 'submitting'}>
+          {submitState === 'submitting' ? 'กำลังบันทึก...' : '✓ ยืนยันและบันทึกลง GitHub'}
+        </button>
+      </nav>
+
+      <style jsx>{`
+        .page{min-height:100dvh;display:flex;flex-direction:column;}
+        .sum-header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border-hairline);flex-shrink:0;}
+        .back-btn{background:none;border:none;color:var(--ink-muted);font-size:14px;cursor:pointer;padding:4px 6px;flex-shrink:0;white-space:nowrap;}
+        .sum-title{flex:1;font-size:15px;font-weight:700;color:var(--ink-primary);}
+        .sum-date{font-size:12px;color:var(--ink-muted);font-family:var(--font-mono);}
+        .sum-body{flex:1;padding:14px 14px 120px;display:flex;flex-direction:column;gap:14px;overflow-x:hidden;}
         .summary-box{background:var(--bg-surface);border:1.5px solid var(--accent);border-radius:var(--radius-md);padding:12px;display:flex;flex-direction:column;gap:8px;}
         .summary-title{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.05em;}
-        .summary-row{display:flex;align-items:flex-start;gap:8px;padding:8px;border-radius:8px;}
-        .summary-row--ok{background:var(--status-pass-bg);}
-        .summary-row--warn{background:var(--status-fail-bg);}
-        .summary-icon{font-size:14px;font-weight:700;flex-shrink:0;margin-top:1px;}
-        .summary-row--ok .summary-icon{color:var(--status-pass);}
-        .summary-row--warn .summary-icon{color:var(--status-fail);}
+        .summary-row{display:flex;align-items:flex-start;gap:8px;padding:8px;border-radius:8px;background:var(--status-pass-bg);}
+        .summary-icon{font-size:14px;font-weight:700;color:var(--status-pass);flex-shrink:0;margin-top:1px;}
         .summary-info{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;}
         .summary-machine{font-size:13px;font-weight:700;color:var(--ink-primary);}
         .summary-detail{font-size:11px;color:var(--ink-muted);}
-        .summary-warn-text{font-size:11px;color:var(--status-fail);font-weight:600;}
         .insp-box{background:var(--bg-surface);border:1.5px solid var(--status-pass);border-radius:var(--radius-md);padding:12px;display:flex;flex-direction:column;gap:10px;}
         .insp-title{font-size:11px;font-weight:700;color:var(--status-pass);text-transform:uppercase;letter-spacing:0.05em;}
-        .insp-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-        .insp-tab{padding:8px 0;border:1.5px solid var(--border-hairline);border-radius:var(--radius-sm);background:var(--bg-base);color:var(--ink-secondary);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;}
-        .insp-tab--active{border-color:var(--status-pass);background:var(--status-pass-bg);color:var(--status-pass);}
+        .err-banner{padding:10px 12px;background:var(--status-fail-bg);color:var(--status-fail);border-radius:var(--radius-sm);font-size:13px;margin:0;}
+        .sum-nav{position:sticky;bottom:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:var(--bg-surface);border-top:1px solid var(--border-hairline);}
+        .sum-submit{width:100%;min-height:50px;border-radius:var(--radius-md);font-size:15px;font-weight:700;cursor:pointer;border:none;background:var(--status-pass);color:#fff;}
+        .sum-submit:disabled{opacity:0.5;}
       `}</style>
-    </div>
+    </main>
   );
 }
 
