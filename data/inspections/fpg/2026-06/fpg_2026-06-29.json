@@ -155,8 +155,8 @@
       "machineId": "fire-pump-2",
       "inspectionDate": "2026-06-29",
       "generalData": {
-        "fuelBefore": "",
-        "runningHoursBefore": "",
+        "fuelBefore": "456",
+        "runningHoursBefore": "456",
         "runDurationMins": ""
       },
       "preVisual": [
@@ -304,8 +304,8 @@
       "machineId": "fire-pump-3",
       "inspectionDate": "2026-06-29",
       "generalData": {
-        "fuelBefore": "",
-        "runningHoursBefore": "",
+        "fuelBefore": "456",
+        "runningHoursBefore": "456",
         "runDurationMins": ""
       },
       "preVisual": [
@@ -438,8 +438,8 @@
         "systemPressure": ""
       },
       "afterRun": {
-        "fuelAfter": "",
-        "runningHoursAfter": "",
+        "fuelAfter": "456",
+        "runningHoursAfter": "456",
         "comment": "",
         "conclusionText": "",
         "inspectedBy": "",
@@ -454,9 +454,9 @@
       "inspectionDate": "2026-06-29",
       "generalData": {
         "fuelBefore": "",
-        "runningHoursBefore": "",
+        "runningHoursBefore": "456",
         "runDurationMins": "",
-        "runCount": ""
+        "runCount": "456"
       },
       "preVisual": [
         {
@@ -603,7 +603,7 @@
       },
       "afterRun": {
         "fuelAfter": "",
-        "runningHoursAfter": "",
+        "runningHoursAfter": "456",
         "comment": "",
         "conclusionText": "",
         "inspectedBy": "",
