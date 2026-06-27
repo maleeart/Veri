@@ -18,7 +18,6 @@ import ChecklistSection from '../components/ChecklistSection';
 import NumericField from '../components/NumericField';
 import TextField from '../components/TextField';
 import SignaturePad from '../components/SignaturePad';
-import GaugeProgress from '../components/GaugeProgress';
 import ReferencePhotos from '../components/ReferencePhotos';
 import { buildEmptyFormData, getMachineTemplate } from '../lib/formSchema';
 
@@ -97,6 +96,8 @@ function SessionPageInner() {
   const [submitError, setSubmitError] = useState(null);
   const [validationError, setValidationError] = useState(null);
   const [sessionDate, setSessionDate] = useState(date);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmSaving, setConfirmSaving] = useState(false);
   const saveTimerRef = useRef(null);
 
   const handleDateChange = (newDate) => {
@@ -151,10 +152,17 @@ function SessionPageInner() {
     setRecords(prev => ({ ...prev, [currentMachine.id]: updated }));
   };
 
+  const saveToGithub = async (recs) => {
+    await fetch('/api/save-record', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: sessionDate, records: recs, type: 'fpg' }),
+    });
+  };
+
   const goNext = () => {
     setValidationError(null);
     if (isVeryLast) {
-      // ตรวจสอบว่ากรอกชื่อและวาดลายเซ็นครบทั้งคู่
       const ar = currentData.afterRun || {};
       if (!ar.inspectedBy?.trim()) {
         setValidationError('กรุณากรอกชื่อผู้ตรวจสอบก่อนบันทึก');
@@ -168,12 +176,30 @@ function SessionPageInner() {
       return;
     }
     if (isLastStep) {
-      // ขั้นตอนระหว่างเครื่อง — ไม่ต้องการชื่อผู้ตรวจ (กรอกที่เดียวตอนสุดท้าย)
-      setMachineIdx(i => i + 1);
-      setStepIdx(0);
-    } else {
-      setStepIdx(i => i + 1);
+      // สิ้นสุดเครื่องนี้ → popup ยืนยันบันทึก
+      setShowConfirm(true);
+      return;
     }
+    setStepIdx(i => i + 1);
+  };
+
+  const handleConfirmSave = async (doSave) => {
+    if (doSave) {
+      setConfirmSaving(true);
+      try { await saveToGithub(records); } catch {}
+      setConfirmSaving(false);
+    }
+    setShowConfirm(false);
+    setMachineIdx(i => i + 1);
+    setStepIdx(0);
+  };
+
+  const handleSaveAll = async () => {
+    setSubmitState('submitting');
+    try { await saveToGithub(records); } catch {}
+    localStorage.removeItem(DRAFT_KEY);
+    setSubmitState('idle');
+    router.push(`/?saved=${sessionDate}`);
   };
 
   const goPrev = () => {
@@ -252,8 +278,28 @@ function SessionPageInner() {
             {stepTitles[stepIdx]}
           </span>
         </div>
-        <GaugeProgress percent={pct} label={`${machineIdx + 1}/${totalMachines}`} />
+        <button className="save-all-btn" onClick={handleSaveAll} disabled={submitState === 'submitting'}>
+          {submitState === 'submitting' ? '...' : '💾 บันทึกทั้งหมด'}
+        </button>
       </header>
+
+      {/* Popup ยืนยันบันทึกเครื่องปัจจุบัน */}
+      {showConfirm && (
+        <div className="confirm-overlay">
+          <div className="confirm-box">
+            <p className="confirm-title">บันทึก {currentMachine?.label}?</p>
+            <p className="confirm-sub">บันทึกข้อมูลเครื่องนี้ลง GitHub ก่อนไปเครื่องถัดไป</p>
+            <div className="confirm-btns">
+              <button className="cbtn cbtn--save" onClick={() => handleConfirmSave(true)} disabled={confirmSaving}>
+                {confirmSaving ? 'กำลังบันทึก...' : '✓ บันทึกและไปต่อ'}
+              </button>
+              <button className="cbtn cbtn--skip" onClick={() => handleConfirmSave(false)} disabled={confirmSaving}>
+                ข้ามการบันทึก
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Machine tabs */}
       <div className="machine-tabs">
@@ -432,6 +478,36 @@ function SessionPageInner() {
         }
         .nav-btn--primary { background:var(--accent); color:var(--accent-ink); flex:1; }
         .nav-btn--save { background:var(--status-pass); color:#fff; flex:1; }
+
+        .save-all-btn {
+          flex-shrink:0; padding:6px 10px; border-radius:var(--radius-sm);
+          font-size:12px; font-weight:700; cursor:pointer;
+          background:var(--status-pass); color:#fff; border:none;
+          white-space:nowrap; -webkit-tap-highlight-color:transparent;
+        }
+        .save-all-btn:disabled { opacity:0.5; }
+
+        .confirm-overlay {
+          position:fixed; inset:0; background:rgba(0,0,0,0.5);
+          display:flex; align-items:center; justify-content:center;
+          z-index:999; padding:20px;
+        }
+        .confirm-box {
+          background:var(--bg-surface); border-radius:var(--radius-md);
+          padding:20px; width:100%; max-width:320px;
+          display:flex; flex-direction:column; gap:10px;
+        }
+        .confirm-title { margin:0; font-size:16px; font-weight:700; color:var(--ink-primary); }
+        .confirm-sub { margin:0; font-size:13px; color:var(--ink-muted); }
+        .confirm-btns { display:flex; flex-direction:column; gap:8px; margin-top:4px; }
+        .cbtn {
+          min-height:46px; border-radius:var(--radius-md); font-size:14px;
+          font-weight:700; cursor:pointer; border:none;
+          -webkit-tap-highlight-color:transparent;
+        }
+        .cbtn:disabled { opacity:0.5; }
+        .cbtn--save { background:var(--status-pass); color:#fff; }
+        .cbtn--skip { background:var(--bg-base); color:var(--ink-secondary); border:1px solid var(--border-hairline); }
       `}</style>
     </main>
   );
