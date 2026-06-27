@@ -135,14 +135,14 @@
       "testRun": {
         "rpm": "2400",
         "oilPressure": "75",
-        "coolantTemp": "95",
+        "coolantTemp": "50",
         "fuelConsumption": "10",
         "coolingPressure": "20",
         "systemPressure": "140"
       },
       "afterRun": {
-        "fuelAfter": "",
-        "runningHoursAfter": "",
+        "fuelAfter": "570",
+        "runningHoursAfter": "136.6",
         "comment": "",
         "conclusionText": "",
         "inspectedBy": "นันทวัฒน์",
@@ -305,142 +305,142 @@
       "machineId": "fire-pump-3",
       "inspectionDate": "2026-06-27",
       "generalData": {
-        "fuelBefore": "",
-        "runningHoursBefore": "",
-        "runDurationMins": ""
+        "fuelBefore": "520",
+        "runningHoursBefore": "62.6",
+        "runDurationMins": "10"
       },
       "preVisual": [
         {
-          "result": null,
+          "result": "pass",
           "note": ""
         },
         {
-          "result": null,
+          "result": "pass",
           "note": ""
         },
         {
-          "result": null,
+          "result": "pass",
           "note": ""
         },
         {
-          "result": null,
+          "result": "pass",
           "note": ""
         },
         {
-          "result": null,
+          "result": "pass",
           "note": ""
         },
         {
-          "result": null,
+          "result": "pass",
           "note": ""
         },
         {
-          "result": null,
+          "result": "pass",
           "note": ""
         },
         {
-          "result": null,
+          "result": "pass",
           "note": ""
         },
         {
-          "result": null,
+          "result": "pass",
           "note": ""
         },
         {
-          "result": null,
+          "result": "pass",
           "note": ""
         },
         {
-          "result": null,
+          "result": "pass",
           "note": ""
         },
         {
-          "result": null,
+          "result": "pass",
           "note": ""
         },
         {
-          "result": null,
+          "result": "pass",
           "note": ""
         }
       ],
       "preRunVisual": [
         {
-          "result": null,
+          "result": "normal",
           "note": ""
         },
         {
-          "result": null,
+          "result": "normal",
           "note": ""
         },
         {
-          "result": null,
+          "result": "normal",
           "note": ""
         },
         {
-          "result": null,
+          "result": "normal",
           "note": ""
         },
         {
-          "result": null,
+          "result": "normal",
           "note": ""
         },
         {
-          "result": null,
+          "result": "normal",
           "note": ""
         },
         {
-          "result": null,
+          "result": "normal",
           "note": ""
         },
         {
-          "result": null,
+          "result": "normal",
           "note": ""
         },
         {
-          "result": null,
+          "result": "normal",
           "note": ""
         },
         {
-          "result": null,
+          "result": "normal",
           "note": ""
         },
         {
-          "result": null,
+          "result": "normal",
           "note": ""
         },
         {
-          "result": null,
+          "result": "none",
           "note": ""
         },
         {
-          "result": null,
+          "result": "normal",
           "note": ""
         }
       ],
       "readings": {
-        "waterPressure": "",
-        "battery1Voltage": "",
-        "battery2Voltage": "",
+        "waterPressure": "178",
+        "battery1Voltage": "13.7",
+        "battery2Voltage": "13.7",
         "jockeyPump": {
-          "voltageL1L2": "",
-          "voltageL2L3": "",
-          "voltageL1L3": "",
-          "currentL1": "",
-          "currentL2": "",
-          "currentL3": ""
+          "voltageL1L2": "395.4",
+          "voltageL2L3": "394.4",
+          "voltageL1L3": "397.6",
+          "currentL1": "7.04",
+          "currentL2": "6.51",
+          "currentL3": "6.50"
         }
       },
       "testRun": {
-        "rpm": "",
-        "oilPressure": "",
-        "coolantTemp": "",
-        "fuelConsumption": "",
-        "coolingPressure": "",
-        "systemPressure": ""
+        "rpm": "3000",
+        "oilPressure": "75",
+        "coolantTemp": "50",
+        "fuelConsumption": "10",
+        "coolingPressure": "45",
+        "systemPressure": "183"
       },
       "afterRun": {
-        "fuelAfter": "",
-        "runningHoursAfter": "",
+        "fuelAfter": "510",
+        "runningHoursAfter": "62.8",
         "comment": "",
         "conclusionText": "",
         "inspectedBy": "นันทวัฒน์",
