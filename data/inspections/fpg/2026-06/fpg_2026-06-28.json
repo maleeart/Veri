@@ -603,7 +603,7 @@
       },
       "afterRun": {
         "fuelAfter": "",
-        "runningHoursAfter": "",
+        "runningHoursAfter": "55",
         "comment": "",
         "conclusionText": "",
         "inspectedBy": "",
