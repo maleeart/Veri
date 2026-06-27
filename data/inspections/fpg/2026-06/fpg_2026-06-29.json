@@ -289,8 +289,8 @@
         "systemPressure": ""
       },
       "afterRun": {
-        "fuelAfter": "",
-        "runningHoursAfter": "",
+        "fuelAfter": "456",
+        "runningHoursAfter": "456456",
         "comment": "",
         "conclusionText": "",
         "inspectedBy": "",
