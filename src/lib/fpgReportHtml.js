@@ -14,7 +14,7 @@ const PAD = 'padding:1px 3px';
 const CSS = `
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family:'TH SarabunPSK','Sarabun','Angsana New',sans-serif; font-size:10.5px; color:#000; background:#fff; }
-.page { width:210mm; min-height:297mm; padding:7mm 9mm; page-break-after:always; }
+.page { width:210mm; min-height:297mm; padding:6mm 8mm; page-break-after:always; }
 table { border-collapse:collapse; width:100%; }
 td, th { border:1px solid #000; padding:1px 3px; vertical-align:middle; font-size:10.5px; }
 .nb  { border:none !important; }
@@ -30,17 +30,17 @@ function header(machineInfo, data, logoB64, sheet) {
   const title = machineInfo?.type === 'fire_pump'
     ? 'INSPECTION REPORT OF FIRE PUMP'
     : 'INSPECTION REPORT OF GENERATOR';
-  const logo = logoB64 ? `<img src="data:image/jpeg;base64,${logoB64}" style="height:44px">` : '';
+  const logo = logoB64 ? `<img src="data:image/jpeg;base64,${logoB64}" style="height:56px">` : '';
   return `
-<table style="margin-bottom:4px">
+<table style="margin-bottom:5px">
   <tr>
-    <td class="nb" style="width:90px">${logo}</td>
-    <td class="nb" style="text-align:center">
-      <div style="font-size:10px">Electricity Generating Authority of Thailand &nbsp;|&nbsp; การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย</div>
-      <div style="font-size:14px;font-weight:bold">${title}</div>
-      <div style="font-size:10px">สำนักงาน ไทรน้อย</div>
+    <td class="nb" style="width:100px">${logo}</td>
+    <td class="nb" style="text-align:center;padding:2px 8px">
+      <div style="font-size:11.5px;line-height:1.4">Electricity Generating Authority of Thailand &nbsp;|&nbsp; การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย</div>
+      <div style="font-size:17px;font-weight:bold;letter-spacing:0.03em;margin:2px 0">${title}</div>
+      <div style="font-size:11.5px">สำนักงาน ไทรน้อย</div>
     </td>
-    <td class="nb" style="text-align:right;vertical-align:top;font-weight:bold;white-space:nowrap">${sheet}</td>
+    <td class="nb" style="text-align:right;vertical-align:top;font-weight:bold;white-space:nowrap;font-size:11px">${sheet}</td>
   </tr>
 </table>`;
 }
@@ -364,16 +364,16 @@ function sheet2(machineInfo, data, logoB64, approverSigB64) {
       <td class="nb" style="width:50%;text-align:center;padding-top:8px">
         <div style="border-top:1px solid #000;display:inline-block;width:72%;padding-top:3px">
           ${inspectorImg}
+          <div style="font-weight:bold;margin:2px 0">${a.inspectedBy || '…………………………………'}</div>
           <div>ผู้ตรวจสอบ</div>
-          <div style="font-weight:bold;margin:2px 0">(${a.inspectedBy || '…………………………………'})</div>
           <div>วันที่ ${inspDate}</div>
         </div>
       </td>
       <td class="nb" style="width:50%;text-align:center;padding-top:8px">
         <div style="border-top:1px solid #000;display:inline-block;width:72%;padding-top:3px">
           ${approverImg}
+          <div style="font-weight:bold;margin:2px 0">${a.approvedBy || 'ตวงเพชร ชัยยานนท์'}</div>
           <div>ผู้อนุมัติ</div>
-          <div style="font-weight:bold;margin:2px 0">(${a.approvedBy || 'ตวงเพชร ชัยยานนท์'})</div>
           <div>วันที่ ${inspDate}</div>
         </div>
       </td>
