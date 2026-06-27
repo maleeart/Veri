@@ -252,7 +252,7 @@ function SessionPageInner() {
     '1. ตรวจสภาพก่อนเดินเครื่อง',
     'ค่าที่บันทึกได้',
     '2. Test-Run',
-    '3. สรุปผล และลงชื่อ',
+    'สรุปผล',
   ];
 
   const conclusionDefault = (dataFields?.conclusion_default || []).join('\n');
@@ -308,13 +308,13 @@ function SessionPageInner() {
         <div className="confirm-overlay">
           <div className="confirm-box">
             <p className="confirm-title">บันทึก {currentMachine?.label}?</p>
-            <p className="confirm-sub">บันทึกข้อมูลเครื่องนี้ลง GitHub ก่อนไปเครื่องถัดไป</p>
+            <p className="confirm-sub">ต้องการบันทึกข้อมูลเครื่องนี้ลง GitHub ด้วยไหม?</p>
             <div className="confirm-btns">
               <button className="cbtn cbtn--save" onClick={() => handleConfirmSave(true)} disabled={confirmSaving}>
-                {confirmSaving ? 'กำลังบันทึก...' : '✓ บันทึกและไปต่อ'}
+                {confirmSaving ? 'กำลังบันทึก...' : '💾 บันทึกและส่ง'}
               </button>
               <button className="cbtn cbtn--skip" onClick={() => handleConfirmSave(false)} disabled={confirmSaving}>
-                ข้ามการบันทึก
+                ไปเครื่องถัดไป
               </button>
             </div>
           </div>
