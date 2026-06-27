@@ -188,13 +188,7 @@ function SessionPageInner() {
     }
   };
 
-  const handleSaveAll = async () => {
-    setSubmitState('submitting');
-    try { await saveToGithub(records); } catch {}
-    localStorage.removeItem(DRAFT_KEY);
-    setSubmitState('idle');
-    router.push(`/?saved=${sessionDate}`);
-  };
+  const handleSaveAll = () => setShowSummaryPage(true);
 
   const goPrev = () => {
     if (stepIdx > 0) {
@@ -718,20 +712,28 @@ function SummaryPage({ machines, records, inspectedBy, inspectorSignature, onUpd
           <div className="summary-title">สรุปทุกเครื่อง</div>
           {machines.map(m => {
             const rec = records[m.id] || {};
-            const hrBefore = rec.generalData?.runningHoursBefore;
-            const hrAfter  = rec.afterRun?.runningHoursAfter;
+            const hrBefore   = rec.generalData?.runningHoursBefore;
+            const hrAfter    = rec.afterRun?.runningHoursAfter;
             const fuelBefore = rec.generalData?.fuelBefore;
             const fuelAfter  = rec.afterRun?.fuelAfter;
-            const isGenM = m.id?.startsWith('gen');
+            const isGenM     = m.id?.startsWith('gen');
+            const missing    = [
+              !hrBefore && 'ชม.ก่อน',
+              !hrAfter  && 'ชม.หลัง',
+              !isGenM && !fuelBefore && 'น้ำมันก่อน',
+              !isGenM && !fuelAfter  && 'น้ำมันหลัง',
+            ].filter(Boolean);
+            const ok = missing.length === 0;
             return (
-              <div key={m.id} className="summary-row">
-                <span className="summary-icon">✓</span>
+              <div key={m.id} className={`summary-row ${ok ? 'summary-row--ok' : 'summary-row--warn'}`}>
+                <span className="summary-icon">{ok ? '✓' : '!'}</span>
                 <div className="summary-info">
                   <span className="summary-machine">{m.label.replace('Fire Pump', 'FP').replace('Generator', 'GEN')}</span>
                   <span className="summary-detail">
                     Hrs: {hrBefore || '–'} → {hrAfter || '–'}
-                    {!isGenM && fuelBefore && `  ·  น้ำมัน: ${fuelBefore} → ${fuelAfter || '–'} L`}
+                    {!isGenM && `  ·  น้ำมัน: ${fuelBefore || '–'} → ${fuelAfter || '–'} L`}
                   </span>
+                  {!ok && <span className="summary-warn-text">ยังไม่ได้กรอก: {missing.join(', ')}</span>}
                 </div>
               </div>
             );
@@ -767,11 +769,16 @@ function SummaryPage({ machines, records, inspectedBy, inspectorSignature, onUpd
         .sum-body{flex:1;padding:14px 14px 120px;display:flex;flex-direction:column;gap:14px;overflow-x:hidden;}
         .summary-box{background:var(--bg-surface);border:1.5px solid var(--accent);border-radius:var(--radius-md);padding:12px;display:flex;flex-direction:column;gap:8px;}
         .summary-title{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.05em;}
-        .summary-row{display:flex;align-items:flex-start;gap:8px;padding:8px;border-radius:8px;background:var(--status-pass-bg);}
-        .summary-icon{font-size:14px;font-weight:700;color:var(--status-pass);flex-shrink:0;margin-top:1px;}
+        .summary-row{display:flex;align-items:flex-start;gap:8px;padding:8px;border-radius:8px;}
+        .summary-row--ok{background:var(--status-pass-bg);}
+        .summary-row--warn{background:var(--status-fail-bg);}
+        .summary-icon{font-size:14px;font-weight:700;flex-shrink:0;margin-top:1px;}
+        .summary-row--ok .summary-icon{color:var(--status-pass);}
+        .summary-row--warn .summary-icon{color:var(--status-fail);}
         .summary-info{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;}
         .summary-machine{font-size:13px;font-weight:700;color:var(--ink-primary);}
         .summary-detail{font-size:11px;color:var(--ink-muted);}
+        .summary-warn-text{font-size:11px;color:var(--status-fail);font-weight:600;}
         .insp-box{background:var(--bg-surface);border:1.5px solid var(--status-pass);border-radius:var(--radius-md);padding:12px;display:flex;flex-direction:column;gap:10px;}
         .insp-title{font-size:11px;font-weight:700;color:var(--status-pass);text-transform:uppercase;letter-spacing:0.05em;}
         .err-banner{padding:10px 12px;background:var(--status-fail-bg);color:var(--status-fail);border-radius:var(--radius-sm);font-size:13px;margin:0;}
