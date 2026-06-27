@@ -35,10 +35,25 @@ export default function InspectionFormPage() {
   }, []);
 
   const draftKey = `${machineId}:${inspectionDate}`;
+  const [githubRecord, setGithubRecord] = useState(undefined); // undefined=loading, null=none
+
+  // โหลดข้อมูลเดิมจาก GitHub ถ้าไม่มี draft ใน localStorage
+  useEffect(() => {
+    if (!fieldMap) return;
+    const storageKey = `fpg-draft:${draftKey}`;
+    const hasDraft = !!localStorage.getItem(storageKey);
+    if (hasDraft) { setGithubRecord(null); return; }
+    fetch(`/api/inspections?date=${inspectionDate}&type=fpg`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => setGithubRecord(d?.records?.[machineId] ?? null))
+      .catch(() => setGithubRecord(null));
+  }, [fieldMap, draftKey, inspectionDate, machineId]);
+
   const initialData = useMemo(() => {
-    if (!fieldMap) return null;
-    return buildEmptyFormData(fieldMap, machineId, inspectionDate);
-  }, [fieldMap, machineId, inspectionDate]);
+    if (!fieldMap || githubRecord === undefined) return null;
+    const empty = buildEmptyFormData(fieldMap, machineId, inspectionDate);
+    return githubRecord ? { ...empty, ...githubRecord } : empty;
+  }, [fieldMap, machineId, inspectionDate, githubRecord]);
 
   const { data, setData, saveStatus, restoredAt, clearDraft } = useDraftAutosave(draftKey, initialData);
 

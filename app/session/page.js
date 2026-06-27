@@ -43,9 +43,43 @@ function SessionPageInner() {
 
   const handleDateChange = (newDate) => {
     setSessionDate(newDate);
-    setRecords(prev => Object.fromEntries(
-      Object.entries(prev).map(([id, d]) => [id, { ...d, inspectionDate: newDate }])
-    ));
+    if (!fieldMap) return;
+    const newDraftKey = `session:${newDate}`;
+    // ลอง draft ของวันที่ใหม่ก่อน
+    try {
+      const raw = localStorage.getItem(newDraftKey);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        setRecords(saved.records || {});
+        setMachineIdx(saved.machineIdx || 0);
+        setStepIdx(saved.stepIdx || 0);
+        return;
+      }
+    } catch {}
+    // ไม่มี draft → โหลดจาก GitHub
+    fetch(`/api/inspections?date=${newDate}&type=fpg`)
+      .then(r => r.ok ? r.json() : null)
+      .then(existing => {
+        const fresh = {};
+        for (const m of fieldMap.machines) {
+          const saved = existing?.records?.[m.id];
+          fresh[m.id] = saved
+            ? { ...buildEmptyFormData(fieldMap, m.id, newDate), ...saved }
+            : buildEmptyFormData(fieldMap, m.id, newDate);
+        }
+        setRecords(fresh);
+        setMachineIdx(0);
+        setStepIdx(0);
+      })
+      .catch(() => {
+        const fresh = {};
+        for (const m of fieldMap.machines) {
+          fresh[m.id] = buildEmptyFormData(fieldMap, m.id, newDate);
+        }
+        setRecords(fresh);
+        setMachineIdx(0);
+        setStepIdx(0);
+      });
   };
 
   // โหลด field-map
@@ -66,12 +100,26 @@ function SessionPageInner() {
         return;
       }
     } catch {}
-    // fresh start
-    const fresh = {};
-    for (const m of fieldMap.machines) {
-      fresh[m.id] = buildEmptyFormData(fieldMap, m.id, date);
-    }
-    setRecords(fresh);
+    // ไม่มี draft → ลองโหลดจาก GitHub ก่อน (เพื่อแก้ไขรายการที่บันทึกแล้ว)
+    fetch(`/api/inspections?date=${date}&type=fpg`)
+      .then(r => r.ok ? r.json() : null)
+      .then(existing => {
+        const fresh = {};
+        for (const m of fieldMap.machines) {
+          const saved = existing?.records?.[m.id];
+          fresh[m.id] = saved
+            ? { ...buildEmptyFormData(fieldMap, m.id, date), ...saved }
+            : buildEmptyFormData(fieldMap, m.id, date);
+        }
+        setRecords(fresh);
+      })
+      .catch(() => {
+        const fresh = {};
+        for (const m of fieldMap.machines) {
+          fresh[m.id] = buildEmptyFormData(fieldMap, m.id, date);
+        }
+        setRecords(fresh);
+      });
   }, [fieldMap]);
 
   // autosave draft ทุกครั้งที่ records/machineIdx/stepIdx เปลี่ยน
