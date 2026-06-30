@@ -101,36 +101,19 @@ export default function FormPage() {
     setSubmitError(null);
     try {
       const saveDate = general.inspectionDate || date;
+      const building = general.building || '';
+      const floor    = general.floor    || '';
 
       // save to GitHub
-      try {
-        await fetch('/api/save-record', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ date: saveDate, type, building: general.building || '', floor: general.floor || '', records: { general, devices } }),
-        });
-      } catch {}
-
-      // download Excel
-      const res = await fetch('/api/export-list', {
+      await fetch('/api/save-record', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, date: saveDate, general, devices }),
+        body: JSON.stringify({ date: saveDate, type, building, floor, records: { general, devices } }),
       });
-      if (res.ok) {
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const label = type === 'emergency' ? 'Emergency' : 'Smoke';
-        const bld = (general.building || '').replace(/\s+/g, '_');
-        const flr = (general.floor || '').replace(/\s+/g, '_');
-        const suffix = [bld, flr].filter(Boolean).join('_');
-        a.href = url; a.download = `${label}_report_${saveDate}${suffix ? '_' + suffix : ''}.xlsx`;
-        document.body.appendChild(a); a.click(); a.remove();
-        URL.revokeObjectURL(url);
-      }
 
       localStorage.removeItem(DRAFT_KEY);
+
+      // redirect to home — user downloads Excel from History via GET (mobile-compatible)
       router.push(`/?saved=${saveDate}`);
     } catch (err) {
       setSubmitError(String(err.message || err));
@@ -290,7 +273,7 @@ export default function FormPage() {
             <button className="btn-submit" style={{ background: accentColor }}
               disabled={submitting}
               onClick={handleSubmit}>
-              {submitting ? '⏳ กำลังบันทึก...' : '✓ บันทึก + ดาวน์โหลด Excel'}
+              {submitting ? '⏳ กำลังบันทึก...' : '✓ บันทึก'}
             </button>
             <button className="btn-back-edit" onClick={() => setStep(1)}>‹ แก้ไขรายการ</button>
           </section>

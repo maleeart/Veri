@@ -113,27 +113,34 @@ function HomePageInner() {
   };
 
   // ── download Excel ───────────────────────────────────────────────────────
-  const handleDownload = async (date, type = 'fpg', filename = null, building = '', floor = '') => {
+  const handleDownload = (date, type = 'fpg', filename = null, building = '', floor = '') => {
+    const isList = type === 'emergency' || type === 'smoke';
+    if (isList) {
+      // GET endpoint — works on mobile (browser handles download natively)
+      const params = new URLSearchParams({ type, date });
+      if (filename) params.set('filename', filename);
+      if (building) params.set('building', building);
+      if (floor)    params.set('floor', floor);
+      window.location.href = `/api/export-list?${params}`;
+      return;
+    }
+    // FPG uses POST (needs session data)
     setDownloading(filename || date);
-    try {
-      const isList = type === 'emergency' || type === 'smoke';
-      const endpoint = isList ? '/api/export-list' : '/api/export-combined';
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date, type, filename, building, floor }),
+    fetch('/api/export-combined', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date, type, filename, building, floor }),
+    }).then(res => {
+      if (!res.ok) return res.json().catch(() => ({})).then(e => { alert(e.error || 'ดาวน์โหลดไม่สำเร็จ'); });
+      return res.blob().then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `FPG_report_${date}.xlsx`;
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
       });
-      if (!res.ok) { const e = await res.json().catch(() => ({})); alert(e.error || 'ดาวน์โหลดไม่สำเร็จ'); return; }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const prefix = type === 'fpg' ? 'FPG' : type === 'emergency' ? 'Emergency' : 'Smoke';
-      const bldFlr = [building, floor].filter(Boolean).join('_');
-      a.href = url; a.download = `${prefix}_report_${date}${bldFlr ? '_' + bldFlr : ''}.xlsx`;
-      document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(url);
-    } catch (err) { alert('เกิดข้อผิดพลาด: ' + err.message); }
-    finally { setDownloading(null); }
+    }).catch(err => alert('เกิดข้อผิดพลาด: ' + err.message))
+      .finally(() => setDownloading(null));
   };
 
   // ── download PDF (xlsx → LibreOffice service → pdf) ──────────────────────
