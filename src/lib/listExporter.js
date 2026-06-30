@@ -37,7 +37,8 @@ async function generateListReport(type, data) {
   ws.getCell('D8').value = g.serial    || '';
   ws.getCell('F8').value = g.mfg       || '';
 
-  (data.devices || []).forEach((dev, i) => {
+  const devices = (data.devices || []).slice(0, 30);
+  devices.forEach((dev, i) => {
     const row = 10 + i;
     if (row > 39) return;
     if (type === 'emergency') {
@@ -56,6 +57,24 @@ async function generateListReport(type, data) {
       if (dev.remarks) ws.getCell(`F${row}`).value = dev.remarks;
     }
   });
+
+  // merge col A for consecutive same-zone rows (smoke only)
+  if (type === 'smoke') {
+    let i = 0;
+    while (i < devices.length) {
+      const zone = devices[i].zone || '';
+      let j = i + 1;
+      while (j < devices.length && (devices[j].zone || '') === zone) j++;
+      if (j > i + 1) {
+        const r1 = 10 + i, r2 = 10 + j - 1;
+        if (r2 <= 39) {
+          ws.mergeCells(`A${r1}:A${r2}`);
+          ws.getCell(`A${r1}`).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        }
+      }
+      i = j;
+    }
+  }
 
   return wb.xlsx.writeBuffer();
 }

@@ -25,7 +25,7 @@ const FORM_CONFIG = {
     idKey: 'zone',
     fields: [
       { key: 'externalCondition', label: 'สภาพภายนอก',   opts: [{ v: 'normal', l: 'ปกติ',    c: '#16a34a' }, { v: 'dirty',       l: 'สกปรก',    c: '#dc2626' }] },
-      { key: 'cleaned',           label: 'ทำความสะอาด',   opts: [{ v: 'yes',    l: 'ทำแล้ว', c: '#16a34a' }, { v: 'no',          l: 'ไม่ทำ',    c: '#dc2626' }] },
+      { key: 'cleaned',           label: 'ถอดทำความสะอาด', opts: [{ v: 'yes',    l: 'ถอดแล้ว', c: '#16a34a' }, { v: 'no',          l: 'ไม่ถอด',   c: '#dc2626' }] },
       { key: 'workingCondition',  label: 'สภาพการทำงาน', opts: [{ v: 'normal', l: 'ปกติ',    c: '#16a34a' }, { v: 'not_working', l: 'ไม่ทำงาน', c: '#dc2626' }] },
     ],
   },
@@ -85,7 +85,11 @@ export default function FormPage() {
   // ── Device helpers ──────────────────────────────────────────────────────────
   const addDevice = () => {
     if (devices.length >= 30) return;
-    setDevices(d => [...d, makeDevice(cfg)]);
+    const prev = devices[devices.length - 1];
+    const next = makeDevice(cfg);
+    // inherit zone from previous device for convenience
+    if (type === 'smoke' && prev) next[cfg.idKey] = prev[cfg.idKey];
+    setDevices(d => [...d, next]);
   };
   const removeDevice = idx => setDevices(d => d.filter((_, i) => i !== idx));
   const updateDevice = (idx, key, val) =>
