@@ -58,22 +58,21 @@ async function generateListReport(type, data) {
     }
   });
 
-  // merge col A for consecutive same-zone rows (smoke only)
-  if (type === 'smoke') {
-    let i = 0;
-    while (i < devices.length) {
-      const zone = devices[i].zone || '';
-      let j = i + 1;
-      while (j < devices.length && (devices[j].zone || '') === zone) j++;
-      if (j > i + 1) {
-        const r1 = 10 + i, r2 = 10 + j - 1;
-        if (r2 <= 39) {
-          ws.mergeCells(`A${r1}:A${r2}`);
-          ws.getCell(`A${r1}`).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-        }
+  // merge col A for consecutive same-id/zone rows
+  const idKey = type === 'smoke' ? 'zone' : 'id';
+  let i = 0;
+  while (i < devices.length) {
+    const val = devices[i][idKey] || '';
+    let j = i + 1;
+    while (j < devices.length && (devices[j][idKey] || '') === val) j++;
+    if (j > i + 1) {
+      const r1 = 10 + i, r2 = 10 + j - 1;
+      if (r2 <= 39) {
+        ws.mergeCells(`A${r1}:A${r2}`);
+        ws.getCell(`A${r1}`).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
       }
-      i = j;
     }
+    i = j;
   }
 
   return wb.xlsx.writeBuffer();

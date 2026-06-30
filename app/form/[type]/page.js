@@ -87,8 +87,8 @@ export default function FormPage() {
     if (devices.length >= 30) return;
     const prev = devices[devices.length - 1];
     const next = makeDevice(cfg);
-    // inherit zone from previous device for convenience
-    if (type === 'smoke' && prev) next[cfg.idKey] = prev[cfg.idKey];
+    // inherit id/zone from previous device for convenience
+    if (prev) next[cfg.idKey] = prev[cfg.idKey];
     setDevices(d => [...d, next]);
   };
   const removeDevice = idx => setDevices(d => d.filter((_, i) => i !== idx));
