@@ -148,22 +148,15 @@ function generateMonthSheet(wb, sheetName, yearMonth, monthData) {
     if (isWeekend) {
       for (let c = 3; c <= 16; c++) ws_r.getCell(c).value = '-';
       styleRow(ws_r, 16);
-      // A,B,C = no fill; D(4)→P(16) = green
-      for (let c = 4; c <= 16; c++) ws_r.getCell(c).fill = FILL_GREEN;
-      // E→O blue font
-      for (let c = 5; c <= 15; c++) ws_r.getCell(c).font = { name: FONT_NAME, color: COL_BLUE };
+      for (let c = 1; c <= 16; c++) ws_r.getCell(c).fill = FILL_GREEN;
 
     } else if (entry?.holiday) {
-      // A,B = gray fill
-      ws_r.getCell(1).fill = FILL_GRAY;
-      ws_r.getCell(2).fill = FILL_GRAY;
-      // C:P merged = blue fill + holiday name
       ws.mergeCells(`C${rowIdx}:P${rowIdx}`);
       ws_r.getCell(3).value = entry.holiday;
       ws_r.getCell(3).alignment = { horizontal: 'center', vertical: 'middle', wrapText: false };
-      ws_r.getCell(3).fill = FILL_BLUE;
       ws_r.getCell(3).font = { name: FONT_NAME, bold: true };
       styleRow(ws_r, 16);
+      for (let c = 1; c <= 16; c++) ws_r.getCell(c).fill = FILL_BLUE;
 
     } else if (entry && !entry.holiday) {
       const { time, m10, m11, m12, m20, m21, m22, m31, m32, m60, m61 } = entry;
@@ -185,8 +178,6 @@ function generateMonthSheet(wb, sheetName, yearMonth, monthData) {
       ws_r.getCell(15).value = m60 ?? '';
       ws_r.getCell(16).value = m61 ?? '';
       styleRow(ws_r, 16);
-      // A,B,C = blue fill (workday date columns)
-      for (let c = 1; c <= 3; c++) ws_r.getCell(c).fill = FILL_BLUE;
       // Q'TY/Day font colors: E=blue, G=red, I=red
       ws_r.getCell(5).font  = { name: FONT_NAME, color: COL_BLUE };
       ws_r.getCell(7).font  = { name: FONT_NAME, color: COL_RED };
