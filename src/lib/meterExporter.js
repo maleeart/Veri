@@ -31,64 +31,78 @@ function styleRow(row, numCols) {
   }
 }
 
-/** Build header rows 1-6 for a monthly sheet (cols A-P = 16 cols) */
+/** Build header rows 1-6 for a monthly sheet — matches original Excel exactly */
 function buildMonthHeaders(ws, yearMonth) {
   const bold = { bold: true, name: FONT_NAME };
   const center = { horizontal: 'center', vertical: 'middle', wrapText: false };
+  const left   = { horizontal: 'left',   vertical: 'middle', wrapText: false };
 
-  // Row 1: title merged A1:P1
+  // Row 1: A1:P1 — title
   ws.mergeCells('A1:P1');
-  const r1 = ws.getCell('A1');
-  r1.value = 'DAILY CHECK ELECTRICAL MAIN METER กฟน.';
-  r1.font = { bold: true, size: 14, name: FONT_NAME };
-  r1.alignment = center;
+  Object.assign(ws.getCell('A1'), {
+    value: 'DAILY CHECK ELECTRICAL MAIN METER TPDL',
+    font: { bold: true, size: 14, name: FONT_NAME },
+    alignment: center,
+  });
 
-  // Row 2: month/year in col O
-  ws.getCell('O2').value = thaiMonthYear(yearMonth);
-  ws.getCell('O2').font = bold;
+  // Row 2: A2:N2 — meter info | O2:P2 — month/year
+  ws.mergeCells('A2:N2');
+  Object.assign(ws.getCell('A2'), {
+    value: '                                                ELSTER - KWH & KVAH  MEA  No.   MEA-140005423            ประเภท TOU 4.2.2',
+    font: { name: FONT_NAME },
+    alignment: left,
+  });
+  ws.mergeCells('O2:P2');
+  Object.assign(ws.getCell('O2'), {
+    value: thaiMonthYear(yearMonth),
+    font: bold,
+    alignment: center,
+  });
+
+  // Row 3-6: A3:B6 merged = "Date" col, C3:C6 = "Time"
+  ws.mergeCells('A3:B6');
+  Object.assign(ws.getCell('A3'), { value: 'Date', font: bold, alignment: center });
+  ws.mergeCells('C3:C6');
+  Object.assign(ws.getCell('C3'), { value: 'Time', font: bold, alignment: center });
 
   // Row 3: group headers
-  const r3groups = [
-    ['A3:C3', 'Date/Time'],
-    ['D3:I3', 'Electrical Consumption kWh'],
-    ['J3:L3', 'Previous Electrical Consumption'],
-    ['M3:N3', 'Maximum Demand'],
-    ['O3:P3', 'Power Reactive'],
-  ];
-  for (const [range, val] of r3groups) {
-    ws.mergeCells(range);
-    const c = ws.getCell(range.split(':')[0]);
-    c.value = val; c.font = bold; c.alignment = center;
-  }
+  ws.mergeCells('D3:I3');
+  Object.assign(ws.getCell('D3'), { value: 'Electrical Consumption ( X 1,000 )', font: bold, alignment: center });
+  ws.mergeCells('J3:L3');
+  Object.assign(ws.getCell('J3'), { value: 'Previous Electrical Consumption', font: bold, alignment: center });
+  ws.mergeCells('M3:N3');
+  Object.assign(ws.getCell('M3'), { value: 'Maximun Demand', font: bold, alignment: center });
+  ws.mergeCells('O3:P3');
+  Object.assign(ws.getCell('O3'), { value: 'Power  Reactive', font: bold, alignment: center });
 
-  // Row 4: sub-headers
-  const r4 = [
-    ['D4:E4','kWh'],['F4:G4','On Peak kWh'],['H4:I4','Off Peak kWh'],
-    ['J4','kWh'],['K4','On Peak'],['L4','Off Peak'],
-    ['M4','kW'],['N4','-'],['O4','kVarh'],['P4','kVar'],
-  ];
-  for (const [range, val] of r4) {
-    if (range.includes(':')) ws.mergeCells(range);
-    const c = ws.getCell(range.split(':')[0]);
-    c.value = val; c.font = bold; c.alignment = center;
-  }
+  // Row 4: sub-group headers
+  ws.mergeCells('D4:E4');
+  Object.assign(ws.getCell('D4'), { value: 'kWh', font: bold, alignment: center });
+  ws.mergeCells('F4:G4');
+  Object.assign(ws.getCell('F4'), { value: ' On Peak (9:00-22:00) kWh', font: bold, alignment: center });
+  ws.mergeCells('H4:I4');
+  Object.assign(ws.getCell('H4'), { value: ' Off Peak (22:00-9:00) kWh', font: bold, alignment: center });
+  ws.mergeCells('J4:J5'); Object.assign(ws.getCell('J4'), { value: 'KWh',      font: bold, alignment: center });
+  ws.mergeCells('K4:K5'); Object.assign(ws.getCell('K4'), { value: 'On Peak',  font: bold, alignment: center });
+  ws.mergeCells('L4:L5'); Object.assign(ws.getCell('L4'), { value: 'Off Peak', font: bold, alignment: center });
+  ws.mergeCells('M4:N4');
+  Object.assign(ws.getCell('M4'), { value: 'kW', font: bold, alignment: center });
+  ws.mergeCells('O4:O5'); Object.assign(ws.getCell('O4'), { value: 'kVarh', font: bold, alignment: center });
+  ws.mergeCells('P4:P5'); Object.assign(ws.getCell('P4'), { value: 'kVar',  font: bold, alignment: center });
 
-  // Row 5: Data/Q'TY/Day
-  const r5cols = {
-    A:'วัน', B:'วันที่', C:'เวลา',
-    D:'Data', E:"Q'TY/Day", F:'Data', G:"Q'TY/Day", H:'Data', I:"Q'TY/Day",
-    J:'Data', K:'Data', L:'Data', M:'Data', N:'Data', O:'Data', P:'Data',
-  };
-  for (const [col, val] of Object.entries(r5cols)) {
-    const c = ws.getCell(`${col}5`);
-    c.value = val; c.font = bold; c.alignment = center;
+  // Row 5: Data / Q'TY/Day + Maximum Demand sub
+  for (const [col, val] of [['D','Data'],['E',"Q'TY / Day"],['F','Data'],['G',"Q'TY / Day"],['H','Data'],['I',"Q'TY / Day"]]) {
+    Object.assign(ws.getCell(`${col}5`), { value: val, font: bold, alignment: center });
   }
+  Object.assign(ws.getCell('M5'), { value: 'On Peak',  font: bold, alignment: center });
+  Object.assign(ws.getCell('N5'), { value: 'Off Peak', font: bold, alignment: center });
 
-  // Row 6: meter codes
-  const r6cols = { D:'10', E:'', F:'11', G:'', H:'12', I:'', J:'20', K:'21', L:'22', M:'31', N:'32', O:'60', P:'61' };
-  for (const [col, val] of Object.entries(r6cols)) {
-    const c = ws.getCell(`${col}6`);
-    c.value = val; c.font = bold; c.alignment = center;
+  // Row 6: meter numbers — D6:E6, F6:G6, H6:I6 merged (matching original)
+  ws.mergeCells('D6:E6'); Object.assign(ws.getCell('D6'), { value: 10, font: bold, alignment: center });
+  ws.mergeCells('F6:G6'); Object.assign(ws.getCell('F6'), { value: 11, font: bold, alignment: center });
+  ws.mergeCells('H6:I6'); Object.assign(ws.getCell('H6'), { value: 12, font: bold, alignment: center });
+  for (const [col, val] of [['J',20],['K',21],['L',22],['M',31],['N',32],['O',60],['P',61]]) {
+    Object.assign(ws.getCell(`${col}6`), { value: val, font: bold, alignment: center });
   }
 
   // Apply border + font to header rows 1-6
