@@ -65,6 +65,9 @@ export default function FormPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const [validationError, setValidationError] = useState(null);
+  const [prefilledFrom, setPrefilledFrom] = useState(null); // ข้อความรอบที่ดึงมาเติมให้ (แสดงใน step อุปกรณ์)
+  const [floorTemplates, setFloorTemplates] = useState([]); // รายการไฟล์เก่าของอาคารนี้ (ล่าสุดต่อชั้น) ให้เลือก
+  const [showTemplatePopup, setShowTemplatePopup] = useState(false);
   const draftRef = useRef(null);
 
   if (!cfg) return <main style={{ padding: 40 }}>ไม่รู้จักประเภทฟอร์มนี้</main>;
@@ -80,6 +83,61 @@ export default function FormPage() {
       }
     } catch {}
   }, []);
+
+  // เมื่อเลือกอาคาร (และฟอร์มยังว่าง ไม่ทับ draft ที่มีอยู่) เช็คไฟล์เก่าของอาคารนี้ — ตึกเดียวมีได้หลายชั้น
+  // จึงถามให้เลือกเองว่าจะเอา template จากชั้นไหน แทนที่จะเดาให้อัตโนมัติ
+  useEffect(() => {
+    if (!general.building) return;
+    const isEmpty = devices.length === 1 && !devices[0][cfg.idKey] && !devices[0].location;
+    if (!isEmpty) return; // มีข้อมูลอยู่แล้ว ไม่ทับ
+    let cancelled = false;
+    (async () => {
+      try {
+        const { dates } = await fetch('/api/inspections').then(r => r.json());
+        const matches = (dates || [])
+          .filter(x => x.type === type && x.building === general.building)
+          .sort((a, b) => b.date.localeCompare(a.date));
+        // เก็บไฟล์ล่าสุดไว้ต่อชั้นเดียว (ตึกเดียวมีหลายชั้น = หลายไฟล์)
+        const seenFloors = new Set();
+        const byFloor = matches.filter(m => {
+          const key = m.floor || '';
+          if (seenFloors.has(key)) return false;
+          seenFloors.add(key);
+          return true;
+        });
+        if (cancelled || !byFloor.length) return;
+        setFloorTemplates(byFloor);
+        setShowTemplatePopup(true);
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, [general.building, type]);
+
+  // ผู้ใช้เลือก template จาก popup (หรือเลือก "เริ่มใหม่" → tmpl = null)
+  const applyTemplate = async (tmpl) => {
+    setShowTemplatePopup(false);
+    if (!tmpl) return;
+    try {
+      const rec = await fetch(`/api/inspections?filename=${encodeURIComponent(tmpl.filename)}`).then(r => r.json());
+      const prevDevices = rec.records?.devices || [];
+      const prevGeneral = rec.records?.general || {};
+      if (!prevDevices.length) return;
+      setDevices(prevDevices.map(d => {
+        const nd = makeDevice(cfg);
+        nd[cfg.idKey] = d[cfg.idKey] || '';
+        nd.location = d.location || '';
+        return nd;
+      }));
+      setGeneral(g => ({
+        ...g,
+        floor:  g.floor  || tmpl.floor || '',
+        model:  g.model  || prevGeneral.model  || '',
+        serial: g.serial || prevGeneral.serial || '',
+        mfg:    g.mfg    || prevGeneral.mfg    || '',
+      }));
+      setPrefilledFrom(`${tmpl.floor ? 'ชั้น ' + tmpl.floor + ' · ' : ''}${tmpl.date}`);
+    } catch {}
+  };
 
   // autosave draft
   useEffect(() => {
@@ -143,6 +201,25 @@ export default function FormPage() {
         </div>
       </header>
 
+      {/* Popup — เลือก template จากไฟล์เก่าของอาคารนี้ (แยกตามชั้น) */}
+      {showTemplatePopup && (
+        <div className="overlay" onClick={() => applyTemplate(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <span className="modal__icon">📋</span>
+            <h2 className="modal__title">พบข้อมูลเก่าของอาคารนี้</h2>
+            <p className="modal__msg">เลือกชั้นที่ต้องการดึงรายการอุปกรณ์มาเติมให้ (สถานะจะรีเซ็ตให้ตรวจใหม่)</p>
+            <div className="template-list">
+              {floorTemplates.map(t => (
+                <button key={t.filename} className="modal__close template-opt" onClick={() => applyTemplate(t)}>
+                  {t.floor ? `ชั้น ${t.floor}` : '(ไม่ระบุชั้น)'} · {t.date}
+                </button>
+              ))}
+            </div>
+            <button className="modal__close" onClick={() => applyTemplate(null)}>เริ่มใหม่ (ไม่ใช้ template)</button>
+          </div>
+        </div>
+      )}
+
       {/* Step 0 — General Info */}
       {step === 0 && (
         <section className="section">
@@ -189,6 +266,9 @@ export default function FormPage() {
       {/* Step 1 — Device List */}
       {step === 1 && (
         <section className="section">
+          {prefilledFrom && (
+            <p className="prefill-note">📋 ดึงรายการอุปกรณ์จากรอบล่าสุด ({prefilledFrom}) มาเติมให้ — ตรวจสอบและปรับผลใหม่</p>
+          )}
           {devices.map((dev, idx) => (
             <div key={idx} className="device-card">
               <div className="device-header">
@@ -350,6 +430,16 @@ export default function FormPage() {
         .fail-fields { font-size: 11px; color: var(--status-fail); font-weight: 600; }
 
         .validation-err { color: var(--status-fail); font-size: 13px; font-weight: 600; background: var(--status-fail-bg); border-radius: 8px; padding: 8px 12px; margin: 0; }
+        .prefill-note { color: var(--ink-muted); font-size: 12px; background: var(--bg-surface-raised); border: 1px solid var(--border-hairline); border-radius: 10px; padding: 8px 12px; margin: 0; }
+
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 24px; }
+        .modal { background: var(--bg-surface); border-radius: 24px; padding: 28px 22px; width: 100%; max-width: 320px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.4); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .modal__icon { font-size: 44px; }
+        .modal__title { font-size: 18px; font-weight: 800; color: var(--ink-primary); margin: 0; }
+        .modal__msg { font-size: 13px; color: var(--ink-secondary); margin: 0 0 6px; }
+        .modal__close { width: 100%; padding: 12px; background: var(--bg-surface-raised); border: 1px solid var(--border-strong); border-radius: 12px; font-size: 14px; font-weight: 600; color: var(--ink-primary); cursor: pointer; }
+        .template-list { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+        .template-opt { text-align: left; }
         .error-msg { color: var(--status-fail); font-size: 13px; text-align: center; }
       `}</style>
     </div>
