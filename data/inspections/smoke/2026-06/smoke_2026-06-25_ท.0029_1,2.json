@@ -13,7 +13,7 @@
     },
     "devices": [
       {
-        "location": "ลานซ่อมรถจักรกลหนัก",
+        "location": "ลานซ่อมรถจักรกลหนัก ชั้น1",
         "remarks": "",
         "zone": "1",
         "externalCondition": "normal",
@@ -38,10 +38,10 @@
       },
       {
         "location": "ห้องอาหารฝั่งขวา ชั้น1",
-        "remarks": "",
+        "remarks": "Smoke/Heat Detector อุปกรณ์ตรวจจับความร้อน",
         "zone": "2",
         "externalCondition": "normal",
-        "cleaned": "yes",
+        "cleaned": "no",
         "workingCondition": "normal"
       },
       {
@@ -110,10 +110,10 @@
       },
       {
         "location": "ห้องอาหารฝั่งซ้าย ชั้น1",
-        "remarks": "",
+        "remarks": "Smoke/Heat Detector อุปกรณ์ตรวจจับความร้อน",
         "zone": "3",
         "externalCondition": "normal",
-        "cleaned": "yes",
+        "cleaned": "no",
         "workingCondition": "normal"
       },
       {
@@ -141,7 +141,7 @@
         "workingCondition": "normal"
       },
       {
-        "location": "ห้องระบบไฟฟ้า",
+        "location": "ห้องระบบไฟฟ้า ชั้น1",
         "remarks": "",
         "zone": "4",
         "externalCondition": "normal",
@@ -182,10 +182,10 @@
       },
       {
         "location": "ห้องอาหารฝั่งซ้าย ชั้น2",
-        "remarks": "",
+        "remarks": "Smoke/Heat Detector อุปกรณ์ตรวจจับความร้อน",
         "zone": "6",
         "externalCondition": "normal",
-        "cleaned": "yes",
+        "cleaned": "no",
         "workingCondition": "normal"
       },
       {
