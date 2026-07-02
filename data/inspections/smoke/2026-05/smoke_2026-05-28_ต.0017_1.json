@@ -1,0 +1,49 @@
+{
+  "date": "2026-05-28",
+  "type": "smoke",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-05-28",
+      "building": "ต.0017",
+      "floor": "1",
+      "inspector": "ธนวิชญ์",
+      "model": "SD-651",
+      "serial": "",
+      "mfg": "Notifier "
+    },
+    "devices": [
+      {
+        "location": "ห้องน้ำชาย",
+        "remarks": "",
+        "zone": "1",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องน้ำหญิง",
+        "remarks": "",
+        "zone": "1",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องเซิร์ฟเวอร์",
+        "remarks": "",
+        "zone": "1",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องอาหาร VIP",
+        "remarks": "",
+        "zone": "2",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      }
+    ]
+  }
+}
