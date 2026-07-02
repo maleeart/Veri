@@ -259,7 +259,7 @@ function HomePageInner() {
           {isAdmin && (
             <button className="icon-btn" title="จัดการผู้ใช้" onClick={() => router.push('/admin')}>⚙️</button>
           )}
-          <button className="icon-btn" title="ออกจากระบบ" onClick={() => signOut({ callbackUrl: '/login' })}>⎋</button>
+          <button className="logout-btn" onClick={() => signOut({ callbackUrl: '/login' })}>ออกจากระบบ</button>
         </div>
       </header>
 
@@ -983,6 +983,7 @@ function HomePageInner() {
         .role-chip--user    { background: var(--status-pass-bg);  color: var(--status-pass); border: 1px solid var(--status-pass); }
         .role-chip--visitor { background: var(--bg-surface-raised); color: var(--ink-muted); border: 1px solid var(--border-strong); }
         .icon-btn { background: none; border: none; font-size: 16px; cursor: pointer; padding: 4px 6px; border-radius: 8px; color: var(--ink-muted); }
+        .logout-btn { background: var(--bg-surface-raised); border: 1px solid var(--border-strong); color: var(--ink-secondary); border-radius: 10px; padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
         .admin-badge {
           background: none;
           border: none;
