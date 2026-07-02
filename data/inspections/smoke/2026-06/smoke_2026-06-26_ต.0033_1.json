@@ -1,0 +1,25 @@
+{
+  "date": "2026-06-26",
+  "type": "smoke",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-06-26",
+      "building": "ต.0033",
+      "floor": "1",
+      "inspector": "ธนวิชญ์",
+      "model": "SD-651",
+      "serial": "",
+      "mfg": "Notifier"
+    },
+    "devices": [
+      {
+        "location": "อาคารปฏิบัติการ",
+        "remarks": "ต่อเติมเพิ่มมาจากอาคาร ท.0029",
+        "zone": "7",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      }
+    ]
+  }
+}
