@@ -50,7 +50,8 @@ export default function AdminPage() {
     </main>
   );
 
-  const userEmails = users ? Object.keys(users).sort() : [];
+  const userEmails    = users ? Object.keys(users).filter(e => users[e] === 'user').sort()    : [];
+  const visitorEmails = users ? Object.keys(users).filter(e => users[e] !== 'user').sort() : [];
 
   return (
     <div className="root">
@@ -64,19 +65,6 @@ export default function AdminPage() {
 
       <section className="section">
         {err && <p className="err">{err}</p>}
-
-        {/* เพิ่มผู้ใช้งานด้วยอีเมล */}
-        <div className="add-box">
-          <label className="lbl">ให้สิทธิ์ &ldquo;ผู้ใช้งาน&rdquo; แก่อีเมล</label>
-          <div className="add-row">
-            <input className="inp" type="email" placeholder="name@gmail.com" value={email}
-              onChange={e => setEmail(e.target.value)} />
-            <button className="btn" disabled={busy || !email.trim()} onClick={() => setRole(email, 'user')}>
-              + เพิ่ม
-            </button>
-          </div>
-          <p className="hint">ผู้ที่ไม่อยู่ในรายการนี้จะเป็น &ldquo;ผู้เยี่ยมชม&rdquo; โดยอัตโนมัติ · เปลี่ยนสิทธิ์แล้วผู้ใช้ต้องออกแล้วเข้าระบบใหม่</p>
-        </div>
 
         {/* admins (จาก env, แก้ที่นี่ไม่ได้) */}
         <div className="group">
@@ -100,10 +88,39 @@ export default function AdminPage() {
               <span className="email">{e}</span>
               <span className="tag tag--user">ผู้ใช้งาน</span>
               <button className="btn-sm" disabled={busy} onClick={() => setRole(e, 'visitor')}>
-                ↓ เป็นผู้เยี่ยมชม
+                ↓ ผู้เยี่ยมชม
               </button>
             </div>
           ))}
+        </div>
+
+        {/* ผู้เยี่ยมชม (เคย login แล้ว) */}
+        <div className="group">
+          <div className="group-hd">ผู้เยี่ยมชม ({visitorEmails.length})</div>
+          {users === null && <p className="empty">กำลังโหลด...</p>}
+          {users && visitorEmails.length === 0 && <p className="empty">— ยังไม่มีผู้เยี่ยมชม —</p>}
+          {visitorEmails.map(e => (
+            <div key={e} className="row">
+              <span className="email">{e}</span>
+              <span className="tag tag--visitor">ผู้เยี่ยมชม</span>
+              <button className="btn-sm btn-sm--promote" disabled={busy} onClick={() => setRole(e, 'user')}>
+                ↑ ผู้ใช้งาน
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* เพิ่มอีเมลที่ยังไม่เคย login */}
+        <div className="add-box">
+          <label className="lbl">เพิ่มอีเมลล่วงหน้า (ยังไม่เคย login)</label>
+          <div className="add-row">
+            <input className="inp" type="email" placeholder="name@gmail.com" value={email}
+              onChange={e => setEmail(e.target.value)} />
+            <button className="btn" disabled={busy || !email.trim()} onClick={() => setRole(email, 'user')}>
+              + ผู้ใช้งาน
+            </button>
+          </div>
+          <p className="hint">เปลี่ยนสิทธิ์แล้วผู้ใช้ต้องออกแล้วเข้าระบบใหม่</p>
         </div>
       </section>
 
@@ -130,7 +147,9 @@ export default function AdminPage() {
         .tag { font-size: 11px; font-weight: 700; border-radius: 8px; padding: 3px 8px; white-space: nowrap; }
         .tag--admin { background: rgba(240,70,70,0.12); color: var(--status-fail); border: 1px solid var(--status-fail); }
         .tag--user { background: var(--status-pass-bg); color: var(--status-pass); border: 1px solid var(--status-pass); }
+        .tag--visitor { background: var(--bg-surface-raised); color: var(--ink-muted); border: 1px solid var(--border-strong); }
         .btn-sm { background: var(--bg-surface-raised); border: 1px solid var(--border-strong); color: var(--ink-secondary); border-radius: 8px; padding: 5px 10px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+        .btn-sm--promote { background: var(--status-pass-bg); border-color: var(--status-pass); color: var(--status-pass); }
         .btn-sm:disabled { opacity: 0.5; }
       `}</style>
     </div>

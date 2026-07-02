@@ -41,14 +41,35 @@ async function loadUsers() {
   return { map: map && typeof map === 'object' ? map : {}, sha: json.sha };
 }
 
+async function saveUsers(map, sha, message) {
+  const { owner, repo } = cfg();
+  const content = Buffer.from(JSON.stringify(map, null, 2), 'utf-8').toString('base64');
+  const res = await ghReq(`/repos/${owner}/${repo}/contents/${USERS_PATH}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message,
+      content,
+      branch: DATA_BRANCH,
+      ...(sha ? { sha } : {}),
+    }),
+  });
+  if (!res.ok) throw new Error(`บันทึก users.json ไม่สำเร็จ HTTP ${res.status}`);
+}
+
 async function getRoleForEmail(email) {
   const key = String(email || '').toLowerCase();
   if (!key) return 'visitor';
   try {
-    const { map } = await loadUsers();
+    const { map, sha } = await loadUsers();
+    if (!(key in map)) {
+      // ลงทะเบียนผู้ใช้ใหม่เป็น visitor เพื่อให้ admin เห็นในหน้าจัดการสิทธิ์
+      map[key] = 'visitor';
+      saveUsers(map, sha, `ลงทะเบียน ${key}`).catch(() => {});
+    }
     return map[key] === 'user' ? 'user' : 'visitor';
   } catch {
-    return 'visitor'; // ถ้าโหลดไม่ได้ ให้สิทธิ์ต่ำสุดไว้ก่อน (ปลอดภัย)
+    return 'visitor';
   }
 }
 
@@ -57,27 +78,13 @@ async function listUsers() {
   return map;
 }
 
-/** ตั้ง role ให้ email (role = 'user' | 'visitor'); ลบ key ถ้าเป็น visitor เพื่อให้ไฟล์สะอาด */
+/** ตั้ง role ให้ email (role = 'user' | 'visitor'); เก็บทั้งคู่ไว้ให้ admin เห็น */
 async function setRole(email, role) {
   const key = String(email || '').toLowerCase().trim();
   if (!key) throw new Error('email ไม่ถูกต้อง');
   const { map, sha } = await loadUsers();
-  if (role === 'user') map[key] = 'user';
-  else delete map[key]; // visitor = default อยู่แล้ว ไม่ต้องเก็บ
-
-  const { owner, repo } = cfg();
-  const content = Buffer.from(JSON.stringify(map, null, 2), 'utf-8').toString('base64');
-  const put = await ghReq(`/repos/${owner}/${repo}/contents/${USERS_PATH}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      message: `ตั้งสิทธิ์ ${key} = ${role}`,
-      content,
-      branch: DATA_BRANCH,
-      ...(sha ? { sha } : {}),
-    }),
-  });
-  if (!put.ok) throw new Error(`บันทึก users.json ไม่สำเร็จ HTTP ${put.status}`);
+  map[key] = role === 'user' ? 'user' : 'visitor';
+  await saveUsers(map, sha, `ตั้งสิทธิ์ ${key} = ${role}`);
   return map;
 }
 
