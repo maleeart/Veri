@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { saveInspectionRecord } from '../../../src/lib/githubStorage';
+import { requireRole } from '../../../src/lib/auth';
 
 export const runtime = 'nodejs';
 
@@ -13,6 +14,9 @@ export const runtime = 'nodejs';
  */
 export async function POST(request) {
   try {
+    const gate = await requireRole('user');
+    if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
+
     const body = await request.json();
 
     // Option A: session (records object)

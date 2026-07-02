@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 import Image from 'next/image';
 
 const THAI_MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
@@ -86,10 +87,9 @@ function HomePageInner() {
   const [selectedYear, setSelectedYear] = useState(null);     // "2026" | null = ยังไม่ตั้งค่า
   const [selectedMonth, setSelectedMonth] = useState('');     // "01".."12" | '' = ทั้งปี
   const [selectedBuilding, setSelectedBuilding] = useState(''); // '' = ทั้งหมด
-  const [adminMode, setAdminMode] = useState(false);
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const [adminPwd, setAdminPwd] = useState('');
-  const [adminError, setAdminError] = useState('');
+  const { data: session } = useSession();
+  const role = session?.user?.role || 'visitor';
+  const isAdmin = role === 'admin';
   const [deleting, setDeleting] = useState(null); // filename key ที่กำลังลบ
   const [confirmDelete, setConfirmDelete] = useState(null); // { date, type, filename, building, floor }
 
@@ -181,17 +181,6 @@ function HomePageInner() {
   }, []);
 
   // ── admin ────────────────────────────────────────────────────────────────
-  const handleAdminLogin = () => {
-    if (adminPwd === '24052538') {
-      setAdminMode(true);
-      setShowAdminLogin(false);
-      setAdminPwd('');
-      setAdminError('');
-    } else {
-      setAdminError('รหัสผ่านไม่ถูกต้อง');
-    }
-  };
-
   const handleDelete = async () => {
     if (!confirmDelete) return;
     const { date, type, filename, building, floor } = confirmDelete;
@@ -202,7 +191,7 @@ function HomePageInner() {
       const res = await fetch('/api/delete-inspection', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: '24052538', date, type, filename, building, floor }),
+        body: JSON.stringify({ date, type, filename, building, floor }),
       });
       if (!res.ok) { const e = await res.json().catch(() => ({})); alert(e.error || 'ลบไม่สำเร็จ'); return; }
       setDates(prev => prev.filter(d => (d.filename || d.date) !== key));
@@ -263,37 +252,16 @@ function HomePageInner() {
           <h1 className="title">Facility Inspection</h1>
           <p className="subtitle">ระบบบันทึกการตรวจสอบ</p>
         </div>
-        {adminMode ? (
-          <button className="admin-badge admin-badge--on" onClick={() => setAdminMode(false)}>🔓 Admin</button>
-        ) : (
-          <button className="admin-badge" onClick={() => setShowAdminLogin(true)}>🔒</button>
-        )}
-      </header>
-
-      {/* ── Admin Login Modal ── */}
-      {showAdminLogin && (
-        <div className="overlay" onClick={() => { setShowAdminLogin(false); setAdminPwd(''); setAdminError(''); }}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <span className="modal__icon">🔐</span>
-            <h2 className="modal__title">Admin Mode</h2>
-            <p className="modal__msg" style={{marginBottom:14}}>กรอกรหัสผ่านเพื่อเข้าสู่โหมดจัดการข้อมูล</p>
-            <input
-              type="password"
-              className="admin-input"
-              placeholder="รหัสผ่าน"
-              value={adminPwd}
-              onChange={e => { setAdminPwd(e.target.value); setAdminError(''); }}
-              onKeyDown={e => e.key === 'Enter' && handleAdminLogin()}
-              autoFocus
-            />
-            {adminError && <p style={{color:'var(--status-fail)',fontSize:13,margin:'6px 0 0'}}>{adminError}</p>}
-            <div style={{display:'flex',gap:8,marginTop:16}}>
-              <button className="modal__close" style={{flex:1}} onClick={() => { setShowAdminLogin(false); setAdminPwd(''); setAdminError(''); }}>ยกเลิก</button>
-              <button className="modal__close" style={{flex:1,background:'var(--accent)',color:'#fff',border:'none'}} onClick={handleAdminLogin}>เข้าสู่ระบบ</button>
-            </div>
-          </div>
+        <div className="user-box">
+          <span className={`role-chip role-chip--${role}`}>
+            {isAdmin ? '🔓 admin' : role === 'user' ? '✎ ผู้ใช้งาน' : '👁 ผู้เยี่ยมชม'}
+          </span>
+          {isAdmin && (
+            <button className="icon-btn" title="จัดการผู้ใช้" onClick={() => router.push('/admin')}>⚙️</button>
+          )}
+          <button className="icon-btn" title="ออกจากระบบ" onClick={() => signOut({ callbackUrl: '/login' })}>⎋</button>
         </div>
-      )}
+      </header>
 
       {/* ── Confirm Delete Modal ── */}
       {confirmDelete && (
@@ -542,7 +510,7 @@ function HomePageInner() {
                           onClick={() => handleDownload(date, type, filename, building, floor)}>
                           {downloading === dlKey ? '⏳' : '⬇︎ Excel'}
                         </button>
-                        {adminMode && (
+                        {isAdmin && (
                           <button className="btn-del"
                             disabled={deleting === dlKey}
                             onClick={() => setConfirmDelete({ date, type, filename, building, floor })}>
@@ -1009,6 +977,12 @@ function HomePageInner() {
           color: var(--ink-primary);
           cursor: pointer;
         }
+        .user-box { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .role-chip { font-size: 11px; font-weight: 700; border-radius: 8px; padding: 4px 8px; white-space: nowrap; }
+        .role-chip--admin   { background: rgba(240,70,70,0.12);  color: var(--status-fail); border: 1px solid var(--status-fail); }
+        .role-chip--user    { background: var(--status-pass-bg);  color: var(--status-pass); border: 1px solid var(--status-pass); }
+        .role-chip--visitor { background: var(--bg-surface-raised); color: var(--ink-muted); border: 1px solid var(--border-strong); }
+        .icon-btn { background: none; border: none; font-size: 16px; cursor: pointer; padding: 4px 6px; border-radius: 8px; color: var(--ink-muted); }
         .admin-badge {
           background: none;
           border: none;

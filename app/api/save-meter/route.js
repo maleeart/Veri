@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { loadMeterMonth, saveMeterMonth } from '../../../src/lib/meterStorage';
+import { requireRole } from '../../../src/lib/auth';
 
 export const runtime = 'nodejs';
 
@@ -17,6 +18,8 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    const gate = await requireRole('user');
+    if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
     const { yearMonth, day, entry } = await request.json();
     if (!yearMonth || !day || !entry) return NextResponse.json({ error: 'ข้อมูลไม่ครบ' }, { status: 400 });
     const existing = await loadMeterMonth(yearMonth);
@@ -31,6 +34,8 @@ export async function POST(request) {
 
 export async function DELETE(request) {
   try {
+    const gate = await requireRole('admin');
+    if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
     const { yearMonth, day } = await request.json();
     if (!yearMonth || !day) return NextResponse.json({ error: 'ข้อมูลไม่ครบ' }, { status: 400 });
     const data = await loadMeterMonth(yearMonth);

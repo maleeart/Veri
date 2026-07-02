@@ -3,6 +3,7 @@ import { loadMeterMonth, listMeterMonths } from '../../../src/lib/meterStorage';
 import { generateMeterReport, generateMeterYearReport } from '../../../src/lib/meterExporter';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {

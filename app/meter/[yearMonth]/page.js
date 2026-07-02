@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useCanWrite } from '../../lib/useCanWrite';
 
 const THAI_DAYS   = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
 const THAI_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
@@ -35,6 +36,7 @@ export default function MeterMonthPage() {
   const router = useRouter();
   const { yearMonth } = useParams();
 
+  const canWrite = useCanWrite();
   const [days, setDays] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -70,6 +72,7 @@ export default function MeterMonthPage() {
   };
 
   const saveWorkday = async () => {
+    if (!canWrite) { alert('บัญชีผู้เยี่ยมชม ไม่มีสิทธิ์บันทึก'); return; }
     setSaving(true);
     const entry = {};
     for (const [k, v] of Object.entries(form)) {
@@ -100,6 +103,7 @@ export default function MeterMonthPage() {
   };
 
   const saveHoliday = async () => {
+    if (!canWrite) { alert('บัญชีผู้เยี่ยมชม ไม่มีสิทธิ์บันทึก'); return; }
     if (!holidayName.trim()) return;
     const entry = { holiday: holidayName.trim() };
     await fetch('/api/save-meter', {

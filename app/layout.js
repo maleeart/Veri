@@ -1,4 +1,5 @@
 import './globals.css';
+import Providers from './providers';
 
 export const metadata = {
   title: 'Veri — Inspection',
@@ -21,7 +22,7 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body>{children}</body>
+      <body><Providers>{children}</Providers></body>
     </html>
   );
 }

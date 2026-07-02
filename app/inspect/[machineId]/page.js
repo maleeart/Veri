@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useCanWrite } from '../../lib/useCanWrite';
 
 import { useDraftAutosave } from '../../lib/useDraftAutosave';
 import { buildEmptyFormData, getMachineTemplate } from '../../lib/formSchema';
@@ -18,6 +19,7 @@ export default function InspectionFormPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const canWrite = useCanWrite();
   const machineId = params.machineId;
   const inspectionDate = searchParams.get('date') || new Date().toISOString().slice(0, 10);
 
@@ -151,6 +153,7 @@ export default function InspectionFormPage() {
   const handleSubmit = async () => {
     setSubmitError(null);
     setSubmitWarning(null);
+    if (!canWrite) { setSubmitError('บัญชีผู้เยี่ยมชม ไม่มีสิทธิ์บันทึก'); return; }
     const a = data.afterRun || {};
     if (!a.inspectedBy?.trim()) {
       setSubmitError('กรุณากรอกชื่อผู้ตรวจสอบก่อนบันทึก');

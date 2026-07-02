@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
+import { requireRole } from '../../../src/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const BASE = 'https://api.github.com';
-const DATA_BRANCH = 'data';
-const ADMIN_PASSWORD = '24052538';
+const DATA_BRANCH = process.env.GITHUB_REPO_BRANCH || 'data';
 
 function cfg() {
   const token = process.env.GITHUB_TOKEN;
@@ -35,11 +35,10 @@ async function ghReq(path, opts = {}) {
  */
 export async function DELETE(request) {
   try {
-    const { password, filename, type = 'fpg', date, building = '', floor = '' } = await request.json();
+    const gate = await requireRole('admin');
+    if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
 
-    if (password !== ADMIN_PASSWORD) {
-      return NextResponse.json({ error: 'รหัสผ่านไม่ถูกต้อง' }, { status: 401 });
-    }
+    const { filename, type = 'fpg', date, building = '', floor = '' } = await request.json();
 
     if (!date || !type) {
       return NextResponse.json({ error: 'ต้องระบุ date และ type' }, { status: 400 });

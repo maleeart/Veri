@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useCanWrite } from '../../lib/useCanWrite';
 
 const BUILDINGS = [
   'ท.0006','ท.0007','ท.0008','ท.0009','ท.0010',
@@ -70,6 +71,7 @@ export default function FormPage() {
   const [showTemplatePopup, setShowTemplatePopup] = useState(false);
   const [checkingTemplates, setCheckingTemplates] = useState(false);
   const draftRef = useRef(null);
+  const canWrite = useCanWrite();
 
   if (!cfg) return <main style={{ padding: 40 }}>ไม่รู้จักประเภทฟอร์มนี้</main>;
 
@@ -174,6 +176,10 @@ export default function FormPage() {
 
   // ── Submit ──────────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
+    if (!canWrite) {
+      setValidationError('บัญชีนี้เป็นผู้เยี่ยมชม ไม่มีสิทธิ์บันทึก');
+      return;
+    }
     if (!general.inspector?.trim()) {
       setValidationError('กรุณากรอกชื่อผู้ตรวจสอบก่อน');
       return;
@@ -384,10 +390,11 @@ export default function FormPage() {
               </div>
             )}
 
+            {!canWrite && <p className="validation-err">👁 บัญชีผู้เยี่ยมชม — ดูและดาวน์โหลดได้ แต่บันทึกไม่ได้</p>}
             {validationError && <p className="validation-err">{validationError}</p>}
             {submitError && <p className="error-msg">{submitError}</p>}
             <button className="btn-submit" style={{ background: accentColor }}
-              disabled={submitting}
+              disabled={submitting || !canWrite}
               onClick={handleSubmit}>
               {submitting ? '⏳ กำลังบันทึก...' : '✓ บันทึก'}
             </button>

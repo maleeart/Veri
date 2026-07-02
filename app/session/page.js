@@ -14,6 +14,7 @@ import { Suspense } from 'react';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useCanWrite } from '../lib/useCanWrite';
 import ChecklistSection from '../components/ChecklistSection';
 import NumericField from '../components/NumericField';
 import TextField from '../components/TextField';
@@ -84,6 +85,7 @@ function loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepId
 
 function SessionPageInner() {
   const router = useRouter();
+  const canWrite = useCanWrite();
   const searchParams = useSearchParams();
   const date = searchParams.get('date') || new Date().toISOString().slice(0, 10);
   const DRAFT_KEY = `session:${date}`;
@@ -154,6 +156,7 @@ function SessionPageInner() {
   };
 
   const saveToGithub = async (recs) => {
+    if (!canWrite) { alert('บัญชีผู้เยี่ยมชม ไม่มีสิทธิ์บันทึก'); return; }
     await fetch('/api/save-record', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
