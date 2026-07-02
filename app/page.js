@@ -262,7 +262,12 @@ function HomePageInner() {
           {isAdmin && (
             <button className="icon-btn" title="จัดการผู้ใช้" onClick={() => router.push('/admin')}>⚙️</button>
           )}
-          <button className="logout-btn" onClick={() => signOut({ callbackUrl: '/login' })}>ออกจากระบบ</button>
+          <button className="logout-btn" title="ออกจากระบบ" onClick={() => signOut({ callbackUrl: '/login' })}>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+              <line x1="12" y1="2" x2="12" y2="12"/>
+            </svg>
+          </button>
         </div>
       </header>
 
@@ -987,7 +992,8 @@ function HomePageInner() {
         .role-chip--user    { background: var(--status-pass-bg);  color: var(--status-pass); border: 1px solid var(--status-pass); }
         .role-chip--visitor { background: var(--bg-surface-raised); color: var(--ink-muted); border: 1px solid var(--border-strong); }
         .icon-btn { background: none; border: none; font-size: 16px; cursor: pointer; padding: 4px 6px; border-radius: 8px; color: var(--ink-muted); }
-        .logout-btn { background: var(--bg-surface-raised); border: 1px solid var(--border-strong); color: var(--ink-secondary); border-radius: 10px; padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .logout-btn { width: 34px; height: 34px; border-radius: 50%; background: #ef4444; border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 0 3px #1e293b, 0 0 10px #ef444466; transition: background .15s; }
+        .logout-btn:hover { background: #dc2626; }
         .admin-badge {
           background: none;
           border: none;
