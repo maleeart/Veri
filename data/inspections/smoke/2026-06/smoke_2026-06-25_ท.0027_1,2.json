@@ -13,7 +13,7 @@
     },
     "devices": [
       {
-        "location": "ทางเข้าอาคาร",
+        "location": "โถงทางเข้าอาคาร",
         "remarks": "",
         "zone": "1",
         "externalCondition": "normal",
@@ -46,10 +46,10 @@
       },
       {
         "location": "ห้องอาหาร ชั้น1",
-        "remarks": "",
+        "remarks": "Smoke/Heat Detector อุปกรณ์ตรวจจับความร้อน",
         "zone": "1",
         "externalCondition": "normal",
-        "cleaned": "yes",
+        "cleaned": "no",
         "workingCondition": "normal"
       },
       {
@@ -85,7 +85,7 @@
         "workingCondition": "normal"
       },
       {
-        "location": "ทางเดิน ชั้น2",
+        "location": "โถงทางเดิน ชั้น2",
         "remarks": "",
         "zone": "5",
         "externalCondition": "normal",
@@ -110,10 +110,10 @@
       },
       {
         "location": "ห้องอาหาร ชั้น2",
-        "remarks": "",
+        "remarks": "Smoke/Heat Detector อุปกรณ์ตรวจจับความร้อน",
         "zone": "5",
         "externalCondition": "normal",
-        "cleaned": "yes",
+        "cleaned": "no",
         "workingCondition": "normal"
       },
       {
@@ -158,7 +158,7 @@
       },
       {
         "location": "Beam ลานจอดรถจักรกลหนัก",
-        "remarks": "เนื่องจากอุปกรณ์ติดตั้งบนที่สูง",
+        "remarks": "อุปกรณ์ Beam ติดตั้งบนที่สูง",
         "zone": "9",
         "externalCondition": "normal",
         "cleaned": "no",
