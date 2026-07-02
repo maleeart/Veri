@@ -303,7 +303,7 @@ function HomePageInner() {
           <div className="card__body">
             <span className="card__title">Fire Pump &amp; Generator</span>
             <span className="card__sub">
-              {hasDraft ? '💾 มี draft ที่ค้างไว้' : `ตรวจสอบวันนี้ · ${today}`}
+              {hasDraft ? '💾 draft ค้างไว้' : today}
             </span>
           </div>
           <span className="card__arrow">›</span>
@@ -328,7 +328,7 @@ function HomePageInner() {
           <span className="card__icon">🚨</span>
           <div className="card__body">
             <span className="card__title">Smoke Detector</span>
-            <span className="card__sub">อุปกรณ์ตรวจจับควัน</span>
+            <span className="card__sub">ตรวจจับควัน</span>
           </div>
           <span className="card__arrow">›</span>
         </button>
@@ -340,7 +340,7 @@ function HomePageInner() {
           <span className="card__icon">⚡</span>
           <div className="card__body">
             <span className="card__title">Meter กฟน.</span>
-            <span className="card__sub">บันทึกค่ามิเตอร์ไฟฟ้า</span>
+            <span className="card__sub">ค่ามิเตอร์</span>
           </div>
           <span className="card__arrow">›</span>
         </button>
@@ -352,7 +352,7 @@ function HomePageInner() {
           <span className="card__icon">🏢</span>
           <div className="card__body">
             <span className="card__title">Meter อาคาร</span>
-            <span className="card__sub">บันทึกค่ามิเตอร์รายอาคาร</span>
+            <span className="card__sub">รายอาคาร</span>
           </div>
           <span className="card__arrow">›</span>
         </button>
