@@ -2,7 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 
-const FORM_URL = 'https://maleeart.github.io/Energy-Dashboard/docs/meter_form.html';
+// fork ของ meter_form.html (recolor ธีมมืดให้เข้ากับแอป) เสิร์ฟจาก origin เดียวกัน — logic + Apps Script เดิมไม่แตะ
+const FORM_URL = '/meter_form.html';
 
 export default function BuildingMeterPage() {
   const router = useRouter();
