@@ -303,7 +303,7 @@ function HomePageInner() {
           <div className="card__body">
             <span className="card__title">Fire Pump &amp; Generator</span>
             <span className="card__sub">
-              {hasDraft ? '💾 draft ค้างไว้' : today}
+              {hasDraft ? '💾 draft ค้างไว้' : 'ประจำสัปดาห์'}
             </span>
           </div>
           <span className="card__arrow">›</span>
@@ -340,7 +340,7 @@ function HomePageInner() {
           <span className="card__icon">⚡</span>
           <div className="card__body">
             <span className="card__title">Meter กฟน.</span>
-            <span className="card__sub">ค่ามิเตอร์</span>
+            <span className="card__sub">ค่ามิเตอร์รวม</span>
           </div>
           <span className="card__arrow">›</span>
         </button>
