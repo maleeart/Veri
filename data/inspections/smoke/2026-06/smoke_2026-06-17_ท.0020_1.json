@@ -117,7 +117,7 @@
         "workingCondition": "normal"
       },
       {
-        "location": "ห้อง 114 โถงทางเข้าอาคาร",
+        "location": "ห้อง 114 Pull Station ประตูทางเข้าอาคาร",
         "remarks": "",
         "zone": "114",
         "externalCondition": "normal",
@@ -141,7 +141,7 @@
         "workingCondition": "normal"
       },
       {
-        "location": "ห้อง 117 ประตูหนีไฟ",
+        "location": "ห้อง 117 Pull Station ประตูหนีไฟ",
         "remarks": "",
         "zone": "117",
         "externalCondition": "normal",
