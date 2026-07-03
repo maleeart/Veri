@@ -30,6 +30,25 @@ async function ghReq(path, opts = {}) {
   });
 }
 
+async function deleteViaGitTrees(owner, repo, branch, filePath, message) {
+  const { token } = cfg();
+  const hdrs = { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'Content-Type': 'application/json' };
+  const g = (url) => fetch(url, { cache: 'no-store', headers: hdrs });
+  const p = (url, body) => fetch(url, { method: 'POST', cache: 'no-store', headers: hdrs, body: JSON.stringify(body) });
+  const refRes = await g(`${BASE}/repos/${owner}/${repo}/git/ref/heads/${branch}`);
+  if (!refRes.ok) return; // ถ้า branch ไม่มี → ถือว่า ok (ไฟล์ไม่มีอยู่)
+  const { object: { sha: commitSha } } = await refRes.json();
+  const { tree: { sha: treeSha } } = await (await g(`${BASE}/repos/${owner}/${repo}/git/commits/${commitSha}`)).json();
+  const newTreeRes = await p(`${BASE}/repos/${owner}/${repo}/git/trees`, { base_tree: treeSha, tree: [{ path: filePath, mode: '100644', type: 'blob', sha: null }] });
+  if (!newTreeRes.ok) { const t = await newTreeRes.text(); throw new Error(`Create tree failed ${newTreeRes.status}: ${t}`); }
+  const { sha: newTreeSha } = await newTreeRes.json();
+  const newCommitRes = await p(`${BASE}/repos/${owner}/${repo}/git/commits`, { message, tree: newTreeSha, parents: [commitSha] });
+  if (!newCommitRes.ok) throw new Error(`Create commit failed ${newCommitRes.status}`);
+  const { sha: newCommitSha } = await newCommitRes.json();
+  const updRes = await fetch(`${BASE}/repos/${owner}/${repo}/git/refs/heads/${branch}`, { method: 'PATCH', cache: 'no-store', headers: hdrs, body: JSON.stringify({ sha: newCommitSha }) });
+  if (!updRes.ok) { const t = await updRes.text(); throw new Error(`Update ref failed ${updRes.status}: ${t}`); }
+}
+
 async function ghPut(filePath, content, message, existingSha = null) {
   const { owner, repo } = cfg();
   const body = { message, content: Buffer.from(JSON.stringify(content, null, 2)).toString('base64'), branch: DATA_BRANCH };
@@ -138,26 +157,8 @@ export async function PATCH(request) {
       const safeType = String(type).replace(/[^a-z]/g, '');
       const yearMonth = safeDate.slice(0, 7);
       const reportPath = `data/inspections/${safeType}/${yearMonth}/${filename}.json`;
-      const encodedRptPath = reportPath.split('/').map(encodeURIComponent).join('/');
-
-      const rptRes = await ghReq(`/repos/${owner}/${repo}/contents/${encodedRptPath}?ref=${DATA_BRANCH}`);
-      if (rptRes.status === 404) {
-        // ไฟล์ถูกลบไปแล้ว — ถือว่าอนุมัติได้เลย
-      } else if (!rptRes.ok) {
-        const txt = await rptRes.text();
-        return NextResponse.json({ error: `ดึงไฟล์รายงานไม่สำเร็จ HTTP ${rptRes.status}: ${txt}` }, { status: 500 });
-      } else {
-        const { sha: rptSha } = await rptRes.json();
-        const delRes = await ghReq(`/repos/${owner}/${repo}/contents/${encodedRptPath}`, {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: `ลบรายงาน [${type}] ${date} (อนุมัติโดย admin)`, sha: rptSha, branch: DATA_BRANCH }),
-        });
-        if (!delRes.ok) {
-          const txt = await delRes.text();
-          return NextResponse.json({ error: `ลบรายงานไม่สำเร็จ: ${txt}` }, { status: 500 });
-        }
-      }
+      // ใช้ Git Trees API — path ไปใน body ไม่ใช่ URL ไม่มีปัญหา Thai chars
+      await deleteViaGitTrees(owner, repo, DATA_BRANCH, reportPath, `ลบรายงาน [${type}] ${date} (อนุมัติโดย admin)`);
     }
 
     const updated = {
