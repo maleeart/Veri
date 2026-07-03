@@ -206,6 +206,7 @@ function SessionPageInner() {
 
   // รับ inspector data โดยตรงจาก SummaryPage เพื่อหลีกเลี่ยง race กับ setRecords
   const handleFinalSubmit = async (inspectedBy, inspectorSignature) => {
+    if (!canWrite) { setSubmitError('บัญชีผู้เยี่ยมชม ไม่มีสิทธิ์บันทึก'); return; }
     setSubmitState('submitting');
     setSubmitError(null);
     try {
@@ -278,6 +279,7 @@ function SessionPageInner() {
         onSubmit={handleFinalSubmit}
         submitState={submitState}
         submitError={submitError}
+        canWrite={canWrite}
         sessionDate={sessionDate}
       />
     );
@@ -295,9 +297,11 @@ function SessionPageInner() {
             {stepTitles[stepIdx]}
           </span>
         </div>
-        <button className="save-all-btn" onClick={handleSaveAll} disabled={submitState === 'submitting'}>
-          {submitState === 'submitting' ? '...' : '💾 บันทึกทั้งหมด'}
-        </button>
+        {canWrite && (
+          <button className="save-all-btn" onClick={handleSaveAll} disabled={submitState === 'submitting'}>
+            {submitState === 'submitting' ? '...' : '💾 บันทึกทั้งหมด'}
+          </button>
+        )}
       </header>
 
       {/* Popup ยืนยันบันทึกเครื่องปัจจุบัน */}
@@ -307,8 +311,8 @@ function SessionPageInner() {
             <p className="confirm-title">บันทึก {currentMachine?.label}?</p>
             <p className="confirm-sub">ต้องการบันทึกข้อมูลเครื่องนี้ลง GitHub ด้วยไหม?</p>
             <div className="confirm-btns">
-              <button className="cbtn cbtn--save" onClick={() => handleConfirmSave(true)} disabled={confirmSaving}>
-                {confirmSaving ? 'กำลังบันทึก...' : '💾 บันทึกและส่ง'}
+              <button className="cbtn cbtn--save" onClick={() => handleConfirmSave(true)} disabled={confirmSaving || !canWrite}>
+                {confirmSaving ? 'กำลังบันทึก...' : !canWrite ? '🔒 ไม่มีสิทธิ์บันทึก' : '💾 บันทึกและส่ง'}
               </button>
               <button className="cbtn cbtn--skip" onClick={() => handleConfirmSave(false)} disabled={confirmSaving}>
                 ไปเครื่องถัดไป
@@ -685,7 +689,7 @@ function AfterRunStep({ data, setData, isGen, conclusionDefault }) {
   );
 }
 
-function SummaryPage({ machines, records, inspectedBy, inspectorSignature, onUpdateInspector, onBack, onGoToMachine, onSubmit, submitState, submitError, sessionDate }) {
+function SummaryPage({ machines, records, inspectedBy, inspectorSignature, onUpdateInspector, onBack, onGoToMachine, onSubmit, submitState, submitError, sessionDate, canWrite }) {
   const [localName, setLocalName] = useState(inspectedBy);
   const [localSig, setLocalSig] = useState(inspectorSignature);
   const [error, setError] = useState(null);
@@ -767,9 +771,12 @@ function SummaryPage({ machines, records, inspectedBy, inspectorSignature, onUpd
       </section>
 
       <nav className="sum-nav">
-        <button className="sum-submit" onClick={handleSubmit} disabled={submitState === 'submitting'}>
-          {submitState === 'submitting' ? 'กำลังบันทึก...' : '✓ ยืนยันและบันทึกลง GitHub'}
-        </button>
+        {canWrite === false
+          ? <p className="err-banner">🔒 บัญชีผู้เยี่ยมชม ไม่มีสิทธิ์บันทึก</p>
+          : <button className="sum-submit" onClick={handleSubmit} disabled={submitState === 'submitting'}>
+              {submitState === 'submitting' ? 'กำลังบันทึก...' : '✓ ยืนยันและบันทึกลง GitHub'}
+            </button>
+        }
       </nav>
 
       {showIncomplete && (
