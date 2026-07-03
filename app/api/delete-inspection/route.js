@@ -5,7 +5,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const BASE   = 'https://api.github.com';
-const BRANCH = process.env.GITHUB_REPO_BRANCH || 'data';
+const BRANCH = 'data';
 
 function cfg() {
   const token = process.env.GITHUB_TOKEN;

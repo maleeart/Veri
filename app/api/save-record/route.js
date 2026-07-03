@@ -5,7 +5,7 @@ import { requireRole } from '../../../src/lib/auth';
 export const runtime = 'nodejs';
 
 const BASE = 'https://api.github.com';
-const DATA_BRANCH = process.env.GITHUB_REPO_BRANCH || 'data';
+const DATA_BRANCH = 'data';
 
 async function ghPutLog(id, content) {
   const token = process.env.GITHUB_TOKEN;

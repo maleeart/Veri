@@ -5,7 +5,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const BASE = 'https://api.github.com';
-const DATA_BRANCH = process.env.GITHUB_REPO_BRANCH || 'data';
+const DATA_BRANCH = 'data';
 const REQ_DIR = 'data/delete-requests';
 
 function cfg() {
