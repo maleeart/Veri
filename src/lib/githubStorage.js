@@ -102,13 +102,37 @@ async function loadSessionByDate(date, type = 'fpg', building = '', floor = '') 
   return JSON.parse(Buffer.from(json.content, 'base64').toString('utf-8'));
 }
 
-/** บันทึก session ลงไฟล์ */
-async function saveSessionByDate(date, dayData, type = 'fpg', building = '', floor = '') {
+/** บันทึก session ลงไฟล์
+ *  originalFilename = stem ของไฟล์ที่กำลัง edit (ไม่มี .json)
+ *  ถ้า path ใหม่ != path เดิม และ path ใหม่มีไฟล์อยู่แล้ว → ใช้ชื่อ <stem>_editfrom-<origStem>.json
+ */
+async function saveSessionByDate(date, dayData, type = 'fpg', building = '', floor = '', originalFilename = null) {
   const { owner, repo, branch } = cfg();
   await ensureDataBranch();
-  const path = datePath(date, type, building, floor);
-  const apiPath = `/repos/${owner}/${repo}/contents/${path}`;
 
+  let targetPath = datePath(date, type, building, floor);
+
+  // ถ้ามี originalFilename ให้เช็คว่า path เปลี่ยนไปไหม
+  if (originalFilename) {
+    const origParts  = originalFilename.split('_');
+    const origType   = origParts[0] || type;
+    const origDate   = origParts[1] || '';
+    const origYM     = origDate.slice(0, 7);
+    const origPath   = `data/inspections/${origType}/${origYM}/${originalFilename}.json`;
+
+    // path เปลี่ยน → เช็ค conflict กับไฟล์ที่ path ใหม่
+    if (targetPath !== origPath) {
+      const check = await ghReq(`/repos/${owner}/${repo}/contents/${targetPath}?ref=${branch}`);
+      if (check.status === 200) {
+        // มีไฟล์อื่นอยู่แล้วที่ path ใหม่ → ตั้งชื่อใหม่ว่า <stem>_editfrom-<origStem>.json
+        const dir  = targetPath.substring(0, targetPath.lastIndexOf('/'));
+        const stem = targetPath.substring(targetPath.lastIndexOf('/') + 1).replace(/\.json$/, '');
+        targetPath = `${dir}/${stem}_editfrom-${originalFilename}.json`;
+      }
+    }
+  }
+
+  const apiPath = `/repos/${owner}/${repo}/contents/${targetPath}`;
   let sha;
   const existing = await ghReq(`${apiPath}?ref=${branch}`);
   if (existing.status === 200) {
@@ -133,18 +157,18 @@ async function saveSessionByDate(date, dayData, type = 'fpg', building = '', flo
     const txt = await put.text();
     throw new Error(`บันทึกลง GitHub ไม่สำเร็จ HTTP ${put.status}: ${txt}`);
   }
-  return { path };
+  return { path: targetPath };
 }
 
 /** บันทึกข้อมูลเครื่องเดียว (merge เข้ากับ records ที่มีอยู่) */
-async function saveInspectionRecord(machineId, date, machineData, type = 'fpg', building = '', floor = '') {
+async function saveInspectionRecord(machineId, date, machineData, type = 'fpg', building = '', floor = '', originalFilename = null) {
   const existing = await loadSessionByDate(date, type, building, floor).catch(() => null);
   const dayData = existing || { date, type, records: {} };
   if (machineId === '__session__') {
-    return saveSessionByDate(date, { ...machineData, type }, type, building, floor);
+    return saveSessionByDate(date, { ...machineData, type }, type, building, floor, originalFilename);
   }
   dayData.records[machineId] = machineData;
-  return saveSessionByDate(date, dayData, type, building, floor);
+  return saveSessionByDate(date, dayData, type, building, floor, originalFilename);
 }
 
 /**

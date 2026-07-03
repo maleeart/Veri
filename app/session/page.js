@@ -27,7 +27,7 @@ const STEP_SHORT = ['ทั่วไป', 'ก่อนเข้า', 'ก่อ
 
 // GitHub มาก่อน: ถ้ามีข้อมูลในไฟล์ → ล้าง draft เก่า → ใช้ข้อมูลไฟล์
 // ถ้าไม่มีในไฟล์ → ดู draft → ถ้าไม่มีทั้งคู่ → empty
-function loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing) {
+function loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename) {
   const draftKey = `session:${date}`;
   fetch(`/api/inspections?date=${date}&type=fpg`)
     .then(r => r.ok ? r.json() : null)
@@ -45,6 +45,7 @@ function loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepId
         setMachineIdx(0);
         setStepIdx(0);
         setIsEditing?.(true);
+        setOriginalFilename?.(`fpg_${date}`);
         return;
       }
       // ไม่มีใน GitHub → ดู draft
@@ -104,12 +105,13 @@ function SessionPageInner() {
   const [showSummaryPage, setShowSummaryPage] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editReason, setEditReason] = useState('');
+  const [originalFilename, setOriginalFilename] = useState(null);
   const saveTimerRef = useRef(null);
 
   const handleDateChange = (newDate) => {
     setSessionDate(newDate);
     if (!fieldMap) return;
-    loadRecordsForDate(newDate, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing);
+    loadRecordsForDate(newDate, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename);
   };
 
   // โหลด field-map
@@ -120,7 +122,7 @@ function SessionPageInner() {
   // init: GitHub มาก่อน → ถ้าไม่มีจึงดู draft
   useEffect(() => {
     if (!fieldMap) return;
-    loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing);
+    loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename);
   }, [fieldMap]);
 
   // autosave draft ทุกครั้งที่ records/machineIdx/stepIdx เปลี่ยน
@@ -225,7 +227,7 @@ function SessionPageInner() {
         await fetch('/api/save-record', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ date: sessionDate, records: mergedRecords, type: 'fpg', ...(isEditing && editReason.trim() ? { editReason: editReason.trim() } : {}) }),
+          body: JSON.stringify({ date: sessionDate, records: mergedRecords, type: 'fpg', ...(isEditing && editReason.trim() ? { editReason: editReason.trim() } : {}), ...(isEditing && originalFilename ? { originalFilename } : {}) }),
         });
       } catch {}
       localStorage.removeItem(DRAFT_KEY);

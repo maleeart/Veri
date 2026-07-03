@@ -220,7 +220,7 @@ export default function FormPage() {
       await fetch('/api/save-record', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: saveDate, type, building, floor, records: { general, devices, ...(isEditMode && editReason.trim() ? { editReason: editReason.trim() } : {}) } }),
+        body: JSON.stringify({ date: saveDate, type, building, floor, records: { general, devices, ...(isEditMode && editReason.trim() ? { editReason: editReason.trim() } : {}) }, ...(isEditMode ? { originalFilename: searchParams.get('filename') } : {}) }),
       });
 
       localStorage.removeItem(DRAFT_KEY);
