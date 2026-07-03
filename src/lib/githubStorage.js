@@ -29,6 +29,11 @@ function cfg() {
   return { token, owner, repo, branch: DATA_BRANCH };
 }
 
+/** URL-encode เฉพาะ path segment ท้ายสุด (ชื่อไฟล์) ที่อาจมีภาษาไทย */
+function encPath(p) {
+  return p.split('/').map(encodeURIComponent).join('/');
+}
+
 async function ghReq(path, opts = {}) {
   const { token } = cfg();
   return fetch(`${BASE}${path}`, {
@@ -95,7 +100,7 @@ function parseFilename(filename) {
 async function loadSessionByDate(date, type = 'fpg', building = '', floor = '') {
   const { owner, repo, branch } = cfg();
   const path = datePath(date, type, building, floor);
-  const res = await ghReq(`/repos/${owner}/${repo}/contents/${path}?ref=${branch}`);
+  const res = await ghReq(`/repos/${owner}/${repo}/contents/${encPath(path)}?ref=${branch}`);
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`โหลดไม่สำเร็จ HTTP ${res.status}`);
   const json = await res.json();
@@ -122,7 +127,7 @@ async function saveSessionByDate(date, dayData, type = 'fpg', building = '', flo
 
     // path เปลี่ยน → เช็ค conflict กับไฟล์ที่ path ใหม่
     if (targetPath !== origPath) {
-      const check = await ghReq(`/repos/${owner}/${repo}/contents/${targetPath}?ref=${branch}`);
+      const check = await ghReq(`/repos/${owner}/${repo}/contents/${encPath(targetPath)}?ref=${branch}`);
       if (check.status === 200) {
         // มีไฟล์อื่นอยู่แล้วที่ path ใหม่ → ต่อท้ายด้วยวันที่เดิมเท่านั้น
         const origDate = (originalFilename.split('_')[1] || '').slice(0, 10);
@@ -133,7 +138,7 @@ async function saveSessionByDate(date, dayData, type = 'fpg', building = '', flo
     }
   }
 
-  const apiPath = `/repos/${owner}/${repo}/contents/${targetPath}`;
+  const apiPath = `/repos/${owner}/${repo}/contents/${encPath(targetPath)}`;
   let sha;
   const existing = await ghReq(`${apiPath}?ref=${branch}`);
   if (existing.status === 200) {
@@ -221,7 +226,7 @@ async function loadInspectionByFilename(filename) {
   const yearMonth = date.slice(0, 7);
 
   const newPath = `data/inspections/${type}/${yearMonth}/${filename}.json`;
-  const newRes  = await ghReq(`/repos/${owner}/${repo}/contents/${newPath}?ref=${branch}`);
+  const newRes  = await ghReq(`/repos/${owner}/${repo}/contents/${encPath(newPath)}?ref=${branch}`);
   if (newRes.ok) {
     const json = await newRes.json();
     return JSON.parse(Buffer.from(json.content, 'base64').toString('utf-8'));
@@ -229,7 +234,7 @@ async function loadInspectionByFilename(filename) {
 
   // fallback path เก่า: data/inspections/{filename}.json
   const oldPath = `data/inspections/${filename}.json`;
-  const oldRes  = await ghReq(`/repos/${owner}/${repo}/contents/${oldPath}?ref=${branch}`);
+  const oldRes  = await ghReq(`/repos/${owner}/${repo}/contents/${encPath(oldPath)}?ref=${branch}`);
   if (oldRes.status === 404) return null;
   if (!oldRes.ok) throw new Error(`โหลดไม่สำเร็จ HTTP ${oldRes.status}`);
   const json = await oldRes.json();

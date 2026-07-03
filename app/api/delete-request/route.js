@@ -138,8 +138,9 @@ export async function PATCH(request) {
       const safeType = String(type).replace(/[^a-z]/g, '');
       const yearMonth = safeDate.slice(0, 7);
       const reportPath = `data/inspections/${safeType}/${yearMonth}/${filename}.json`;
+      const encodedRptPath = reportPath.split('/').map(encodeURIComponent).join('/');
 
-      const rptRes = await ghReq(`/repos/${owner}/${repo}/contents/${reportPath}?ref=${DATA_BRANCH}`);
+      const rptRes = await ghReq(`/repos/${owner}/${repo}/contents/${encodedRptPath}?ref=${DATA_BRANCH}`);
       if (rptRes.status === 404) {
         // ไฟล์ถูกลบไปแล้ว — ถือว่าอนุมัติได้เลย
       } else if (!rptRes.ok) {
@@ -147,7 +148,7 @@ export async function PATCH(request) {
         return NextResponse.json({ error: `ดึงไฟล์รายงานไม่สำเร็จ HTTP ${rptRes.status}: ${txt}` }, { status: 500 });
       } else {
         const { sha: rptSha } = await rptRes.json();
-        const delRes = await ghReq(`/repos/${owner}/${repo}/contents/${reportPath}`, {
+        const delRes = await ghReq(`/repos/${owner}/${repo}/contents/${encodedRptPath}`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ message: `ลบรายงาน [${type}] ${date} (อนุมัติโดย admin)`, sha: rptSha, branch: DATA_BRANCH }),

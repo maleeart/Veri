@@ -63,12 +63,13 @@ export async function DELETE(request) {
       filePath = `data/inspections/${safeType}/${yearMonth}/${safeType}_${safeDate}${extra ? '_' + extra : ''}.json`;
     }
 
-    const apiPath = `/repos/${owner}/${repo}/contents/${filePath}`;
+    const encodedPath = filePath.split('/').map(encodeURIComponent).join('/');
+    const apiPath = `/repos/${owner}/${repo}/contents/${encodedPath}`;
 
     // ดึง SHA ก่อนลบ
     const getRes = await ghReq(`${apiPath}?ref=${DATA_BRANCH}`);
     if (getRes.status === 404) {
-      return NextResponse.json({ error: `ไม่พบไฟล์: ${filePath}` }, { status: 404 });
+      return NextResponse.json({ error: `ไม่พบไฟล์: ${filePath}` }, { status: 404 }); // ยังคงแสดง path ดิบเพื่อ debug
     }
     if (!getRes.ok) {
       return NextResponse.json({ error: `ดึงข้อมูล GitHub ไม่สำเร็จ HTTP ${getRes.status}` }, { status: 500 });
