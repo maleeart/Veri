@@ -97,9 +97,11 @@ function HomePageInner() {
   const [requestingDelete, setRequestingDelete] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
   const [notifRequests, setNotifRequests] = useState(null); // คำขอลบ
-  const [notifBusy, setNotifBusy] = useState(null); // id ที่กำลังดำเนินการ
-  const [rejectingId, setRejectingId] = useState(null); // id ที่กำลังกรอกเหตุผลปฏิเสธ
+  const [notifEditLogs, setNotifEditLogs] = useState(null); // ประวัติการแก้ไข
+  const [notifBusy, setNotifBusy] = useState(null);
+  const [rejectingId, setRejectingId] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [notifTab, setNotifTab] = useState('delete'); // 'delete' | 'edit'
 
   const toggleGroup = type => setOpenGroups(prev => {
     const next = new Set(prev);
@@ -190,10 +192,12 @@ function HomePageInner() {
 
   // ── notification panel ───────────────────────────────────────────────────
   const loadNotif = () => {
-    const url = isAdmin ? '/api/delete-request' : '/api/delete-request?mine=1';
-    fetch(url).then(r => r.json()).then(d => setNotifRequests(d.requests || [])).catch(() => setNotifRequests([]));
+    const delUrl  = isAdmin ? '/api/delete-request'  : '/api/delete-request?mine=1';
+    const editUrl = isAdmin ? '/api/edit-log'         : '/api/edit-log?mine=1';
+    fetch(delUrl).then(r => r.json()).then(d => setNotifRequests(d.requests || [])).catch(() => setNotifRequests([]));
+    fetch(editUrl).then(r => r.json()).then(d => setNotifEditLogs(d.logs || [])).catch(() => setNotifEditLogs([]));
   };
-  const openNotif = () => { setShowNotif(true); loadNotif(); };
+  const openNotif = () => { setShowNotif(true); setNotifTab('delete'); loadNotif(); };
 
   const handleApprove = async (id) => {
     setNotifBusy(id);
@@ -229,9 +233,11 @@ function HomePageInner() {
     finally { setNotifBusy(null); }
   };
 
-  // badge count: admin=pending count, user=pending+rejected count
-  const notifCount = notifRequests
-    ? (isAdmin ? notifRequests.filter(r => r.status === 'pending').length : notifRequests.filter(r => r.status !== 'approved').length)
+  // badge: admin = pending deletes + unread edits, user = pending/rejected deletes + own edits
+  const notifCount = (notifRequests || notifEditLogs)
+    ? (isAdmin
+        ? (notifRequests?.filter(r => r.status === 'pending').length || 0) + (notifEditLogs?.length || 0)
+        : (notifRequests?.filter(r => r.status !== 'approved').length || 0) + (notifEditLogs?.length || 0))
     : null;
 
   // ── user: ขอลบ ───────────────────────────────────────────────────────────
@@ -371,13 +377,30 @@ function HomePageInner() {
         <div className="overlay" onClick={() => { setShowNotif(false); setRejectingId(null); setRejectReason(''); }}>
           <div className="notif-panel" onClick={e => e.stopPropagation()}>
             <div className="notif-hd">
-              <span>{isAdmin ? '📬 คำขอลบรายงาน' : '📬 สถานะคำขอของฉัน'}</span>
+              <span>📬 {isAdmin ? 'การแจ้งเตือน' : 'สถานะของฉัน'}</span>
               <button className="notif-close" onClick={() => setShowNotif(false)}>✕</button>
             </div>
 
-            {notifRequests === null && <p className="notif-empty">กำลังโหลด...</p>}
-            {notifRequests?.length === 0 && <p className="notif-empty">ไม่มีรายการ</p>}
+            {/* Tabs */}
+            <div className="notif-tabs">
+              <button className={`notif-tab ${notifTab === 'delete' ? 'notif-tab--active' : ''}`}
+                onClick={() => setNotifTab('delete')}>
+                🗑 คำขอลบ
+                {notifRequests && notifRequests.filter(r => isAdmin ? r.status === 'pending' : r.status !== 'approved').length > 0 && (
+                  <span className="notif-tab-badge">{notifRequests.filter(r => isAdmin ? r.status === 'pending' : r.status !== 'approved').length}</span>
+                )}
+              </button>
+              <button className={`notif-tab ${notifTab === 'edit' ? 'notif-tab--active' : ''}`}
+                onClick={() => setNotifTab('edit')}>
+                ✏️ ประวัติแก้ไข
+                {notifEditLogs?.length > 0 && <span className="notif-tab-badge">{notifEditLogs.length}</span>}
+              </button>
+            </div>
 
+            {/* Tab: Delete requests */}
+            {notifTab === 'delete' && <>
+            {notifRequests === null && <p className="notif-empty">กำลังโหลด...</p>}
+            {notifRequests?.length === 0 && <p className="notif-empty">ไม่มีคำขอลบ</p>}
             {notifRequests?.map(r => {
               const isPending  = r.status === 'pending';
               const isApproved = r.status === 'approved';
@@ -424,6 +447,31 @@ function HomePageInner() {
                 </div>
               );
             })}
+            </>}
+
+            {/* Tab: Edit logs */}
+            {notifTab === 'edit' && <>
+              {notifEditLogs === null && <p className="notif-empty">กำลังโหลด...</p>}
+              {notifEditLogs?.length === 0 && <p className="notif-empty">ยังไม่มีประวัติการแก้ไข</p>}
+              {notifEditLogs?.map(log => (
+                <div key={log.id} className="notif-item notif-item--edit">
+                  <div className="notif-item-top">
+                    <span className="notif-item-type">{log.type?.toUpperCase()} · {log.date}{log.building ? ` · ${log.building}` : ''}</span>
+                    <span className="notif-status notif-status--edit">✏️ แก้ไขแล้ว</span>
+                  </div>
+                  {log.originalFilename !== log.newFilename && (
+                    <p className="notif-edit-file">
+                      <span className="notif-edit-orig">{log.originalFilename}</span>
+                      <span className="notif-edit-arrow"> → </span>
+                      <span className="notif-edit-new">{log.newFilename}</span>
+                    </p>
+                  )}
+                  <p className="notif-reason-txt">เหตุผล: {log.editReason}</p>
+                  {isAdmin && <p className="notif-meta">โดย {log.editedBy} · {log.editedAt?.slice(0, 10)}</p>}
+                  {!isAdmin && <p className="notif-meta">{log.editedAt?.slice(0, 10)}</p>}
+                </div>
+              ))}
+            </>}
           </div>
         </div>
       )}
@@ -1396,6 +1444,16 @@ function HomePageInner() {
         .notif-btn-reject:disabled { opacity: 0.5; }
         .notif-reject-box { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
         .notif-reject-input { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1.5px solid var(--border-strong); background: var(--bg-input); color: var(--ink-primary); font-size: 13px; box-sizing: border-box; }
+        .notif-tabs { display: flex; border-bottom: 1px solid var(--border-hairline); padding: 0 4px; gap: 2px; }
+        .notif-tab { flex: 1; padding: 10px 8px; background: none; border: none; border-bottom: 2px solid transparent; font-size: 13px; font-weight: 600; color: var(--ink-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; transition: color .15s; margin-bottom: -1px; }
+        .notif-tab--active { color: var(--accent-strong); border-bottom-color: var(--accent-strong); }
+        .notif-tab-badge { background: var(--status-fail); color: #fff; border-radius: 99px; font-size: 10px; font-weight: 800; min-width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
+        .notif-item--edit { background: rgba(37,99,235,0.04); }
+        .notif-status--edit { background: rgba(37,99,235,0.12); color: var(--accent-strong); border: 1px solid rgba(37,99,235,0.3); font-size: 11px; font-weight: 700; border-radius: 8px; padding: 3px 8px; white-space: nowrap; flex-shrink: 0; }
+        .notif-edit-file { font-size: 11px; font-family: var(--font-mono); color: var(--ink-muted); margin: 3px 0; word-break: break-all; line-height: 1.5; }
+        .notif-edit-orig { color: var(--status-fail); }
+        .notif-edit-arrow { color: var(--ink-muted); }
+        .notif-edit-new { color: var(--status-pass); }
         .icon-btn { background: none; border: none; font-size: 16px; cursor: pointer; padding: 4px 6px; border-radius: 8px; color: var(--ink-muted); }
         .logout-btn { width: 34px; height: 34px; border-radius: 50%; background: #ef4444; border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 0 3px #1e293b, 0 0 10px #ef444466; transition: background .15s; }
         .logout-btn:hover { background: #dc2626; }

@@ -4,14 +4,26 @@ import { requireRole } from '../../../src/lib/auth';
 
 export const runtime = 'nodejs';
 
-/**
- * POST /api/save-record
- * Body option A: { date, records: { machineId: data, ... } }  ← session save (ทุกเครื่องพร้อมกัน)
- * Body option B: { machineId, inspectionDate, ...data }        ← single machine save
- *
- * บันทึกลง GitHub: data/inspections/<date>.json
- * รูปแบบใน GitHub: { date, records: { machineId: data } }
- */
+const BASE = 'https://api.github.com';
+const DATA_BRANCH = process.env.GITHUB_REPO_BRANCH || 'data';
+
+async function ghPutLog(id, content) {
+  const token = process.env.GITHUB_TOKEN;
+  const owner = process.env.GITHUB_REPO_OWNER;
+  const repo  = process.env.GITHUB_REPO_NAME;
+  if (!token || !owner || !repo) return; // ถ้า env ไม่ครบ ข้ามไป ไม่ block การบันทึกหลัก
+  const body = {
+    message: `บันทึก edit log ${id}`,
+    content: Buffer.from(JSON.stringify(content, null, 2)).toString('base64'),
+    branch: DATA_BRANCH,
+  };
+  await fetch(`${BASE}/repos/${owner}/${repo}/contents/data/edit-logs/${id}.json`, {
+    method: 'PUT', cache: 'no-store',
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
 export async function POST(request) {
   try {
     const gate = await requireRole('user');
@@ -23,7 +35,24 @@ export async function POST(request) {
     if (body.records) {
       const { date, records, type = 'fpg', building = '', floor = '', originalFilename = null } = body;
       if (!date || !records) return NextResponse.json({ error: 'ต้องระบุ date และ records' }, { status: 400 });
+
       const result = await saveInspectionRecord('__session__', date, { date, type, records }, type, building, floor, originalFilename);
+
+      // บันทึก edit log ถ้ามี editReason (top-level หรือใน records)
+      const editReason = body.editReason || records?.editReason || null;
+      if (editReason && originalFilename) {
+        const newStem = result.path.split('/').pop().replace(/\.json$/, '');
+        const id = `el_${Date.now()}`;
+        ghPutLog(id, {
+          id, type, date, building, floor,
+          originalFilename,
+          newFilename: newStem,
+          editReason,
+          editedBy: gate.session.user.email,
+          editedAt: new Date().toISOString(),
+        }).catch(() => {}); // fire-and-forget ไม่ block response
+      }
+
       return NextResponse.json({ ok: true, path: result.path });
     }
 
