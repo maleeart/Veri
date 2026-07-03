@@ -49,6 +49,7 @@ async function deleteViaGitTrees(owner, repo, branch, filePath, message) {
     base_tree: treeSha,
     tree: [{ path: filePath, mode: '100644', type: 'blob', sha: null }],
   });
+  if (newTreeRes.status === 422) return; // ไฟล์ไม่มีใน tree แล้ว — ถือว่าลบแล้ว
   if (!newTreeRes.ok) {
     const txt = await newTreeRes.text();
     throw new Error(`Create tree failed ${newTreeRes.status}: ${txt}`);

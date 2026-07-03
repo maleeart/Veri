@@ -40,6 +40,7 @@ async function deleteViaGitTrees(owner, repo, branch, filePath, message) {
   const { object: { sha: commitSha } } = await refRes.json();
   const { tree: { sha: treeSha } } = await (await g(`${BASE}/repos/${owner}/${repo}/git/commits/${commitSha}`)).json();
   const newTreeRes = await p(`${BASE}/repos/${owner}/${repo}/git/trees`, { base_tree: treeSha, tree: [{ path: filePath, mode: '100644', type: 'blob', sha: null }] });
+  if (newTreeRes.status === 422) return; // ไฟล์ไม่มีใน tree แล้ว — ถือว่าลบแล้ว
   if (!newTreeRes.ok) { const t = await newTreeRes.text(); throw new Error(`Create tree failed ${newTreeRes.status}: ${t}`); }
   const { sha: newTreeSha } = await newTreeRes.json();
   const newCommitRes = await p(`${BASE}/repos/${owner}/${repo}/git/commits`, { message, tree: newTreeSha, parents: [commitSha] });
