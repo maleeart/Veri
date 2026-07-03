@@ -10,6 +10,7 @@ function LoginInner() {
   const callbackUrl = params.get('callbackUrl') || '/';
   const error = params.get('error');
   const [loading, setLoading] = useState(false);
+  const [dark, setDark] = useState(true);
 
   const handleSignIn = () => {
     setLoading(true);
@@ -17,33 +18,41 @@ function LoginInner() {
   };
 
   return (
-    <div className="root">
-      {/* background layers */}
+    <div className={`root ${dark ? 'dark' : 'light'}`}>
       <div className="bg-grid" />
       <div className="orb orb-1" />
       <div className="orb orb-2" />
       <div className="orb orb-3" />
 
+      {/* mode toggle */}
+      <button className="mode-toggle" onClick={() => setDark(d => !d)} aria-label="สลับโหมด">
+        {dark ? (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        ) : (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        )}
+      </button>
+
       <div className="card">
-        {/* top accent bar */}
         <div className="card-bar" />
 
         {/* brand */}
         <div className="brand">
           <div className="logo-wrap">
-            <img src="/logo.png" alt="Veri" width={64} height={64} className="logo-img" />
+            <img src="/logo.png" alt="Veri" width={56} height={56} className="logo-img" />
             <div className="logo-ring" />
           </div>
           <div className="brand-text">
             <h1 className="brand-name">Veri</h1>
             <p className="brand-sub">Facility Inspection System</p>
           </div>
-        </div>
-
-        {/* org badge */}
-        <div className="org-badge">
-          <span className="org-dot" />
-          EGAT ไทรน้อย
         </div>
 
         {/* divider */}
@@ -76,264 +85,180 @@ function LoginInner() {
           <span>{loading ? 'กำลังเข้าสู่ระบบ…' : 'Sign in with Google'}</span>
         </button>
 
-        {/* note */}
         <p className="note">ผู้ใช้ใหม่จะได้สิทธิ์ &ldquo;ผู้เยี่ยมชม&rdquo; จนกว่าผู้ดูแลจะกำหนดสิทธิ์</p>
-
-        {/* admin contact */}
         <p className="admin-line">ผู้ดูแลระบบ : {process.env.NEXT_PUBLIC_ADMIN_NAME || 'Administrator'}</p>
       </div>
 
       <style jsx>{`
-        /* ── root ── */
         .root {
           min-height: 100dvh;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #0c1220;
           position: relative;
           overflow: hidden;
           padding: 24px;
+          transition: background 0.3s;
         }
+        .root.dark  { background: #0c1220; }
+        .root.light { background: #e8f0fe; }
 
-        /* ── grid overlay ── */
+        /* grid */
         .bg-grid {
-          position: absolute;
-          inset: 0;
+          position: absolute; inset: 0;
           background-image:
-            linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px);
+            linear-gradient(rgba(37,99,235,0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(37,99,235,0.05) 1px, transparent 1px);
           background-size: 48px 48px;
           mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
           pointer-events: none;
         }
 
-        /* ── orbs ── */
+        /* orbs */
         .orb {
-          position: absolute;
-          border-radius: 50%;
-          pointer-events: none;
+          position: absolute; border-radius: 50%; pointer-events: none;
           filter: blur(72px);
           animation: drift 14s ease-in-out infinite alternate;
         }
-        .orb-1 {
-          width: 560px; height: 560px;
-          background: radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 65%);
-          top: -200px; left: -160px;
-          animation-delay: 0s;
-        }
-        .orb-2 {
-          width: 420px; height: 420px;
-          background: radial-gradient(circle, rgba(30,64,175,0.15) 0%, transparent 65%);
-          bottom: -140px; right: -120px;
-          animation-delay: -5s;
-        }
-        .orb-3 {
-          width: 280px; height: 280px;
-          background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 65%);
-          top: 45%; left: 60%;
-          animation-delay: -9s;
-        }
+        .orb-1 { width: 500px; height: 500px; top: -200px; left: -160px; animation-delay: 0s; }
+        .orb-2 { width: 380px; height: 380px; bottom: -140px; right: -120px; animation-delay: -5s; }
+        .orb-3 { width: 260px; height: 260px; top: 45%; left: 60%; animation-delay: -9s; }
+        .dark  .orb-1 { background: radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 65%); }
+        .dark  .orb-2 { background: radial-gradient(circle, rgba(30,64,175,0.15) 0%, transparent 65%); }
+        .dark  .orb-3 { background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 65%); }
+        .light .orb-1 { background: radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 65%); }
+        .light .orb-2 { background: radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 65%); }
+        .light .orb-3 { background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 65%); }
         @keyframes drift {
           from { transform: translate(0,0) scale(1); }
           to   { transform: translate(24px,18px) scale(1.06); }
         }
 
-        /* ── card ── */
+        /* mode toggle */
+        .mode-toggle {
+          position: fixed; top: 16px; right: 16px; z-index: 10;
+          width: 36px; height: 36px;
+          border-radius: 50%;
+          border: none; cursor: pointer;
+          display: flex; align-items: center; justify-content: center;
+          transition: background 0.3s, color 0.3s;
+        }
+        .dark  .mode-toggle { background: rgba(255,255,255,0.08); color: #93c5fd; }
+        .light .mode-toggle { background: rgba(37,99,235,0.1); color: #1d4ed8; }
+        .mode-toggle:hover { opacity: 0.8; }
+
+        /* card */
         .card {
-          position: relative;
-          width: 100%;
-          max-width: 420px;
-          background: rgba(17,29,50,0.9);
+          position: relative; width: 100%; max-width: 400px;
+          border-radius: 24px;
+          padding: 0 32px 32px;
+          display: flex; flex-direction: column; align-items: center;
+          overflow: hidden;
           backdrop-filter: blur(24px);
           -webkit-backdrop-filter: blur(24px);
+          transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+        }
+        .dark .card {
+          background: rgba(17,29,50,0.88);
           border: 1px solid rgba(45,63,94,0.7);
-          border-radius: 24px;
-          padding: 0 36px 36px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 0;
-          box-shadow:
-            0 0 0 1px rgba(37,99,235,0.06),
-            0 32px 72px rgba(0,0,0,0.55),
-            inset 0 1px 0 rgba(255,255,255,0.05);
-          overflow: hidden;
+          box-shadow: 0 0 0 1px rgba(37,99,235,0.06), 0 32px 72px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+        .light .card {
+          background: rgba(255,255,255,0.82);
+          border: 1px solid rgba(147,197,253,0.5);
+          box-shadow: 0 8px 40px rgba(37,99,235,0.12), inset 0 1px 0 rgba(255,255,255,0.9);
         }
 
-        /* top gradient bar */
         .card-bar {
-          position: absolute;
-          top: 0; left: 0; right: 0;
-          height: 3px;
+          position: absolute; top: 0; left: 0; right: 0; height: 3px;
           background: linear-gradient(90deg, transparent, #2563eb 30%, #6366f1 70%, transparent);
         }
 
-        /* ── brand ── */
+        /* brand */
         .brand {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          margin-top: 44px;
-          margin-bottom: 16px;
+          display: flex; align-items: center; gap: 14px;
+          margin-top: 40px; margin-bottom: 20px;
           align-self: flex-start;
         }
-        .logo-wrap {
-          position: relative;
-          flex-shrink: 0;
-        }
-        .logo-img {
-          display: block;
-          border-radius: 18px;
-          box-shadow: 0 8px 24px rgba(37,99,235,0.35);
-        }
+        .logo-wrap { position: relative; flex-shrink: 0; }
+        .logo-img { display: block; border-radius: 16px; box-shadow: 0 6px 20px rgba(37,99,235,0.3); }
         .logo-ring {
-          position: absolute;
-          inset: -3px;
-          border-radius: 21px;
-          background: linear-gradient(135deg, rgba(37,99,235,0.6), rgba(99,102,241,0.3));
-          z-index: -1;
-          filter: blur(4px);
+          position: absolute; inset: -3px; border-radius: 19px;
+          background: linear-gradient(135deg, rgba(37,99,235,0.5), rgba(99,102,241,0.25));
+          z-index: -1; filter: blur(4px);
         }
         .brand-text { display: flex; flex-direction: column; gap: 2px; }
         .brand-name {
-          margin: 0;
-          font-size: 36px;
-          font-weight: 900;
-          letter-spacing: -1.5px;
-          line-height: 1;
-          background: linear-gradient(135deg, #eff6ff 0%, #93c5fd 55%, #818cf8 100%);
-          -webkit-background-clip: text;
+          margin: 0; font-size: 28px; font-weight: 900;
+          letter-spacing: -1px; line-height: 1;
+          background-clip: text; -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
-          background-clip: text;
+          transition: background-image 0.3s;
         }
+        .dark  .brand-name { background-image: linear-gradient(135deg, #eff6ff 0%, #93c5fd 55%, #818cf8 100%); }
+        .light .brand-name { background-image: linear-gradient(135deg, #1e3a8a 0%, #2563eb 55%, #6366f1 100%); }
         .brand-sub {
-          margin: 0;
-          font-size: 12px;
-          font-weight: 500;
-          color: #475569;
-          letter-spacing: 0.4px;
-          text-transform: uppercase;
+          margin: 0; font-size: 11px; font-weight: 500;
+          letter-spacing: 0.5px; text-transform: uppercase;
+          transition: color 0.3s;
         }
+        .dark  .brand-sub { color: #475569; }
+        .light .brand-sub { color: #94a3b8; }
 
-        /* ── org badge ── */
-        .org-badge {
-          align-self: flex-start;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 12px;
-          color: #64748b;
-          background: rgba(37,99,235,0.08);
-          border: 1px solid rgba(37,99,235,0.15);
-          border-radius: 20px;
-          padding: 4px 12px;
-          margin-bottom: 28px;
-        }
-        .org-dot {
-          width: 6px; height: 6px;
-          border-radius: 50%;
-          background: #22c55e;
-          box-shadow: 0 0 6px rgba(34,197,94,0.7);
-          animation: pulse 2s ease-in-out infinite;
-        }
-        @keyframes pulse {
-          0%,100% { opacity: 1; transform: scale(1); }
-          50%      { opacity: 0.6; transform: scale(0.8); }
-        }
+        /* sep */
+        .sep { width: 100%; display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .sep-line { flex: 1; height: 1px; }
+        .dark  .sep-line { background: linear-gradient(90deg, transparent, rgba(45,63,94,0.8)); }
+        .light .sep-line { background: linear-gradient(90deg, transparent, rgba(147,197,253,0.6)); }
+        .sep-line:last-child { transform: scaleX(-1); }
+        .sep-text { font-size: 12px; white-space: nowrap; transition: color 0.3s; }
+        .dark  .sep-text { color: #475569; }
+        .light .sep-text { color: #94a3b8; }
 
-        /* ── separator ── */
-        .sep {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 20px;
-        }
-        .sep-line {
-          flex: 1;
-          height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(45,63,94,0.8));
-        }
-        .sep-line:last-child {
-          background: linear-gradient(90deg, rgba(45,63,94,0.8), transparent);
-        }
-        .sep-text {
-          font-size: 12px;
-          color: #475569;
-          white-space: nowrap;
-        }
-
-        /* ── error ── */
+        /* error */
         .error-box {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          background: rgba(240,70,70,0.1);
-          border: 1px solid rgba(240,70,70,0.25);
-          color: #f87171;
-          border-radius: 12px;
-          padding: 10px 14px;
-          font-size: 13px;
-          margin-bottom: 16px;
+          width: 100%; display: flex; align-items: center; gap: 8px;
+          background: rgba(240,70,70,0.1); border: 1px solid rgba(240,70,70,0.25);
+          color: #f87171; border-radius: 12px; padding: 10px 14px;
+          font-size: 13px; margin-bottom: 16px;
         }
 
-        /* ── google button ── */
+        /* google button */
         .btn-google {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          padding: 15px 24px;
-          background: #ffffff;
-          color: #1e293b;
-          border: none;
-          border-radius: 14px;
-          font-size: 15px;
-          font-weight: 700;
-          font-family: inherit;
+          width: 100%; display: flex; align-items: center; justify-content: center;
+          gap: 12px; padding: 14px 24px;
+          background: #ffffff; color: #1e293b;
+          border: none; border-radius: 14px;
+          font-size: 14px; font-weight: 700; font-family: inherit;
           cursor: pointer;
-          transition: transform 0.15s ease, box-shadow 0.15s ease;
-          box-shadow: 0 2px 16px rgba(0,0,0,0.3);
+          transition: transform 0.15s, box-shadow 0.15s;
+          box-shadow: 0 2px 12px rgba(0,0,0,0.15);
           margin-bottom: 4px;
         }
-        .btn-google:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 10px 28px rgba(0,0,0,0.4);
+        .light .btn-google {
+          border: 1px solid rgba(37,99,235,0.15);
+          box-shadow: 0 2px 12px rgba(37,99,235,0.1);
         }
+        .btn-google:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
         .btn-google:active:not(:disabled) { transform: translateY(0); }
         .btn-google:disabled { opacity: 0.65; cursor: not-allowed; }
-        .g-icon { width: 22px; height: 22px; flex-shrink: 0; }
+        .g-icon { width: 20px; height: 20px; flex-shrink: 0; }
 
-        /* ── spinner ── */
+        /* spinner */
         .spinner {
-          width: 20px; height: 20px;
-          border: 2.5px solid rgba(30,41,59,0.15);
+          width: 18px; height: 18px;
+          border: 2px solid rgba(30,41,59,0.15);
           border-top-color: #2563eb;
           border-radius: 50%;
-          animation: spin 0.65s linear infinite;
-          flex-shrink: 0;
+          animation: spin 0.65s linear infinite; flex-shrink: 0;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ── note ── */
-        .note {
-          margin: 20px 0 0;
-          font-size: 12px;
-          color: #334155;
-          text-align: center;
-          line-height: 1.7;
-        }
-
-        /* ── admin line ── */
-        .admin-line {
-          margin: 8px 0 0;
-          font-size: 11px;
-          color: #334155;
-          text-align: center;
-        }
+        /* note & admin */
+        .note { margin: 20px 0 0; font-size: 12px; text-align: center; line-height: 1.7; transition: color 0.3s; }
+        .admin-line { margin: 6px 0 0; font-size: 11px; text-align: center; transition: color 0.3s; }
+        .dark  .note, .dark  .admin-line { color: #334155; }
+        .light .note, .light .admin-line { color: #94a3b8; }
       `}</style>
     </div>
   );
