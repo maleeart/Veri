@@ -89,24 +89,25 @@ export async function POST(request) {
 
 // GET /api/delete-request
 //   admin (ไม่มี query)  → pending ทั้งหมด
+//   ?all=1               → admin: ทุกสถานะ
 //   ?mine=1              → ทุกสถานะของตัวเอง (user+)
 export async function GET(request) {
   try {
     const url = new URL(request.url);
     const mine = url.searchParams.get('mine') === '1';
+    const allFlag = url.searchParams.get('all') === '1';
 
     if (mine) {
       const gate = await requireRole('user');
       if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
       const all = await listAllRequests();
-      const email = gate.session.user.email;
-      return NextResponse.json({ requests: all.filter(r => r.requestedBy === email) });
+      return NextResponse.json({ requests: all.filter(r => r.requestedBy === gate.session.user.email) });
     }
 
     const gate = await requireRole('admin');
     if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
     const all = await listAllRequests();
-    return NextResponse.json({ requests: all.filter(r => r.status === 'pending') });
+    return NextResponse.json({ requests: allFlag ? all : all.filter(r => r.status === 'pending') });
   } catch (err) {
     return NextResponse.json({ error: String(err?.message || err) }, { status: 500 });
   }
@@ -139,7 +140,12 @@ export async function PATCH(request) {
       const reportPath = `data/inspections/${safeType}/${yearMonth}/${filename}.json`;
 
       const rptRes = await ghReq(`/repos/${owner}/${repo}/contents/${reportPath}?ref=${DATA_BRANCH}`);
-      if (rptRes.ok) {
+      if (rptRes.status === 404) {
+        // ไฟล์ถูกลบไปแล้ว — ถือว่าอนุมัติได้เลย
+      } else if (!rptRes.ok) {
+        const txt = await rptRes.text();
+        return NextResponse.json({ error: `ดึงไฟล์รายงานไม่สำเร็จ HTTP ${rptRes.status}: ${txt}` }, { status: 500 });
+      } else {
         const { sha: rptSha } = await rptRes.json();
         const delRes = await ghReq(`/repos/${owner}/${repo}/contents/${reportPath}`, {
           method: 'DELETE',

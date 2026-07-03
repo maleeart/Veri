@@ -194,12 +194,12 @@ function HomePageInner() {
 
   // ── notification panel ───────────────────────────────────────────────────
   const loadNotif = () => {
-    const delUrl  = isAdmin ? '/api/delete-request'  : '/api/delete-request?mine=1';
+    const delUrl  = isAdmin ? '/api/delete-request?all=1' : '/api/delete-request?mine=1';
     const editUrl = isAdmin ? '/api/edit-log'         : '/api/edit-log?mine=1';
     fetch(delUrl).then(r => r.json()).then(d => { const list = d.requests || []; setNotifRequests(list); if (list.length) setNotifUnread(true); }).catch(() => setNotifRequests([]));
     fetch(editUrl).then(r => r.json()).then(d => { const list = d.logs || []; setNotifEditLogs(list); if (list.length) setNotifUnread(true); }).catch(() => setNotifEditLogs([]));
   };
-  const openNotif = () => { setShowNotif(true); setNotifOpened(true); setNotifTab('delete'); loadNotif(); };
+  const openNotif = () => { setShowNotif(true); setNotifOpened(true); setNotifTab(isAdmin ? 'delete' : 'edit'); loadNotif(); };
   const closeNotif = () => { setShowNotif(false); setNotifUnread(false); setRejectingId(null); setRejectReason(''); };
 
   const handleApprove = async (id) => {
@@ -386,25 +386,26 @@ function HomePageInner() {
 
             {/* Tabs */}
             <div className="notif-tabs">
-              <button className={`notif-tab ${notifTab === 'delete' ? 'notif-tab--active' : ''}`}
-                onClick={() => setNotifTab('delete')}>
-                🗑 คำขอลบ
-                {notifRequests && notifRequests.filter(r => isAdmin ? r.status === 'pending' : r.status !== 'approved').length > 0 && (
-                  <span className="notif-tab-badge">{notifRequests.filter(r => isAdmin ? r.status === 'pending' : r.status !== 'approved').length}</span>
-                )}
-              </button>
+              {isAdmin && (
+                <button className={`notif-tab ${notifTab === 'delete' ? 'notif-tab--active' : ''}`}
+                  onClick={() => setNotifTab('delete')}>
+                  🗑 คำขอลบ
+                  {notifRequests?.filter(r => r.status === 'pending').length > 0 && (
+                    <span className="notif-tab-badge">{notifRequests.filter(r => r.status === 'pending').length}</span>
+                  )}
+                </button>
+              )}
               <button className={`notif-tab ${notifTab === 'edit' ? 'notif-tab--active' : ''}`}
                 onClick={() => setNotifTab('edit')}>
-                ✏️ ประวัติแก้ไข
-                {notifEditLogs?.length > 0 && <span className="notif-tab-badge">{notifEditLogs.length}</span>}
+                📋 ประวัติ
               </button>
             </div>
 
-            {/* Tab: Delete requests */}
-            {notifTab === 'delete' && <>
+            {/* Tab: Delete requests (admin only — pending) */}
+            {notifTab === 'delete' && isAdmin && <>
             {notifRequests === null && <p className="notif-empty">กำลังโหลด...</p>}
-            {notifRequests?.length === 0 && <p className="notif-empty">ไม่มีคำขอลบ</p>}
-            {notifRequests?.map(r => {
+            {notifRequests !== null && notifRequests.filter(r => r.status === 'pending').length === 0 && <p className="notif-empty">ไม่มีคำขอลบที่รอดำเนินการ</p>}
+            {notifRequests?.filter(r => r.status === 'pending').map(r => {
               const isPending  = r.status === 'pending';
               const isApproved = r.status === 'approved';
               const isRejected = r.status === 'rejected';
@@ -452,29 +453,51 @@ function HomePageInner() {
             })}
             </>}
 
-            {/* Tab: Edit logs */}
-            {notifTab === 'edit' && <>
-              {notifEditLogs === null && <p className="notif-empty">กำลังโหลด...</p>}
-              {notifEditLogs?.length === 0 && <p className="notif-empty">ยังไม่มีประวัติการแก้ไข</p>}
-              {notifEditLogs?.map(log => (
-                <div key={log.id} className="notif-item notif-item--edit">
-                  <div className="notif-item-top">
-                    <span className="notif-item-type">{log.type?.toUpperCase()} · {log.date}{log.building ? ` · ${log.building}` : ''}</span>
-                    <span className="notif-status notif-status--edit">✏️ แก้ไขแล้ว</span>
+            {/* Tab: ประวัติ — edit logs + delete requests merged */}
+            {notifTab === 'edit' && (() => {
+              const loading = notifEditLogs === null || notifRequests === null;
+              const merged = [
+                ...(notifEditLogs || []).map(l => ({ _kind: 'edit',   _time: l.editedAt,     ...l })),
+                ...(notifRequests || []).map(r => ({ _kind: 'delete', _time: r.requestedAt,  ...r })),
+              ].sort((a, b) => (b._time || '').localeCompare(a._time || ''));
+              return <>
+                {loading && <p className="notif-empty">กำลังโหลด...</p>}
+                {!loading && merged.length === 0 && <p className="notif-empty">ยังไม่มีประวัติ</p>}
+                {merged.map(item => item._kind === 'edit' ? (
+                  <div key={item.id} className="notif-item notif-item--edit">
+                    <div className="notif-item-top">
+                      <span className="notif-item-type">{item.type?.toUpperCase()} · {item.date}{item.building ? ` · ${item.building}` : ''}</span>
+                      <span className="notif-status notif-status--edit">✏️ แก้ไขแล้ว</span>
+                    </div>
+                    {item.originalFilename !== item.newFilename && (
+                      <p className="notif-edit-file">
+                        <span className="notif-edit-orig">{item.originalFilename}</span>
+                        <span className="notif-edit-arrow"> → </span>
+                        <span className="notif-edit-new">{item.newFilename}</span>
+                      </p>
+                    )}
+                    <p className="notif-reason-txt">เหตุผล: {item.editReason}</p>
+                    {isAdmin && <p className="notif-meta">โดย {item.editedBy} · {item.editedAt?.slice(0, 10)}</p>}
+                    {!isAdmin && <p className="notif-meta">{item.editedAt?.slice(0, 10)}</p>}
                   </div>
-                  {log.originalFilename !== log.newFilename && (
-                    <p className="notif-edit-file">
-                      <span className="notif-edit-orig">{log.originalFilename}</span>
-                      <span className="notif-edit-arrow"> → </span>
-                      <span className="notif-edit-new">{log.newFilename}</span>
-                    </p>
-                  )}
-                  <p className="notif-reason-txt">เหตุผล: {log.editReason}</p>
-                  {isAdmin && <p className="notif-meta">โดย {log.editedBy} · {log.editedAt?.slice(0, 10)}</p>}
-                  {!isAdmin && <p className="notif-meta">{log.editedAt?.slice(0, 10)}</p>}
-                </div>
-              ))}
-            </>}
+                ) : (
+                  <div key={item.id} className={`notif-item notif-item--${item.status}`}>
+                    <div className="notif-item-top">
+                      <span className="notif-item-type">{item.type?.toUpperCase()} · {item.date}{item.building ? ` · ${item.building}` : ''}</span>
+                      <span className={`notif-status notif-status--${item.status}`}>
+                        {item.status === 'pending' ? '⏳ รอลบ' : item.status === 'approved' ? '✅ ลบแล้ว' : '❌ ปฏิเสธ'}
+                      </span>
+                    </div>
+                    <p className="notif-reason-txt">ขอลบ: {item.reason}</p>
+                    {item.status === 'rejected' && item.rejectReason && (
+                      <p className="notif-reject-reason">💬 admin: {item.rejectReason}</p>
+                    )}
+                    {isAdmin && <p className="notif-meta">โดย {item.requestedBy} · {item.requestedAt?.slice(0, 10)}</p>}
+                    {!isAdmin && <p className="notif-meta">{item.requestedAt?.slice(0, 10)}</p>}
+                  </div>
+                ))}
+              </>;
+            })()}
           </div>
         </div>
       )}
