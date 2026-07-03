@@ -68,6 +68,8 @@ export default function FormPage() {
   const [validationError, setValidationError] = useState(null);
   const [prefilledFrom, setPrefilledFrom] = useState(null); // ข้อความรอบที่ดึงมาเติมให้ (แสดงใน step อุปกรณ์)
   const [floorTemplates, setFloorTemplates] = useState([]); // รายการไฟล์เก่าของอาคารนี้ (ล่าสุดต่อชั้น) ให้เลือก
+  const [editReason, setEditReason] = useState('');
+  const isEditMode = searchParams.get('edit') === '1';
   const [showTemplatePopup, setShowTemplatePopup] = useState(false);
   const [checkingTemplates, setCheckingTemplates] = useState(false);
   const draftRef = useRef(null);
@@ -202,6 +204,10 @@ export default function FormPage() {
       setValidationError('กรุณากรอกชื่อผู้ตรวจสอบก่อน');
       return;
     }
+    if (isEditMode && !editReason.trim()) {
+      setValidationError('กรุณาระบุเหตุผลในการแก้ไขก่อนบันทึก');
+      return;
+    }
     setValidationError(null);
     setSubmitting(true);
     setSubmitError(null);
@@ -214,7 +220,7 @@ export default function FormPage() {
       await fetch('/api/save-record', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: saveDate, type, building, floor, records: { general, devices } }),
+        body: JSON.stringify({ date: saveDate, type, building, floor, records: { general, devices, ...(isEditMode && editReason.trim() ? { editReason: editReason.trim() } : {}) } }),
       });
 
       localStorage.removeItem(DRAFT_KEY);
@@ -408,6 +414,18 @@ export default function FormPage() {
               </div>
             )}
 
+            {isEditMode && (
+              <div className="edit-reason-box">
+                <label className="edit-reason-label">เหตุผลในการแก้ไข <span style={{color:'var(--status-fail)'}}>*</span></label>
+                <textarea
+                  className="edit-reason-input"
+                  rows={2}
+                  placeholder="เช่น แก้ไขข้อมูลที่กรอกผิด / อัปเดตผลการตรวจสอบ"
+                  value={editReason}
+                  onChange={e => { setEditReason(e.target.value); setValidationError(null); }}
+                />
+              </div>
+            )}
             {!canWrite && <p className="validation-err">👁 บัญชีผู้เยี่ยมชม — ดูและดาวน์โหลดได้ แต่บันทึกไม่ได้</p>}
             {validationError && <p className="validation-err">{validationError}</p>}
             {submitError && <p className="error-msg">{submitError}</p>}
@@ -448,6 +466,9 @@ export default function FormPage() {
         .btn-submit { padding: 16px; border-radius: 16px; border: none; font-size: 16px; font-weight: 700; color: #fff; cursor: pointer; width: 100%; }
         .btn-submit:disabled { opacity: 0.6; }
         .btn-back-edit { padding: 12px; border-radius: 14px; border: 1px solid var(--border-strong); background: var(--bg-surface-raised); font-size: 14px; font-weight: 600; color: var(--ink-secondary); cursor: pointer; }
+        .edit-reason-box { display: flex; flex-direction: column; gap: 6px; background: rgba(217,119,6,0.08); border: 1px solid var(--status-warn); border-radius: 12px; padding: 12px 14px; }
+        .edit-reason-label { font-size: 13px; font-weight: 700; color: var(--status-warn); }
+        .edit-reason-input { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1.5px solid var(--border-strong); background: var(--bg-input); color: var(--ink-primary); font-size: 14px; font-family: inherit; resize: vertical; box-sizing: border-box; }
 
         .confirm-section { align-items: center; gap: 12px; padding-top: 32px; }
         .confirm-icon { font-size: 56px; }

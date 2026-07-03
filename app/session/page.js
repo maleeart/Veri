@@ -27,7 +27,7 @@ const STEP_SHORT = ['ทั่วไป', 'ก่อนเข้า', 'ก่อ
 
 // GitHub มาก่อน: ถ้ามีข้อมูลในไฟล์ → ล้าง draft เก่า → ใช้ข้อมูลไฟล์
 // ถ้าไม่มีในไฟล์ → ดู draft → ถ้าไม่มีทั้งคู่ → empty
-function loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepIdx) {
+function loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing) {
   const draftKey = `session:${date}`;
   fetch(`/api/inspections?date=${date}&type=fpg`)
     .then(r => r.ok ? r.json() : null)
@@ -44,6 +44,7 @@ function loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepId
         setRecords(fresh);
         setMachineIdx(0);
         setStepIdx(0);
+        setIsEditing?.(true);
         return;
       }
       // ไม่มีใน GitHub → ดู draft
@@ -101,12 +102,14 @@ function SessionPageInner() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmSaving, setConfirmSaving] = useState(false);
   const [showSummaryPage, setShowSummaryPage] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editReason, setEditReason] = useState('');
   const saveTimerRef = useRef(null);
 
   const handleDateChange = (newDate) => {
     setSessionDate(newDate);
     if (!fieldMap) return;
-    loadRecordsForDate(newDate, fieldMap, setRecords, setMachineIdx, setStepIdx);
+    loadRecordsForDate(newDate, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing);
   };
 
   // โหลด field-map
@@ -117,7 +120,7 @@ function SessionPageInner() {
   // init: GitHub มาก่อน → ถ้าไม่มีจึงดู draft
   useEffect(() => {
     if (!fieldMap) return;
-    loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepIdx);
+    loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing);
   }, [fieldMap]);
 
   // autosave draft ทุกครั้งที่ records/machineIdx/stepIdx เปลี่ยน
@@ -222,7 +225,7 @@ function SessionPageInner() {
         await fetch('/api/save-record', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ date: sessionDate, records: mergedRecords, type: 'fpg' }),
+          body: JSON.stringify({ date: sessionDate, records: mergedRecords, type: 'fpg', ...(isEditing && editReason.trim() ? { editReason: editReason.trim() } : {}) }),
         });
       } catch {}
       localStorage.removeItem(DRAFT_KEY);
@@ -280,6 +283,9 @@ function SessionPageInner() {
         submitState={submitState}
         submitError={submitError}
         canWrite={canWrite}
+        isEditing={isEditing}
+        editReason={editReason}
+        onEditReasonChange={setEditReason}
         sessionDate={sessionDate}
       />
     );
@@ -689,7 +695,7 @@ function AfterRunStep({ data, setData, isGen, conclusionDefault }) {
   );
 }
 
-function SummaryPage({ machines, records, inspectedBy, inspectorSignature, onUpdateInspector, onBack, onGoToMachine, onSubmit, submitState, submitError, sessionDate, canWrite }) {
+function SummaryPage({ machines, records, inspectedBy, inspectorSignature, onUpdateInspector, onBack, onGoToMachine, onSubmit, submitState, submitError, sessionDate, canWrite, isEditing, editReason, onEditReasonChange }) {
   const [localName, setLocalName] = useState(inspectedBy);
   const [localSig, setLocalSig] = useState(inspectorSignature);
   const [error, setError] = useState(null);
@@ -705,6 +711,7 @@ function SummaryPage({ machines, records, inspectedBy, inspectorSignature, onUpd
   const handleSubmit = () => {
     if (!localName.trim()) { setError('กรุณากรอกชื่อผู้ตรวจสอบ'); return; }
     if (!localSig) { setError('กรุณาลงลายเซ็นผู้ตรวจสอบ'); return; }
+    if (isEditing && !editReason?.trim()) { setError('กรุณาระบุเหตุผลในการแก้ไขก่อนบันทึก'); return; }
     const incomplete = getIncomplete();
     if (incomplete.length > 0) { setShowIncomplete(true); return; }
     doSubmit();
@@ -755,6 +762,20 @@ function SummaryPage({ machines, records, inspectedBy, inspectorSignature, onUpd
             );
           })}
         </div>
+
+        {/* เหตุผลการแก้ไข (แสดงเฉพาะ edit mode) */}
+        {isEditing && (
+          <div className="edit-reason-box">
+            <div className="edit-reason-title">เหตุผลในการแก้ไข <span style={{color:'var(--status-fail)'}}>*</span></div>
+            <textarea
+              className="edit-reason-input"
+              rows={2}
+              placeholder="เช่น แก้ไขค่าที่บันทึกผิด / อัปเดตผลหลังตรวจซ้ำ"
+              value={editReason || ''}
+              onChange={e => { onEditReasonChange?.(e.target.value); setError(null); }}
+            />
+          </div>
+        )}
 
         {/* ผู้ตรวจสอบ */}
         <div className="insp-box">
@@ -824,6 +845,9 @@ function SummaryPage({ machines, records, inspectedBy, inspectorSignature, onUpd
         .summary-warn-text{font-size:11px;color:var(--status-fail);font-weight:600;}
         .insp-box{background:var(--bg-surface);border:1.5px solid var(--status-pass);border-radius:var(--radius-md);padding:12px;display:flex;flex-direction:column;gap:10px;}
         .insp-title{font-size:11px;font-weight:700;color:var(--status-pass);text-transform:uppercase;letter-spacing:0.05em;}
+        .edit-reason-box{background:rgba(217,119,6,0.08);border:1.5px solid var(--status-warn);border-radius:var(--radius-md);padding:12px;display:flex;flex-direction:column;gap:6px;}
+        .edit-reason-title{font-size:11px;font-weight:700;color:var(--status-warn);text-transform:uppercase;letter-spacing:0.05em;}
+        .edit-reason-input{width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border-strong);background:var(--bg-input);color:var(--ink-primary);font-size:14px;font-family:inherit;resize:vertical;box-sizing:border-box;}
         .err-banner{padding:10px 12px;background:var(--status-fail-bg);color:var(--status-fail);border-radius:var(--radius-sm);font-size:13px;margin:0;}
         .sum-nav{position:sticky;bottom:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:var(--bg-surface);border-top:1px solid var(--border-hairline);}
         .sum-submit{width:100%;min-height:50px;border-radius:var(--radius-md);font-size:15px;font-weight:700;cursor:pointer;border:none;background:var(--status-pass);color:#fff;}
