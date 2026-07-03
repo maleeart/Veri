@@ -13,14 +13,14 @@
     },
     "devices": [
       {
-        "location": "dfhd",
+        "location": "sfgdfh",
         "remarks": "",
-        "id": "Ggdrthwegrg",
+        "id": "Gg",
         "lightCondition": "pass",
         "statusLight": "normal",
         "testResult": "on"
       }
     ],
-    "editReason": "test edit"
+    "editReason": "test edit dup"
   }
 }
