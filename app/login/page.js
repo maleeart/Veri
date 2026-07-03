@@ -78,6 +78,18 @@ function LoginInner() {
 
         {/* note */}
         <p className="note">ผู้ใช้ใหม่จะได้สิทธิ์ &ldquo;ผู้เยี่ยมชม&rdquo; จนกว่าผู้ดูแลจะกำหนดสิทธิ์</p>
+
+        {/* admin contact */}
+        <div className="admin-card">
+          <div className="admin-avatar">
+            {(process.env.NEXT_PUBLIC_ADMIN_NAME || 'A')[0].toUpperCase()}
+          </div>
+          <div className="admin-info">
+            <span className="admin-label">ผู้ดูแลระบบ</span>
+            <span className="admin-name">{process.env.NEXT_PUBLIC_ADMIN_NAME || 'Administrator'}</span>
+          </div>
+          <span className="admin-badge">Admin</span>
+        </div>
       </div>
 
       <style jsx>{`
@@ -322,6 +334,61 @@ function LoginInner() {
           color: #334155;
           text-align: center;
           line-height: 1.7;
+        }
+
+        /* ── admin card ── */
+        .admin-card {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-top: 20px;
+          padding: 12px 16px;
+          background: rgba(37,99,235,0.06);
+          border: 1px solid rgba(37,99,235,0.12);
+          border-radius: 14px;
+        }
+        .admin-avatar {
+          width: 36px; height: 36px;
+          border-radius: 10px;
+          background: linear-gradient(135deg, #1e3a8a, #2563eb);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 15px; font-weight: 700; color: #fff;
+          flex-shrink: 0;
+          box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+        }
+        .admin-info {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 1px;
+          min-width: 0;
+        }
+        .admin-label {
+          font-size: 10px;
+          color: #475569;
+          text-transform: uppercase;
+          letter-spacing: 0.6px;
+          font-weight: 600;
+        }
+        .admin-name {
+          font-size: 13px;
+          font-weight: 600;
+          color: #94a3c4;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .admin-badge {
+          font-size: 10px;
+          font-weight: 700;
+          color: #3b82f6;
+          background: rgba(37,99,235,0.15);
+          border: 1px solid rgba(37,99,235,0.2);
+          border-radius: 6px;
+          padding: 2px 8px;
+          letter-spacing: 0.5px;
+          flex-shrink: 0;
         }
       `}</style>
     </div>
