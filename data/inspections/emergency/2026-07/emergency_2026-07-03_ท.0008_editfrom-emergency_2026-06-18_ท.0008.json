@@ -1,0 +1,26 @@
+{
+  "date": "2026-07-03",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-07-03",
+      "building": "ท.0008",
+      "floor": "",
+      "inspector": "Ff",
+      "model": "",
+      "serial": "",
+      "mfg": ""
+    },
+    "devices": [
+      {
+        "location": "sfgdfhfgdg",
+        "remarks": "hhd",
+        "id": "Gg",
+        "lightCondition": "pass",
+        "statusLight": "abnormal",
+        "testResult": "on"
+      }
+    ],
+    "editReason": "test edit dup"
+  }
+}
