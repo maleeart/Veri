@@ -257,7 +257,7 @@ function LoginInner() {
         /* note & admin */
         .note { margin: 20px 0 0; font-size: 12px; text-align: center; line-height: 1.7; transition: color 0.3s; }
         .admin-line { margin: 6px 0 0; font-size: 11px; text-align: center; transition: color 0.3s; }
-        .dark  .note, .dark  .admin-line { color: #334155; }
+        .dark  .note, .dark  .admin-line { color: #64748b; }
         .light .note, .light .admin-line { color: #94a3b8; }
       `}</style>
     </div>
