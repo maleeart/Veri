@@ -38,7 +38,7 @@ export async function DELETE(request) {
     const gate = await requireRole('admin');
     if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
 
-    const { filename, type = 'fpg', date, building = '', floor = '' } = await request.json();
+    const { filename, type = 'fpg', date, building = '', floor = '', _sha, _path } = await request.json();
 
     if (!date || !type) {
       return NextResponse.json({ error: 'ต้องระบุ date และ type' }, { status: 400 });
@@ -46,35 +46,39 @@ export async function DELETE(request) {
 
     const { owner, repo } = cfg();
 
-    // สร้าง path เหมือนกับ datePath ใน githubStorage.js
-    const safeDate = String(date).replace(/[^0-9-]/g, '');
-    const safeType = String(type).replace(/[^a-z]/g, '');
-    const yearMonth = safeDate.slice(0, 7);
+    let sha = _sha;
+    let apiPath;
 
-    // ถ้ามี filename ให้ใช้ตรง ๆ ไม่ต้องสร้างใหม่
-    let filePath;
-    if (filename) {
-      filePath = `data/inspections/${safeType}/${yearMonth}/${filename}.json`;
+    if (_sha && _path) {
+      // ใช้ sha + path จาก Trees API โดยตรง — ไม่ต้อง GET อีกรอบ
+      const encodedPath = _path.split('/').map(encodeURIComponent).join('/');
+      apiPath = `/repos/${owner}/${repo}/contents/${encodedPath}`;
     } else {
-      const sanitize = s => String(s || '').replace(/[/\\:*?"<>|]/g, '').replace(/\s+/g, '-').replace(/_/g, '-').slice(0, 30);
-      const bld = sanitize(building);
-      const flr = sanitize(floor);
-      const extra = [bld, flr].filter(Boolean).join('_');
-      filePath = `data/inspections/${safeType}/${yearMonth}/${safeType}_${safeDate}${extra ? '_' + extra : ''}.json`;
+      // fallback: สร้าง path และ GET sha
+      const safeDate = String(date).replace(/[^0-9-]/g, '');
+      const safeType = String(type).replace(/[^a-z]/g, '');
+      const yearMonth = safeDate.slice(0, 7);
+      let filePath;
+      if (filename) {
+        filePath = `data/inspections/${safeType}/${yearMonth}/${filename}.json`;
+      } else {
+        const sanitize = s => String(s || '').replace(/[/\\:*?"<>|]/g, '').replace(/\s+/g, '-').replace(/_/g, '-').slice(0, 30);
+        const bld = sanitize(building);
+        const flr = sanitize(floor);
+        const extra = [bld, flr].filter(Boolean).join('_');
+        filePath = `data/inspections/${safeType}/${yearMonth}/${safeType}_${safeDate}${extra ? '_' + extra : ''}.json`;
+      }
+      const encodedPath = filePath.split('/').map(encodeURIComponent).join('/');
+      apiPath = `/repos/${owner}/${repo}/contents/${encodedPath}`;
+      const getRes = await ghReq(`${apiPath}?ref=${DATA_BRANCH}`);
+      if (getRes.status === 404) {
+        return NextResponse.json({ error: `ไม่พบไฟล์: ${filePath}` }, { status: 404 });
+      }
+      if (!getRes.ok) {
+        return NextResponse.json({ error: `ดึงข้อมูล GitHub ไม่สำเร็จ HTTP ${getRes.status}` }, { status: 500 });
+      }
+      sha = (await getRes.json()).sha;
     }
-
-    const encodedPath = filePath.split('/').map(encodeURIComponent).join('/');
-    const apiPath = `/repos/${owner}/${repo}/contents/${encodedPath}`;
-
-    // ดึง SHA ก่อนลบ
-    const getRes = await ghReq(`${apiPath}?ref=${DATA_BRANCH}`);
-    if (getRes.status === 404) {
-      return NextResponse.json({ error: `ไม่พบไฟล์: ${filePath}` }, { status: 404 }); // ยังคงแสดง path ดิบเพื่อ debug
-    }
-    if (!getRes.ok) {
-      return NextResponse.json({ error: `ดึงข้อมูล GitHub ไม่สำเร็จ HTTP ${getRes.status}` }, { status: 500 });
-    }
-    const { sha } = await getRes.json();
 
     // ลบไฟล์
     const delRes = await ghReq(apiPath, {

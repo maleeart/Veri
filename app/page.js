@@ -264,7 +264,7 @@ function HomePageInner() {
   // ── admin ────────────────────────────────────────────────────────────────
   const handleDelete = async () => {
     if (!confirmDelete) return;
-    const { date, type, filename, building, floor } = confirmDelete;
+    const { date, type, filename, building, floor, _sha, _path } = confirmDelete;
     const key = filename || date;
     setDeleting(key);
     setConfirmDelete(null);
@@ -272,7 +272,7 @@ function HomePageInner() {
       const res = await fetch('/api/delete-inspection', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date, type, filename, building, floor }),
+        body: JSON.stringify({ date, type, filename, building, floor, _sha, _path }),
       });
       if (!res.ok) { const e = await res.json().catch(() => ({})); alert(e.error || 'ลบไม่สำเร็จ'); return; }
       setDates(prev => prev.filter(d => (d.filename || d.date) !== key));
@@ -766,7 +766,7 @@ function HomePageInner() {
                   <span className="hist-group-count">{group.length}</span>
                   <span className="hist-group-arrow">{isOpen ? '⌄' : '›'}</span>
                 </button>
-                {isOpen && group.map(({ date, building, floor, filename }) => {
+                {isOpen && group.map(({ date, building, floor, filename, _sha, _path }) => {
                   const dlKey = filename || date;
                   const location = [building, floor].filter(Boolean).join(' · ');
                   return (
@@ -796,7 +796,7 @@ function HomePageInner() {
                         {isAdmin ? (
                           <button className="btn-del"
                             disabled={deleting === dlKey}
-                            onClick={() => setConfirmDelete({ date, type, filename, building, floor })}>
+                            onClick={() => setConfirmDelete({ date, type, filename, building, floor, _sha, _path })}>
                             {deleting === dlKey ? '⏳' : '🗑'}
                           </button>
                         ) : role === 'user' && (

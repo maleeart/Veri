@@ -204,7 +204,7 @@ async function listInspectionDates() {
     )
     .map(item => {
       const filename = item.path.split('/').pop().replace(/\.json$/, '');
-      return parseFilename(filename);
+      return { ...parseFilename(filename), _sha: item.sha, _path: item.path };
     })
     .filter(i => /^\d{4}-\d{2}-\d{2}$/.test(i.date))
     .sort((a, b) => b.date.localeCompare(a.date));
