@@ -96,12 +96,14 @@ function HomePageInner() {
   const [deleteReason, setDeleteReason] = useState('');
   const [requestingDelete, setRequestingDelete] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
-  const [notifRequests, setNotifRequests] = useState(null); // คำขอลบ
-  const [notifEditLogs, setNotifEditLogs] = useState(null); // ประวัติการแก้ไข
+  const [notifRequests, setNotifRequests] = useState(null);
+  const [notifEditLogs, setNotifEditLogs] = useState(null);
   const [notifBusy, setNotifBusy] = useState(null);
   const [rejectingId, setRejectingId] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
-  const [notifTab, setNotifTab] = useState('delete'); // 'delete' | 'edit'
+  const [notifTab, setNotifTab] = useState('delete');
+  const [notifUnread, setNotifUnread] = useState(false); // มีรายการที่ยังไม่ได้เปิดอ่าน
+  const [notifOpened, setNotifOpened] = useState(false); // เคยเปิดครั้งแรกแล้ว
 
   const toggleGroup = type => setOpenGroups(prev => {
     const next = new Set(prev);
@@ -194,10 +196,11 @@ function HomePageInner() {
   const loadNotif = () => {
     const delUrl  = isAdmin ? '/api/delete-request'  : '/api/delete-request?mine=1';
     const editUrl = isAdmin ? '/api/edit-log'         : '/api/edit-log?mine=1';
-    fetch(delUrl).then(r => r.json()).then(d => setNotifRequests(d.requests || [])).catch(() => setNotifRequests([]));
-    fetch(editUrl).then(r => r.json()).then(d => setNotifEditLogs(d.logs || [])).catch(() => setNotifEditLogs([]));
+    fetch(delUrl).then(r => r.json()).then(d => { const list = d.requests || []; setNotifRequests(list); if (list.length) setNotifUnread(true); }).catch(() => setNotifRequests([]));
+    fetch(editUrl).then(r => r.json()).then(d => { const list = d.logs || []; setNotifEditLogs(list); if (list.length) setNotifUnread(true); }).catch(() => setNotifEditLogs([]));
   };
-  const openNotif = () => { setShowNotif(true); setNotifTab('delete'); loadNotif(); };
+  const openNotif = () => { setShowNotif(true); setNotifOpened(true); setNotifTab('delete'); loadNotif(); };
+  const closeNotif = () => { setShowNotif(false); setNotifUnread(false); setRejectingId(null); setRejectReason(''); };
 
   const handleApprove = async (id) => {
     setNotifBusy(id);
@@ -339,8 +342,8 @@ function HomePageInner() {
           </span>
           {role !== 'visitor' && (
             <button className="notif-btn" title="สถานะคำขอ" onClick={openNotif}>
-              ✉️
-              {notifCount > 0 && <span className="notif-badge">{notifCount}</span>}
+              {notifOpened && !notifUnread ? '📭' : '✉️'}
+              {notifUnread && <span className="notif-badge">{notifCount}</span>}
             </button>
           )}
           {isAdmin && (
@@ -374,11 +377,11 @@ function HomePageInner() {
 
       {/* ── Notification Panel ── */}
       {showNotif && (
-        <div className="overlay" onClick={() => { setShowNotif(false); setRejectingId(null); setRejectReason(''); }}>
+        <div className="overlay" onClick={closeNotif}>
           <div className="notif-panel" onClick={e => e.stopPropagation()}>
             <div className="notif-hd">
               <span>📬 {isAdmin ? 'การแจ้งเตือน' : 'สถานะของฉัน'}</span>
-              <button className="notif-close" onClick={() => setShowNotif(false)}>✕</button>
+              <button className="notif-close" onClick={closeNotif}>✕</button>
             </div>
 
             {/* Tabs */}
