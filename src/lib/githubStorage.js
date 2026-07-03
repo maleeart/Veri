@@ -104,7 +104,7 @@ async function loadSessionByDate(date, type = 'fpg', building = '', floor = '') 
 
 /** บันทึก session ลงไฟล์
  *  originalFilename = stem ของไฟล์ที่กำลัง edit (ไม่มี .json)
- *  ถ้า path ใหม่ != path เดิม และ path ใหม่มีไฟล์อยู่แล้ว → ใช้ชื่อ <stem>_editfrom-<origStem>.json
+ *  ถ้า path ใหม่ != path เดิม และ path ใหม่มีไฟล์อยู่แล้ว → ใช้ชื่อ <stem>_edited-from-<origDate>.json
  */
 async function saveSessionByDate(date, dayData, type = 'fpg', building = '', floor = '', originalFilename = null) {
   const { owner, repo, branch } = cfg();
@@ -124,10 +124,11 @@ async function saveSessionByDate(date, dayData, type = 'fpg', building = '', flo
     if (targetPath !== origPath) {
       const check = await ghReq(`/repos/${owner}/${repo}/contents/${targetPath}?ref=${branch}`);
       if (check.status === 200) {
-        // มีไฟล์อื่นอยู่แล้วที่ path ใหม่ → ตั้งชื่อใหม่ว่า <stem>_editfrom-<origStem>.json
+        // มีไฟล์อื่นอยู่แล้วที่ path ใหม่ → ต่อท้ายด้วยวันที่เดิมเท่านั้น
+        const origDate = (originalFilename.split('_')[1] || '').slice(0, 10);
         const dir  = targetPath.substring(0, targetPath.lastIndexOf('/'));
         const stem = targetPath.substring(targetPath.lastIndexOf('/') + 1).replace(/\.json$/, '');
-        targetPath = `${dir}/${stem}_editfrom-${originalFilename}.json`;
+        targetPath = `${dir}/${stem}_edited-from-${origDate}.json`;
       }
     }
   }
