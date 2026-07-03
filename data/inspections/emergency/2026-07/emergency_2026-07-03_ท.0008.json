@@ -15,11 +15,12 @@
       {
         "location": "dfhd",
         "remarks": "",
-        "id": "Ggdrth",
+        "id": "Ggdrthwegrg",
         "lightCondition": "pass",
         "statusLight": "normal",
         "testResult": "on"
       }
-    ]
+    ],
+    "editReason": "test edit"
   }
 }
