@@ -13,9 +13,9 @@
     },
     "devices": [
       {
-        "location": "",
+        "location": "dfhd",
         "remarks": "",
-        "id": "Gg",
+        "id": "Ggdrth",
         "lightCondition": "pass",
         "statusLight": "normal",
         "testResult": "on"
