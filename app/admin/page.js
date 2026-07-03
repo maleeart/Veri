@@ -14,15 +14,36 @@ export default function AdminPage() {
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const [deleteReqs, setDeleteReqs] = useState(null);
+  const [reqBusy, setReqBusy] = useState(null);
 
   const load = () => {
     fetch('/api/users')
       .then(r => r.json())
       .then(d => { if (d.error) setErr(d.error); else { setUsers(d.users || {}); setAdmins(d.admins || []); } })
       .catch(e => setErr(String(e.message || e)));
+    fetch('/api/delete-request')
+      .then(r => r.json())
+      .then(d => setDeleteReqs(d.requests || []))
+      .catch(() => setDeleteReqs([]));
   };
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
+
+  const handleReq = async (id, action) => {
+    setReqBusy(id);
+    try {
+      const res = await fetch('/api/delete-request', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action }),
+      });
+      const d = await res.json();
+      if (!res.ok) { alert(d.error || 'ดำเนินการไม่สำเร็จ'); return; }
+      setDeleteReqs(prev => prev.filter(r => r.id !== id));
+    } catch (e) { alert(String(e.message || e)); }
+    finally { setReqBusy(null); }
+  };
 
   const setRole = async (targetEmail, role) => {
     if (!targetEmail) return;
@@ -110,6 +131,30 @@ export default function AdminPage() {
           ))}
         </div>
 
+        {/* คำขอลบรายงาน */}
+        <div className="group">
+          <div className="group-hd">📋 คำขอลบรายงาน ({deleteReqs?.length ?? '...'})</div>
+          {deleteReqs === null && <p className="empty">กำลังโหลด...</p>}
+          {deleteReqs?.length === 0 && <p className="empty">— ไม่มีคำขอรอดำเนินการ —</p>}
+          {deleteReqs?.map(r => (
+            <div key={r.id} className="req-row">
+              <div className="req-info">
+                <span className="req-type">{r.type?.toUpperCase()} · {r.date}{r.building ? ` · ${r.building}` : ''}</span>
+                <span className="req-reason">เหตุผล: {r.reason}</span>
+                <span className="req-by">{r.requestedBy} · {r.requestedAt?.slice(0, 10)}</span>
+              </div>
+              <div className="req-actions">
+                <button className="btn-sm btn-sm--promote" disabled={!!reqBusy} onClick={() => handleReq(r.id, 'approve')}>
+                  {reqBusy === r.id ? '⏳' : '✓ อนุมัติ'}
+                </button>
+                <button className="btn-sm" disabled={!!reqBusy} onClick={() => handleReq(r.id, 'reject')}>
+                  ✕ ปฏิเสธ
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
         {/* เพิ่มอีเมลที่ยังไม่เคย login */}
         <div className="add-box">
           <label className="lbl">เพิ่มอีเมลล่วงหน้า (ยังไม่เคย login)</label>
@@ -151,6 +196,12 @@ export default function AdminPage() {
         .btn-sm { background: var(--bg-surface-raised); border: 1px solid var(--border-strong); color: var(--ink-secondary); border-radius: 8px; padding: 5px 10px; font-size: 12px; cursor: pointer; white-space: nowrap; }
         .btn-sm--promote { background: var(--status-pass-bg); border-color: var(--status-pass); color: var(--status-pass); }
         .btn-sm:disabled { opacity: 0.5; }
+        .req-row { display: flex; align-items: flex-start; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--border-hairline); }
+        .req-info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .req-type { font-size: 13px; font-weight: 700; color: var(--ink-primary); }
+        .req-reason { font-size: 12px; color: var(--ink-secondary); }
+        .req-by { font-size: 11px; color: var(--ink-muted); }
+        .req-actions { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
       `}</style>
     </div>
   );

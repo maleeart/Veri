@@ -92,6 +92,9 @@ function HomePageInner() {
   const isAdmin = role === 'admin';
   const [deleting, setDeleting] = useState(null); // filename key ที่กำลังลบ
   const [confirmDelete, setConfirmDelete] = useState(null); // { date, type, filename, building, floor }
+  const [deleteRequest, setDeleteRequest] = useState(null); // { date, type, filename, building, floor } — user request
+  const [deleteReason, setDeleteReason] = useState('');
+  const [requestingDelete, setRequestingDelete] = useState(false);
 
   const toggleGroup = type => setOpenGroups(prev => {
     const next = new Set(prev);
@@ -179,6 +182,24 @@ function HomePageInner() {
   useEffect(() => {
     fetch('/api/building-meter-weeks').then(r => r.json()).then(d => setWeeks(d.weeks || [])).catch(() => {});
   }, []);
+
+  // ── user: ขอลบ ───────────────────────────────────────────────────────────
+  const handleDeleteRequest = async () => {
+    if (!deleteRequest || !deleteReason.trim()) return;
+    setRequestingDelete(true);
+    try {
+      const res = await fetch('/api/delete-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...deleteRequest, reason: deleteReason }),
+      });
+      if (!res.ok) { const e = await res.json().catch(() => ({})); alert(e.error || 'ส่งคำขอไม่สำเร็จ'); return; }
+      alert('ส่งคำขอลบให้ admin แล้ว จะได้รับแจ้งเมื่อดำเนินการ');
+      setDeleteRequest(null);
+      setDeleteReason('');
+    } catch (err) { alert('เกิดข้อผิดพลาด: ' + err.message); }
+    finally { setRequestingDelete(false); }
+  };
 
   // ── admin ────────────────────────────────────────────────────────────────
   const handleDelete = async () => {
@@ -283,6 +304,36 @@ function HomePageInner() {
             <div style={{display:'flex',gap:8}}>
               <button className="modal__close" style={{flex:1}} onClick={() => setConfirmDelete(null)}>ยกเลิก</button>
               <button className="modal__close" style={{flex:1,background:'var(--status-fail)',color:'#fff',border:'none'}} onClick={handleDelete}>ลบ</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── User Delete Request Modal ── */}
+      {deleteRequest && (
+        <div className="overlay" onClick={() => { setDeleteRequest(null); setDeleteReason(''); }}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <span className="modal__icon">📝</span>
+            <h2 className="modal__title">ขอลบรายงาน</h2>
+            <p className="modal__msg"><strong>{deleteRequest.type?.toUpperCase()}</strong> · {deleteRequest.date}</p>
+            {deleteRequest.building && <p className="modal__msg" style={{fontSize:13,color:'var(--ink-muted)'}}>{deleteRequest.building}{deleteRequest.floor ? ` · ${deleteRequest.floor}` : ''}</p>}
+            <p style={{fontSize:13,color:'var(--ink-muted)',margin:'8px 0 4px',textAlign:'left'}}>ระบุเหตุผลในการลบ <span style={{color:'var(--status-fail)'}}>*</span></p>
+            <textarea
+              className="admin-input"
+              rows={3}
+              placeholder="เช่น บันทึกข้อมูลผิด / ซ้ำกับรายการอื่น"
+              value={deleteReason}
+              onChange={e => setDeleteReason(e.target.value)}
+              style={{resize:'vertical',fontFamily:'inherit'}}
+            />
+            <p style={{fontSize:12,color:'var(--ink-muted)',margin:'6px 0 16px',textAlign:'left'}}>⏳ admin จะตรวจสอบและดำเนินการให้</p>
+            <div style={{display:'flex',gap:8}}>
+              <button className="modal__close" style={{flex:1}} onClick={() => { setDeleteRequest(null); setDeleteReason(''); }}>ยกเลิก</button>
+              <button className="modal__close" style={{flex:1,background:'var(--status-fail)',color:'#fff',border:'none',opacity:!deleteReason.trim()||requestingDelete?0.5:1}}
+                disabled={!deleteReason.trim() || requestingDelete}
+                onClick={handleDeleteRequest}>
+                {requestingDelete ? '⏳' : 'ส่งคำขอ'}
+              </button>
             </div>
           </div>
         </div>
@@ -518,12 +569,25 @@ function HomePageInner() {
                           onClick={() => handleDownload(date, type, filename, building, floor)}>
                           {downloading === dlKey ? '⏳' : '⬇︎ Excel'}
                         </button>
-                        {isAdmin && (
+                        {isAdmin ? (
                           <button className="btn-del"
                             disabled={deleting === dlKey}
                             onClick={() => setConfirmDelete({ date, type, filename, building, floor })}>
                             {deleting === dlKey ? '⏳' : '🗑'}
                           </button>
+                        ) : role === 'user' && (
+                          <>
+                            <button className="btn-edit"
+                              onClick={() => type === 'fpg'
+                                ? router.push(`/session?date=${date}`)
+                                : router.push(`/form/${type}?date=${date}&filename=${encodeURIComponent(filename || '')}&edit=1`)}>
+                              ✏️
+                            </button>
+                            <button className="btn-del"
+                              onClick={() => { setDeleteRequest({ filename, type, date, building, floor }); setDeleteReason(''); }}>
+                              🗑
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>
@@ -924,6 +988,15 @@ function HomePageInner() {
           background: #b91c1c;
         }
         .btn-dl:disabled { opacity: 0.5; }
+        .btn-edit {
+          background: var(--bg-surface-raised);
+          border: 1px solid var(--border-strong);
+          border-radius: 10px;
+          padding: 6px 10px;
+          font-size: 13px;
+          cursor: pointer;
+          flex-shrink: 0;
+        }
         .btn-del {
           background: var(--status-fail-bg);
           color: var(--status-fail);

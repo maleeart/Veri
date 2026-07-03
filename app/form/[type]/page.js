@@ -75,8 +75,9 @@ export default function FormPage() {
 
   if (!cfg) return <main style={{ padding: 40 }}>ไม่รู้จักประเภทฟอร์มนี้</main>;
 
-  // restore draft
+  // restore draft (ยกเว้น edit mode)
   useEffect(() => {
+    if (searchParams.get('edit') === '1') return;
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
       if (raw) {
@@ -85,6 +86,23 @@ export default function FormPage() {
         if (d.devices?.length) setDevices(d.devices);
       }
     } catch {}
+  }, []);
+
+  // edit mode: โหลดข้อมูลจาก filename ที่ระบุ
+  useEffect(() => {
+    const editFilename = searchParams.get('filename');
+    if (searchParams.get('edit') !== '1' || !editFilename) return;
+    fetch(`/api/inspections?filename=${encodeURIComponent(editFilename)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(rec => {
+        if (!rec?.records) return;
+        const g = rec.records.general || {};
+        setGeneral(prev => ({ ...prev, ...g, inspectionDate: g.inspectionDate || date }));
+        if (rec.records.devices?.length) setDevices(rec.records.devices);
+        setPrefilledFrom('แก้ไข: ' + editFilename);
+        setStep(2);
+      })
+      .catch(() => {});
   }, []);
 
   // กดถัดไปจากหน้าเลือกอาคาร — เช็คไฟล์เก่าของอาคารนี้ก่อน (ตึกเดียวมีได้หลายชั้น = หลายไฟล์)
