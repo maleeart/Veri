@@ -1,0 +1,26 @@
+{
+  "date": "2026-06-19",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-06-19",
+      "building": "ท.0008",
+      "floor": "editfrom emergency",
+      "inspector": "Ff",
+      "model": "",
+      "serial": "",
+      "mfg": ""
+    },
+    "devices": [
+      {
+        "location": "sfgdfhfgdg",
+        "remarks": "",
+        "id": "Ggdghdh",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ],
+    "editReason": "test edit default"
+  }
+}
