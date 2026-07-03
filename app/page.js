@@ -431,29 +431,60 @@ function HomePageInner() {
       {/* ── User Delete Request Modal ── */}
       {deleteRequest && (
         <div className="overlay" onClick={() => { setDeleteRequest(null); setDeleteReason(''); }}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <span className="modal__icon">📝</span>
-            <h2 className="modal__title">ขอลบรายงาน</h2>
-            <p className="modal__msg"><strong>{deleteRequest.type?.toUpperCase()}</strong> · {deleteRequest.date}</p>
-            {deleteRequest.building && <p className="modal__msg" style={{fontSize:13,color:'var(--ink-muted)'}}>{deleteRequest.building}{deleteRequest.floor ? ` · ${deleteRequest.floor}` : ''}</p>}
-            <p style={{fontSize:13,color:'var(--ink-muted)',margin:'8px 0 4px',textAlign:'left'}}>ระบุเหตุผลในการลบ <span style={{color:'var(--status-fail)'}}>*</span></p>
-            <textarea
-              className="admin-input"
-              rows={3}
-              placeholder="เช่น บันทึกข้อมูลผิด / ซ้ำกับรายการอื่น"
-              value={deleteReason}
-              onChange={e => setDeleteReason(e.target.value)}
-              style={{resize:'vertical',fontFamily:'inherit'}}
-            />
-            <p style={{fontSize:12,color:'var(--ink-muted)',margin:'6px 0 16px',textAlign:'left'}}>⏳ admin จะตรวจสอบและดำเนินการให้</p>
-            <div style={{display:'flex',gap:8}}>
-              <button className="modal__close" style={{flex:1}} onClick={() => { setDeleteRequest(null); setDeleteReason(''); }}>ยกเลิก</button>
-              <button className="modal__close" style={{flex:1,background:'var(--status-fail)',color:'#fff',border:'none',opacity:!deleteReason.trim()||requestingDelete?0.5:1}}
-                disabled={!deleteReason.trim() || requestingDelete}
-                onClick={handleDeleteRequest}>
-                {requestingDelete ? '⏳' : 'ส่งคำขอ'}
-              </button>
+          <div className="dr-modal" onClick={e => e.stopPropagation()}>
+
+            {/* Header gradient */}
+            <div className="dr-header">
+              <div className="dr-header-icon">🗑️</div>
+              <h2 className="dr-header-title">ขอลบรายงาน</h2>
+              <p className="dr-header-sub">คำขอจะส่งให้ admin ตรวจสอบก่อนดำเนินการ</p>
             </div>
+
+            {/* Report info chips */}
+            <div className="dr-body">
+              <div className="dr-chips">
+                <span className="dr-chip dr-chip--type">{deleteRequest.type?.toUpperCase()}</span>
+                <span className="dr-chip dr-chip--date">📅 {deleteRequest.date}</span>
+                {deleteRequest.building && (
+                  <span className="dr-chip dr-chip--loc">🏢 {deleteRequest.building}{deleteRequest.floor ? ` · ${deleteRequest.floor}` : ''}</span>
+                )}
+              </div>
+
+              {/* Reason input */}
+              <div className="dr-field">
+                <label className="dr-label">
+                  เหตุผลในการลบ
+                  <span className="dr-required">*</span>
+                </label>
+                <textarea
+                  className="dr-textarea"
+                  rows={3}
+                  placeholder="เช่น บันทึกข้อมูลผิด / ซ้ำกับรายการอื่น"
+                  value={deleteReason}
+                  onChange={e => setDeleteReason(e.target.value)}
+                  autoFocus
+                />
+              </div>
+
+              <div className="dr-notice">
+                <span className="dr-notice-dot">⏳</span>
+                admin จะรับแจ้งและดำเนินการให้ — รายงานยังไม่ถูกลบจนกว่าจะได้รับอนุมัติ
+              </div>
+
+              {/* Actions */}
+              <div className="dr-actions">
+                <button className="dr-btn dr-btn--cancel"
+                  onClick={() => { setDeleteRequest(null); setDeleteReason(''); }}>
+                  ยกเลิก
+                </button>
+                <button className="dr-btn dr-btn--submit"
+                  disabled={!deleteReason.trim() || requestingDelete}
+                  onClick={handleDeleteRequest}>
+                  {requestingDelete ? '⏳ กำลังส่ง...' : '📨 ส่งคำขอ'}
+                </button>
+              </div>
+            </div>
+
           </div>
         </div>
       )}
@@ -1178,6 +1209,164 @@ function HomePageInner() {
           color: var(--ink-primary);
           cursor: pointer;
         }
+        /* ─── Delete-Request Modal ─── */
+        .dr-modal {
+          background: var(--bg-surface);
+          border: 1px solid var(--border-strong);
+          border-radius: 24px;
+          width: 100%;
+          max-width: 340px;
+          overflow: hidden;
+          box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(37,99,235,0.15);
+        }
+        .dr-header {
+          background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 60%, #2563eb 100%);
+          padding: 28px 24px 22px;
+          text-align: center;
+          position: relative;
+        }
+        .dr-header::after {
+          content: '';
+          position: absolute;
+          bottom: 0; left: 0; right: 0;
+          height: 1px;
+          background: rgba(255,255,255,0.1);
+        }
+        .dr-header-icon {
+          font-size: 40px;
+          line-height: 1;
+          margin-bottom: 10px;
+          filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+        }
+        .dr-header-title {
+          font-size: 20px;
+          font-weight: 800;
+          color: #fff;
+          margin: 0 0 6px;
+          letter-spacing: -0.02em;
+        }
+        .dr-header-sub {
+          font-size: 13px;
+          color: rgba(255,255,255,0.7);
+          margin: 0;
+          line-height: 1.4;
+        }
+        .dr-body {
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .dr-chips {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+        .dr-chip {
+          font-size: 12px;
+          font-weight: 700;
+          border-radius: 99px;
+          padding: 4px 12px;
+          border: 1px solid;
+          letter-spacing: 0.02em;
+        }
+        .dr-chip--type {
+          background: rgba(37,99,235,0.15);
+          color: var(--accent-strong);
+          border-color: rgba(37,99,235,0.4);
+        }
+        .dr-chip--date {
+          background: var(--bg-surface-raised);
+          color: var(--ink-secondary);
+          border-color: var(--border-strong);
+        }
+        .dr-chip--loc {
+          background: var(--bg-surface-raised);
+          color: var(--ink-secondary);
+          border-color: var(--border-strong);
+        }
+        .dr-field {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .dr-label {
+          font-size: 13px;
+          font-weight: 700;
+          color: var(--ink-secondary);
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+        .dr-required {
+          color: var(--status-fail);
+          font-size: 15px;
+          line-height: 1;
+        }
+        .dr-textarea {
+          width: 100%;
+          padding: 12px 14px;
+          border-radius: 12px;
+          border: 1.5px solid var(--border-strong);
+          background: var(--bg-input);
+          color: var(--ink-primary);
+          font-size: 14px;
+          font-family: inherit;
+          resize: vertical;
+          min-height: 80px;
+          transition: border-color 0.15s;
+          box-sizing: border-box;
+          line-height: 1.5;
+        }
+        .dr-textarea:focus {
+          outline: none;
+          border-color: var(--accent-strong);
+          box-shadow: 0 0 0 3px rgba(37,99,235,0.2);
+        }
+        .dr-notice {
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+          font-size: 12px;
+          color: var(--ink-muted);
+          background: var(--bg-surface-raised);
+          border-radius: 10px;
+          padding: 10px 12px;
+          line-height: 1.5;
+        }
+        .dr-notice-dot { flex-shrink: 0; }
+        .dr-actions {
+          display: grid;
+          grid-template-columns: 1fr 1.4fr;
+          gap: 8px;
+        }
+        .dr-btn {
+          padding: 13px 16px;
+          border-radius: 14px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: opacity 0.15s, transform 0.1s;
+          font-family: inherit;
+          border: none;
+        }
+        .dr-btn:active { transform: scale(0.97); }
+        .dr-btn--cancel {
+          background: var(--bg-surface-raised);
+          color: var(--ink-secondary);
+          border: 1px solid var(--border-strong);
+        }
+        .dr-btn--submit {
+          background: linear-gradient(135deg, #dc2626, #b91c1c);
+          color: #fff;
+          box-shadow: 0 4px 14px rgba(220,38,38,0.35);
+        }
+        .dr-btn--submit:disabled {
+          opacity: 0.45;
+          box-shadow: none;
+          cursor: not-allowed;
+        }
+
         .user-box { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
         .role-chip { font-size: 11px; font-weight: 700; border-radius: 8px; padding: 4px 8px; white-space: nowrap; }
         .role-chip--admin   { background: rgba(240,70,70,0.12);  color: var(--status-fail); border: 1px solid var(--status-fail); }
