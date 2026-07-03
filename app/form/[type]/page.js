@@ -100,7 +100,7 @@ export default function FormPage() {
         setGeneral(prev => ({ ...prev, ...g, inspectionDate: g.inspectionDate || date }));
         if (rec.records.devices?.length) setDevices(rec.records.devices);
         setPrefilledFrom('แก้ไข: ' + editFilename);
-        setStep(2);
+        setStep(1); // เริ่มที่ข้อมูลทั่วไปเพื่อให้แก้วันที่ได้ด้วย
       })
       .catch(() => {});
   }, []);

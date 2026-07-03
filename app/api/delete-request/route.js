@@ -42,9 +42,8 @@ async function ghPut(filePath, content, message, existingSha = null) {
   if (!res.ok) throw new Error(`GitHub PUT failed HTTP ${res.status}`);
 }
 
-async function listRequests() {
+async function listAllRequests() {
   const { owner, repo } = cfg();
-  // ใช้ Trees API เพื่อรองรับไฟล์จำนวนมาก
   const treeRes = await ghReq(`/repos/${owner}/${repo}/git/trees/${DATA_BRANCH}?recursive=1`);
   if (!treeRes.ok) return [];
   const { tree } = await treeRes.json();
@@ -58,7 +57,7 @@ async function listRequests() {
       return { ...data, _sha: sha, _path: f.path };
     } catch { return null; }
   }));
-  return requests.filter(Boolean).sort((a, b) => b.requestedAt?.localeCompare(a.requestedAt || '') || 0);
+  return requests.filter(Boolean).sort((a, b) => (b.requestedAt || '').localeCompare(a.requestedAt || ''));
 }
 
 // POST /api/delete-request — user ส่งคำขอลบ
@@ -88,14 +87,26 @@ export async function POST(request) {
   }
 }
 
-// GET /api/delete-request — admin ดูรายการ pending
-export async function GET() {
+// GET /api/delete-request
+//   admin (ไม่มี query)  → pending ทั้งหมด
+//   ?mine=1              → ทุกสถานะของตัวเอง (user+)
+export async function GET(request) {
   try {
+    const url = new URL(request.url);
+    const mine = url.searchParams.get('mine') === '1';
+
+    if (mine) {
+      const gate = await requireRole('user');
+      if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
+      const all = await listAllRequests();
+      const email = gate.session.user.email;
+      return NextResponse.json({ requests: all.filter(r => r.requestedBy === email) });
+    }
+
     const gate = await requireRole('admin');
     if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
-
-    const requests = await listRequests();
-    return NextResponse.json({ requests: requests.filter(r => r.status === 'pending') });
+    const all = await listAllRequests();
+    return NextResponse.json({ requests: all.filter(r => r.status === 'pending') });
   } catch (err) {
     return NextResponse.json({ error: String(err?.message || err) }, { status: 500 });
   }
@@ -107,7 +118,7 @@ export async function PATCH(request) {
     const gate = await requireRole('admin');
     if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
 
-    const { id, action } = await request.json(); // action: 'approve' | 'reject'
+    const { id, action, rejectReason = '' } = await request.json();
     if (!id || !['approve', 'reject'].includes(action)) {
       return NextResponse.json({ error: 'ต้องระบุ id และ action (approve/reject)' }, { status: 400 });
     }
@@ -115,14 +126,12 @@ export async function PATCH(request) {
     const { owner, repo } = cfg();
     const filePath = `${REQ_DIR}/${id}.json`;
 
-    // ดึงข้อมูล request
     const getRes = await ghReq(`/repos/${owner}/${repo}/contents/${filePath}?ref=${DATA_BRANCH}`);
     if (!getRes.ok) return NextResponse.json({ error: 'ไม่พบคำขอ' }, { status: 404 });
     const { content, sha } = await getRes.json();
     const req = JSON.parse(Buffer.from(content, 'base64').toString('utf8'));
 
     if (action === 'approve') {
-      // ลบไฟล์รายงานจริงก่อน
       const { filename, type, date } = req;
       const safeDate = String(date).replace(/[^0-9-]/g, '');
       const safeType = String(type).replace(/[^a-z]/g, '');
@@ -144,8 +153,12 @@ export async function PATCH(request) {
       }
     }
 
-    // อัปเดตสถานะ request
-    const updated = { ...req, status: action === 'approve' ? 'approved' : 'rejected', resolvedAt: new Date().toISOString() };
+    const updated = {
+      ...req,
+      status: action === 'approve' ? 'approved' : 'rejected',
+      resolvedAt: new Date().toISOString(),
+      ...(action === 'reject' && rejectReason.trim() ? { rejectReason: rejectReason.trim() } : {}),
+    };
     await ghPut(filePath, updated, `${action === 'approve' ? 'อนุมัติ' : 'ปฏิเสธ'}คำขอลบ ${id}`, sha);
 
     return NextResponse.json({ ok: true });

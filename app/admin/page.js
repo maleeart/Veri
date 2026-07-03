@@ -9,41 +9,21 @@ export default function AdminPage() {
   const { data: session, status } = useSession();
   const isAdmin = session?.user?.role === 'admin';
 
-  const [users, setUsers] = useState(null);   // { email: 'user' }
+  const [view, setView] = useState('menu'); // 'menu' | 'users'
+  const [users, setUsers] = useState(null);
   const [admins, setAdmins] = useState([]);
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
-  const [deleteReqs, setDeleteReqs] = useState(null);
-  const [reqBusy, setReqBusy] = useState(null);
 
-  const load = () => {
+  const loadUsers = () => {
     fetch('/api/users')
       .then(r => r.json())
       .then(d => { if (d.error) setErr(d.error); else { setUsers(d.users || {}); setAdmins(d.admins || []); } })
       .catch(e => setErr(String(e.message || e)));
-    fetch('/api/delete-request')
-      .then(r => r.json())
-      .then(d => setDeleteReqs(d.requests || []))
-      .catch(() => setDeleteReqs([]));
   };
 
-  useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
-
-  const handleReq = async (id, action) => {
-    setReqBusy(id);
-    try {
-      const res = await fetch('/api/delete-request', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, action }),
-      });
-      const d = await res.json();
-      if (!res.ok) { alert(d.error || 'ดำเนินการไม่สำเร็จ'); return; }
-      setDeleteReqs(prev => prev.filter(r => r.id !== id));
-    } catch (e) { alert(String(e.message || e)); }
-    finally { setReqBusy(null); }
-  };
+  useEffect(() => { if (isAdmin && view === 'users' && users === null) loadUsers(); }, [isAdmin, view]);
 
   const setRole = async (targetEmail, role) => {
     if (!targetEmail) return;
@@ -71,103 +51,94 @@ export default function AdminPage() {
     </main>
   );
 
-  const userEmails    = users ? Object.keys(users).filter(e => users[e] === 'user').sort()    : [];
+  const userEmails    = users ? Object.keys(users).filter(e => users[e] === 'user').sort()  : [];
   const visitorEmails = users ? Object.keys(users).filter(e => users[e] !== 'user').sort() : [];
 
   return (
     <div className="root">
       <header className="hdr">
-        <button className="back" onClick={() => router.push('/')}>‹</button>
+        <button className="back" onClick={() => view === 'menu' ? router.push('/') : setView('menu')}>‹</button>
         <div>
-          <h1 className="title">⚙️ จัดการสิทธิ์ผู้ใช้</h1>
-          <p className="sub">กำหนดว่าใครเป็นผู้ใช้งาน (บันทึกได้) หรือผู้เยี่ยมชม (ดู/โหลด)</p>
+          <h1 className="title">
+            {view === 'menu'  && '⚙️ ตั้งค่า'}
+            {view === 'users' && '👥 จัดการผู้ใช้'}
+          </h1>
+          <p className="sub">
+            {view === 'menu'  && 'ตั้งค่าระบบ'}
+            {view === 'users' && 'กำหนดสิทธิ์การใช้งาน'}
+          </p>
         </div>
       </header>
 
-      <section className="section">
-        {err && <p className="err">{err}</p>}
-
-        {/* admins (จาก env, แก้ที่นี่ไม่ได้) */}
-        <div className="group">
-          <div className="group-hd">ผู้ดูแลระบบ (Admin)</div>
-          {admins.length === 0 && <p className="empty">— ยังไม่ได้ตั้ง ADMIN_EMAILS —</p>}
-          {admins.map(a => (
-            <div key={a} className="row">
-              <span className="email">{a}</span>
-              <span className="tag tag--admin">admin</span>
+      {/* ── Menu ── */}
+      {view === 'menu' && (
+        <section className="section">
+          <button className="menu-card" onClick={() => setView('users')}>
+            <span className="menu-icon">👥</span>
+            <div className="menu-body">
+              <span className="menu-title">จัดการผู้ใช้</span>
+              <span className="menu-sub">กำหนดสิทธิ์ผู้ใช้งาน / ผู้เยี่ยมชม</span>
             </div>
-          ))}
-        </div>
+            <span className="menu-arrow">›</span>
+          </button>
+        </section>
+      )}
 
-        {/* ผู้ใช้งาน */}
-        <div className="group">
-          <div className="group-hd">ผู้ใช้งาน ({userEmails.length})</div>
-          {users === null && <p className="empty">กำลังโหลด...</p>}
-          {users && userEmails.length === 0 && <p className="empty">— ยังไม่มีผู้ใช้งาน —</p>}
-          {userEmails.map(e => (
-            <div key={e} className="row">
-              <span className="email">{e}</span>
-              <span className="tag tag--user">ผู้ใช้งาน</span>
-              <button className="btn-sm" disabled={busy} onClick={() => setRole(e, 'visitor')}>
-                ↓ ผู้เยี่ยมชม
-              </button>
-            </div>
-          ))}
-        </div>
+      {/* ── User Management ── */}
+      {view === 'users' && (
+        <section className="section">
+          {err && <p className="err">{err}</p>}
 
-        {/* ผู้เยี่ยมชม (เคย login แล้ว) */}
-        <div className="group">
-          <div className="group-hd">ผู้เยี่ยมชม ({visitorEmails.length})</div>
-          {users === null && <p className="empty">กำลังโหลด...</p>}
-          {users && visitorEmails.length === 0 && <p className="empty">— ยังไม่มีผู้เยี่ยมชม —</p>}
-          {visitorEmails.map(e => (
-            <div key={e} className="row">
-              <span className="email">{e}</span>
-              <span className="tag tag--visitor">ผู้เยี่ยมชม</span>
-              <button className="btn-sm btn-sm--promote" disabled={busy} onClick={() => setRole(e, 'user')}>
-                ↑ ผู้ใช้งาน
-              </button>
-            </div>
-          ))}
-        </div>
-
-        {/* คำขอลบรายงาน */}
-        <div className="group">
-          <div className="group-hd">📋 คำขอลบรายงาน ({deleteReqs?.length ?? '...'})</div>
-          {deleteReqs === null && <p className="empty">กำลังโหลด...</p>}
-          {deleteReqs?.length === 0 && <p className="empty">— ไม่มีคำขอรอดำเนินการ —</p>}
-          {deleteReqs?.map(r => (
-            <div key={r.id} className="req-row">
-              <div className="req-info">
-                <span className="req-type">{r.type?.toUpperCase()} · {r.date}{r.building ? ` · ${r.building}` : ''}</span>
-                <span className="req-reason">เหตุผล: {r.reason}</span>
-                <span className="req-by">{r.requestedBy} · {r.requestedAt?.slice(0, 10)}</span>
+          <div className="group">
+            <div className="group-hd">ผู้ดูแลระบบ (Admin)</div>
+            {admins.length === 0 && <p className="empty">— ยังไม่ได้ตั้ง ADMIN_EMAILS —</p>}
+            {admins.map(a => (
+              <div key={a} className="row">
+                <span className="email">{a}</span>
+                <span className="tag tag--admin">admin</span>
               </div>
-              <div className="req-actions">
-                <button className="btn-sm btn-sm--promote" disabled={!!reqBusy} onClick={() => handleReq(r.id, 'approve')}>
-                  {reqBusy === r.id ? '⏳' : '✓ อนุมัติ'}
-                </button>
-                <button className="btn-sm" disabled={!!reqBusy} onClick={() => handleReq(r.id, 'reject')}>
-                  ✕ ปฏิเสธ
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* เพิ่มอีเมลที่ยังไม่เคย login */}
-        <div className="add-box">
-          <label className="lbl">เพิ่มอีเมลล่วงหน้า (ยังไม่เคย login)</label>
-          <div className="add-row">
-            <input className="inp" type="email" placeholder="name@gmail.com" value={email}
-              onChange={e => setEmail(e.target.value)} />
-            <button className="btn" disabled={busy || !email.trim()} onClick={() => setRole(email, 'user')}>
-              + ผู้ใช้งาน
-            </button>
+            ))}
           </div>
-          <p className="hint">เปลี่ยนสิทธิ์แล้วผู้ใช้ต้องออกแล้วเข้าระบบใหม่</p>
-        </div>
-      </section>
+
+          <div className="group">
+            <div className="group-hd">ผู้ใช้งาน ({users === null ? '...' : userEmails.length})</div>
+            {users === null && <p className="empty">กำลังโหลด...</p>}
+            {users && userEmails.length === 0 && <p className="empty">— ยังไม่มีผู้ใช้งาน —</p>}
+            {userEmails.map(e => (
+              <div key={e} className="row">
+                <span className="email">{e}</span>
+                <span className="tag tag--user">ผู้ใช้งาน</span>
+                <button className="btn-sm" disabled={busy} onClick={() => setRole(e, 'visitor')}>↓ ผู้เยี่ยมชม</button>
+              </div>
+            ))}
+          </div>
+
+          <div className="group">
+            <div className="group-hd">ผู้เยี่ยมชม ({users === null ? '...' : visitorEmails.length})</div>
+            {users === null && <p className="empty">กำลังโหลด...</p>}
+            {users && visitorEmails.length === 0 && <p className="empty">— ยังไม่มีผู้เยี่ยมชม —</p>}
+            {visitorEmails.map(e => (
+              <div key={e} className="row">
+                <span className="email">{e}</span>
+                <span className="tag tag--visitor">ผู้เยี่ยมชม</span>
+                <button className="btn-sm btn-sm--promote" disabled={busy} onClick={() => setRole(e, 'user')}>↑ ผู้ใช้งาน</button>
+              </div>
+            ))}
+          </div>
+
+          <div className="add-box">
+            <label className="lbl">เพิ่มอีเมลล่วงหน้า (ยังไม่เคย login)</label>
+            <div className="add-row">
+              <input className="inp" type="email" placeholder="name@gmail.com" value={email}
+                onChange={e => setEmail(e.target.value)} />
+              <button className="btn" disabled={busy || !email.trim()} onClick={() => setRole(email, 'user')}>
+                + ผู้ใช้งาน
+              </button>
+            </div>
+            <p className="hint">เปลี่ยนสิทธิ์แล้วผู้ใช้ต้องออกแล้วเข้าระบบใหม่</p>
+          </div>
+        </section>
+      )}
 
       <style jsx>{`
         .root { min-height: 100dvh; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; }
@@ -175,8 +146,19 @@ export default function AdminPage() {
         .back { background: none; border: none; font-size: 28px; color: var(--ink-muted); cursor: pointer; padding: 0 6px 0 0; line-height: 1; }
         .title { font-size: 18px; font-weight: 800; color: var(--ink-primary); margin: 0; }
         .sub { font-size: 12px; color: var(--ink-muted); margin: 2px 0 0; }
-        .section { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+        .section { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
         .err { color: var(--status-fail); font-size: 13px; background: var(--status-fail-bg); border-radius: 8px; padding: 8px 12px; margin: 0; }
+
+        /* Menu cards */
+        .menu-card { display: flex; align-items: center; gap: 14px; width: 100%; padding: 18px 16px; background: var(--bg-surface); border: 1px solid var(--border-hairline); border-radius: 16px; cursor: pointer; text-align: left; -webkit-tap-highlight-color: transparent; transition: transform .1s; }
+        .menu-card:active { transform: scale(0.98); }
+        .menu-icon { font-size: 26px; flex-shrink: 0; }
+        .menu-body { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+        .menu-title { font-size: 16px; font-weight: 700; color: var(--ink-primary); }
+        .menu-sub { font-size: 12px; color: var(--ink-muted); }
+        .menu-arrow { font-size: 22px; color: var(--ink-muted); line-height: 1; }
+
+        /* User management */
         .add-box { display: flex; flex-direction: column; gap: 6px; }
         .lbl { font-size: 12px; font-weight: 700; color: var(--ink-muted); }
         .add-row { display: flex; gap: 8px; }
@@ -196,12 +178,6 @@ export default function AdminPage() {
         .btn-sm { background: var(--bg-surface-raised); border: 1px solid var(--border-strong); color: var(--ink-secondary); border-radius: 8px; padding: 5px 10px; font-size: 12px; cursor: pointer; white-space: nowrap; }
         .btn-sm--promote { background: var(--status-pass-bg); border-color: var(--status-pass); color: var(--status-pass); }
         .btn-sm:disabled { opacity: 0.5; }
-        .req-row { display: flex; align-items: flex-start; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--border-hairline); }
-        .req-info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-        .req-type { font-size: 13px; font-weight: 700; color: var(--ink-primary); }
-        .req-reason { font-size: 12px; color: var(--ink-secondary); }
-        .req-by { font-size: 11px; color: var(--ink-muted); }
-        .req-actions { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
       `}</style>
     </div>
   );
