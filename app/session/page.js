@@ -712,7 +712,6 @@ function TestRunStep({ data, setData, isGen }) {
         <>
           <NumericField label="แรงดันชาร์จแบต" unit="V" value={t.chargeVoltage} onChange={v => upd({ chargeVoltage: v })} />
           <NumericField label="ความถี่ไฟฟ้า" unit="Hz" value={t.frequency} onChange={v => upd({ frequency: v })} />
-          <NumericField label="แรงดันน้ำในระบบ" unit="Psi" value={t.systemPressure} onChange={v => upd({ systemPressure: v })} />
         </>
       )}
       <NumericField label="อัตราการใช้เชื้อเพลิง" unit="L" value={t.fuelConsumption} onChange={v => upd({ fuelConsumption: v })} />

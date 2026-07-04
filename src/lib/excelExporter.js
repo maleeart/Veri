@@ -115,6 +115,7 @@ async function writeMachineData(wb, data) {
   const afterRun = data.afterRun || {};
 
   // Header (sheet1)
+  try { ws1.getCell('CJ46').alignment = { horizontal: 'center', vertical: 'middle' }; } catch {}
   setCell(ws1, vf.fuel_before,       numVal(g.fuelBefore));
   setCell(ws1, vf.fuel_after,        numVal(afterRun.fuelAfter));
   setCell(ws1, vf.run_duration_mins, numVal(g.runDurationMins));
@@ -141,7 +142,7 @@ async function writeMachineData(wb, data) {
     if (!v) return;
     if (v.result === 'normal')    markCell(ws2, df.checklist_1_normal_col,   item.row, 'X');
     if (v.result === 'abnormal')  markCell(ws2, df.checklist_1_abnormal_col, item.row, 'X');
-    if (v.result === 'na')        markCell(ws2, df.checklist_1_na_col,       item.row, 'X');
+    if (v.result === 'na' || v.result === 'none') markCell(ws2, df.checklist_1_na_col, item.row, 'X');
     if (v.note) setCell(ws2, `${df.checklist_1_note_col || 'CJ'}${item.row}`, v.note);
   });
 
