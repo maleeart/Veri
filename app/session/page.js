@@ -337,11 +337,11 @@ function SessionPageInner() {
       {/* Header */}
       <header className="header">
         <button className="back-btn" onClick={() => router.push('/')}>‹</button>
-        {!isEditing && !!localStorage.getItem(DRAFT_KEY) && (
+        {!isEditing && (
           <button className="draft-clear-btn" onClick={() => {
             localStorage.removeItem(DRAFT_KEY);
             loadRecordsForDate(sessionDate, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename, setPrevReport);
-          }}>🗑 ล้าง draft</button>
+          }}>🗑 เริ่มใหม่</button>
         )}
         <div className="header-mid">
           <span className="machine-label">{currentMachine?.label}</span>
