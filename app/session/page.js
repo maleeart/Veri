@@ -420,7 +420,7 @@ function SessionPageInner() {
         <button className="draft-clear-btn" title={isEditing ? 'โหลดจากไฟล์ใหม่' : 'ล้าง draft'} onClick={() => {
           localStorage.removeItem(DRAFT_KEY);
           loadRecordsForDate(sessionDate, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename, setPrevReport);
-        }}>↺</button>
+        }}>✕ เริ่มใหม่</button>
         {canWrite && (
           <button className="save-all-btn" onClick={handleSaveAll} disabled={submitState === 'submitting'}>
             {submitState === 'submitting' ? '...' : '💾 บันทึกทั้งหมด'}
