@@ -115,6 +115,7 @@ function SessionPageInner() {
   const [originalFilename, setOriginalFilename] = useState(null);
   const [prevReport, setPrevReport] = useState(null);
   const [hasDraft, setHasDraft] = useState(false);
+  const [pendingSubmit, setPendingSubmit] = useState(null); // { inspectedBy, inspectorSignature }
   const saveTimerRef = useRef(null);
 
   const applyPrevReport = () => {
@@ -275,8 +276,7 @@ function SessionPageInner() {
   const isFirst = machineIdx === 0 && stepIdx === 0;
 
   // รับ inspector data โดยตรงจาก SummaryPage เพื่อหลีกเลี่ยง race กับ setRecords
-  const handleFinalSubmit = async (inspectedBy, inspectorSignature) => {
-    if (!canWrite) { setSubmitError('บัญชีผู้เยี่ยมชม ไม่มีสิทธิ์บันทึก'); return; }
+  const doSave = async (inspectedBy, inspectorSignature, overwrite) => {
     setSubmitState('submitting');
     setSubmitError(null);
     try {
@@ -288,19 +288,35 @@ function SessionPageInner() {
           afterRun: { ...records[m.id]?.afterRun, ...sharedInspector },
         };
       }
-      try {
-        await fetch('/api/save-record', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ date: sessionDate, records: mergedRecords, type: 'fpg', ...(isEditing && editReason.trim() ? { editReason: editReason.trim() } : {}), ...(isEditing && originalFilename ? { originalFilename } : {}) }),
-        });
-      } catch {}
+      let body;
+      if (!isEditing || overwrite) {
+        // บันทึกทับหรือใหม่
+        body = { date: sessionDate, records: mergedRecords, type: 'fpg',
+          ...(isEditing && editReason.trim() ? { editReason: editReason.trim() } : {}),
+          ...(isEditing && originalFilename ? { originalFilename } : {}) };
+      } else {
+        // สร้างใหม่ (Revise) — หาลำดับ R ถัดไปจาก list
+        const list = await fetch('/api/inspections').then(r => r.json());
+        const sameDate = (list.dates || []).filter(d => d.type === 'fpg' && d.date === sessionDate);
+        const nextR = `R${sameDate.length}`;
+        body = { date: sessionDate, records: mergedRecords, type: 'fpg', building: nextR };
+      }
+      await fetch('/api/save-record', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       localStorage.removeItem(DRAFT_KEY);
       router.push(`/?saved=${sessionDate}`);
     } catch (err) {
       setSubmitError(String(err.message || err));
       setSubmitState('error');
     }
+  };
+
+  const handleFinalSubmit = async (inspectedBy, inspectorSignature) => {
+    if (!canWrite) { setSubmitError('บัญชีผู้เยี่ยมชม ไม่มีสิทธิ์บันทึก'); return; }
+    if (isEditing) {
+      setPendingSubmit({ inspectedBy, inspectorSignature });
+      return;
+    }
+    await doSave(inspectedBy, inspectorSignature, false);
   };
 
   const visFields = tpl?.sheet_visual_fields;
@@ -373,6 +389,24 @@ function SessionPageInner() {
         </div>
       )}
 
+      {/* Popup บันทึกทับ / สร้างใหม่ */}
+      {pendingSubmit && (
+        <div className="overlay" onClick={() => setPendingSubmit(null)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+            <p className="modal-icon">💾</p>
+            <h2 className="modal-title">วันที่นี้มีไฟล์อยู่แล้ว</h2>
+            <p className="modal-msg">ต้องการบันทึกทับไฟล์เดิม หรือสร้างเป็นไฟล์ใหม่ (Revise)?</p>
+            <button className="modal-btn modal-btn--primary" onClick={() => { const p = pendingSubmit; setPendingSubmit(null); doSave(p.inspectedBy, p.inspectorSignature, true); }}>
+              บันทึกทับ
+            </button>
+            <button className="modal-btn" onClick={() => { const p = pendingSubmit; setPendingSubmit(null); doSave(p.inspectedBy, p.inspectorSignature, false); }}>
+              สร้างใหม่ (Revise)
+            </button>
+            <button className="modal-btn" style={{marginTop:4,fontSize:12,opacity:0.6}} onClick={() => setPendingSubmit(null)}>ยกเลิก</button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="header">
         <button className="back-btn" onClick={() => router.push('/')}>‹</button>
@@ -383,12 +417,10 @@ function SessionPageInner() {
             {stepTitles[stepIdx]}
           </span>
         </div>
-        {!isEditing && (
-          <button className="draft-clear-btn" onClick={() => {
-            localStorage.removeItem(DRAFT_KEY);
-            loadRecordsForDate(sessionDate, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename, setPrevReport);
-          }}>🗑</button>
-        )}
+        <button className="draft-clear-btn" title={isEditing ? 'โหลดจากไฟล์ใหม่' : 'ล้าง draft'} onClick={() => {
+          localStorage.removeItem(DRAFT_KEY);
+          loadRecordsForDate(sessionDate, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename, setPrevReport);
+        }}>🗑</button>
         {canWrite && (
           <button className="save-all-btn" onClick={handleSaveAll} disabled={submitState === 'submitting'}>
             {submitState === 'submitting' ? '...' : '💾 บันทึกทั้งหมด'}
