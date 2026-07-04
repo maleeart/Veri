@@ -1457,9 +1457,9 @@ function HomePageInner() {
         .avatar-fallback { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; }
         .profile-dropdown {
           position: absolute; right: 0; top: calc(100% + 8px); z-index: 100;
-          background: var(--bg-card); border: 1px solid var(--border-hairline);
-          border-radius: 14px; padding: 14px 16px; min-width: 200px;
-          box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+          background: var(--bg-surface, #111d32); border: 1px solid var(--border-hairline, #334155);
+          border-radius: 14px; padding: 14px 16px; min-width: 210px;
+          box-shadow: 0 12px 40px rgba(0,0,0,0.35);
           display: flex; flex-direction: column; gap: 4px;
         }
         .pd-name { margin: 0; font-size: 14px; font-weight: 700; color: var(--ink-primary); }
