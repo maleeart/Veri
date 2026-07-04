@@ -105,6 +105,7 @@ function SessionPageInner() {
   const [submitState, setSubmitState] = useState('idle');
   const [submitError, setSubmitError] = useState(null);
   const [validationError, setValidationError] = useState(null);
+  const [pageStep, setPageStep] = useState(0); // 0=เลือกวันที่, 1=กรอกฟอร์ม
   const [sessionDate, setSessionDate] = useState(date);
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmSaving, setConfirmSaving] = useState(false);
@@ -143,12 +144,19 @@ function SessionPageInner() {
     fetch('/api/field-map').then(r => r.json()).then(setFieldMap).catch(console.error);
   }, []);
 
-  // init: GitHub มาก่อน → ถ้าไม่มีจึงดู draft
+  // init: โหลด field-map แล้วรอ แต่ถ้า date มาจาก query (edit mode) ให้ข้ามไปเลย
   useEffect(() => {
     if (!fieldMap) return;
-    setHasDraft(!!localStorage.getItem(`session:${date}`));
-    loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename, setPrevReport);
+    if (searchParams.get('date')) {
+      setPageStep(1);
+      loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename, setPrevReport);
+    }
   }, [fieldMap]);
+
+  const handleStart = () => {
+    setPageStep(1);
+    loadRecordsForDate(sessionDate, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename, setPrevReport);
+  };
 
   // autosave draft ทุกครั้งที่ records/machineIdx/stepIdx เปลี่ยน
   useEffect(() => {
@@ -318,6 +326,36 @@ function SessionPageInner() {
       />
     );
   }
+
+  if (pageStep === 0) return (
+    <main className="page">
+      <header className="header">
+        <button className="back-btn" onClick={() => router.push('/')}>‹</button>
+        <div className="header-mid"><span className="machine-label">FPG Report</span></div>
+      </header>
+      <section className="section" style={{ padding: '24px 20px' }}>
+        <p style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: 16 }}>เลือกวันที่ตรวจสอบ</p>
+        <input type="date" className="date-input"
+          value={sessionDate}
+          onChange={e => setSessionDate(e.target.value)}
+          style={{ width: '100%', marginBottom: 20 }} />
+        <button className="btn-next" onClick={handleStart} disabled={!fieldMap}>
+          {!fieldMap ? 'กำลังโหลด...' : 'ถัดไป'}
+        </button>
+      </section>
+      <style jsx>{`
+        .page { min-height:100dvh; display:flex; flex-direction:column; }
+        .header { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--border-hairline); }
+        .back-btn { background:none; border:none; color:var(--ink-muted); font-size:20px; cursor:pointer; padding:4px 6px; }
+        .header-mid { flex:1; }
+        .machine-label { font-size:15px; font-weight:700; color:var(--ink-primary); }
+        .section { display:flex; flex-direction:column; }
+        .date-input { background:var(--bg-input); border:1px solid var(--border-hairline); border-radius:var(--radius-md); color:var(--ink-primary); padding:10px 12px; font-size:15px; font-family:inherit; }
+        .btn-next { background:var(--accent); color:#fff; border:none; border-radius:var(--radius-md); padding:14px; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer; }
+        .btn-next:disabled { opacity:0.5; }
+      `}</style>
+    </main>
+  );
 
   return (
     <main className="page">
