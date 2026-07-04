@@ -104,6 +104,7 @@ function HomePageInner() {
   const [notifTab, setNotifTab] = useState('delete');
   const [notifUnread, setNotifUnread] = useState(false); // มีรายการที่ยังไม่ได้เปิดอ่าน
   const [notifOpened, setNotifOpened] = useState(false); // เคยเปิดครั้งแรกแล้ว
+  const [showProfile, setShowProfile] = useState(false);
 
   const toggleGroup = type => setOpenGroups(prev => {
     const next = new Set(prev);
@@ -334,12 +335,6 @@ function HomePageInner() {
           <p className="subtitle">ระบบบันทึกการตรวจสอบ</p>
         </div>
         <div className="user-box">
-          {session?.user?.image && (
-            <img src={session.user.image} alt="" className="avatar" referrerPolicy="no-referrer" />
-          )}
-          <span className={`role-chip role-chip--${role}`}>
-            {isAdmin ? '🔓 admin' : role === 'user' ? '✎ ผู้ใช้งาน' : '👁 ผู้เยี่ยมชม'}
-          </span>
           {role !== 'visitor' && (
             <button className="notif-btn" title="สถานะคำขอ" onClick={openNotif}>
               {notifOpened && !notifUnread ? '📭' : '✉️'}
@@ -349,12 +344,23 @@ function HomePageInner() {
           {isAdmin && (
             <button className="icon-btn" title="จัดการผู้ใช้" onClick={() => router.push('/admin')}>⚙️</button>
           )}
-          <button className="logout-btn" title="ออกจากระบบ" onClick={() => signOut({ callbackUrl: '/login' })}>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
-              <line x1="12" y1="2" x2="12" y2="12"/>
-            </svg>
-          </button>
+          <div className="profile-wrap">
+            <button className="avatar-btn" onClick={() => setShowProfile(p => !p)}>
+              {session?.user?.image
+                ? <img src={session.user.image} alt="" className="avatar" referrerPolicy="no-referrer" />
+                : <span className="avatar-fallback">{session?.user?.name?.[0] || '?'}</span>}
+            </button>
+            {showProfile && (
+              <div className="profile-dropdown" onClick={() => setShowProfile(false)}>
+                <p className="pd-name">{session?.user?.name || '-'}</p>
+                <p className="pd-email">{session?.user?.email || '-'}</p>
+                <div className={`pd-role role-chip--${role}`}>
+                  {isAdmin ? '🔓 admin' : role === 'user' ? '✎ ผู้ใช้งาน' : '👁 ผู้เยี่ยมชม'}
+                </div>
+                <button className="pd-logout" onClick={() => signOut({ callbackUrl: '/login' })}>ออกจากระบบ</button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -1446,6 +1452,21 @@ function HomePageInner() {
         .role-chip--admin   { background: rgba(240,70,70,0.12);  color: var(--status-fail); border: 1px solid var(--status-fail); }
         .role-chip--user    { background: var(--status-pass-bg);  color: var(--status-pass); border: 1px solid var(--status-pass); }
         .role-chip--visitor { background: var(--bg-surface-raised); color: var(--ink-muted); border: 1px solid var(--border-strong); }
+        .profile-wrap { position: relative; }
+        .avatar-btn { background: none; border: none; cursor: pointer; padding: 0; display: flex; }
+        .avatar-fallback { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+        .profile-dropdown {
+          position: absolute; right: 0; top: calc(100% + 8px); z-index: 100;
+          background: var(--bg-card); border: 1px solid var(--border-hairline);
+          border-radius: 14px; padding: 14px 16px; min-width: 200px;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+          display: flex; flex-direction: column; gap: 4px;
+        }
+        .pd-name { margin: 0; font-size: 14px; font-weight: 700; color: var(--ink-primary); }
+        .pd-email { margin: 0; font-size: 11px; color: var(--ink-muted); margin-bottom: 6px; }
+        .pd-role { display: inline-block; align-self: flex-start; font-size: 11px; font-weight: 700; border-radius: 8px; padding: 3px 8px; margin-bottom: 8px; }
+        .pd-logout { background: none; border: 1px solid var(--border-strong); border-radius: 8px; padding: 6px 12px; font-size: 12px; color: var(--ink-muted); cursor: pointer; font-family: inherit; text-align: left; }
+        .pd-logout:hover { color: var(--status-fail); border-color: var(--status-fail); }
         .notif-btn { position: relative; background: none; border: none; font-size: 18px; cursor: pointer; padding: 4px 6px; border-radius: 8px; line-height: 1; }
         .notif-badge { position: absolute; top: 0; right: 0; background: var(--status-fail); color: #fff; border-radius: 99px; font-size: 10px; font-weight: 800; min-width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; padding: 0 3px; transform: translate(30%,-20%); }
         .notif-panel { background: var(--bg-surface); border-radius: 20px; width: 100%; max-width: 360px; max-height: 80dvh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.4); display: flex; flex-direction: column; }
@@ -1481,8 +1502,6 @@ function HomePageInner() {
         .notif-edit-arrow { color: var(--ink-muted); }
         .notif-edit-new { color: var(--status-pass); }
         .icon-btn { background: none; border: none; font-size: 16px; cursor: pointer; padding: 4px 6px; border-radius: 8px; color: var(--ink-muted); }
-        .logout-btn { width: 34px; height: 34px; border-radius: 50%; background: #ef4444; border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 0 3px #1e293b, 0 0 10px #ef444466; transition: background .15s; }
-        .logout-btn:hover { background: #dc2626; }
         .admin-badge {
           background: none;
           border: none;
