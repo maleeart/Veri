@@ -25,6 +25,32 @@ import { buildEmptyFormData, getMachineTemplate } from '../lib/formSchema';
 const MACHINE_STEPS = 6; // steps per machine
 const STEP_SHORT = ['ทั่วไป', 'ก่อนเข้า', 'ก่อนเดิน', 'ค่าวัด', 'Test', 'สรุป'];
 
+/** ดึง revision number จาก date entry (building='R1' → 1, ''→ 0) */
+function getRev(entry) {
+  const m = (entry.building || '').match(/^R(\d+)$/i);
+  return m ? parseInt(m[1]) : 0;
+}
+
+/** โหลดไฟล์ที่มีอยู่โดย stem (filename ไม่มี .json) */
+function loadRecordsByStem(stem, date, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename) {
+  fetch(`/api/inspections?filename=${encodeURIComponent(stem)}`)
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if (!data?.records) return;
+      localStorage.removeItem(`session:${date}`);
+      const fresh = {};
+      for (const m of fieldMap.machines) {
+        const saved = data.records[m.id];
+        fresh[m.id] = saved ? { ...buildEmptyFormData(fieldMap, m.id, date), ...saved } : buildEmptyFormData(fieldMap, m.id, date);
+      }
+      setRecords(fresh);
+      setMachineIdx(0);
+      setStepIdx(0);
+      setIsEditing?.(true);
+      setOriginalFilename?.(stem);
+    });
+}
+
 // GitHub มาก่อน: ถ้ามีข้อมูลในไฟล์ → ล้าง draft เก่า → ใช้ข้อมูลไฟล์
 // ถ้าไม่มีในไฟล์ → ดู draft → ถ้าไม่มีทั้งคู่ → empty
 function loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename, setPrevReport) {
@@ -59,11 +85,20 @@ function loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepId
           return;
         }
       } catch {}
-      // ไม่มีทั้งคู่ → fresh แล้วถามว่าจะดึงค่าจากไฟล์ก่อนหน้าไหม
+      // ไม่มีทั้งคู่ → fresh แล้วถามว่าจะดึงค่าจากไฟล์ก่อนหน้าไหม (เลือก R ล่าสุดของวันล่าสุด)
       const fresh = {};
       for (const m of fieldMap.machines) fresh[m.id] = buildEmptyFormData(fieldMap, m.id, date);
-      fetch('/api/inspections?latest=1&type=fpg')
+      fetch('/api/inspections')
         .then(r => r.ok ? r.json() : null)
+        .then(list => {
+          if (!list?.dates) return null;
+          const fpgs = list.dates.filter(d => d.type === 'fpg' && d.date < date);
+          if (!fpgs.length) return null;
+          fpgs.sort((a, b) => b.date !== a.date ? b.date.localeCompare(a.date) : getRev(b) - getRev(a));
+          const best = fpgs[0];
+          const stem = (best._path || '').split('/').pop().replace(/\.json$/, '') || `fpg_${best.date}`;
+          return fetch(`/api/inspections?filename=${encodeURIComponent(stem)}`).then(r => r.ok ? r.json() : null).then(d => d ? { ...d, _date: best.date } : null);
+        })
         .then(prev => {
           if (prev?._date && prev._date < date && prev.records) {
             setPrevReport({ date: prev._date, records: prev.records });
@@ -116,6 +151,7 @@ function SessionPageInner() {
   const [prevReport, setPrevReport] = useState(null);
   const [hasDraft, setHasDraft] = useState(false);
   const [pendingSubmit, setPendingSubmit] = useState(null); // { inspectedBy, inspectorSignature }
+  const [fileChoices, setFileChoices] = useState(null); // array ของไฟล์ที่มีในวันนั้น (กรณีหลายไฟล์)
   const saveTimerRef = useRef(null);
 
   const applyPrevReport = () => {
@@ -154,9 +190,24 @@ function SessionPageInner() {
     }
   }, [fieldMap]);
 
-  const handleStart = () => {
+  const handleStart = async () => {
+    const list = await fetch('/api/inspections').then(r => r.json()).catch(() => ({ dates: [] }));
+    const same = (list.dates || []).filter(d => d.type === 'fpg' && d.date === sessionDate);
+    if (same.length > 1) {
+      // เรียง R มากสุดก่อน
+      same.sort((a, b) => getRev(b) - getRev(a));
+      setFileChoices(same);
+      return;
+    }
     setPageStep(1);
     loadRecordsForDate(sessionDate, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename, setPrevReport);
+  };
+
+  const handlePickFile = (entry) => {
+    setFileChoices(null);
+    const stem = (entry._path || '').split('/').pop().replace(/\.json$/, '') || `fpg_${entry.date}`;
+    setPageStep(1);
+    loadRecordsByStem(stem, sessionDate, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename);
   };
 
   // autosave draft ทุกครั้งที่ records/machineIdx/stepIdx เปลี่ยน
@@ -182,6 +233,28 @@ function SessionPageInner() {
         <button className="back-btn" onClick={() => router.push('/')}>‹</button>
         <div className="header-mid"><span className="machine-label">FPG Report</span></div>
       </header>
+
+      {fileChoices && (
+        <div className="overlay" onClick={() => setFileChoices(null)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+            <p className="modal-icon">📂</p>
+            <h2 className="modal-title">พบหลายไฟล์ในวันนี้</h2>
+            <p className="modal-msg">เลือกไฟล์ที่ต้องการเปิด</p>
+            {fileChoices.map((entry, i) => {
+              const rev = getRev(entry);
+              const label = rev === 0 ? 'ต้นฉบับ' : `Revise ${rev}`;
+              return (
+                <button key={i} className="modal-btn modal-btn--primary" style={i > 0 ? { background: 'var(--bg-surface-raised)', color: 'var(--ink-primary)', border: '1px solid var(--border-hairline)' } : {}}
+                  onClick={() => handlePickFile(entry)}>
+                  {label}
+                </button>
+              );
+            })}
+            <button className="modal-btn" style={{ fontSize: 12, opacity: 0.6, marginTop: 4 }} onClick={() => setFileChoices(null)}>ยกเลิก</button>
+          </div>
+        </div>
+      )}
+
       <section className="section" style={{ padding: '24px 20px' }}>
         <p style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: 16 }}>เลือกวันที่ตรวจสอบ</p>
         <input type="date" className="date-input"
@@ -199,6 +272,13 @@ function SessionPageInner() {
         .section { display:flex; flex-direction:column; }
         .date-input { background:var(--bg-input); border:1px solid var(--border-hairline); border-radius:var(--radius-md); color:var(--ink-primary); padding:10px 12px; font-size:15px; font-family:inherit; }
         .btn-next { background:var(--accent); color:#fff; border:none; border-radius:var(--radius-md); padding:14px; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer; }
+        .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:200; padding:20px; }
+        .modal-box { background:var(--bg-surface,#111d32); border:1px solid var(--border-hairline,#334155); border-radius:20px; padding:28px 24px; max-width:360px; width:100%; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; }
+        .modal-icon { font-size:32px; margin:0; }
+        .modal-title { margin:0; font-size:17px; font-weight:800; color:var(--ink-primary); }
+        .modal-msg { margin:0; font-size:13px; color:var(--ink-muted); }
+        .modal-btn { width:100%; padding:12px; border-radius:12px; border:none; font-size:14px; font-weight:700; font-family:inherit; cursor:pointer; background:var(--bg-surface-raised,#172340); color:var(--ink-secondary,#94a3b8); }
+        .modal-btn--primary { background:var(--accent); color:#fff; }
       `}</style>
     </main>
   );
