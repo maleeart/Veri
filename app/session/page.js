@@ -334,6 +334,12 @@ function SessionPageInner() {
       {/* Header */}
       <header className="header">
         <button className="back-btn" onClick={() => router.push('/')}>‹</button>
+        {!isEditing && localStorage.getItem(DRAFT_KEY) && (
+          <button className="draft-clear-btn" onClick={() => {
+            localStorage.removeItem(DRAFT_KEY);
+            loadRecordsForDate(sessionDate, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename, setPrevReport);
+          }}>🗑 ล้าง draft</button>
+        )}
         <div className="header-mid">
           <span className="machine-label">{currentMachine?.label}</span>
           <span className="step-label">
@@ -467,6 +473,11 @@ function SessionPageInner() {
         .header {
           display:flex; align-items:center; gap:10px;
           padding:10px 14px; border-bottom:1px solid var(--border-hairline); flex-shrink:0;
+        }
+        .draft-clear-btn {
+          font-size:11px; padding:4px 8px; border-radius:8px; flex-shrink:0;
+          background:var(--status-fail-bg); color:var(--status-fail);
+          border:1px solid var(--status-fail); cursor:pointer; font-family:inherit;
         }
         .back-btn {
           background:none; border:none; color:var(--ink-muted);
