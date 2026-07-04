@@ -171,7 +171,38 @@ function SessionPageInner() {
     return () => clearTimeout(saveTimerRef.current);
   }, [records, machineIdx, stepIdx, fieldMap]);
 
-  if (!fieldMap || Object.keys(records).length === 0) {
+  if (!fieldMap) {
+    return <main style={{ padding: 40, color: 'var(--ink-muted)' }}>กำลังโหลด...</main>;
+  }
+
+  if (pageStep === 0) return (
+    <main className="page">
+      <header className="header">
+        <button className="back-btn" onClick={() => router.push('/')}>‹</button>
+        <div className="header-mid"><span className="machine-label">FPG Report</span></div>
+      </header>
+      <section className="section" style={{ padding: '24px 20px' }}>
+        <p style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: 16 }}>เลือกวันที่ตรวจสอบ</p>
+        <input type="date" className="date-input"
+          value={sessionDate}
+          onChange={e => setSessionDate(e.target.value)}
+          style={{ width: '100%', marginBottom: 20 }} />
+        <button className="btn-next" onClick={handleStart}>ถัดไป</button>
+      </section>
+      <style jsx>{`
+        .page { min-height:100dvh; display:flex; flex-direction:column; }
+        .header { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--border-hairline); }
+        .back-btn { background:none; border:none; color:var(--ink-muted); font-size:20px; cursor:pointer; padding:4px 6px; }
+        .header-mid { flex:1; }
+        .machine-label { font-size:15px; font-weight:700; color:var(--ink-primary); }
+        .section { display:flex; flex-direction:column; }
+        .date-input { background:var(--bg-input); border:1px solid var(--border-hairline); border-radius:var(--radius-md); color:var(--ink-primary); padding:10px 12px; font-size:15px; font-family:inherit; }
+        .btn-next { background:var(--accent); color:#fff; border:none; border-radius:var(--radius-md); padding:14px; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer; }
+      `}</style>
+    </main>
+  );
+
+  if (Object.keys(records).length === 0) {
     return <main style={{ padding: 40, color: 'var(--ink-muted)' }}>กำลังโหลด...</main>;
   }
 
@@ -326,36 +357,6 @@ function SessionPageInner() {
       />
     );
   }
-
-  if (pageStep === 0) return (
-    <main className="page">
-      <header className="header">
-        <button className="back-btn" onClick={() => router.push('/')}>‹</button>
-        <div className="header-mid"><span className="machine-label">FPG Report</span></div>
-      </header>
-      <section className="section" style={{ padding: '24px 20px' }}>
-        <p style={{ fontSize: 13, color: 'var(--ink-muted)', marginBottom: 16 }}>เลือกวันที่ตรวจสอบ</p>
-        <input type="date" className="date-input"
-          value={sessionDate}
-          onChange={e => setSessionDate(e.target.value)}
-          style={{ width: '100%', marginBottom: 20 }} />
-        <button className="btn-next" onClick={handleStart} disabled={!fieldMap}>
-          {!fieldMap ? 'กำลังโหลด...' : 'ถัดไป'}
-        </button>
-      </section>
-      <style jsx>{`
-        .page { min-height:100dvh; display:flex; flex-direction:column; }
-        .header { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--border-hairline); }
-        .back-btn { background:none; border:none; color:var(--ink-muted); font-size:20px; cursor:pointer; padding:4px 6px; }
-        .header-mid { flex:1; }
-        .machine-label { font-size:15px; font-weight:700; color:var(--ink-primary); }
-        .section { display:flex; flex-direction:column; }
-        .date-input { background:var(--bg-input); border:1px solid var(--border-hairline); border-radius:var(--radius-md); color:var(--ink-primary); padding:10px 12px; font-size:15px; font-family:inherit; }
-        .btn-next { background:var(--accent); color:#fff; border:none; border-radius:var(--radius-md); padding:14px; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer; }
-        .btn-next:disabled { opacity:0.5; }
-      `}</style>
-    </main>
-  );
 
   return (
     <main className="page">
