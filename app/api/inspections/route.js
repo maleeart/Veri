@@ -24,6 +24,17 @@ export async function GET(request) {
     }
 
     const dates = await listInspectionDates();
+
+    if (searchParams.get('latest') === '1') {
+      const type = searchParams.get('type') || 'fpg';
+      const latest = dates.find(d => d.type === type);
+      if (!latest) return NextResponse.json({ error: 'ไม่พบข้อมูล' }, { status: 404 });
+      const stem = latest._path.split('/').pop().replace(/\.json$/, '');
+      const data = await loadInspectionByFilename(stem);
+      if (!data) return NextResponse.json({ error: 'ไม่พบข้อมูล' }, { status: 404 });
+      return NextResponse.json({ ...data, _date: latest.date });
+    }
+
     return NextResponse.json({ dates, githubConfigured: true });
   } catch (err) {
     console.error('inspections API error:', err);

@@ -59,12 +59,23 @@ function loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepId
           return;
         }
       } catch {}
-      // ไม่มีทั้งคู่ → fresh
+      // ไม่มีทั้งคู่ → fresh + pre-fill จากไฟล์ล่าสุด
       const fresh = {};
       for (const m of fieldMap.machines) fresh[m.id] = buildEmptyFormData(fieldMap, m.id, date);
-      setRecords(fresh);
-      setMachineIdx(0);
-      setStepIdx(0);
+      fetch('/api/inspections?latest=1&type=fpg')
+        .then(r => r.ok ? r.json() : null)
+        .then(prev => {
+          if (prev?._date && prev._date < date && prev.records) {
+            for (const m of fieldMap.machines) {
+              const p = prev.records[m.id];
+              if (!p) continue;
+              if (p.afterRun?.fuelAfter)         fresh[m.id].generalData.fuelBefore         = p.afterRun.fuelAfter;
+              if (p.afterRun?.runningHoursAfter) fresh[m.id].generalData.runningHoursBefore = p.afterRun.runningHoursAfter;
+            }
+          }
+        })
+        .catch(() => {})
+        .finally(() => { setRecords(fresh); setMachineIdx(0); setStepIdx(0); });
     })
     .catch(() => {
       try {
