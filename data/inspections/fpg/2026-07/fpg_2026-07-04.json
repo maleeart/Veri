@@ -455,7 +455,7 @@
       "generalData": {
         "fuelBefore": "",
         "runningHoursBefore": "45.29",
-        "runDurationMins": "",
+        "runDurationMins": "5",
         "runCount": "308"
       },
       "preVisual": [
