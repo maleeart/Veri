@@ -381,7 +381,11 @@ function SessionPageInner() {
         const nextR = `R${sameDate.length}`;
         body = { date: sessionDate, records: mergedRecords, type: 'fpg', building: nextR };
       }
-      await fetch('/api/save-record', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const resp = await fetch('/api/save-record', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (!resp.ok) {
+        const e = await resp.json().catch(() => ({}));
+        throw new Error(e.error || `HTTP ${resp.status}`);
+      }
       localStorage.removeItem(DRAFT_KEY);
       router.push(`/?saved=${sessionDate}`);
     } catch (err) {
