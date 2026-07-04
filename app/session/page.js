@@ -350,27 +350,41 @@ function SessionPageInner() {
   if (showSummaryPage) {
     const lastAfterRun = records[lastMachine.id]?.afterRun || {};
     return (
-      <SummaryPage
-        machines={machines}
-        records={records}
-        inspectedBy={lastAfterRun.inspectedBy || ''}
-        inspectorSignature={lastAfterRun.inspectorSignature || null}
-        onUpdateInspector={updateInspector}
-        onBack={() => setShowSummaryPage(false)}
-        onGoToMachine={(mId) => {
-          setShowSummaryPage(false);
-          setMachineIdx(machines.findIndex(m => m.id === mId));
-          setStepIdx(5);
-        }}
-        onSubmit={handleFinalSubmit}
-        submitState={submitState}
-        submitError={submitError}
-        canWrite={canWrite}
-        isEditing={isEditing}
-        editReason={editReason}
-        onEditReasonChange={setEditReason}
-        sessionDate={sessionDate}
-      />
+      <>
+        {pendingSubmit && (
+          <div className="overlay" onClick={() => setPendingSubmit(null)}>
+            <div className="modal-box" onClick={e => e.stopPropagation()}>
+              <p className="modal-icon">💾</p>
+              <h2 className="modal-title">วันที่นี้มีไฟล์อยู่แล้ว</h2>
+              <p className="modal-msg">ต้องการบันทึกทับไฟล์เดิม หรือสร้างเป็นไฟล์ใหม่ (Revise)?</p>
+              <button className="modal-btn modal-btn--primary" onClick={() => { const p = pendingSubmit; setPendingSubmit(null); doSave(p.inspectedBy, p.inspectorSignature, true); }}>บันทึกทับ</button>
+              <button className="modal-btn" onClick={() => { const p = pendingSubmit; setPendingSubmit(null); doSave(p.inspectedBy, p.inspectorSignature, false); }}>สร้างใหม่ (Revise)</button>
+              <button className="modal-btn" style={{marginTop:4,fontSize:12,opacity:0.6}} onClick={() => setPendingSubmit(null)}>ยกเลิก</button>
+            </div>
+          </div>
+        )}
+        <SummaryPage
+          machines={machines}
+          records={records}
+          inspectedBy={lastAfterRun.inspectedBy || ''}
+          inspectorSignature={lastAfterRun.inspectorSignature || null}
+          onUpdateInspector={updateInspector}
+          onBack={() => setShowSummaryPage(false)}
+          onGoToMachine={(mId) => {
+            setShowSummaryPage(false);
+            setMachineIdx(machines.findIndex(m => m.id === mId));
+            setStepIdx(5);
+          }}
+          onSubmit={handleFinalSubmit}
+          submitState={submitState}
+          submitError={submitError}
+          canWrite={canWrite}
+          isEditing={isEditing}
+          editReason={editReason}
+          onEditReasonChange={setEditReason}
+          sessionDate={sessionDate}
+        />
+      </>
     );
   }
 
