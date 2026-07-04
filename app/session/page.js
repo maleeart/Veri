@@ -59,19 +59,14 @@ function loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepId
           return;
         }
       } catch {}
-      // ไม่มีทั้งคู่ → fresh + pre-fill จากไฟล์ล่าสุด
+      // ไม่มีทั้งคู่ → fresh แล้วถามว่าจะดึงค่าจากไฟล์ก่อนหน้าไหม
       const fresh = {};
       for (const m of fieldMap.machines) fresh[m.id] = buildEmptyFormData(fieldMap, m.id, date);
       fetch('/api/inspections?latest=1&type=fpg')
         .then(r => r.ok ? r.json() : null)
         .then(prev => {
           if (prev?._date && prev._date < date && prev.records) {
-            for (const m of fieldMap.machines) {
-              const p = prev.records[m.id];
-              if (!p) continue;
-              if (p.afterRun?.fuelAfter)         fresh[m.id].generalData.fuelBefore         = p.afterRun.fuelAfter;
-              if (p.afterRun?.runningHoursAfter) fresh[m.id].generalData.runningHoursBefore = p.afterRun.runningHoursAfter;
-            }
+            setPrevReport({ date: prev._date, records: prev.records });
           }
         })
         .catch(() => {})
@@ -117,7 +112,24 @@ function SessionPageInner() {
   const [isEditing, setIsEditing] = useState(false);
   const [editReason, setEditReason] = useState('');
   const [originalFilename, setOriginalFilename] = useState(null);
+  const [prevReport, setPrevReport] = useState(null);
   const saveTimerRef = useRef(null);
+
+  const applyPrevReport = () => {
+    if (!prevReport || !fieldMap) return;
+    setRecords(prev => {
+      const next = { ...prev };
+      for (const m of fieldMap.machines) {
+        const p = prevReport.records[m.id];
+        if (!p) continue;
+        next[m.id] = { ...next[m.id], generalData: { ...next[m.id].generalData } };
+        if (p.afterRun?.fuelAfter)         next[m.id].generalData.fuelBefore         = p.afterRun.fuelAfter;
+        if (p.afterRun?.runningHoursAfter) next[m.id].generalData.runningHoursBefore = p.afterRun.runningHoursAfter;
+      }
+      return next;
+    });
+    setPrevReport(null);
+  };
 
   const handleDateChange = (newDate) => {
     setSessionDate(newDate);
@@ -306,6 +318,19 @@ function SessionPageInner() {
 
   return (
     <main className="page">
+      {/* modal ถามใช้ค่าจากรอบก่อน */}
+      {prevReport && (
+        <div className="overlay" onClick={() => setPrevReport(null)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+            <p className="modal-icon">📋</p>
+            <h2 className="modal-title">พบข้อมูลรอบก่อนหน้า</h2>
+            <p className="modal-msg">ดึงค่า น้ำมัน และ ชั่วโมง หลังทดสอบ ({prevReport.date}) มาเติมเป็นค่าก่อนทดสอบรอบนี้ไหม?</p>
+            <button className="modal-btn modal-btn--primary" onClick={applyPrevReport}>ใช้ค่าจากรอบก่อน</button>
+            <button className="modal-btn" onClick={() => setPrevReport(null)}>เริ่มจาก form เปล่า</button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="header">
         <button className="back-btn" onClick={() => router.push('/')}>‹</button>
@@ -429,6 +454,14 @@ function SessionPageInner() {
       </nav>
 
       <style jsx>{`
+        .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:100; display:flex; align-items:center; justify-content:center; padding:20px; }
+        .modal-box { background:var(--bg-card); border-radius:20px; padding:28px 24px; max-width:360px; width:100%; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; }
+        .modal-icon { font-size:32px; margin:0; }
+        .modal-title { font-size:16px; font-weight:700; color:var(--ink-primary); margin:0; }
+        .modal-msg { font-size:13px; color:var(--ink-secondary); margin:0; line-height:1.6; }
+        .modal-btn { width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-strong); background:var(--bg-surface-raised); color:var(--ink-primary); font-size:14px; font-weight:600; font-family:inherit; cursor:pointer; margin-top:4px; }
+        .modal-btn--primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+
         .page { min-height:100dvh; display:flex; flex-direction:column; overflow-x:hidden; }
 
         .header {
