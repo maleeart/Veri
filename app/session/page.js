@@ -376,12 +376,6 @@ function SessionPageInner() {
       {/* Header */}
       <header className="header">
         <button className="back-btn" onClick={() => router.push('/')}>‹</button>
-        {!isEditing && (
-          <button className="draft-clear-btn" onClick={() => {
-            localStorage.removeItem(DRAFT_KEY);
-            loadRecordsForDate(sessionDate, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename, setPrevReport);
-          }}>🗑 เริ่มใหม่</button>
-        )}
         <div className="header-mid">
           <span className="machine-label">{currentMachine?.label}</span>
           <span className="step-label">
@@ -389,6 +383,12 @@ function SessionPageInner() {
             {stepTitles[stepIdx]}
           </span>
         </div>
+        {!isEditing && (
+          <button className="draft-clear-btn" onClick={() => {
+            localStorage.removeItem(DRAFT_KEY);
+            loadRecordsForDate(sessionDate, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename, setPrevReport);
+          }}>🗑</button>
+        )}
         {canWrite && (
           <button className="save-all-btn" onClick={handleSaveAll} disabled={submitState === 'submitting'}>
             {submitState === 'submitting' ? '...' : '💾 บันทึกทั้งหมด'}
@@ -440,13 +440,6 @@ function SessionPageInner() {
 
       {/* Form body */}
       <section className="body">
-        {stepIdx === 0 && (
-          <div className="date-row">
-            <label className="date-label">วันที่ตรวจสอบ</label>
-            <input type="date" className="date-input" value={sessionDate}
-              onChange={e => handleDateChange(e.target.value)} />
-          </div>
-        )}
         <h2 className="step-title">{stepTitles[stepIdx]}</h2>
 
         {stepIdx === 0 && (
@@ -517,18 +510,19 @@ function SessionPageInner() {
           padding:10px 14px; border-bottom:1px solid var(--border-hairline); flex-shrink:0;
         }
         .draft-clear-btn {
-          font-size:11px; padding:4px 8px; border-radius:8px; flex-shrink:0;
-          background:var(--status-fail-bg); color:var(--status-fail);
-          border:1px solid var(--status-fail); cursor:pointer; font-family:inherit;
+          font-size:16px; padding:4px 6px; border-radius:8px; flex-shrink:0;
+          background:none; color:var(--ink-muted);
+          border:none; cursor:pointer; line-height:1;
         }
+        .draft-clear-btn:hover { color:var(--status-fail); }
         .back-btn {
           background:none; border:none; color:var(--ink-muted);
           font-size:20px; cursor:pointer; padding:4px 6px; flex-shrink:0;
         }
         .header-mid { flex:1; min-width:0; }
         .machine-label {
-          display:block; font-size:15px; font-weight:700; color:var(--ink-primary);
-          overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+          display:block; font-size:17px; font-weight:800; color:var(--ink-primary);
+          overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:-0.3px;
         }
         .step-label { font-size:11px; color:var(--ink-muted); }
         .machine-loc { color:var(--ink-secondary); font-weight:500; }
