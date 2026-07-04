@@ -170,7 +170,7 @@ function HomePageInner() {
     try { if (localStorage.getItem(SESSION_KEY)) setHasDraft(true); } catch {}
     if (searchParams.get('saved')) setJustSaved(true);
     // prefetch all main routes so navigation feels instant
-    router.prefetch(`/session?date=${today}`);
+    router.prefetch(`/session`);
     router.prefetch('/form/emergency');
     router.prefetch('/form/smoke');
     router.prefetch('/meter');
@@ -581,7 +581,7 @@ function HomePageInner() {
         {/* Card 1 — Fire Pump & Generator (ใหญ่ full-width) */}
         <button
           className="card card--fpg"
-          onClick={() => router.push(`/session?date=${today}`)}>
+          onClick={() => router.push(`/session`)}>
           <span className="card__icon">🚒⚡</span>
           <div className="card__body">
             <span className="card__title">Fire Pump &amp; Generator</span>
