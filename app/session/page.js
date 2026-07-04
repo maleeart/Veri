@@ -553,14 +553,12 @@ function SessionPageInner() {
         }
         .header-mid { flex:1; min-width:0; }
         .loc-badge {
-          display:inline-block; font-size:10px; font-weight:700; letter-spacing:0.4px;
-          background:var(--accent); color:#fff;
-          padding:2px 7px; border-radius:20px; margin-bottom:3px;
-          text-transform:uppercase; white-space:nowrap;
+          display:block; font-size:17px; font-weight:800; color:var(--accent);
+          overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:-0.3px;
         }
         .machine-label {
-          display:block; font-size:17px; font-weight:800; color:var(--ink-primary);
-          overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:-0.3px;
+          display:block; font-size:11px; font-weight:600; color:var(--ink-muted);
+          overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
         }
         .step-label { font-size:11px; color:var(--ink-muted); }
 
