@@ -411,11 +411,11 @@ function SessionPageInner() {
       <header className="header">
         <button className="back-btn" onClick={() => router.push('/')}>‹</button>
         <div className="header-mid">
+          {currentMachine?.location_default && (
+            <span className="loc-badge">{currentMachine.location_default}</span>
+          )}
           <span className="machine-label">{currentMachine?.label}</span>
-          <span className="step-label">
-            {currentMachine?.location_default && <span className="machine-loc">{currentMachine.location_default} · </span>}
-            {stepTitles[stepIdx]}
-          </span>
+          <span className="step-label">{stepTitles[stepIdx]}</span>
         </div>
         <button className="draft-clear-btn" title={isEditing ? 'โหลดจากไฟล์ใหม่' : 'ล้าง draft'} onClick={() => {
           localStorage.removeItem(DRAFT_KEY);
@@ -552,12 +552,17 @@ function SessionPageInner() {
           font-size:20px; cursor:pointer; padding:4px 6px; flex-shrink:0;
         }
         .header-mid { flex:1; min-width:0; }
+        .loc-badge {
+          display:inline-block; font-size:10px; font-weight:700; letter-spacing:0.4px;
+          background:var(--accent); color:#fff;
+          padding:2px 7px; border-radius:20px; margin-bottom:3px;
+          text-transform:uppercase; white-space:nowrap;
+        }
         .machine-label {
           display:block; font-size:17px; font-weight:800; color:var(--ink-primary);
           overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:-0.3px;
         }
         .step-label { font-size:11px; color:var(--ink-muted); }
-        .machine-loc { color:var(--ink-secondary); font-weight:500; }
 
         /* Machine tabs */
         .machine-tabs {
