@@ -113,6 +113,7 @@ function SessionPageInner() {
   const [editReason, setEditReason] = useState('');
   const [originalFilename, setOriginalFilename] = useState(null);
   const [prevReport, setPrevReport] = useState(null);
+  const [hasDraft, setHasDraft] = useState(false);
   const saveTimerRef = useRef(null);
 
   const applyPrevReport = () => {
@@ -145,6 +146,7 @@ function SessionPageInner() {
   // init: GitHub มาก่อน → ถ้าไม่มีจึงดู draft
   useEffect(() => {
     if (!fieldMap) return;
+    setHasDraft(!!localStorage.getItem(`session:${date}`));
     loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename, setPrevReport);
   }, [fieldMap]);
 
@@ -155,6 +157,7 @@ function SessionPageInner() {
     saveTimerRef.current = setTimeout(() => {
       try {
         localStorage.setItem(DRAFT_KEY, JSON.stringify({ records, machineIdx, stepIdx, savedAt: Date.now() }));
+        setHasDraft(true);
       } catch {}
     }, 600);
     return () => clearTimeout(saveTimerRef.current);
@@ -334,9 +337,10 @@ function SessionPageInner() {
       {/* Header */}
       <header className="header">
         <button className="back-btn" onClick={() => router.push('/')}>‹</button>
-        {!isEditing && localStorage.getItem(DRAFT_KEY) && (
+        {!isEditing && hasDraft && (
           <button className="draft-clear-btn" onClick={() => {
             localStorage.removeItem(DRAFT_KEY);
+            setHasDraft(false);
             loadRecordsForDate(sessionDate, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename, setPrevReport);
           }}>🗑 ล้าง draft</button>
         )}
