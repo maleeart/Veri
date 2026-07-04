@@ -27,7 +27,7 @@ const STEP_SHORT = ['ทั่วไป', 'ก่อนเข้า', 'ก่อ
 
 // GitHub มาก่อน: ถ้ามีข้อมูลในไฟล์ → ล้าง draft เก่า → ใช้ข้อมูลไฟล์
 // ถ้าไม่มีในไฟล์ → ดู draft → ถ้าไม่มีทั้งคู่ → empty
-function loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename) {
+function loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename, setPrevReport) {
   const draftKey = `session:${date}`;
   fetch(`/api/inspections?date=${date}&type=fpg`)
     .then(r => r.ok ? r.json() : null)
@@ -134,7 +134,7 @@ function SessionPageInner() {
   const handleDateChange = (newDate) => {
     setSessionDate(newDate);
     if (!fieldMap) return;
-    loadRecordsForDate(newDate, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename);
+    loadRecordsForDate(newDate, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename, setPrevReport);
   };
 
   // โหลด field-map
@@ -145,7 +145,7 @@ function SessionPageInner() {
   // init: GitHub มาก่อน → ถ้าไม่มีจึงดู draft
   useEffect(() => {
     if (!fieldMap) return;
-    loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename);
+    loadRecordsForDate(date, fieldMap, setRecords, setMachineIdx, setStepIdx, setIsEditing, setOriginalFilename, setPrevReport);
   }, [fieldMap]);
 
   // autosave draft ทุกครั้งที่ records/machineIdx/stepIdx เปลี่ยน
