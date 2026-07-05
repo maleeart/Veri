@@ -1,0 +1,257 @@
+{
+  "date": "2026-05-28",
+  "type": "smoke",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-05-28",
+      "building": "ท.0019",
+      "floor": "7",
+      "inspector": "ธนวิชญ์",
+      "model": "SD-651",
+      "serial": "",
+      "mfg": "Notifier"
+    },
+    "devices": [
+      {
+        "location": "pull station ประตูหนีไฟข้างอาคาร",
+        "remarks": "",
+        "zone": "701",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องกอง",
+        "remarks": "",
+        "zone": "702",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องกอง",
+        "remarks": "",
+        "zone": "703",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องกอง",
+        "remarks": "",
+        "zone": "704",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องกอง",
+        "remarks": "",
+        "zone": "705",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องกอง",
+        "remarks": "",
+        "zone": "706",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องกอง",
+        "remarks": "",
+        "zone": "707",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องกอง",
+        "remarks": "",
+        "zone": "708",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องกอง",
+        "remarks": "",
+        "zone": "709",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องระบบไฟฟ้า",
+        "remarks": "",
+        "zone": "710",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องแม่บ้าน",
+        "remarks": "",
+        "zone": "711",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องน้ำชาย",
+        "remarks": "",
+        "zone": "712",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องน้ำคนพิการ",
+        "remarks": "",
+        "zone": "713",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องน้ำหญิง",
+        "remarks": "",
+        "zone": "714",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องประชุม",
+        "remarks": "",
+        "zone": "715",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องกอง",
+        "remarks": "",
+        "zone": "716",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องกอง",
+        "remarks": "",
+        "zone": "717",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องกอง",
+        "remarks": "",
+        "zone": "718",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องประชุม 703",
+        "remarks": "",
+        "zone": "719",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องประชุม 702",
+        "remarks": "",
+        "zone": "720",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องประชุม 701",
+        "remarks": "",
+        "zone": "721",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "โถงทางเดิน",
+        "remarks": "",
+        "zone": "722",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ลิฟต์หนีไฟ",
+        "remarks": "",
+        "zone": "723",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "โถงฝั่งบริหาร",
+        "remarks": "",
+        "zone": "724",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "โถงหน้าห้องประชุม",
+        "remarks": "",
+        "zone": "725",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "Pull station หน้าลิฟต์",
+        "remarks": "",
+        "zone": "726",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "โถงหน้าลิฟต์",
+        "remarks": "",
+        "zone": "727",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "Pull station หน้าห้องสำนักงาน",
+        "remarks": "",
+        "zone": "728",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องสำนักงาน",
+        "remarks": "",
+        "zone": "729 - 731",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "Pull station หลังห้องสำนักงาน",
+        "remarks": "",
+        "zone": "732",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      }
+    ]
+  }
+}
