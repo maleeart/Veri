@@ -85,7 +85,7 @@
         "workingCondition": "normal"
       },
       {
-        "location": "โถงหน้าลิฟต์",
+        "location": "ห้อง 209",
         "remarks": "",
         "zone": "10",
         "externalCondition": "normal",
@@ -93,7 +93,7 @@
         "workingCondition": "normal"
       },
       {
-        "location": "ห้องระบบไฟฟ้า",
+        "location": "ห้อง 210",
         "remarks": "",
         "zone": "11",
         "externalCondition": "normal",
@@ -101,7 +101,7 @@
         "workingCondition": "normal"
       },
       {
-        "location": "ห้องสื่อสาร",
+        "location": "ห้อง 211",
         "remarks": "",
         "zone": "12",
         "externalCondition": "normal",
@@ -109,7 +109,7 @@
         "workingCondition": "normal"
       },
       {
-        "location": "ห้องอาหาร",
+        "location": "ห้อง 212",
         "remarks": "",
         "zone": "13",
         "externalCondition": "normal",
@@ -117,7 +117,7 @@
         "workingCondition": "normal"
       },
       {
-        "location": "ห้องน้ำชาย",
+        "location": "ห้อง 213",
         "remarks": "",
         "zone": "14",
         "externalCondition": "normal",
@@ -125,7 +125,7 @@
         "workingCondition": "normal"
       },
       {
-        "location": "ห้องน้ำหญิง",
+        "location": "โถงหน้าลิฟต์",
         "remarks": "",
         "zone": "15",
         "externalCondition": "normal",
@@ -133,13 +133,54 @@
         "workingCondition": "normal"
       },
       {
-        "location": "โถงทางเดิน",
+        "location": "ห้องระบบไฟฟ้า",
         "remarks": "",
         "zone": "16",
         "externalCondition": "normal",
         "cleaned": "yes",
         "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องสื่อสาร",
+        "remarks": "",
+        "zone": "17",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องอาหาร",
+        "remarks": "",
+        "zone": "18",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องน้ำชาย",
+        "remarks": "",
+        "zone": "19",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องน้ำหญิง",
+        "remarks": "",
+        "zone": "20",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "โถงทางเดิน",
+        "remarks": "",
+        "zone": "21",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
       }
-    ]
+    ],
+    "editReason": "เพิ่ม zone ที่ลงไม่ครบครับ"
   }
 }
