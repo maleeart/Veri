@@ -157,7 +157,7 @@
         "workingCondition": "normal"
       },
       {
-        "location": "ห้องประชุม 403",
+        "location": "ห้องประชุม 503",
         "remarks": "",
         "zone": "519",
         "externalCondition": "normal",
@@ -165,7 +165,7 @@
         "workingCondition": "normal"
       },
       {
-        "location": "ห้องประชุม 402",
+        "location": "ห้องประชุม 502",
         "remarks": "",
         "zone": "520",
         "externalCondition": "normal",
@@ -173,7 +173,7 @@
         "workingCondition": "normal"
       },
       {
-        "location": "ห้องประชุม 401",
+        "location": "ห้องประชุม 501",
         "remarks": "",
         "zone": "521",
         "externalCondition": "normal",
@@ -252,6 +252,7 @@
         "cleaned": "yes",
         "workingCondition": "normal"
       }
-    ]
+    ],
+    "editReason": "กรอกชื่อเลขห้องประชุม ผิดชั้นครับ"
   }
 }
