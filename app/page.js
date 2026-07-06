@@ -77,7 +77,6 @@ function HomePageInner() {
   const [dates, setDates] = useState(null);
   const [weeks, setWeeks] = useState([]); // Meter อาคาร: สัปดาห์จาก Energy-Dashboard/forms
   const [meterMonths, setMeterMonths] = useState({}); // year → [yearMonth]
-  const [meterHistYear, setMeterHistYear] = useState(String(new Date().getFullYear()));
   const [githubOk, setGithubOk] = useState(null);
   const [githubError, setGithubError] = useState('');
   const [downloading, setDownloading] = useState(null);
@@ -198,14 +197,15 @@ function HomePageInner() {
     fetch('/api/building-meter-weeks').then(r => r.json()).then(d => setWeeks(d.weeks || [])).catch(() => {});
   }, []);
 
-  // โหลด meter months เมื่อเปลี่ยนปี หรือเปิด history
+  // โหลด meter months เมื่อเปิด history หรือเปลี่ยนปีที่เลือก
   useEffect(() => {
-    if (!showHistory || meterMonths[meterHistYear] !== undefined) return;
-    fetch(`/api/meter-months?year=${meterHistYear}`)
+    const yr = selectedYear || String(new Date().getFullYear());
+    if (!showHistory || meterMonths[yr] !== undefined) return;
+    fetch(`/api/meter-months?year=${yr}`)
       .then(r => r.json())
-      .then(d => setMeterMonths(prev => ({ ...prev, [meterHistYear]: d.months || [] })))
-      .catch(() => setMeterMonths(prev => ({ ...prev, [meterHistYear]: [] })));
-  }, [showHistory, meterHistYear]);
+      .then(d => setMeterMonths(prev => ({ ...prev, [yr]: d.months || [] })))
+      .catch(() => setMeterMonths(prev => ({ ...prev, [yr]: [] })));
+  }, [showHistory, selectedYear]);
 
   // ── notification panel ───────────────────────────────────────────────────
   const loadNotif = () => {
@@ -929,9 +929,9 @@ function HomePageInner() {
 
           {/* Meter กฟน. — รายเดือน/รายปี */}
           {(() => {
-            const months = meterMonths[meterHistYear];
+            const yr = selectedYear || String(new Date().getFullYear());
+            const months = meterMonths[yr];
             const isOpen = openGroups.has('meter-gfn');
-            const meterYears = [String(new Date().getFullYear()), String(new Date().getFullYear() - 1), String(new Date().getFullYear() - 2), String(new Date().getFullYear() - 3)];
             return (
               <div className="hist-group">
                 <button className="hist-group-hd" onClick={() => toggleGroup('meter-gfn')}
@@ -942,22 +942,11 @@ function HomePageInner() {
                   <span className="hist-group-arrow">{isOpen ? '⌄' : '›'}</span>
                 </button>
                 {isOpen && (
-                  <div className="meter-gfn-ctrl" style={{ borderLeft: '4px solid #d97706' }}>
-                    <select className="filter-select"
-                      value={meterHistYear}
-                      onChange={e => {
-                        setMeterHistYear(e.target.value);
-                        setMeterMonths(prev => ({ ...prev })); // trigger effect
-                      }}>
-                      {meterYears.map(y => (
-                        <option key={y} value={y}>{parseInt(y) + 543}</option>
-                      ))}
-                    </select>
-                    <button className="btn-dl-all" style={{ flex: 1 }}
-                      onClick={() => { window.location.href = `/api/export-meter?year=${meterHistYear}`; }}>
-                      ⬇︎ Export รายปี {parseInt(meterHistYear) + 543}
-                    </button>
-                  </div>
+                  <button className="btn-dl-all"
+                    style={{ borderLeft: '4px solid #d97706' }}
+                    onClick={() => { window.location.href = `/api/export-meter?year=${yr}`; }}>
+                    ⬇︎ Export รายปี {parseInt(yr) + 543}
+                  </button>
                 )}
                 {isOpen && !months && (
                   <div className="hist-row"><span style={{ color: 'var(--ink-muted)', fontSize: 13 }}>กำลังโหลด...</span></div>
@@ -1378,11 +1367,6 @@ function HomePageInner() {
         }
         .btn-dl-all:hover { background: #dcfce7; }
         .btn-dl:disabled { opacity: 0.5; }
-        .meter-gfn-ctrl {
-          display: flex; align-items: center; gap: 8px;
-          padding: 8px 12px; background: var(--bg-surface);
-          border-bottom: 1px solid var(--border-hairline);
-        }
         .btn-edit {
           background: var(--bg-surface-raised);
           border: 1px solid var(--border-strong);
