@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useCanWrite } from '../../lib/useCanWrite';
+import Sidenav from '../../components/Sidenav';
 
 const BUILDINGS = [
   'ท.0006','ท.0007','ท.0008','ท.0009','ท.0010',
@@ -255,6 +256,9 @@ export default function FormPage() {
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
+    <div className="sn-shell">
+    <Sidenav />
+    <div className="sn-shell-main">
     <div className="root">
       {/* Header */}
       <header className="header" style={{ borderBottom: `3px solid ${accentColor}` }}>
@@ -528,6 +532,8 @@ export default function FormPage() {
         .error-msg { color: var(--status-fail); font-size: 13px; text-align: center; }
       `}</style>
     </div>
+    </div>{/* /sn-shell-main */}
+    </div>{/* /sn-shell */}
   );
 }
 
