@@ -1,0 +1,65 @@
+{
+  "date": "2026-07-14",
+  "type": "smoke",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-07-14",
+      "building": "ท.0006",
+      "floor": "1,2",
+      "inspector": "ธนวิชญ์",
+      "model": "SD-651",
+      "serial": "",
+      "mfg": "Notifier "
+    },
+    "devices": [
+      {
+        "location": "ห้องสำนักงาน ชั้น1",
+        "remarks": "",
+        "zone": "1",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องประชุม ชั้น2",
+        "remarks": "",
+        "zone": "1",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "Beam",
+        "remarks": "อุปกรณ์ติดตั้งบนที่สูง",
+        "zone": "2",
+        "externalCondition": "normal",
+        "cleaned": "no",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "Beam",
+        "remarks": "อุปกรณ์ติดตั้งบนที่สูง",
+        "zone": "3",
+        "externalCondition": "normal",
+        "cleaned": "no",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "Beam",
+        "remarks": "อุปกรณ์ติดตั้งบนที่สูง",
+        "zone": "4",
+        "externalCondition": "normal",
+        "cleaned": "no",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "Beam",
+        "remarks": "อุปกรณ์ติดตั้งบนที่สูง",
+        "zone": "5",
+        "externalCondition": "normal",
+        "cleaned": "no",
+        "workingCondition": "normal"
+      }
+    ]
+  }
+}
