@@ -20,6 +20,9 @@ async function generateListReport(type, data) {
   const ws = wb.getWorksheet(SHEET_NAMES[type]);
   if (!ws) throw new Error(`ไม่พบ sheet: ${SHEET_NAMES[type]}`);
 
+  ws.getColumn('A').width = 13;
+  ws.getColumn('B').width = 30;
+
   // fit all columns on one page — บังคับทุก sheet, reset scale ด้วยเพื่อไม่ให้ template scale เดิมมาทับ
   wb.eachSheet((s) => {
     s.pageSetup.fitToPage   = true;

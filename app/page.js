@@ -783,18 +783,10 @@ function HomePageInner() {
                         <span className="hist-date">{date}{date === today ? ' · วันนี้' : ''}</span>
                       </div>
                       <div className="hist-actions">
-                        {type === 'fpg' ? (
-                          <button className="btn-dl btn-dl--pdf"
-                            disabled={!!downloading}
-                            onClick={() => handleDownloadPdf(date, type, filename)}>
-                            {downloading === `pdf_${dlKey}` ? '⏳' : '📄 PDF'}
-                          </button>
-                        ) : (
-                          <button className="btn-dl btn-dl--pdf"
-                            onClick={() => router.push(`/report/${encodeURIComponent(filename || `${type}_${date}`)}`)}>
-                            📄 PDF
-                          </button>
-                        )}
+                        <button className="btn-dl btn-dl--preview"
+                          onClick={() => router.push(`/report/${encodeURIComponent(filename || `${type}_${date}`)}`)}>
+                          Preview
+                        </button>
                         <button className="btn-dl" disabled={!!downloading}
                           onClick={() => handleDownload(date, type, filename, building, floor)}>
                           {downloading === dlKey ? '⏳' : '⬇︎ Excel'}
@@ -1203,7 +1195,7 @@ function HomePageInner() {
         }
         .hist-actions { display: flex; gap: 6px; flex-shrink: 0; }
         .btn-dl {
-          background: var(--accent);
+          background: #217346;
           color: #fff;
           border: none;
           border-radius: 10px;
@@ -1214,8 +1206,8 @@ function HomePageInner() {
           flex-shrink: 0;
           white-space: nowrap;
         }
-        .btn-dl--pdf {
-          background: #b91c1c;
+        .btn-dl--preview {
+          background: #38bdf8;
         }
         .btn-dl:disabled { opacity: 0.5; }
         .btn-edit {
