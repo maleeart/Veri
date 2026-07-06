@@ -120,6 +120,9 @@ function HomePageInner() {
   // building-meter weeks → ข้อมูลวันที่ (คำนวณจาก ISO week ไม่ต้องโหลด CSV)
   const weekRows = useMemo(() => weeks.map(weekInfo), [weeks]);
 
+  const viewParam = searchParams.get('view');
+  const isReport = isDesktop && viewParam === 'report';
+
   // ปีที่มีข้อมูล (รวมทั้ง inspections และ building-meter)
   const availableYears = useMemo(() => {
     const s = new Set();
@@ -387,9 +390,6 @@ function HomePageInner() {
 
   // ── UI ใหม่ ───────────────────────────────────────────────────────────────
   // Report view: derive from URL ?view=report
-  const viewParam = searchParams.get('view');
-  const isReport = isDesktop && viewParam === 'report';
-
   // ── Report state ──────────────────────────────────────────────────────────
   const [reportType, setReportType] = useState(''); // '' = ทั้งหมด
 
