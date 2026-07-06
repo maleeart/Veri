@@ -210,12 +210,12 @@ function HomePageInner() {
   // โหลด meter months เมื่อเปิด history หรือเปลี่ยนปีที่เลือก
   useEffect(() => {
     const yr = selectedYear || String(new Date().getFullYear());
-    if (!showHistory || meterMonths[yr] !== undefined) return;
+    if ((!showHistory && !isReport) || meterMonths[yr] !== undefined) return;
     fetch(`/api/meter-months?year=${yr}`)
       .then(r => r.json())
       .then(d => setMeterMonths(prev => ({ ...prev, [yr]: d.months || [] })))
       .catch(() => setMeterMonths(prev => ({ ...prev, [yr]: [] })));
-  }, [showHistory, selectedYear]);
+  }, [showHistory, isReport, selectedYear]);
 
   // ── notification panel ───────────────────────────────────────────────────
   const loadNotif = () => {
