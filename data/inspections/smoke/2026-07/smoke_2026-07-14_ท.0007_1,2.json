@@ -1,0 +1,169 @@
+{
+  "date": "2026-07-14",
+  "type": "smoke",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-07-14",
+      "building": "ท.0007",
+      "floor": "1,2",
+      "inspector": "ธนวิชญ์",
+      "model": "SD-651",
+      "serial": "",
+      "mfg": "Notifier"
+    },
+    "devices": [
+      {
+        "location": "Beam  ฝั่งซ้าย",
+        "remarks": "อุปกรณ์ติดตั้งบนที่สูง",
+        "zone": "1",
+        "externalCondition": "normal",
+        "cleaned": "no",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "Beam ฝั่งขวา",
+        "remarks": "อุปกรณ์ติดตั้งบนที่สูง",
+        "zone": "2",
+        "externalCondition": "normal",
+        "cleaned": "no",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "Workshop ชั้น1",
+        "remarks": "",
+        "zone": "3",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องช่าง ชั้น1",
+        "remarks": "",
+        "zone": "4",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องแม่บ้าน ชั้น1",
+        "remarks": "",
+        "zone": "4",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "โถงหน้าอาคาร ชั้น1",
+        "remarks": "",
+        "zone": "5",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องประชาสัมพันธ์ ชั้น1",
+        "remarks": "",
+        "zone": "5",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องระบบไฟฟ้า ชั้น1",
+        "remarks": "",
+        "zone": "5",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องอาหาร ชั้น1",
+        "remarks": "",
+        "zone": "5",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องน้ำชาย ชั้น1",
+        "remarks": "",
+        "zone": "5",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องน้ำหญิง ชั้น1",
+        "remarks": "",
+        "zone": "5",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องสำนักงาน ชั้น1",
+        "remarks": "",
+        "zone": "6",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องสำนักงาน ชั้น2",
+        "remarks": "",
+        "zone": "7",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "โถง ชั้น2",
+        "remarks": "",
+        "zone": "8",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้อง สร. ชั้น2",
+        "remarks": "",
+        "zone": "8",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องระบบไฟฟ้า ชั้น2",
+        "remarks": "",
+        "zone": "8",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องอาหาร ชั้น2",
+        "remarks": "",
+        "zone": "8",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องน้ำชาย ชั้น2",
+        "remarks": "",
+        "zone": "8",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องน้ำหญิง ชั้น2",
+        "remarks": "",
+        "zone": "8",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      }
+    ]
+  }
+}
