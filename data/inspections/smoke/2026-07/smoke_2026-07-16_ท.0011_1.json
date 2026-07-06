@@ -94,10 +94,10 @@
       },
       {
         "location": "ห้องอาหาร",
-        "remarks": "",
+        "remarks": "Heat Detector",
         "zone": "5",
         "externalCondition": "normal",
-        "cleaned": "yes",
+        "cleaned": "no",
         "workingCondition": "normal"
       },
       {
@@ -148,6 +148,7 @@
         "cleaned": "yes",
         "workingCondition": "normal"
       }
-    ]
+    ],
+    "editReason": "เพิ่มข้อมูลห้องอาหาร"
   }
 }
