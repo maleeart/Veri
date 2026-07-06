@@ -532,8 +532,8 @@ export default function FormPage() {
         .error-msg { color: var(--status-fail); font-size: 13px; text-align: center; }
       `}</style>
     </div>
-    </div>{/* /sn-shell-main */}
-    </div>{/* /sn-shell */}
+    </div>
+    </div>
   );
 }
 
