@@ -11,13 +11,14 @@ export async function GET(request) {
     const date = searchParams.get('date');
 
     if (filename) {
-      let data = await loadInspectionByFilename(filename);
-      // fallback: ถ้า filename-based lookup ไม่เจอ ลอง date+type (รองรับไฟล์เก่าที่ path ต่างออกไป)
+      let data = null;
+      try { data = await loadInspectionByFilename(filename); } catch {}
+      // fallback: ลอง date+type (รองรับ throw จาก GitHub หรือ path format เก่า)
       if (!data) {
         const parts = filename.split('_');
         const fbType = parts[0] || 'fpg';
         const fbDate = parts[1] || '';
-        if (fbDate) data = await loadInspectionByDate(fbDate, fbType).catch(() => null);
+        if (fbDate) try { data = await loadInspectionByDate(fbDate, fbType); } catch {}
       }
       if (!data) return NextResponse.json({ error: 'ไม่พบข้อมูล' }, { status: 404 });
       return NextResponse.json(data);

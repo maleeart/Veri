@@ -281,6 +281,24 @@ function HomePageInner() {
     finally { setDeleting(null); }
   };
 
+  // ── download all Excel in a group ────────────────────────────────────────
+  const handleDownloadAll = (group, type) => {
+    group.forEach(({ date, filename, building, floor }, i) => {
+      setTimeout(() => {
+        const isList = type === 'emergency' || type === 'smoke';
+        if (isList) {
+          const params = new URLSearchParams({ type, date });
+          if (filename) params.set('filename', filename);
+          if (building) params.set('building', building);
+          if (floor)    params.set('floor', floor);
+          window.open(`/api/export-list?${params}`, '_blank');
+        } else {
+          window.open(`/api/export-combined?date=${date}`, '_blank');
+        }
+      }, i * 800);
+    });
+  };
+
   // ── download Excel ───────────────────────────────────────────────────────
   const handleDownload = (date, type = 'fpg', filename = null, building = '', floor = '') => {
     const isList = type === 'emergency' || type === 'smoke';
@@ -772,6 +790,13 @@ function HomePageInner() {
                   <span className="hist-group-count">{group.length}</span>
                   <span className="hist-group-arrow">{isOpen ? '⌄' : '›'}</span>
                 </button>
+                {isOpen && (
+                  <button className="btn-dl-all"
+                    style={{ borderLeft: `4px solid ${accent}` }}
+                    onClick={() => handleDownloadAll(group, type)}>
+                    ⬇︎ ดาวน์โหลดทั้งหมด ({group.length} ไฟล์)
+                  </button>
+                )}
                 {isOpen && group.map(({ date, building, floor, filename, _sha, _path }) => {
                   const dlKey = filename || date;
                   const location = [building, floor].filter(Boolean).join(' · ');
@@ -1209,6 +1234,21 @@ function HomePageInner() {
         .btn-dl--preview {
           background: #38bdf8;
         }
+        .btn-dl-all {
+          display: block;
+          width: calc(100% - 2px);
+          margin: 0 1px 4px;
+          padding: 8px 14px;
+          background: #f0fdf4;
+          color: #15803d;
+          border: 1px dashed #86efac;
+          border-radius: 10px;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          text-align: left;
+        }
+        .btn-dl-all:hover { background: #dcfce7; }
         .btn-dl:disabled { opacity: 0.5; }
         .btn-edit {
           background: var(--bg-surface-raised);
