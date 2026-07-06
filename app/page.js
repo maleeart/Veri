@@ -388,7 +388,65 @@ function HomePageInner() {
   return (
     <div className="root">
 
-      {/* ── Header ── */}
+      {/* ══ DESKTOP SIDE NAV (hidden on mobile) ══ */}
+      <nav className="sidenav">
+        <div className="sn-logo">
+          <Image src="/logo.png" alt="Veri" width={36} height={36} className="logo" priority />
+          <div>
+            <div className="sn-logo-title">Facility Inspection</div>
+            <div className="sn-logo-sub">ระบบบันทึกตรวจสอบ</div>
+          </div>
+        </div>
+
+        <div className="sn-section-label">บันทึกข้อมูล</div>
+        {[
+          { icon: '🚒⚡', label: 'Fire Pump & Generator', href: '/session', badge: hasDraft ? 'draft' : null },
+          { icon: '💡',   label: 'Emergency Light',        href: `/form/emergency?date=${today}` },
+          { icon: '🚨',   label: 'Smoke Detector',         href: `/form/smoke?date=${today}` },
+          { icon: '🚪',   label: 'Exit Sign',              href: `/form/exit?date=${today}` },
+          { icon: '⚡',   label: 'Meter กฟน.',             href: '/meter' },
+          { icon: '🏢',   label: 'Meter อาคาร',            href: '/building-meter' },
+        ].map(({ icon, label, href, badge }) => (
+          <button key={label} className="sn-item" onClick={() => router.push(href)}>
+            <span className="sn-item-icon">{icon}</span>
+            <span className="sn-item-label">{label}</span>
+            {badge && <span className="sn-item-badge">{badge}</span>}
+          </button>
+        ))}
+
+        <div className="sn-divider" />
+
+        <div className="sn-footer">
+          <div className="sn-user">
+            {session?.user?.image
+              ? <img src={session.user.image} alt="" className="sn-avatar" referrerPolicy="no-referrer" />
+              : <span className="sn-avatar-fallback">{session?.user?.name?.[0] || '?'}</span>}
+            <div className="sn-user-info">
+              <span className="sn-user-name">{session?.user?.name || '-'}</span>
+              <span className={`sn-role-chip role-chip--${role}`}>
+                {isAdmin ? '🔓 admin' : role === 'user' ? '✎ ผู้ใช้งาน' : '👁 ผู้เยี่ยมชม'}
+              </span>
+            </div>
+          </div>
+          <div className="sn-footer-btns">
+            {role !== 'visitor' && (
+              <button className="sn-icon-btn" title="สถานะคำขอ" onClick={openNotif}>
+                {notifOpened && !notifUnread ? '📭' : '✉️'}
+                {notifUnread && <span className="notif-badge">{notifCount}</span>}
+              </button>
+            )}
+            {isAdmin && (
+              <button className="sn-icon-btn" title="จัดการผู้ใช้" onClick={() => router.push('/admin')}>⚙️</button>
+            )}
+            <button className="sn-icon-btn" title="ออกจากระบบ" onClick={() => signOut({ callbackUrl: '/login' })}>🚪</button>
+          </div>
+        </div>
+      </nav>
+
+      {/* ══ DESKTOP MAIN (sidenav's right side) ══ */}
+      <div className="page-main">
+
+      {/* ── Header (mobile only) ── */}
       <header className="header">
         <Image src="/logo.png" alt="Veri" width={40} height={40} className="logo" priority />
         <div style={{flex:1}}>
@@ -993,6 +1051,7 @@ function HomePageInner() {
       </div>{/* /right-col */}
       </div>{/* /layout */}
 
+      </div>{/* /page-main */}
 
       <style jsx>{`
         /* ─── Root ─── */
@@ -1005,45 +1064,123 @@ function HomePageInner() {
           flex-direction: column;
         }
 
-        /* ─── Desktop layout ─── */
+        /* ─── Sidenav (desktop only) ─── */
+        .sidenav { display: none; }
+
+        /* ─── page-main (desktop: content beside sidenav) ─── */
+        .page-main { display: contents; }
+
+        /* ════ DESKTOP ≥900px ════ */
         @media (min-width: 900px) {
+          /* Shell: sidenav + page-main side by side */
           .root {
-            max-width: 1280px;
-            padding-bottom: 60px;
-          }
-          .layout {
-            display: flex;
+            max-width: none;
             flex-direction: row;
-            align-items: flex-start;
-            gap: 28px;
-            padding: 0 24px;
+            align-items: stretch;
+            padding-bottom: 0;
+            min-height: 100dvh;
           }
-          .left-col {
-            flex: 0 0 420px;
+          .sidenav {
+            display: flex;
+            flex-direction: column;
+            width: 240px;
+            flex-shrink: 0;
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border-hairline);
             position: sticky;
-            top: 24px;
+            top: 0;
+            height: 100dvh;
+            overflow-y: auto;
+            padding: 20px 12px;
+            gap: 2px;
           }
-          .right-col {
+          .page-main {
+            display: flex;
+            flex-direction: column;
             flex: 1;
             min-width: 0;
-            padding-top: 4px;
+            overflow-y: auto;
+            height: 100dvh;
           }
-          .grid {
-            padding: 16px 0 0;
-            grid-template-columns: 1fr 1fr 1fr;
+          /* Hide mobile header on desktop */
+          .header { display: none; }
+          /* Hide cards on desktop — sidenav handles nav */
+          .grid { display: none; }
+          /* Layout: single scrollable column on desktop */
+          .layout {
+            display: block;
+            padding: 0;
           }
-          .card--history,
-          .card--status {
-            display: none;
+          .left-col { display: none; }
+          .right-col {
+            padding: 24px 32px;
           }
-          .status-panel,
-          .history-panel {
-            margin: 0 0 16px;
-          }
-          .history-panel {
-            gap: 8px;
-          }
+          .status-panel { margin: 0 0 20px; }
+          .history-panel { margin: 0; gap: 8px; }
         }
+
+        /* ─── Sidenav internals ─── */
+        .sn-logo {
+          display: flex; align-items: center; gap: 10px;
+          padding: 4px 8px 16px;
+          border-bottom: 1px solid var(--border-hairline);
+          margin-bottom: 8px;
+        }
+        .sn-logo-title { font-size: 14px; font-weight: 800; color: var(--ink-primary); line-height: 1.2; }
+        .sn-logo-sub   { font-size: 11px; color: var(--ink-muted); }
+        .sn-section-label {
+          font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+          color: var(--ink-muted); text-transform: uppercase;
+          padding: 8px 10px 4px;
+        }
+        .sn-item {
+          display: flex; align-items: center; gap: 10px;
+          width: 100%; padding: 9px 10px; border: none;
+          background: transparent; border-radius: 10px;
+          cursor: pointer; text-align: left;
+          transition: background 0.12s;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .sn-item:hover { background: var(--bg-surface-raised); }
+        .sn-item-icon  { font-size: 18px; flex-shrink: 0; width: 24px; text-align: center; }
+        .sn-item-label { font-size: 13px; font-weight: 600; color: var(--ink-primary); flex: 1; }
+        .sn-item-badge {
+          font-size: 10px; font-weight: 700; padding: 2px 6px;
+          background: #fef3c7; color: #92400e;
+          border-radius: 6px; flex-shrink: 0;
+        }
+        .sn-divider {
+          height: 1px; background: var(--border-hairline);
+          margin: 8px 0;
+        }
+        .sn-footer { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+        .sn-user {
+          display: flex; align-items: center; gap: 8px;
+          padding: 8px 10px;
+          background: var(--bg-surface-raised);
+          border-radius: 10px;
+        }
+        .sn-avatar {
+          width: 30px; height: 30px; border-radius: 50%;
+          object-fit: cover; border: 2px solid var(--border-strong); flex-shrink: 0;
+        }
+        .sn-avatar-fallback {
+          width: 30px; height: 30px; border-radius: 50%;
+          background: var(--border-strong); color: var(--ink-primary);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 13px; font-weight: 700; flex-shrink: 0;
+        }
+        .sn-user-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .sn-user-name  { font-size: 12px; font-weight: 700; color: var(--ink-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sn-role-chip  { font-size: 10px; font-weight: 600; }
+        .sn-footer-btns { display: flex; gap: 4px; padding: 0 6px; }
+        .sn-icon-btn {
+          position: relative; background: none; border: none;
+          font-size: 18px; cursor: pointer; padding: 6px 8px;
+          border-radius: 8px; line-height: 1;
+          transition: background 0.12s;
+        }
+        .sn-icon-btn:hover { background: var(--bg-surface-raised); }
 
         /* ─── Header ─── */
         .header {
@@ -1052,9 +1189,6 @@ function HomePageInner() {
           gap: 14px;
           padding: 22px 20px 18px;
           border-bottom: 1px solid var(--border-hairline);
-        }
-        @media (min-width: 900px) {
-          .header { padding: 24px 48px 20px; }
         }
         .logo { border-radius: 10px; flex-shrink: 0; }
         .avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-strong); flex-shrink: 0; }
