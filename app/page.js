@@ -77,6 +77,7 @@ function HomePageInner() {
   const [dates, setDates] = useState(null);
   const [weeks, setWeeks] = useState([]); // Meter อาคาร: สัปดาห์จาก Energy-Dashboard/forms
   const [meterMonths, setMeterMonths] = useState({}); // year → [yearMonth]
+  const [isDesktop, setIsDesktop] = useState(false);
   const [githubOk, setGithubOk] = useState(null);
   const [githubError, setGithubError] = useState('');
   const [downloading, setDownloading] = useState(null);
@@ -195,6 +196,14 @@ function HomePageInner() {
 
   useEffect(() => {
     fetch('/api/building-meter-weeks').then(r => r.json()).then(d => setWeeks(d.weeks || [])).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 900px)');
+    setIsDesktop(mq.matches);
+    const handler = e => setIsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
   }, []);
 
   // โหลด meter months เมื่อเปิด history หรือเปลี่ยนปีที่เลือก
@@ -633,6 +642,9 @@ function HomePageInner() {
         </div>
       )}
 
+      {/* ── Two-column layout ── */}
+      <div className="layout">
+      <div className="left-col">
       {/* ── Card Grid ── */}
       <main className="grid">
 
@@ -739,9 +751,11 @@ function HomePageInner() {
         )}
 
       </main>
+      </div>{/* /left-col */}
 
+      <div className="right-col">
       {/* ── Building Status Panel ── */}
-      {showStatus && statusRows.length > 0 && (
+      {(showStatus || isDesktop) && statusRows.length > 0 && (
         <section className="status-panel">
           <h3 className="status-title">⚠ ต้องดำเนินการ</h3>
           <div className="status-header-row">
@@ -769,7 +783,7 @@ function HomePageInner() {
       )}
 
       {/* ── History panel ── */}
-      {showHistory && (
+      {(showHistory || isDesktop) && (
         <section className="history-panel">
           {githubOk === false && <p className="history-empty">⚠ ต้องตั้งค่า GitHub token ก่อน</p>}
           {dates?.length === 0 && weekRows.length === 0 && <p className="history-empty">ยังไม่มีประวัติ</p>}
@@ -976,6 +990,8 @@ function HomePageInner() {
           })()}
         </section>
       )}
+      </div>{/* /right-col */}
+      </div>{/* /layout */}
 
 
       <style jsx>{`
@@ -989,6 +1005,46 @@ function HomePageInner() {
           flex-direction: column;
         }
 
+        /* ─── Desktop layout ─── */
+        @media (min-width: 900px) {
+          .root {
+            max-width: 1280px;
+            padding-bottom: 60px;
+          }
+          .layout {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 28px;
+            padding: 0 24px;
+          }
+          .left-col {
+            flex: 0 0 420px;
+            position: sticky;
+            top: 24px;
+          }
+          .right-col {
+            flex: 1;
+            min-width: 0;
+            padding-top: 4px;
+          }
+          .grid {
+            padding: 16px 0 0;
+            grid-template-columns: 1fr 1fr 1fr;
+          }
+          .card--history,
+          .card--status {
+            display: none;
+          }
+          .status-panel,
+          .history-panel {
+            margin: 0 0 16px;
+          }
+          .history-panel {
+            gap: 8px;
+          }
+        }
+
         /* ─── Header ─── */
         .header {
           display: flex;
@@ -996,6 +1052,9 @@ function HomePageInner() {
           gap: 14px;
           padding: 22px 20px 18px;
           border-bottom: 1px solid var(--border-hairline);
+        }
+        @media (min-width: 900px) {
+          .header { padding: 24px 48px 20px; }
         }
         .logo { border-radius: 10px; flex-shrink: 0; }
         .avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-strong); flex-shrink: 0; }
