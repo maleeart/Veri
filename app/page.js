@@ -863,6 +863,18 @@ function HomePageInner() {
                 <span className="hist-group-count">{filteredWeeks.length}</span>
                 <span className="hist-group-arrow">{openGroups.has('building-meter') ? '⌄' : '›'}</span>
               </button>
+              {openGroups.has('building-meter') && (
+                <button className="btn-dl-all"
+                  style={{ borderLeft: '4px solid #6366f1' }}
+                  onClick={() => filteredWeeks.forEach(({ week }, i) => setTimeout(() => {
+                    const a = document.createElement('a');
+                    a.href = `/api/export-building-meter?week=${week}`;
+                    a.download = '';
+                    document.body.appendChild(a); a.click(); a.remove();
+                  }, i * 1200))}>
+                  ⬇︎ ดาวน์โหลดทั้งหมด ({filteredWeeks.length} ไฟล์)
+                </button>
+              )}
               {openGroups.has('building-meter') && filteredWeeks.map(({ week, label }) => (
                 <div key={week} className="hist-row">
                   <div className="hist-info">
