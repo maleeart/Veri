@@ -215,6 +215,16 @@ async function loadInspectionByDate(date, type = 'fpg', building = '', floor = '
   return loadSessionByDate(date, type, building, floor);
 }
 
+/** ดึงข้อมูลจาก _path ตรงๆ (จาก listInspectionDates) — แม่นที่สุด ไม่ต้อง reconstruct */
+async function loadInspectionByPath(filePath) {
+  const { owner, repo, branch } = cfg();
+  const res = await ghReq(`/repos/${owner}/${repo}/contents/${encPath(filePath)}?ref=${branch}`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`โหลดไม่สำเร็จ HTTP ${res.status}`);
+  const json = await res.json();
+  return JSON.parse(Buffer.from(json.content, 'base64').toString('utf-8'));
+}
+
 /** ดึงข้อมูลจาก filename โดยตรง — รองรับทั้ง path เก่าและใหม่ */
 async function loadInspectionByFilename(filename) {
   const { owner, repo, branch } = cfg();
@@ -247,5 +257,6 @@ module.exports = {
   loadSessionByDate,
   loadInspectionByDate,
   loadInspectionByFilename,
+  loadInspectionByPath,
   listInspectionDates,
 };

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { listInspectionDates, loadInspectionByDate, loadInspectionByFilename } from '../../../src/lib/githubStorage';
+import { listInspectionDates, loadInspectionByDate, loadInspectionByFilename, loadInspectionByPath } from '../../../src/lib/githubStorage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -9,6 +9,14 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const filename = searchParams.get('filename');
     const date = searchParams.get('date');
+
+    const ghPath = searchParams.get('path');
+    if (ghPath) {
+      let data = null;
+      try { data = await loadInspectionByPath(ghPath); } catch {}
+      if (!data) return NextResponse.json({ error: 'ไม่พบข้อมูล' }, { status: 404 });
+      return NextResponse.json(data);
+    }
 
     if (filename) {
       let data = null;

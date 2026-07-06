@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 
 const v = (val, unit = '') => {
   if (val === undefined || val === null || val === '') return '–';
@@ -11,14 +11,20 @@ const v = (val, unit = '') => {
 // ─── Main loader ──────────────────────────────────────────────────────────────
 function ReportInner() {
   const { filename } = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const [data, setData] = useState(null);
   const [fieldMap, setFieldMap] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // ใช้ path ตรงๆ ถ้ามี (แม่นกว่าการ reconstruct จาก filename)
+    const ghPath = searchParams.get('path');
+    const url = ghPath
+      ? `/api/inspections?path=${encodeURIComponent(ghPath)}`
+      : `/api/inspections?filename=${encodeURIComponent(filename)}`;
     Promise.all([
-      fetch(`/api/inspections?filename=${encodeURIComponent(filename)}`).then(r => {
+      fetch(url).then(r => {
         if (!r.ok) throw new Error('ไม่พบข้อมูล (filename: ' + filename + ')');
         return r.json();
       }),

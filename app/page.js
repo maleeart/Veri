@@ -283,19 +283,26 @@ function HomePageInner() {
 
   // ── download all Excel in a group ────────────────────────────────────────
   const handleDownloadAll = (group, type) => {
+    const isList = type === 'emergency' || type === 'smoke';
     group.forEach(({ date, filename, building, floor }, i) => {
       setTimeout(() => {
-        const isList = type === 'emergency' || type === 'smoke';
+        let href;
         if (isList) {
           const params = new URLSearchParams({ type, date });
           if (filename) params.set('filename', filename);
           if (building) params.set('building', building);
           if (floor)    params.set('floor', floor);
-          window.open(`/api/export-list?${params}`, '_blank');
+          href = `/api/export-list?${params}`;
         } else {
-          window.open(`/api/export-combined?date=${date}`, '_blank');
+          href = `/api/export-combined?date=${date}`;
         }
-      }, i * 800);
+        const a = document.createElement('a');
+        a.href = href;
+        a.download = '';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }, i * 1200);
     });
   };
 
@@ -800,6 +807,8 @@ function HomePageInner() {
                 {isOpen && group.map(({ date, building, floor, filename, _sha, _path }) => {
                   const dlKey = filename || date;
                   const location = [building, floor].filter(Boolean).join(' · ');
+                  const stem = filename || `${type}_${date}`;
+                  const previewUrl = `/report/${encodeURIComponent(stem)}${_path ? `?path=${encodeURIComponent(_path)}` : ''}`;
                   return (
                     <div key={filename || `${type}_${date}`}
                       className={`hist-row ${date === today ? 'hist-row--today' : ''}`}>
@@ -809,7 +818,7 @@ function HomePageInner() {
                       </div>
                       <div className="hist-actions">
                         <button className="btn-dl btn-dl--preview"
-                          onClick={() => router.push(`/report/${encodeURIComponent(filename || `${type}_${date}`)}`)}>
+                          onClick={() => router.push(previewUrl)}>
                           Preview
                         </button>
                         <button className="btn-dl" disabled={!!downloading}
