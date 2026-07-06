@@ -9,9 +9,8 @@ const sanitize = s => String(s || '').replace(/[\\/:*?"<>|]/g, '').trim();
 
 async function buildResponse(date, general, devices) {
   const buffer = await generateExitReport('exit', { date, general, devices });
-  const building = sanitize(general?.building);
-  const floor    = sanitize(general?.floor);
-  const parts = [`Exit_report_${date}`, building, floor].filter(Boolean);
+  const floor = sanitize(general?.floor);
+  const parts = [`Exit Sign_${date}`, floor].filter(Boolean);
   const fname = parts.join('_') + '.xlsx';
   const ascii = fname.replace(/[^\x20-\x7E]/g, '_');
   return new NextResponse(buffer, {

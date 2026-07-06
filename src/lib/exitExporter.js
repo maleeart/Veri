@@ -30,9 +30,13 @@ async function generateExitReport(type, data) {
     ws.getCell(`A${row}`).value = dev.id       || '';
     ws.getCell(`B${row}`).value = dev.location || '';
 
-    // signType → ตีสัญลักษณ์ในคอลัมน์ที่ตรง
+    // signType → ตีสัญลักษณ์ในคอลัมน์ที่ตรง (center)
     const col = SIGN_COL[dev.signType];
-    if (col) ws.getCell(`${col}${row}`).value = '✓';
+    if (col) {
+      const cell = ws.getCell(`${col}${row}`);
+      cell.value = '✓';
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    }
 
     ws.getCell(`H${row}`).value = dev.letterLight === 'normal' ? 'ปกติ' : dev.letterLight === 'abnormal' ? 'ผิดปกติ' : '';
     ws.getCell(`I${row}`).value = dev.statusLight === 'normal' ? 'ปกติ' : dev.statusLight === 'abnormal' ? 'ผิดปกติ' : '';
