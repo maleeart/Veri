@@ -78,10 +78,10 @@
       },
       {
         "location": "ห้องอาหาร ชั้น1",
-        "remarks": "",
+        "remarks": "Heat Detector",
         "zone": "5",
         "externalCondition": "normal",
-        "cleaned": "yes",
+        "cleaned": "no",
         "workingCondition": "normal"
       },
       {
@@ -142,10 +142,10 @@
       },
       {
         "location": "ห้องอาหาร ชั้น2",
-        "remarks": "",
+        "remarks": "Heat Detector",
         "zone": "8",
         "externalCondition": "normal",
-        "cleaned": "yes",
+        "cleaned": "no",
         "workingCondition": "normal"
       },
       {
@@ -164,6 +164,7 @@
         "cleaned": "yes",
         "workingCondition": "normal"
       }
-    ]
+    ],
+    "editReason": "เพิ่มข้อมูลใน zone ห้องอาหาร"
   }
 }
