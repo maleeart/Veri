@@ -55,7 +55,7 @@ async function generateListReport(type, data) {
       ws.getCell(`A${row}`).value = dev.zone     || '';
       ws.getCell(`B${row}`).value = dev.location || '';
       ws.getCell(`C${row}`).value = dev.externalCondition === 'normal'    ? 'ปกติ'       : dev.externalCondition === 'dirty'      ? 'สกปรก'     : '';
-      ws.getCell(`D${row}`).value = dev.cleaned  === 'yes'                ? '✓'          : '';
+      ws.getCell(`D${row}`).value = dev.cleaned  === 'yes'                ? '✓'          : dev.cleaned === 'no' ? 'X' : '';
       ws.getCell(`E${row}`).value = dev.workingCondition  === 'normal'    ? 'ปกติ'       : dev.workingCondition  === 'not_working'? 'ไม่ทำงาน'  : '';
       if (dev.remarks) ws.getCell(`F${row}`).value = dev.remarks;
     }
