@@ -67,18 +67,6 @@ function makeDevice(cfg) {
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function FormPage() {
-  return (
-    <Suspense fallback={
-      <div style={{ minHeight:'100dvh', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--ink-muted)' }}>
-        กำลังโหลด...
-      </div>
-    }>
-      <FormPageInner />
-    </Suspense>
-  );
-}
-
 function FormPageInner() {
   const { type } = useParams();
   const router = useRouter();
@@ -546,6 +534,18 @@ function FormPageInner() {
     </div>
     </div>
     </div>
+  );
+}
+
+export default function FormPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight:'100dvh', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--ink-muted)' }}>
+        กำลังโหลด...
+      </div>
+    }>
+      <FormPageInner />
+    </Suspense>
   );
 }
 
