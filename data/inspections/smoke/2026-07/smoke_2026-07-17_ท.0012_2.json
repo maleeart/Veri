@@ -1,0 +1,153 @@
+{
+  "date": "2026-07-17",
+  "type": "smoke",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-07-17",
+      "building": "ท.0012",
+      "floor": "2",
+      "inspector": "ธนวิชญ์",
+      "model": "SD-651",
+      "serial": "",
+      "mfg": "Notifier "
+    },
+    "devices": [
+      {
+        "location": "ห้องสำนักงาน กมน-ธ.",
+        "remarks": "",
+        "zone": "1",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องพักพนักงาน กมน-ธ.",
+        "remarks": "",
+        "zone": "2",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องสำนักงาน รฟก-ธ.",
+        "remarks": "",
+        "zone": "3",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องสำนักงาน กบคค-ธ.",
+        "remarks": "",
+        "zone": "4",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องน้ำชาย",
+        "remarks": "",
+        "zone": "5",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องโถงหน้าประตู",
+        "remarks": "",
+        "zone": "6",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "โถงทางเดิน",
+        "remarks": "",
+        "zone": "7",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องหัวหน้า กฟน-ธ.",
+        "remarks": "",
+        "zone": "8",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องหัวหน้า กบคค-ธ.",
+        "remarks": "",
+        "zone": "9",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องประชุม 4",
+        "remarks": "",
+        "zone": "10",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องประชุม 3",
+        "remarks": "",
+        "zone": "11",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องน้ำหญิง",
+        "remarks": "",
+        "zone": "12",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องอาหาร",
+        "remarks": "Heat Detector",
+        "zone": "13",
+        "externalCondition": "normal",
+        "cleaned": "no",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องหัวหน้า กมน-ธ.",
+        "remarks": "",
+        "zone": "14",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องประชุม 5",
+        "remarks": "",
+        "zone": "15",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องระบบไฟฟ้า",
+        "remarks": "",
+        "zone": "16",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องชุมสายโทรศัพท์",
+        "remarks": "",
+        "zone": "17",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      }
+    ]
+  }
+}
