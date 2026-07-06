@@ -37,8 +37,9 @@ function ReportInner() {
   if (error) return <div style={{ padding: 40, color: '#c03232', fontFamily: 'sans-serif' }}>❌ {error}</div>;
   if (!data || !fieldMap) return <div style={{ padding: 40, color: '#666', fontFamily: 'sans-serif' }}>กำลังโหลดข้อมูล...</div>;
 
-  const isFpg = data.type === 'fpg';
-  const typeLabel = isFpg ? 'Fire Pump & Generator' : data.type === 'emergency' ? 'Emergency Light' : 'Smoke Detector';
+  const isFpg  = data.type === 'fpg';
+  const isExit = data.type === 'exit';
+  const typeLabel = isFpg ? 'Fire Pump & Generator' : isExit ? 'Exit Sign' : data.type === 'emergency' ? 'Emergency Light' : 'Smoke Detector';
 
   return (
     <div className="rp-root">
@@ -52,7 +53,9 @@ function ReportInner() {
       <div className="rp-pages">
         {isFpg
           ? <FpgReport data={data} fieldMap={fieldMap} />
-          : <ListReport data={data} fieldMap={fieldMap} />
+          : isExit
+            ? <ExitReport data={data} />
+            : <ListReport data={data} fieldMap={fieldMap} />
         }
       </div>
 
@@ -574,6 +577,75 @@ function ListReport({ data, fieldMap }) {
           </tbody>
         </table>
       )}
+    </div>
+  );
+}
+
+const SIGN_LABEL = { exit: 'Exit', up: 'ชี้ขึ้น', right: 'ชี้ขวา', left: 'ชี้ซ้าย', double: 'สองด้าน' };
+
+function ExitReport({ data }) {
+  const { general = {}, devices = [] } = data.records || {};
+  const passCount = devices.filter(d => d.letterLight === 'normal').length;
+  return (
+    <div className="a4-page">
+      <div className="form-header">
+        <img src="/assets/shared/egat-logo.jpg" alt="EGAT" className="form-header-logo" />
+        <div className="form-header-center">
+          <span className="form-org">การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย · สำนักงานไทรน้อย</span>
+          <span className="form-title">รายงานตรวจสอบป้ายทางออกฉุกเฉิน (Exit Sign)</span>
+        </div>
+        <div className="form-header-right">
+          <div className="form-date-label">วันที่ตรวจสอบ</div>
+          <div className="form-date-val">{general.inspectionDate || data.date}</div>
+        </div>
+      </div>
+      <table className="info-table" style={{ marginBottom: '8pt' }}>
+        <tbody>
+          <tr>
+            <td className="lbl">ผู้ตรวจสอบ</td><td>{general.inspector || '–'}</td>
+            <td className="lbl">อาคาร</td><td>{general.building || '–'}</td>
+            <td className="lbl">ชั้น / โซน</td><td>{general.floor || '–'}</td>
+          </tr>
+          <tr>
+            <td className="lbl">Model</td><td>{general.model || '–'}</td>
+            <td className="lbl">Serial No.</td><td>{general.serial || '–'}</td>
+            <td className="lbl">ผู้ผลิต</td><td>{general.mfg || '–'}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style={{ display: 'flex', gap: '8pt', marginBottom: '8pt', fontSize: '9pt' }}>
+        <span style={{ border: '1px solid #14532d', borderRadius: '4pt', padding: '3pt 10pt', color: '#14532d', fontWeight: 700 }}>ปกติ: {passCount} จุด</span>
+        {devices.length - passCount > 0 && (
+          <span style={{ border: '1px solid #7f1d1d', borderRadius: '4pt', padding: '3pt 10pt', color: '#7f1d1d', fontWeight: 700 }}>ผิดปกติ: {devices.length - passCount} จุด</span>
+        )}
+        <span style={{ border: '1px solid #444', borderRadius: '4pt', padding: '3pt 10pt', color: '#000' }}>รวม: {devices.length} จุด</span>
+      </div>
+      <table className="r-tbl">
+        <thead>
+          <tr>
+            <th style={{ width: '5%' }}>#</th>
+            <th style={{ width: '12%' }}>รหัส / ID</th>
+            <th style={{ textAlign: 'left' }}>ตำแหน่งติดตั้ง</th>
+            <th style={{ width: '12%' }}>รูปแบบ</th>
+            <th style={{ width: '11%' }}>ไฟตัวหนังสือ</th>
+            <th style={{ width: '11%' }}>ไฟสถานะ</th>
+            <th style={{ width: '16%' }}>หมายเหตุ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {devices.map((d, i) => (
+            <tr key={i}>
+              <td className="c">{i + 1}</td>
+              <td className="c">{d.id || '–'}</td>
+              <td>{d.location || '–'}</td>
+              <td className="c">{SIGN_LABEL[d.signType] || '–'}</td>
+              <td className="c">{d.letterLight === 'normal' ? <span className="norm">ปกติ</span> : <span className="abno">ผิดปกติ</span>}</td>
+              <td className="c">{d.statusLight === 'normal' ? <span className="norm">ปกติ</span> : <span className="abno">ผิดปกติ</span>}</td>
+              <td>{d.remarks || ''}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

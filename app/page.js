@@ -151,13 +151,16 @@ function HomePageInner() {
     if (!dates) return [];
     const smokeMap = lastDoneByBuilding(dates, 'smoke');
     const emerMap  = lastDoneByBuilding(dates, 'emergency');
+    const exitMap  = lastDoneByBuilding(dates, 'exit');
     return BUILDINGS.map(b => ({
       b,
       smoke: getStatus(smokeMap[b]),
       emer:  getStatus(emerMap[b]),
+      exit:  getStatus(exitMap[b]),
       smokeDate: smokeMap[b],
       emerDate:  emerMap[b],
-    })).filter(r => r.smoke !== 'ok' || r.emer !== 'ok');
+      exitDate:  exitMap[b],
+    })).filter(r => r.smoke !== 'ok' || r.emer !== 'ok' || r.exit !== 'ok');
   }, [dates]);
 
   // default selectedYear = ปีล่าสุดที่มีข้อมูล (ตั้งค่าครั้งเดียวหลังโหลด)
@@ -284,10 +287,17 @@ function HomePageInner() {
   // ── download all Excel in a group ────────────────────────────────────────
   const handleDownloadAll = (group, type) => {
     const isList = type === 'emergency' || type === 'smoke';
+    const isExit = type === 'exit';
     group.forEach(({ date, filename, building, floor }, i) => {
       setTimeout(() => {
         let href;
-        if (isList) {
+        if (isExit) {
+          const params = new URLSearchParams({ date });
+          if (filename) params.set('filename', filename);
+          if (building) params.set('building', building);
+          if (floor)    params.set('floor', floor);
+          href = `/api/export-exit?${params}`;
+        } else if (isList) {
           const params = new URLSearchParams({ type, date });
           if (filename) params.set('filename', filename);
           if (building) params.set('building', building);
@@ -308,9 +318,16 @@ function HomePageInner() {
 
   // ── download Excel ───────────────────────────────────────────────────────
   const handleDownload = (date, type = 'fpg', filename = null, building = '', floor = '') => {
+    if (type === 'exit') {
+      const params = new URLSearchParams({ date });
+      if (filename) params.set('filename', filename);
+      if (building) params.set('building', building);
+      if (floor)    params.set('floor', floor);
+      window.location.href = `/api/export-exit?${params}`;
+      return;
+    }
     const isList = type === 'emergency' || type === 'smoke';
     if (isList) {
-      // GET endpoint — works on mobile (browser handles download natively)
       const params = new URLSearchParams({ type, date });
       if (filename) params.set('filename', filename);
       if (building) params.set('building', building);
@@ -318,7 +335,6 @@ function HomePageInner() {
       window.location.href = `/api/export-list?${params}`;
       return;
     }
-    // FPG → GET endpoint (mobile-compatible, same pattern as emergency/smoke)
     window.location.href = `/api/export-combined?date=${date}`;
   };
 
@@ -709,8 +725,9 @@ function HomePageInner() {
             <span className="status-col-b"></span>
             <span className="status-col">💡 Emer</span>
             <span className="status-col">🚨 Smoke</span>
+            <span className="status-col">🚪 Exit</span>
           </div>
-          {statusRows.map(({ b, smoke, emer, smokeDate, emerDate }) => (
+          {statusRows.map(({ b, smoke, emer, exit, smokeDate, emerDate, exitDate }) => (
             <div key={b} className="status-row">
               <span className="status-col-b">{b}</span>
               <span className="status-col" title={`${STATUS_LABEL[emer]}${emerDate ? ' · ' + emerDate : ''}`}>
@@ -718,6 +735,9 @@ function HomePageInner() {
               </span>
               <span className="status-col" title={`${STATUS_LABEL[smoke]}${smokeDate ? ' · ' + smokeDate : ''}`}>
                 {STATUS_BADGE[smoke]}
+              </span>
+              <span className="status-col" title={`${STATUS_LABEL[exit]}${exitDate ? ' · ' + exitDate : ''}`}>
+                {STATUS_BADGE[exit]}
               </span>
             </div>
           ))}
@@ -784,6 +804,7 @@ function HomePageInner() {
             { type: 'fpg',       icon: '🚒⚡', label: 'Fire Pump & Generator', accent: '#2563eb' },
             { type: 'emergency', icon: '💡',   label: 'Emergency Light',        accent: '#16a34a' },
             { type: 'smoke',     icon: '🚨',   label: 'Smoke Detector',         accent: '#0e7490' },
+            { type: 'exit',      icon: '🚪',   label: 'Exit Sign',              accent: '#7c3aed' },
           ].map(({ type, icon, label, accent }) => {
             const group = filteredDates.filter(d => d.type === type);
             if (!group.length) return null;

@@ -38,6 +38,24 @@ const FORM_CONFIG = {
       { key: 'workingCondition',  label: 'สภาพการทำงาน', opts: [{ v: 'normal', l: 'ปกติ',    c: '#16a34a' }, { v: 'not_working', l: 'ไม่ทำงาน', c: '#dc2626' }] },
     ],
   },
+  exit: {
+    title: 'Exit Sign',
+    icon: '🚪',
+    color: '#7c3aed',
+    idLabel: 'ID / รหัสอุปกรณ์',
+    idKey: 'id',
+    fields: [
+      { key: 'letterLight', label: 'ไฟตัวหนังสือ', opts: [{ v: 'normal', l: 'ปกติ', c: '#16a34a' }, { v: 'abnormal', l: 'ผิดปกติ', c: '#dc2626' }] },
+      { key: 'statusLight', label: 'ไฟสถานะ',      opts: [{ v: 'normal', l: 'ปกติ', c: '#16a34a' }, { v: 'abnormal', l: 'ผิดปกติ', c: '#dc2626' }] },
+      { key: 'signType',    label: 'รูปแบบป้าย',   opts: [
+        { v: 'exit',   l: 'Exit',    c: '#4b5563' },
+        { v: 'up',     l: 'ชี้ขึ้น',  c: '#4b5563' },
+        { v: 'right',  l: 'ชี้ขวา',  c: '#4b5563' },
+        { v: 'left',   l: 'ชี้ซ้าย', c: '#4b5563' },
+        { v: 'double', l: 'สองด้าน', c: '#4b5563' },
+      ]},
+    ],
+  },
 };
 
 function makeDevice(cfg) {
