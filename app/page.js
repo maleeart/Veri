@@ -76,6 +76,8 @@ function HomePageInner() {
 
   const [dates, setDates] = useState(null);
   const [weeks, setWeeks] = useState([]); // Meter อาคาร: สัปดาห์จาก Energy-Dashboard/forms
+  const [meterMonths, setMeterMonths] = useState({}); // year → [yearMonth]
+  const [meterHistYear, setMeterHistYear] = useState(String(new Date().getFullYear()));
   const [githubOk, setGithubOk] = useState(null);
   const [githubError, setGithubError] = useState('');
   const [downloading, setDownloading] = useState(null);
@@ -195,6 +197,15 @@ function HomePageInner() {
   useEffect(() => {
     fetch('/api/building-meter-weeks').then(r => r.json()).then(d => setWeeks(d.weeks || [])).catch(() => {});
   }, []);
+
+  // โหลด meter months เมื่อเปลี่ยนปี หรือเปิด history
+  useEffect(() => {
+    if (!showHistory || meterMonths[meterHistYear] !== undefined) return;
+    fetch(`/api/meter-months?year=${meterHistYear}`)
+      .then(r => r.json())
+      .then(d => setMeterMonths(prev => ({ ...prev, [meterHistYear]: d.months || [] })))
+      .catch(() => setMeterMonths(prev => ({ ...prev, [meterHistYear]: [] })));
+  }, [showHistory, meterHistYear]);
 
   // ── notification panel ───────────────────────────────────────────────────
   const loadNotif = () => {
@@ -663,6 +674,18 @@ function HomePageInner() {
           <span className="card__arrow">›</span>
         </button>
 
+        {/* Card 3b — Exit Sign */}
+        <button
+          className="card card--exit"
+          onClick={() => router.push(`/form/exit?date=${today}`)}>
+          <span className="card__icon">🚪</span>
+          <div className="card__body">
+            <span className="card__title">Exit Sign</span>
+            <span className="card__sub">ไฟทางออกฉุกเฉิน</span>
+          </div>
+          <span className="card__arrow">›</span>
+        </button>
+
         {/* Card 4 — Meter กฟน. */}
         <button
           className="card card--meter"
@@ -874,7 +897,7 @@ function HomePageInner() {
             );
           })}
 
-          {/* Meter อาคาร — รายสัปดาห์จาก Energy-Dashboard (แสดงวันที่จด = วันศุกร์ของสัปดาห์) */}
+          {/* Meter อาคาร — รายสัปดาห์จาก Energy-Dashboard */}
           {filteredWeeks.length > 0 && (
             <div className="hist-group">
               <button className="hist-group-hd" onClick={() => toggleGroup('building-meter')}
@@ -884,18 +907,6 @@ function HomePageInner() {
                 <span className="hist-group-count">{filteredWeeks.length}</span>
                 <span className="hist-group-arrow">{openGroups.has('building-meter') ? '⌄' : '›'}</span>
               </button>
-              {openGroups.has('building-meter') && (
-                <button className="btn-dl-all"
-                  style={{ borderLeft: '4px solid #6366f1' }}
-                  onClick={() => filteredWeeks.forEach(({ week }, i) => setTimeout(() => {
-                    const a = document.createElement('a');
-                    a.href = `/api/export-building-meter?week=${week}`;
-                    a.download = '';
-                    document.body.appendChild(a); a.click(); a.remove();
-                  }, i * 1200))}>
-                  ⬇︎ ดาวน์โหลดทั้งหมด ({filteredWeeks.length} ไฟล์)
-                </button>
-              )}
               {openGroups.has('building-meter') && filteredWeeks.map(({ week, label }) => (
                 <div key={week} className="hist-row">
                   <div className="hist-info">
@@ -915,6 +926,65 @@ function HomePageInner() {
               ))}
             </div>
           )}
+
+          {/* Meter กฟน. — รายเดือน/รายปี */}
+          {(() => {
+            const months = meterMonths[meterHistYear];
+            const isOpen = openGroups.has('meter-gfn');
+            const meterYears = [String(new Date().getFullYear()), String(new Date().getFullYear() - 1), String(new Date().getFullYear() - 2), String(new Date().getFullYear() - 3)];
+            return (
+              <div className="hist-group">
+                <button className="hist-group-hd" onClick={() => toggleGroup('meter-gfn')}
+                  style={{ borderLeft: '4px solid #d97706' }}>
+                  <span className="hist-group-icon">⚡</span>
+                  <span className="hist-group-label">Meter กฟน.</span>
+                  <span className="hist-group-count">{months?.length ?? '…'}</span>
+                  <span className="hist-group-arrow">{isOpen ? '⌄' : '›'}</span>
+                </button>
+                {isOpen && (
+                  <div className="meter-gfn-ctrl" style={{ borderLeft: '4px solid #d97706' }}>
+                    <select className="filter-select"
+                      value={meterHistYear}
+                      onChange={e => {
+                        setMeterHistYear(e.target.value);
+                        setMeterMonths(prev => ({ ...prev })); // trigger effect
+                      }}>
+                      {meterYears.map(y => (
+                        <option key={y} value={y}>{parseInt(y) + 543}</option>
+                      ))}
+                    </select>
+                    <button className="btn-dl-all" style={{ flex: 1 }}
+                      onClick={() => { window.location.href = `/api/export-meter?year=${meterHistYear}`; }}>
+                      ⬇︎ Export รายปี {parseInt(meterHistYear) + 543}
+                    </button>
+                  </div>
+                )}
+                {isOpen && !months && (
+                  <div className="hist-row"><span style={{ color: 'var(--ink-muted)', fontSize: 13 }}>กำลังโหลด...</span></div>
+                )}
+                {isOpen && months?.length === 0 && (
+                  <div className="hist-row"><span style={{ color: 'var(--ink-muted)', fontSize: 13 }}>ไม่มีข้อมูลปีนี้</span></div>
+                )}
+                {isOpen && months?.map(ym => {
+                  const [, m] = ym.split('-');
+                  const label = `${THAI_MONTHS[parseInt(m) - 1]} ${parseInt(ym.slice(0, 4)) + 543}`;
+                  return (
+                    <div key={ym} className="hist-row">
+                      <div className="hist-info">
+                        <span className="hist-location">{label}</span>
+                        <span className="hist-date">{ym}</span>
+                      </div>
+                      <div className="hist-actions">
+                        <button className="btn-dl" onClick={() => { window.location.href = `/api/export-meter?month=${ym}`; }}>
+                          ⬇︎ Excel
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </section>
       )}
 
@@ -1032,6 +1102,18 @@ function HomePageInner() {
         .card--smoke .card__title { color: #fff; font-size: 15px; }
         .card--smoke .card__sub   { color: rgba(255,255,255,0.75); }
         .card--smoke .card__arrow { color: rgba(255,255,255,0.7); margin-left: auto; }
+
+        /* Exit Sign — violet */
+        .card--exit {
+          background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+          box-shadow: 0 6px 18px rgba(124,58,237,0.35);
+          min-height: 72px;
+          gap: 12px;
+        }
+        .card--exit .card__icon  { font-size: 26px; }
+        .card--exit .card__title { color: #fff; font-size: 15px; }
+        .card--exit .card__sub   { color: rgba(255,255,255,0.75); }
+        .card--exit .card__arrow { color: rgba(255,255,255,0.7); margin-left: auto; }
 
         /* Meter กฟน. — amber */
         .card--meter {
@@ -1296,6 +1378,11 @@ function HomePageInner() {
         }
         .btn-dl-all:hover { background: #dcfce7; }
         .btn-dl:disabled { opacity: 0.5; }
+        .meter-gfn-ctrl {
+          display: flex; align-items: center; gap: 8px;
+          padding: 8px 12px; background: var(--bg-surface);
+          border-bottom: 1px solid var(--border-hairline);
+        }
         .btn-edit {
           background: var(--bg-surface-raised);
           border: 1px solid var(--border-strong);
