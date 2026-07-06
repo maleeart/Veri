@@ -700,19 +700,25 @@ function HomePageInner() {
           <div className="report-header">
             <h2 className="report-title">📊 รายงานการตรวจสอบ</h2>
           </div>
+          <div className="report-cats">
+            {[
+              { key: '', icon: '📋', label: 'ทั้งหมด' },
+              { key: 'fpg',           icon: '🚒⚡', label: 'Fire Pump & Generator' },
+              { key: 'emergency',     icon: '💡',   label: 'Emergency Light' },
+              { key: 'smoke',         icon: '🚨',   label: 'Smoke Detector' },
+              { key: 'exit',          icon: '🚪',   label: 'Exit Sign' },
+              { key: 'meter-gfn',     icon: '⚡',   label: 'Meter กฟน.' },
+              { key: 'building-meter',icon: '🏢',   label: 'Meter อาคาร' },
+            ].map(({ key, icon, label }) => (
+              <button key={key}
+                className={`report-cat${reportType === key ? ' report-cat--active' : ''}`}
+                onClick={() => setReportType(key)}>
+                <span className="report-cat-icon">{icon}</span>
+                <span className="report-cat-label">{label}</span>
+              </button>
+            ))}
+          </div>
           <div className="report-filters">
-            <div className="filter-col">
-              <label className="filter-label">ประเภท</label>
-              <select className="filter-select" value={reportType} onChange={e => setReportType(e.target.value)}>
-                <option value="">ทั้งหมด</option>
-                <option value="fpg">🚒⚡ Fire Pump & Generator</option>
-                <option value="emergency">💡 Emergency Light</option>
-                <option value="smoke">🚨 Smoke Detector</option>
-                <option value="exit">🚪 Exit Sign</option>
-                <option value="building-meter">🏢 Meter อาคาร</option>
-                <option value="meter-gfn">⚡ Meter กฟน.</option>
-              </select>
-            </div>
             <div className="filter-col">
               <label className="filter-label">ปี</label>
               <select className="filter-select" value={selectedYear || ''} onChange={e => setSelectedYear(e.target.value || null)}>
@@ -1596,6 +1602,21 @@ function HomePageInner() {
         /* ─── Report View ─── */
         .report-header { margin-bottom: 16px; }
         .report-title  { font-size: 20px; font-weight: 800; color: var(--ink-primary); margin: 0 0 16px; }
+        .report-cats {
+          display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+        }
+        .report-cat {
+          display: flex; align-items: center; gap: 6px;
+          padding: 8px 14px; border: 1.5px solid var(--border-hairline);
+          border-radius: 999px; background: var(--bg-surface);
+          cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink-primary);
+          transition: background 0.12s, border-color 0.12s;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .report-cat:hover { background: var(--bg-surface-raised); }
+        .report-cat--active { background: rgba(37,99,235,0.12); border-color: var(--accent-strong); color: var(--accent-strong); }
+        .report-cat-icon  { font-size: 16px; line-height: 1; }
+        .report-cat-label { white-space: nowrap; }
         .report-filters {
           display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
         }
