@@ -134,10 +134,10 @@
       },
       {
         "location": "ห้องอาหาร ชั้น2",
-        "remarks": "",
+        "remarks": "Heat Detector",
         "zone": "7",
         "externalCondition": "normal",
-        "cleaned": "yes",
+        "cleaned": "no",
         "workingCondition": "normal"
       },
       {
@@ -212,6 +212,7 @@
         "cleaned": "yes",
         "workingCondition": "normal"
       }
-    ]
+    ],
+    "editReason": "เพิ่มรายละเอียดข้อมูลใน zone"
   }
 }
