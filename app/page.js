@@ -882,6 +882,10 @@ function HomePageInner() {
                     <span className="hist-date">{week}</span>
                   </div>
                   <div className="hist-actions">
+                    <button className="btn-dl btn-dl--preview"
+                      onClick={() => router.push(`/report/building-meter?week=${encodeURIComponent(week)}`)}>
+                      Preview
+                    </button>
                     <button className="btn-dl" onClick={() => { window.location.href = `/api/export-building-meter?week=${week}`; }}>
                       ⬇︎ Excel
                     </button>
