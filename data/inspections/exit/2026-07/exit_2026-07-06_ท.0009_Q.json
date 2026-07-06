@@ -1,0 +1,57 @@
+{
+  "date": "2026-07-06",
+  "type": "exit",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-07-06",
+      "building": "ท.0009",
+      "floor": "Q",
+      "inspector": "Mko",
+      "model": "Ddd",
+      "serial": "Fff",
+      "mfg": "Jjj"
+    },
+    "devices": [
+      {
+        "location": "Ww",
+        "remarks": "",
+        "id": "Qq",
+        "letterLight": "normal",
+        "statusLight": "normal",
+        "signType": "right"
+      },
+      {
+        "location": "",
+        "remarks": "",
+        "id": "Qq",
+        "letterLight": "normal",
+        "statusLight": "normal",
+        "signType": "up"
+      },
+      {
+        "location": "",
+        "remarks": "",
+        "id": "Qq",
+        "letterLight": "normal",
+        "statusLight": "normal",
+        "signType": "exit"
+      },
+      {
+        "location": "",
+        "remarks": "",
+        "id": "Qq",
+        "letterLight": "normal",
+        "statusLight": "normal",
+        "signType": "left"
+      },
+      {
+        "location": "",
+        "remarks": "",
+        "id": "Qq",
+        "letterLight": "abnormal",
+        "statusLight": "abnormal",
+        "signType": "double"
+      }
+    ]
+  }
+}
