@@ -436,14 +436,32 @@ function SessionPageInner() {
     return (
       <>
         {pendingSubmit && (
-          <div className="overlay" onClick={() => setPendingSubmit(null)}>
-            <div className="modal-box" onClick={e => e.stopPropagation()}>
-              <p className="modal-icon">💾</p>
-              <h2 className="modal-title">วันที่นี้มีไฟล์อยู่แล้ว</h2>
-              <p className="modal-msg">ต้องการบันทึกทับไฟล์เดิม หรือสร้างเป็นไฟล์ใหม่ (Revise)?</p>
-              <button className="modal-btn modal-btn--primary" onClick={() => { const p = pendingSubmit; setPendingSubmit(null); doSave(p.inspectedBy, p.inspectorSignature, true); }}>บันทึกทับ</button>
-              <button className="modal-btn" onClick={() => { const p = pendingSubmit; setPendingSubmit(null); doSave(p.inspectedBy, p.inspectorSignature, false); }}>สร้างใหม่ (Revise)</button>
-              <button className="modal-btn" style={{marginTop:4,fontSize:12,opacity:0.6}} onClick={() => setPendingSubmit(null)}>ยกเลิก</button>
+          <div className="save-overlay" onClick={() => setPendingSubmit(null)}>
+            <div className="save-modal" onClick={e => e.stopPropagation()}>
+              <div className="save-modal-header">
+                <span className="save-modal-icon">📁</span>
+                <h2 className="save-modal-title">พบไฟล์เดิมอยู่แล้ว</h2>
+                <p className="save-modal-sub">เลือกวิธีบันทึกข้อมูล</p>
+              </div>
+              <div className="save-choices">
+                <button className="save-choice save-choice--overwrite"
+                  onClick={() => { const p = pendingSubmit; setPendingSubmit(null); doSave(p.inspectedBy, p.inspectorSignature, true); }}>
+                  <span className="save-choice-icon">♻️</span>
+                  <div className="save-choice-text">
+                    <span className="save-choice-label">บันทึกทับไฟล์เดิม</span>
+                    <span className="save-choice-desc">แทนที่ข้อมูลเดิมด้วยข้อมูลใหม่</span>
+                  </div>
+                </button>
+                <button className="save-choice save-choice--revise"
+                  onClick={() => { const p = pendingSubmit; setPendingSubmit(null); doSave(p.inspectedBy, p.inspectorSignature, false); }}>
+                  <span className="save-choice-icon">📄</span>
+                  <div className="save-choice-text">
+                    <span className="save-choice-label">สร้างไฟล์ใหม่ (Revise)</span>
+                    <span className="save-choice-desc">เก็บไฟล์เดิมไว้ สร้างเพิ่มเป็น R2, R3…</span>
+                  </div>
+                </button>
+              </div>
+              <button className="save-cancel" onClick={() => setPendingSubmit(null)}>ยกเลิก</button>
             </div>
           </div>
         )}
@@ -632,6 +650,26 @@ function SessionPageInner() {
         .modal-msg { font-size:13px; color:var(--ink-secondary); margin:0; line-height:1.6; }
         .modal-btn { width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-strong); background:var(--bg-surface-raised); color:var(--ink-primary); font-size:14px; font-weight:600; font-family:inherit; cursor:pointer; margin-top:4px; }
         .modal-btn--primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+        /* ── save-conflict modal ── */
+        .save-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:200; display:flex; align-items:center; justify-content:center; padding:20px; }
+        .save-modal { background:var(--bg-surface-raised,#1e2d45); border:1px solid var(--border-strong,#475569); border-radius:24px; padding:28px 20px 20px; max-width:360px; width:100%; display:flex; flex-direction:column; gap:16px; box-shadow:0 24px 64px rgba(0,0,0,0.6); }
+        .save-modal-header { text-align:center; display:flex; flex-direction:column; align-items:center; gap:6px; }
+        .save-modal-icon { font-size:36px; line-height:1; }
+        .save-modal-title { font-size:17px; font-weight:800; color:var(--ink-primary); margin:0; }
+        .save-modal-sub { font-size:13px; color:var(--ink-muted); margin:0; }
+        .save-choices { display:flex; flex-direction:column; gap:10px; }
+        .save-choice { display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:16px; border:1.5px solid var(--border-hairline); background:var(--bg-surface,#111d32); cursor:pointer; text-align:left; transition:border-color 0.15s, background 0.15s; font-family:inherit; }
+        .save-choice:hover { background:var(--bg-surface-raised,#1e2d45); }
+        .save-choice--overwrite:hover { border-color:#ef4444; }
+        .save-choice--revise:hover { border-color:var(--accent); }
+        .save-choice-icon { font-size:26px; flex-shrink:0; }
+        .save-choice-text { display:flex; flex-direction:column; gap:3px; }
+        .save-choice-label { font-size:14px; font-weight:700; color:var(--ink-primary); }
+        .save-choice--overwrite .save-choice-label { color:#ef4444; }
+        .save-choice-desc { font-size:12px; color:var(--ink-muted); line-height:1.4; }
+        .save-cancel { width:100%; padding:12px; background:none; border:none; font-size:13px; color:var(--ink-muted); cursor:pointer; font-family:inherit; border-radius:12px; }
+        .save-cancel:hover { background:var(--bg-surface,#111d32); }
 
         .page { min-height:100dvh; display:flex; flex-direction:column; overflow-x:hidden; }
 
