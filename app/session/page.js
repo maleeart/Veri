@@ -436,32 +436,32 @@ function SessionPageInner() {
     return (
       <>
         {pendingSubmit && (
-          <div className="save-overlay" onClick={() => setPendingSubmit(null)}>
-            <div className="save-modal" onClick={e => e.stopPropagation()}>
-              <div className="save-modal-header">
-                <span className="save-modal-icon">📁</span>
-                <h2 className="save-modal-title">พบไฟล์เดิมอยู่แล้ว</h2>
-                <p className="save-modal-sub">เลือกวิธีบันทึกข้อมูล</p>
+          <div onClick={() => setPendingSubmit(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.65)', zIndex:300, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
+            <div onClick={e => e.stopPropagation()} style={{ background:'var(--bg-surface-raised,#1e2d45)', border:'1px solid var(--border-strong,#475569)', borderRadius:24, padding:'28px 20px 20px', maxWidth:360, width:'100%', display:'flex', flexDirection:'column', gap:16, boxShadow:'0 24px 64px rgba(0,0,0,0.7)' }}>
+              <div style={{ textAlign:'center', display:'flex', flexDirection:'column', alignItems:'center', gap:6 }}>
+                <span style={{ fontSize:36 }}>📁</span>
+                <h2 style={{ fontSize:17, fontWeight:800, color:'var(--ink-primary)', margin:0 }}>พบไฟล์เดิมอยู่แล้ว</h2>
+                <p style={{ fontSize:13, color:'var(--ink-muted)', margin:0 }}>เลือกวิธีบันทึกข้อมูล</p>
               </div>
-              <div className="save-choices">
-                <button className="save-choice save-choice--overwrite"
-                  onClick={() => { const p = pendingSubmit; setPendingSubmit(null); doSave(p.inspectedBy, p.inspectorSignature, true); }}>
-                  <span className="save-choice-icon">♻️</span>
-                  <div className="save-choice-text">
-                    <span className="save-choice-label">บันทึกทับไฟล์เดิม</span>
-                    <span className="save-choice-desc">แทนที่ข้อมูลเดิมด้วยข้อมูลใหม่</span>
+              <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                <button onClick={() => { const p = pendingSubmit; setPendingSubmit(null); doSave(p.inspectedBy, p.inspectorSignature, true); }}
+                  style={{ display:'flex', alignItems:'center', gap:14, padding:'14px 16px', borderRadius:16, border:'1.5px solid #ef4444', background:'rgba(239,68,68,0.08)', cursor:'pointer', textAlign:'left', fontFamily:'inherit', width:'100%' }}>
+                  <span style={{ fontSize:26, flexShrink:0 }}>♻️</span>
+                  <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
+                    <span style={{ fontSize:14, fontWeight:700, color:'#ef4444' }}>บันทึกทับไฟล์เดิม</span>
+                    <span style={{ fontSize:12, color:'var(--ink-muted)', lineHeight:1.4 }}>แทนที่ข้อมูลเดิมด้วยข้อมูลใหม่</span>
                   </div>
                 </button>
-                <button className="save-choice save-choice--revise"
-                  onClick={() => { const p = pendingSubmit; setPendingSubmit(null); doSave(p.inspectedBy, p.inspectorSignature, false); }}>
-                  <span className="save-choice-icon">📄</span>
-                  <div className="save-choice-text">
-                    <span className="save-choice-label">สร้างไฟล์ใหม่ (Revise)</span>
-                    <span className="save-choice-desc">เก็บไฟล์เดิมไว้ สร้างเพิ่มเป็น R2, R3…</span>
+                <button onClick={() => { const p = pendingSubmit; setPendingSubmit(null); doSave(p.inspectedBy, p.inspectorSignature, false); }}
+                  style={{ display:'flex', alignItems:'center', gap:14, padding:'14px 16px', borderRadius:16, border:'1.5px solid var(--accent,#2563eb)', background:'rgba(37,99,235,0.08)', cursor:'pointer', textAlign:'left', fontFamily:'inherit', width:'100%' }}>
+                  <span style={{ fontSize:26, flexShrink:0 }}>📄</span>
+                  <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
+                    <span style={{ fontSize:14, fontWeight:700, color:'var(--accent,#2563eb)' }}>สร้างไฟล์ใหม่ (Revise)</span>
+                    <span style={{ fontSize:12, color:'var(--ink-muted)', lineHeight:1.4 }}>เก็บไฟล์เดิมไว้ สร้างเพิ่มเป็น R2, R3…</span>
                   </div>
                 </button>
               </div>
-              <button className="save-cancel" onClick={() => setPendingSubmit(null)}>ยกเลิก</button>
+              <button onClick={() => setPendingSubmit(null)} style={{ background:'none', border:'none', fontSize:13, color:'var(--ink-muted)', cursor:'pointer', padding:'8px', fontFamily:'inherit' }}>ยกเลิก</button>
             </div>
           </div>
         )}
