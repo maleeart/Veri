@@ -273,7 +273,7 @@ function SessionPageInner() {
         .date-input { background:var(--bg-input); border:1px solid var(--border-hairline); border-radius:var(--radius-md); color:var(--ink-primary); padding:10px 12px; font-size:15px; font-family:inherit; }
         .btn-next { background:var(--accent); color:#fff; border:none; border-radius:var(--radius-md); padding:14px; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer; }
         .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:200; padding:20px; }
-        .modal-box { background:var(--bg-surface,#111d32); border:1px solid var(--border-hairline,#334155); border-radius:20px; padding:28px 24px; max-width:360px; width:100%; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; }
+        .modal-box { background:var(--bg-surface-raised,#1e2d45); border:1px solid var(--border-strong,#475569); border-radius:20px; padding:28px 24px; max-width:360px; width:100%; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; box-shadow:0 24px 64px rgba(0,0,0,0.6); }
         .modal-icon { font-size:32px; margin:0; }
         .modal-title { margin:0; font-size:17px; font-weight:800; color:var(--ink-primary); }
         .modal-msg { margin:0; font-size:13px; color:var(--ink-muted); }
