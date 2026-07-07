@@ -626,7 +626,7 @@ function SessionPageInner() {
 
       <style jsx>{`
         .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:100; display:flex; align-items:center; justify-content:center; padding:20px; }
-        .modal-box { background:var(--bg-card); border-radius:20px; padding:28px 24px; max-width:360px; width:100%; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; }
+        .modal-box { background:var(--bg-surface-raised,#1e2d45); border:1px solid var(--border-strong,#475569); border-radius:20px; padding:28px 24px; max-width:360px; width:100%; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; box-shadow:0 24px 64px rgba(0,0,0,0.6); }
         .modal-icon { font-size:32px; margin:0; }
         .modal-title { font-size:16px; font-weight:700; color:var(--ink-primary); margin:0; }
         .modal-msg { font-size:13px; color:var(--ink-secondary); margin:0; line-height:1.6; }
