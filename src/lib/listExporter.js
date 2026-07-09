@@ -47,11 +47,12 @@ async function generateListReport(type, data) {
     const c6 = ws.getCell('C6');
     c6.value = 'Lot ปี ที่ติดตั้ง';
     c6.alignment = { horizontal: 'center', vertical: 'middle' };
-    c6.font = { bold: true };
+    c6.font = { bold: true, name: 'TH Sarabun New' };
     c6.border = { top: thin, left: thin, bottom: thin };
     const d6 = ws.getCell('D6');
     d6.value = g.lotYear || '';
     d6.alignment = { horizontal: 'center', vertical: 'middle' };
+    d6.font = { name: 'TH Sarabun New' };
     d6.border = { top: thin, right: thin, bottom: thin };
   }
 
