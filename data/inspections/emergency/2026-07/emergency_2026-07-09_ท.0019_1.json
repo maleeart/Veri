@@ -1,0 +1,193 @@
+{
+  "date": "2026-07-09",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-07-09",
+      "building": "ท.0019",
+      "floor": "1",
+      "inspector": "ธนวิชญ์",
+      "model": "SG209CD3",
+      "serial": "67107704",
+      "mfg": "sunny "
+    },
+    "devices": [
+      {
+        "location": "โถงหน้าลิฟต์",
+        "remarks": "",
+        "id": "1/1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถงพักคอย",
+        "remarks": "",
+        "id": "1/2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถงต้อนรับ",
+        "remarks": "",
+        "id": "1/3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องน้ำ",
+        "remarks": "",
+        "id": "1/4",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องน้ำหญิง",
+        "remarks": "",
+        "id": "1/5",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องน้ำชาย",
+        "remarks": "",
+        "id": "1/6",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องเก็บของ",
+        "remarks": "",
+        "id": "1/7",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องเก็บของ",
+        "remarks": "",
+        "id": "1/8",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องระบบไฟฟ้า",
+        "remarks": "",
+        "id": "1/9",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องชุมสาย",
+        "remarks": "",
+        "id": "1/10",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องแบตเตอรี่",
+        "remarks": "",
+        "id": "1/11",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องช่างแอร์",
+        "remarks": "",
+        "id": "1/12",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องช่างแอร์",
+        "remarks": "",
+        "id": "1/13",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องระบบดับเพลิง",
+        "remarks": "",
+        "id": "1/14",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง Generator ",
+        "remarks": "",
+        "id": "1/15",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องดับเพลิง",
+        "remarks": "",
+        "id": "1/16 ",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องดับเพลิง",
+        "remarks": "",
+        "id": "1/17",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องสารสะอาด",
+        "remarks": "",
+        "id": "1/18",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องเซิร์ฟเวอร์",
+        "remarks": "",
+        "id": "1/19",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องระบบควบคุม",
+        "remarks": "",
+        "id": "1/20",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ทางเดินข้างอาคาร",
+        "remarks": "",
+        "id": "1/21",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "บันไดหนีไฟ",
+        "remarks": "",
+        "id": "1/22",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
