@@ -43,12 +43,16 @@ async function generateListReport(type, data) {
     // unmerge A6:D6 → re-merge A6:B6 เพื่อเปิด C6 และ D6
     ws.unMergeCells('A6:D6');
     ws.mergeCells('A6:B6');
+    const thin = { style: 'thin' };
     const c6 = ws.getCell('C6');
     c6.value = 'Lot ปี ที่ติดตั้ง';
     c6.alignment = { horizontal: 'center', vertical: 'middle' };
+    c6.font = { bold: true };
+    c6.border = { top: thin, left: thin, bottom: thin };
     const d6 = ws.getCell('D6');
     d6.value = g.lotYear || '';
     d6.alignment = { horizontal: 'center', vertical: 'middle' };
+    d6.border = { top: thin, right: thin, bottom: thin };
   }
 
   const devices = (data.devices || []).slice(0, 30);
