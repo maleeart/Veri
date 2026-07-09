@@ -39,6 +39,10 @@ async function generateListReport(type, data) {
   ws.getCell('B8').value = g.model     || '';
   ws.getCell('D8').value = g.serial    || '';
   ws.getCell('F8').value = g.mfg       || '';
+  if (type === 'emergency' && g.lotYear) {
+    ws.getCell('C6').value = 'Lot ปี ที่ติดตั้ง';
+    ws.getCell('D6').value = g.lotYear;
+  }
 
   const devices = (data.devices || []).slice(0, 30);
   devices.forEach((dev, i) => {

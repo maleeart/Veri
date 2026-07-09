@@ -79,7 +79,7 @@ function FormPageInner() {
 
   const [step, setStep] = useState(0); // 0=เลือกอาคาร, 1=ข้อมูลทั่วไป, 2=อุปกรณ์, 3=ยืนยัน
   const [general, setGeneral] = useState({
-    inspectionDate: date, building: '', floor: '', inspector: '', model: '', serial: '', mfg: '',
+    inspectionDate: date, building: '', floor: '', inspector: '', model: '', serial: '', mfg: '', lotYear: '',
   });
   const [devices, setDevices] = useState([makeDevice(cfg || FORM_CONFIG.emergency)]);
   const [submitting, setSubmitting] = useState(false);
@@ -326,6 +326,14 @@ function FormPageInner() {
             onChange={v => setGeneral(g => ({ ...g, serial: v }))} placeholder="S/N" />
           <Field label="MFG" value={general.mfg}
             onChange={v => setGeneral(g => ({ ...g, mfg: v }))} placeholder="ผู้ผลิต" />
+          {type === 'emergency' && (
+            <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
+              <label style={{ fontSize:13, fontWeight:600, color:'var(--ink-secondary)' }}>Lot ปีที่ติดตั้ง</label>
+              <input type="month" value={general.lotYear}
+                onChange={e => setGeneral(g => ({ ...g, lotYear: e.target.value }))}
+                style={{ background:'var(--bg-input)', border:'1px solid var(--border-hairline)', borderRadius:'var(--radius-md)', color:'var(--ink-primary)', padding:'10px 12px', fontSize:15, fontFamily:'inherit', width:'100%' }} />
+            </div>
+          )}
           <button className="btn-next" style={{ background: accentColor }}
             onClick={() => setStep(2)}>
             ถัดไป → ตรวจสอบอุปกรณ์
