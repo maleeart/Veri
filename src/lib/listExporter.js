@@ -46,12 +46,12 @@ async function generateListReport(type, data) {
     const thin = { style: 'thin' };
     const c6 = ws.getCell('C6');
     c6.value = 'Lot ปี ที่ติดตั้ง';
-    c6.alignment = { horizontal: 'center', vertical: 'middle' };
+    c6.alignment = { horizontal: 'center', vertical: 'bottom' };
     c6.font = { bold: true, name: 'TH Sarabun New', size: 16 };
     c6.border = { top: thin, left: thin, bottom: thin };
     const d6 = ws.getCell('D6');
     d6.value = g.lotYear || '';
-    d6.alignment = { horizontal: 'center', vertical: 'middle' };
+    d6.alignment = { horizontal: 'center', vertical: 'bottom' };
     d6.font = { name: 'TH Sarabun New', size: 16 };
     d6.border = { top: thin, right: thin, bottom: thin };
   }
