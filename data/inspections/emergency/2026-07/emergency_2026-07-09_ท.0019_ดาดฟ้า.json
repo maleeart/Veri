@@ -1,0 +1,42 @@
+{
+  "date": "2026-07-09",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-07-09",
+      "building": "ท.0019",
+      "floor": "ดาดฟ้า",
+      "inspector": "ธนวิชญ์",
+      "model": "SG209CD3",
+      "serial": "67107704",
+      "mfg": "sunny ",
+      "lotYear": "2024-10"
+    },
+    "devices": [
+      {
+        "location": "ห้องลิฟต์",
+        "remarks": "",
+        "id": "1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องวิทยุสื่อสาร",
+        "remarks": "",
+        "id": "2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องลิฟต์",
+        "remarks": "",
+        "id": "3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
