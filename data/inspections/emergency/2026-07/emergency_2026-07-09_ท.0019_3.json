@@ -1,0 +1,234 @@
+{
+  "date": "2026-07-09",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-07-09",
+      "building": "ท.0019",
+      "floor": "3",
+      "inspector": "ธนวิชญ์",
+      "model": "SG209CD3",
+      "serial": "67107704",
+      "mfg": "sunny ",
+      "lotYear": "2024-10"
+    },
+    "devices": [
+      {
+        "location": "โถงหน้าลิฟต์ซ้าย",
+        "remarks": "",
+        "id": "3/1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถงหน้าลิฟต์ขวา",
+        "remarks": "",
+        "id": "3/2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถงพักผ่อน",
+        "remarks": "",
+        "id": "3/3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "เฉลียงด้านนอก",
+        "remarks": "",
+        "id": "3/4",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "เฉลียงด้านนอก",
+        "remarks": "",
+        "id": "3/5",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "เฉลียงด้านนอก",
+        "remarks": "",
+        "id": "3/6",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "เฉลียงด้านนอก",
+        "remarks": "",
+        "id": "3/7",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องวางเครื่องปรับอากาศ",
+        "remarks": "",
+        "id": "3/8",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ร้านกาแฟ",
+        "remarks": "",
+        "id": "3/9",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องน้ำหญิง",
+        "remarks": "",
+        "id": "3/10",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องน้ำชาย",
+        "remarks": "",
+        "id": "3/11",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องระบบไฟฟ้า",
+        "remarks": "",
+        "id": "3/12",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องชมรมพุทธ",
+        "remarks": "",
+        "id": "3/13",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องละหมาด",
+        "remarks": "",
+        "id": "3/14",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องอเนกประสงค์",
+        "remarks": "",
+        "id": "3/15",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องอเนกประสงค์",
+        "remarks": "",
+        "id": "3/16",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถงสำนักงาน",
+        "remarks": "",
+        "id": "3/17",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถงสำนักงาน",
+        "remarks": "",
+        "id": "3/18",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องกอง 1",
+        "remarks": "",
+        "id": "3/19",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องกอง 2",
+        "remarks": "",
+        "id": "3/20",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถงสำนักงาน",
+        "remarks": "",
+        "id": "3/21",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถงสำนักงาน",
+        "remarks": "",
+        "id": "3/22",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถงสำนักงาน",
+        "remarks": "",
+        "id": "3/23",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถงสำนักงาน",
+        "remarks": "",
+        "id": "3/24",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถงสำนักงาน",
+        "remarks": "",
+        "id": "3/25",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถงสำนักงาน",
+        "remarks": "",
+        "id": "3/26",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "บันไดหนีไฟ",
+        "remarks": "",
+        "id": "3/27",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
