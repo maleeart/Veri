@@ -47,6 +47,19 @@ export default function Sidenav({ notifProps = null }) {
         </div>
       </div>
 
+      {/* Admin home */}
+      {isAdmin && (
+        <>
+          <div className="sn-section-label">แอดมิน</div>
+          <button className={`sn-item${pathname === '/admin' ? ' sn-item--active' : ''}`}
+            onClick={() => router.push('/admin')}>
+            <span className="sn-item-icon">🏠</span>
+            <span className="sn-item-label">หน้าหลัก</span>
+          </button>
+          <div className="sn-divider" />
+        </>
+      )}
+
       {/* Nav items */}
       <div className="sn-section-label">บันทึกข้อมูล</div>
       {navItems.map(({ icon, label, key, href, badge }) => {
