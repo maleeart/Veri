@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Sidenav from '../components/Sidenav';
 
-// PM logic (mirrored from page.js)
 const BUILDINGS = [
   'ท.0006','ท.0007','ท.0008','ท.0009','ท.0010',
   'ท.0011','ท.0012','ท.0014','ท.0015','ท.0016',
@@ -14,6 +13,13 @@ const BUILDINGS = [
   'ต.0017','ต.0019','ต.0025','ต.0026','ต.0031','ต.0033',
 ];
 const FREQ_MONTHS = 3;
+const THAI_MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const [y, m, d] = iso.split('-');
+  return `${parseInt(d)} ${THAI_MONTHS[parseInt(m) - 1]} ${parseInt(y) + 543}`;
+}
 
 function lastDoneByBuilding(dates, type) {
   const map = {};
@@ -40,30 +46,43 @@ function pmSummary(dates, type) {
   return c;
 }
 
-const PM_TYPES = [
-  { type: 'emergency', icon: '💡', label: 'Emergency Light' },
-  { type: 'smoke',     icon: '🚨', label: 'Smoke Detector' },
-  { type: 'exit',      icon: '🚪', label: 'Exit Sign' },
-];
+// คืน YYYY-MM-DD ของวันเสาร์ล่าสุด
+function lastSaturdayISO() {
+  const d = new Date();
+  const daysBack = d.getDay() === 6 ? 0 : d.getDay() + 1;
+  d.setDate(d.getDate() - daysBack);
+  return d.toISOString().slice(0, 10);
+}
 
-const TYPE_LABEL = { emergency: 'Emergency', smoke: 'Smoke', exit: 'Exit', fpg: 'FPG' };
+// ISO week string เช่น "2026-W28"
+function currentISOWeek() {
+  const d = new Date();
+  const thu = new Date(d);
+  thu.setDate(d.getDate() + 4 - (d.getDay() || 7));
+  const yearStart = new Date(thu.getFullYear(), 0, 1);
+  const weekNum = Math.ceil(((thu - yearStart) / 86400000 + 1) / 7);
+  return `${thu.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+}
 
 export default function AdminPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const isAdmin = session?.user?.role === 'admin';
+  const today = new Date().toISOString().slice(0, 10);
 
-  const [view, setView] = useState('dashboard'); // 'dashboard' | 'users'
+  const [view, setView] = useState('dashboard');
 
-  // ── Dashboard state ──
+  // Dashboard state
   const [dates, setDates]         = useState(null);
   const [dashUsers, setDashUsers] = useState(null);
   const [pendingReqs, setPending] = useState(null);
+  const [meterData, setMeterData] = useState(null);  // { days: { '13': {...} } }
+  const [bmWeeks, setBmWeeks]     = useState(null);  // ['2026-W28', ...]
   const [dashLoading, setDashLoading] = useState(false);
   const [dashErr, setDashErr]     = useState('');
   const [approving, setApproving] = useState(null);
 
-  // ── Users state ──
+  // Users state
   const [users, setUsers]   = useState(null);
   const [admins, setAdmins] = useState([]);
   const [email, setEmail]   = useState('');
@@ -73,16 +92,23 @@ export default function AdminPage() {
   const loadDashboard = async () => {
     if (dashLoading) return;
     setDashLoading(true); setDashErr('');
+    const todayYM = today.slice(0, 7);
     try {
-      const [iRes, uRes, rRes] = await Promise.all([
+      const [iRes, uRes, rRes, mRes, bwRes] = await Promise.all([
         fetch('/api/inspections'),
         fetch('/api/users'),
         fetch('/api/delete-request'),
+        fetch(`/api/save-meter?month=${todayYM}`),
+        fetch('/api/building-meter-weeks'),
       ]);
-      const [insp, ud, rd] = await Promise.all([iRes.json(), uRes.json(), rRes.json()]);
+      const [insp, ud, rd, md, bwd] = await Promise.all(
+        [iRes, uRes, rRes, mRes, bwRes].map(r => r.json())
+      );
       setDates(insp.dates || []);
       setDashUsers(ud.users || {});
       setPending(rd.requests || []);
+      setMeterData(md || { days: {} });
+      setBmWeeks(bwd.weeks || []);
     } catch (e) {
       setDashErr(String(e.message || e));
     } finally {
@@ -135,6 +161,7 @@ export default function AdminPage() {
     finally { setApproving(null); }
   };
 
+  // ── computed statuses ──
   const pmData = useMemo(() => {
     if (!dates) return null;
     return {
@@ -144,9 +171,32 @@ export default function AdminPage() {
     };
   }, [dates]);
 
+  const fpgStatus = useMemo(() => {
+    if (!dates) return null;
+    const lastSat = lastSaturdayISO();
+    const lastFpg = dates.filter(d => d.type === 'fpg').map(d => d.date).sort().reverse()[0] || null;
+    const done = lastFpg && lastFpg >= lastSat;
+    return { done, lastDate: lastFpg, targetDate: lastSat };
+  }, [dates]);
+
+  const meterStatus = useMemo(() => {
+    if (!meterData) return null;
+    const dayKey = today.slice(8, 10); // '13'
+    const done = meterData.days?.[dayKey] != null;
+    return { done, date: today };
+  }, [meterData, today]);
+
+  const bmStatus = useMemo(() => {
+    if (!bmWeeks) return null;
+    const thisWeek = currentISOWeek();
+    const done = bmWeeks.includes(thisWeek);
+    const lastWeek = bmWeeks[0] || null;
+    return { done, thisWeek, lastWeek };
+  }, [bmWeeks]);
+
   const userCount    = dashUsers ? Object.keys(dashUsers).filter(e => dashUsers[e] === 'user').length : 0;
   const visitorCount = dashUsers ? Object.keys(dashUsers).filter(e => dashUsers[e] !== 'user').length : 0;
-  const totalOverdue = pmData ? PM_TYPES.reduce((s, { type }) => s + pmData[type].overdue, 0) : 0;
+  const totalOverdue = pmData ? ['emergency','smoke','exit'].reduce((s, t) => s + pmData[t].overdue, 0) : 0;
 
   if (status === 'loading') return <main className="msg">กำลังโหลด...</main>;
   if (!isAdmin) return (
@@ -159,7 +209,6 @@ export default function AdminPage() {
 
   const userEmails    = users ? Object.keys(users).filter(e => users[e] === 'user').sort()  : [];
   const visitorEmails = users ? Object.keys(users).filter(e => users[e] !== 'user').sort() : [];
-  const today = new Date().toISOString().slice(0, 10);
 
   const QUICK = [
     { icon: '🚒⚡', label: 'Fire Pump & Generator', href: '/session' },
@@ -172,12 +221,69 @@ export default function AdminPage() {
     { icon: '👥',   label: 'จัดการผู้ใช้',           href: null, action: () => setView('users') },
   ];
 
+  // Helper: render PM status chip for Emergency/Smoke/Exit
+  function pmChip(s) {
+    if (!s) return <span className="chip chip--loading">กำลังโหลด…</span>;
+    if (s.overdue > 0) return <span className="chip chip--overdue">🔴 {s.overdue} อาคารเกินกำหนด</span>;
+    if (s.due     > 0) return <span className="chip chip--due">🟡 {s.due} อาคารใกล้ครบ</span>;
+    if (s.never   > 0) return <span className="chip chip--never">⚫ {s.never} ยังไม่เคยบันทึก</span>;
+    return <span className="chip chip--ok">🟢 ทุกอาคารปกติ</span>;
+  }
+
+  // Rows for pending-actions table
+  const ACTION_ROWS = [
+    {
+      icon: '🚒⚡', label: 'Fire Pump & Generator', schedule: 'ทุกวันเสาร์',
+      status: fpgStatus === null ? null : fpgStatus.done,
+      detail: fpgStatus === null ? '…'
+        : fpgStatus.done
+          ? `ล่าสุด ${fmtDate(fpgStatus.lastDate)}`
+          : `ยังไม่ทำ (เสาร์ ${fmtDate(fpgStatus.targetDate)})`,
+      href: '/session',
+    },
+    {
+      icon: '⚡', label: 'Meter กฟน.', schedule: 'ทุกวัน',
+      status: meterStatus === null ? null : meterStatus.done,
+      detail: meterStatus === null ? '…'
+        : meterStatus.done ? `บันทึกแล้ววันนี้` : `ยังไม่บันทึกวันนี้ (${fmtDate(today)})`,
+      href: '/meter',
+    },
+    {
+      icon: '🏢', label: 'Meter อาคาร', schedule: 'ทุกวันศุกร์',
+      status: bmStatus === null ? null : bmStatus.done,
+      detail: bmStatus === null ? '…'
+        : bmStatus.done
+          ? `บันทึกแล้ว ${bmStatus.thisWeek}`
+          : `ยังไม่บันทึกสัปดาห์นี้ (${bmStatus.thisWeek})`,
+      href: '/building-meter',
+    },
+    {
+      icon: '💡', label: 'Emergency Light', schedule: `ทุก ${FREQ_MONTHS} เดือน`,
+      status: pmData ? (pmData.emergency.overdue === 0 && pmData.emergency.due === 0) : null,
+      chip: pmData ? pmChip(pmData.emergency) : null,
+      href: `/form/emergency?date=${today}`,
+    },
+    {
+      icon: '🚨', label: 'Smoke Detector', schedule: `ทุก ${FREQ_MONTHS} เดือน`,
+      status: pmData ? (pmData.smoke.overdue === 0 && pmData.smoke.due === 0) : null,
+      chip: pmData ? pmChip(pmData.smoke) : null,
+      href: `/form/smoke?date=${today}`,
+    },
+    {
+      icon: '🚪', label: 'Exit Sign', schedule: `ทุก ${FREQ_MONTHS} เดือน`,
+      status: pmData ? (pmData.exit.overdue === 0 && pmData.exit.due === 0) : null,
+      chip: pmData ? pmChip(pmData.exit) : null,
+      href: `/form/exit?date=${today}`,
+    },
+  ];
+
+  const pendingCount = ACTION_ROWS.filter(r => r.status === false).length;
+
   return (
     <div className="sn-shell">
       <Sidenav />
       <main className="sn-shell-main adm-main">
 
-        {/* ── Header ── */}
         <header className="adm-hdr">
           <div className="adm-hdr-left">
             {view !== 'dashboard' && (
@@ -204,7 +310,6 @@ export default function AdminPage() {
         {/* ── Dashboard ── */}
         {view === 'dashboard' && (
           <div className="dash">
-
             {dashErr && <p className="dash-err">{dashErr}</p>}
 
             {/* Stat cards */}
@@ -219,11 +324,10 @@ export default function AdminPage() {
                 <div className="sc-lbl">ผู้เยี่ยมชม</div>
                 <div className="sc-icon">👁</div>
               </div>
-              <div className="stat-card sc--orange" style={{ cursor: pendingReqs?.length ? 'pointer' : 'default' }}
-                onClick={() => pendingReqs?.length && document.getElementById('pending-section')?.scrollIntoView({ behavior: 'smooth' })}>
-                <div className="sc-num">{pendingReqs ? pendingReqs.length : '…'}</div>
-                <div className="sc-lbl">คำขอลบรอดำเนินการ</div>
-                <div className="sc-icon">📋</div>
+              <div className="stat-card sc--orange">
+                <div className="sc-num">{dates ? pendingCount : '…'}</div>
+                <div className="sc-lbl">งานที่ยังไม่เสร็จ</div>
+                <div className="sc-icon">⏳</div>
               </div>
               <div className="stat-card sc--red">
                 <div className="sc-num">{pmData ? totalOverdue : '…'}</div>
@@ -232,79 +336,76 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* PM Status */}
+            {/* Pending actions — all systems */}
             <section className="dash-sec">
-              <div className="dash-sec-hd">สถานะ PM อาคาร <span className="dash-sec-count">{BUILDINGS.length} อาคาร · ทุก {FREQ_MONTHS} เดือน</span></div>
-              <div className="pm-grid">
-                {PM_TYPES.map(({ type, icon, label }) => {
-                  const s = pmData?.[type];
-                  const total = BUILDINGS.length;
+              <div className="dash-sec-hd">
+                รายการที่ต้องดำเนินการ
+                {pendingCount > 0 && <span className="badge-pill">{pendingCount}</span>}
+              </div>
+              <div className="action-table">
+                {ACTION_ROWS.map(row => {
+                  const isDone    = row.status === true;
+                  const isNotDone = row.status === false;
+                  const isLoading = row.status === null;
                   return (
-                    <div key={type} className={`pm-card${s && s.overdue > 0 ? ' pm-card--alert' : ''}`}>
-                      <div className="pm-hd">
-                        <span className="pm-icon">{icon}</span>
-                        <span className="pm-lbl">{label}</span>
-                        <button className="pm-go" onClick={() => router.push(`/form/${type}?date=${today}`)}>บันทึก ›</button>
+                    <div key={row.label} className={`action-row${isNotDone ? ' action-row--alert' : ''}`}>
+                      <span className="ar-icon">{row.icon}</span>
+                      <div className="ar-info">
+                        <span className="ar-name">{row.label}</span>
+                        <span className="ar-schedule">{row.schedule}</span>
                       </div>
-                      <div className="pm-stats">
-                        <div className="pm-stat ps--overdue"><span>🔴</span><strong>{s ? s.overdue : '…'}</strong><span>เกินกำหนด</span></div>
-                        <div className="pm-stat ps--due">    <span>🟡</span><strong>{s ? s.due     : '…'}</strong><span>ใกล้ครบ</span></div>
-                        <div className="pm-stat ps--never">  <span>⚫</span><strong>{s ? s.never   : '…'}</strong><span>ไม่เคยบันทึก</span></div>
-                        <div className="pm-stat ps--ok">     <span>🟢</span><strong>{s ? s.ok      : '…'}</strong><span>ปกติ</span></div>
+                      <div className="ar-status">
+                        {isLoading && <span className="chip chip--loading">กำลังโหลด…</span>}
+                        {row.chip
+                          ? row.chip
+                          : !isLoading && (
+                            isDone
+                              ? <span className="chip chip--ok">✅ {row.detail}</span>
+                              : <span className="chip chip--overdue">⚠️ {row.detail}</span>
+                          )
+                        }
                       </div>
-                      {s && (
-                        <div className="pm-bar-wrap">
-                          <div className="pm-bar">
-                            {s.overdue > 0 && <div className="pb pb--overdue" style={{ width: `${(s.overdue / total) * 100}%` }} />}
-                            {s.due     > 0 && <div className="pb pb--due"     style={{ width: `${(s.due     / total) * 100}%` }} />}
-                            {s.never   > 0 && <div className="pb pb--never"   style={{ width: `${(s.never   / total) * 100}%` }} />}
-                            {s.ok      > 0 && <div className="pb pb--ok"      style={{ width: `${(s.ok      / total) * 100}%` }} />}
-                          </div>
-                          <span className="pm-bar-pct">{s ? Math.round((s.ok / total) * 100) : 0}% ปกติ</span>
-                        </div>
-                      )}
+                      <button className="ar-btn" onClick={() => router.push(row.href)}>
+                        บันทึก ›
+                      </button>
                     </div>
                   );
                 })}
               </div>
             </section>
 
-            {/* Pending delete requests */}
-            {pendingReqs !== null && (
-              <section className="dash-sec" id="pending-section">
+            {/* Delete requests */}
+            {pendingReqs !== null && pendingReqs.length > 0 && (
+              <section className="dash-sec">
                 <div className="dash-sec-hd">
-                  รายการที่ต้องดำเนินการ
-                  {pendingReqs.length > 0 && <span className="badge-pill">{pendingReqs.length}</span>}
+                  📋 คำขอลบรอดำเนินการ
+                  <span className="badge-pill">{pendingReqs.length}</span>
                 </div>
-                {pendingReqs.length === 0 ? (
-                  <div className="empty-box">✅ ไม่มีคำขอรอดำเนินการ</div>
-                ) : (
-                  <div className="req-list">
-                    {pendingReqs.map(req => (
-                      <div key={req.id} className="req-row">
-                        <div className="req-meta">
-                          <span className={`req-type-tag rt--${req.type}`}>{TYPE_LABEL[req.type] || req.type}</span>
-                          <span className="req-date">{req.date}</span>
-                          {req.building && <span className="req-bldg">{req.building}{req.floor ? ` ชั้น ${req.floor}` : ''}</span>}
-                        </div>
-                        <div className="req-reason">"{req.reason}"</div>
-                        <div className="req-foot">
-                          <span className="req-by">{req.requestedBy}</span>
-                          <div className="req-btns">
-                            <button className="req-btn rb--approve" disabled={approving === req.id}
-                              onClick={() => handleAction(req, 'approve')}>
-                              {approving === req.id ? '⏳' : '✓ อนุมัติ'}
-                            </button>
-                            <button className="req-btn rb--reject" disabled={approving === req.id}
-                              onClick={() => handleAction(req, 'reject')}>
-                              ✕ ปฏิเสธ
-                            </button>
-                          </div>
+                <div className="req-list">
+                  {pendingReqs.map(req => (
+                    <div key={req.id} className="req-row">
+                      <div className="req-meta">
+                        <span className={`req-type-tag rt--${req.type}`}>{req.type}</span>
+                        <span className="req-date">{req.date}</span>
+                        {req.building && <span className="req-bldg">{req.building}{req.floor ? ` ชั้น ${req.floor}` : ''}</span>}
+                      </div>
+                      <div className="req-reason">"{req.reason}"</div>
+                      <div className="req-foot">
+                        <span className="req-by">{req.requestedBy}</span>
+                        <div className="req-btns">
+                          <button className="req-btn rb--approve" disabled={approving === req.id}
+                            onClick={() => handleAction(req, 'approve')}>
+                            {approving === req.id ? '⏳' : '✓ อนุมัติ'}
+                          </button>
+                          <button className="req-btn rb--reject" disabled={approving === req.id}
+                            onClick={() => handleAction(req, 'reject')}>
+                            ✕ ปฏิเสธ
+                          </button>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  ))}
+                </div>
               </section>
             )}
 
@@ -321,7 +422,6 @@ export default function AdminPage() {
                 ))}
               </div>
             </section>
-
           </div>
         )}
 
@@ -330,7 +430,6 @@ export default function AdminPage() {
           <div className="users-wrap">
             <section className="section">
               {err && <p className="err">{err}</p>}
-
               <div className="group">
                 <div className="group-hd">ผู้ดูแลระบบ (Admin)</div>
                 {admins.length === 0 && <p className="empty">— ยังไม่ได้ตั้ง ADMIN_EMAILS —</p>}
@@ -341,7 +440,6 @@ export default function AdminPage() {
                   </div>
                 ))}
               </div>
-
               <div className="group">
                 <div className="group-hd">ผู้ใช้งาน ({users === null ? '...' : userEmails.length})</div>
                 {users === null && <p className="empty">กำลังโหลด...</p>}
@@ -354,7 +452,6 @@ export default function AdminPage() {
                   </div>
                 ))}
               </div>
-
               <div className="group">
                 <div className="group-hd">ผู้เยี่ยมชม ({users === null ? '...' : visitorEmails.length})</div>
                 {users === null && <p className="empty">กำลังโหลด...</p>}
@@ -367,7 +464,6 @@ export default function AdminPage() {
                   </div>
                 ))}
               </div>
-
               <div className="add-box">
                 <label className="lbl">เพิ่มอีเมลล่วงหน้า (ยังไม่เคย login)</label>
                 <div className="add-row">
@@ -390,7 +486,6 @@ export default function AdminPage() {
 
         .adm-main { background: var(--bg-base, #f5f7fa); }
 
-        /* Header */
         .adm-hdr {
           display: flex; align-items: center; justify-content: space-between;
           padding: 24px 28px 20px;
@@ -405,24 +500,19 @@ export default function AdminPage() {
         .adm-refresh {
           background: var(--bg-surface-raised); border: 1px solid var(--border-hairline);
           border-radius: 10px; width: 38px; height: 38px; cursor: pointer; font-size: 18px;
-          display: flex; align-items: center; justify-content: center;
-          transition: background 0.12s;
+          display: flex; align-items: center; justify-content: center; transition: background 0.12s;
         }
         .adm-refresh:hover { background: var(--border-hairline); }
         .adm-refresh:disabled { opacity: 0.5; cursor: default; }
 
-        /* Dashboard wrapper */
         .dash { padding: 24px 28px; display: flex; flex-direction: column; gap: 28px; max-width: 1100px; }
-        .dash-err { color: var(--status-fail); background: var(--status-fail-bg); border-radius: 10px; padding: 10px 14px; margin: 0; font-size: 13px; }
+        .dash-err { color: var(--status-fail); background: var(--status-fail-bg); border-radius: 10px; padding: 10px 14px; font-size: 13px; }
 
         /* Stat cards */
         .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-        @media (max-width: 900px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
         .stat-card {
-          position: relative; overflow: hidden;
-          border-radius: 16px; padding: 20px 20px 16px;
-          display: flex; flex-direction: column; gap: 4px;
-          box-shadow: 0 1px 4px rgba(0,0,0,.06);
+          position: relative; overflow: hidden; border-radius: 16px; padding: 20px 20px 16px;
+          display: flex; flex-direction: column; gap: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.06);
         }
         .sc--blue   { background: linear-gradient(135deg,#dbeafe,#eff6ff); border: 1px solid #bfdbfe; }
         .sc--purple { background: linear-gradient(135deg,#ede9fe,#f5f3ff); border: 1px solid #ddd6fe; }
@@ -430,7 +520,7 @@ export default function AdminPage() {
         .sc--red    { background: linear-gradient(135deg,#fee2e2,#fff5f5); border: 1px solid #fecaca; }
         .sc-num  { font-size: 32px; font-weight: 900; color: var(--ink-primary); line-height: 1; }
         .sc-lbl  { font-size: 12px; font-weight: 600; color: var(--ink-secondary); }
-        .sc-icon { position: absolute; right: 14px; top: 14px; font-size: 28px; opacity: 0.25; }
+        .sc-icon { position: absolute; right: 14px; top: 14px; font-size: 28px; opacity: 0.2; }
 
         /* Section */
         .dash-sec { display: flex; flex-direction: column; gap: 12px; }
@@ -438,86 +528,71 @@ export default function AdminPage() {
           font-size: 14px; font-weight: 800; color: var(--ink-primary);
           display: flex; align-items: center; gap: 8px;
         }
-        .dash-sec-count { font-size: 11px; font-weight: 500; color: var(--ink-muted); }
         .badge-pill {
           background: var(--status-fail, #ef4444); color: #fff;
-          font-size: 11px; font-weight: 700; border-radius: 20px;
-          padding: 2px 8px; line-height: 1.5;
+          font-size: 11px; font-weight: 700; border-radius: 20px; padding: 2px 8px; line-height: 1.5;
         }
 
-        /* PM Grid */
-        .pm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-        @media (max-width: 900px) { .pm-grid { grid-template-columns: 1fr; } }
-        .pm-card {
+        /* Action table */
+        .action-table {
           background: var(--bg-surface); border: 1px solid var(--border-hairline);
-          border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px;
-          box-shadow: 0 1px 3px rgba(0,0,0,.04);
-          transition: box-shadow 0.15s;
+          border-radius: 16px; overflow: hidden;
+          box-shadow: 0 1px 4px rgba(0,0,0,.04);
         }
-        .pm-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.08); }
-        .pm-card--alert { border-color: #fecaca; }
-        .pm-hd { display: flex; align-items: center; gap: 8px; }
-        .pm-icon { font-size: 20px; }
-        .pm-lbl { font-size: 13px; font-weight: 700; color: var(--ink-primary); flex: 1; }
-        .pm-go {
-          background: var(--bg-surface-raised); border: 1px solid var(--border-hairline);
-          border-radius: 8px; padding: 4px 10px; font-size: 11px; font-weight: 600;
-          color: var(--accent); cursor: pointer; white-space: nowrap;
-          transition: background 0.12s;
+        .action-row {
+          display: grid;
+          grid-template-columns: 36px 1fr auto auto;
+          align-items: center; gap: 12px;
+          padding: 14px 18px;
+          border-top: 1px solid var(--border-hairline);
+          transition: background 0.1s;
         }
-        .pm-go:hover { background: rgba(37,99,235,0.08); }
-        .pm-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-        .pm-stat {
-          display: flex; align-items: center; gap: 6px;
-          padding: 7px 10px; border-radius: 10px;
-          font-size: 12px;
+        .action-row:first-child { border-top: none; }
+        .action-row--alert { background: #fffbeb; }
+        .action-row--alert:hover { background: #fef9e4; }
+        .action-row:not(.action-row--alert):hover { background: var(--bg-surface-raised); }
+        .ar-icon  { font-size: 22px; text-align: center; }
+        .ar-info  { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .ar-name  { font-size: 13px; font-weight: 700; color: var(--ink-primary); }
+        .ar-schedule { font-size: 11px; color: var(--ink-muted); }
+        .ar-status { display: flex; align-items: center; }
+        .ar-btn {
+          background: var(--bg-surface-raised); border: 1px solid var(--border-strong);
+          border-radius: 8px; padding: 5px 12px; font-size: 12px; font-weight: 600;
+          color: var(--accent); cursor: pointer; white-space: nowrap; transition: background 0.12s;
         }
-        .pm-stat strong { font-size: 16px; font-weight: 800; min-width: 20px; }
-        .pm-stat span:last-child { color: var(--ink-muted); font-size: 11px; }
-        .ps--overdue { background: #fff1f2; }
-        .ps--due     { background: #fffbeb; }
-        .ps--never   { background: var(--bg-surface-raised); }
-        .ps--ok      { background: #f0fdf4; }
-        .pm-bar-wrap { display: flex; align-items: center; gap: 8px; }
-        .pm-bar { flex: 1; height: 6px; border-radius: 6px; background: var(--bg-surface-raised); overflow: hidden; display: flex; }
-        .pb { height: 100%; }
-        .pb--overdue { background: #f87171; }
-        .pb--due     { background: #fbbf24; }
-        .pb--never   { background: #9ca3af; }
-        .pb--ok      { background: #34d399; }
-        .pm-bar-pct { font-size: 11px; font-weight: 600; color: var(--ink-muted); white-space: nowrap; }
+        .ar-btn:hover { background: rgba(37,99,235,0.08); }
 
-        /* Pending requests */
-        .empty-box {
-          background: var(--bg-surface); border: 1px solid var(--border-hairline);
-          border-radius: 12px; padding: 20px; text-align: center;
-          color: var(--ink-muted); font-size: 13px;
+        /* Chips */
+        .chip {
+          font-size: 12px; font-weight: 600; border-radius: 8px; padding: 4px 10px;
+          white-space: nowrap;
         }
+        .chip--ok      { background: #dcfce7; color: #166534; }
+        .chip--overdue { background: #fee2e2; color: #991b1b; }
+        .chip--due     { background: #fef3c7; color: #92400e; }
+        .chip--never   { background: var(--bg-surface-raised); color: var(--ink-muted); border: 1px solid var(--border-strong); }
+        .chip--loading { background: var(--bg-surface-raised); color: var(--ink-muted); font-style: italic; }
+
+        /* Delete requests */
         .req-list { display: flex; flex-direction: column; gap: 10px; }
         .req-row {
           background: var(--bg-surface); border: 1px solid var(--border-hairline);
-          border-radius: 14px; padding: 16px 18px;
-          display: flex; flex-direction: column; gap: 8px;
+          border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px;
           box-shadow: 0 1px 3px rgba(0,0,0,.03);
         }
         .req-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .req-type-tag {
-          font-size: 11px; font-weight: 700; border-radius: 8px; padding: 3px 8px;
-        }
-        .rt--emergency { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-        .rt--smoke     { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-        .rt--exit      { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
-        .rt--fpg       { background: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; }
+        .req-type-tag { font-size: 11px; font-weight: 700; border-radius: 8px; padding: 3px 8px; background: var(--bg-surface-raised); color: var(--ink-secondary); border: 1px solid var(--border-strong); }
+        .rt--emergency { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+        .rt--smoke     { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        .rt--exit      { background: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
         .req-date { font-size: 12px; font-weight: 600; color: var(--ink-secondary); }
         .req-bldg { font-size: 12px; color: var(--ink-muted); }
         .req-reason { font-size: 13px; color: var(--ink-secondary); font-style: italic; }
         .req-foot { display: flex; align-items: center; justify-content: space-between; }
-        .req-by { font-size: 11px; color: var(--ink-muted); }
+        .req-by   { font-size: 11px; color: var(--ink-muted); }
         .req-btns { display: flex; gap: 6px; }
-        .req-btn {
-          border: none; border-radius: 9px; padding: 6px 14px;
-          font-size: 12px; font-weight: 700; cursor: pointer; transition: opacity 0.12s;
-        }
+        .req-btn  { border: none; border-radius: 9px; padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: pointer; transition: opacity 0.12s; }
         .req-btn:disabled { opacity: 0.5; cursor: default; }
         .rb--approve { background: #dcfce7; color: #166534; }
         .rb--approve:hover:not(:disabled) { background: #bbf7d0; }
@@ -525,16 +600,12 @@ export default function AdminPage() {
         .rb--reject:hover:not(:disabled)  { background: #fecaca; }
 
         /* Quick links */
-        .quick-grid {
-          display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
-        }
-        @media (max-width: 900px) { .quick-grid { grid-template-columns: repeat(2, 1fr); } }
+        .quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
         .quick-card {
           display: flex; flex-direction: column; align-items: center; gap: 8px;
           padding: 18px 12px; background: var(--bg-surface);
           border: 1px solid var(--border-hairline); border-radius: 14px;
-          cursor: pointer; transition: all 0.12s;
-          box-shadow: 0 1px 3px rgba(0,0,0,.03);
+          cursor: pointer; transition: all 0.12s; box-shadow: 0 1px 3px rgba(0,0,0,.03);
         }
         .quick-card:hover { background: var(--bg-surface-raised); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
         .qc-icon  { font-size: 26px; }
