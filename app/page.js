@@ -886,6 +886,18 @@ function HomePageInner() {
           <span className="card__arrow">›</span>
         </button>
 
+        {/* Card 4c — สถานะ PM (สรุปทุกระบบ) */}
+        <button
+          className="card card--pm"
+          onClick={() => router.push('/pm')}>
+          <span className="card__icon">🔧</span>
+          <div className="card__body">
+            <span className="card__title">สถานะ PM</span>
+            <span className="card__sub">สรุปสถานะทุกระบบ</span>
+          </div>
+          <span className="card__arrow">›</span>
+        </button>
+
         {/* Card 5 — History */}
         <button
           className="card card--history"
@@ -1338,6 +1350,17 @@ function HomePageInner() {
         .card--bmeter .card__title { color: #fff; font-size: 15px; }
         .card--bmeter .card__sub   { color: rgba(255,255,255,0.75); }
         .card--bmeter .card__arrow { color: rgba(255,255,255,0.7); margin-left: auto; }
+
+        .card--pm {
+          background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+          box-shadow: 0 6px 18px rgba(20,184,166,0.35);
+          min-height: 72px;
+          gap: 12px;
+        }
+        .card--pm .card__icon  { font-size: 26px; }
+        .card--pm .card__title { color: #fff; font-size: 15px; }
+        .card--pm .card__sub   { color: rgba(255,255,255,0.75); }
+        .card--pm .card__arrow { color: rgba(255,255,255,0.7); margin-left: auto; }
 
         /* History — dark */
         .card--history {
