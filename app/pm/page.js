@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Fragment } from 'react';
+import { useEffect, useState, Fragment, Suspense } from 'react';
 import Sidenav from '../components/Sidenav';
 import { useCanWrite } from '../lib/useCanWrite';
 import { itemsForType, GROUP_LABELS, pmStatus, nextDue, daysSince } from '../lib/pmSchedule';
@@ -22,6 +22,15 @@ const STATUS_META = {
 };
 
 export default function PmPage() {
+  // Sidenav ใช้ useSearchParams — ต้องมี Suspense boundary ตอน prerender (เหมือนหน้า form/หน้าหลัก)
+  return (
+    <Suspense fallback={<main style={{ padding: 40, color: 'var(--ink-muted)' }}>กำลังโหลด...</main>}>
+      <PmPageInner />
+    </Suspense>
+  );
+}
+
+function PmPageInner() {
   const canWrite = useCanWrite();
   const [machines, setMachines] = useState(null);
   const [state, setState] = useState(null); // { machineId: { itemKey: date|null } }
