@@ -262,6 +262,7 @@ export default function AdminPage() {
     { icon: '🚪',   label: 'Exit Sign',              href: `/form/exit?date=${today}` },
     { icon: '⚡',   label: 'Meter กฟน.',             href: '/meter' },
     { icon: '🏢',   label: 'Meter อาคาร',            href: '/building-meter' },
+    { icon: '🔧',   label: 'สถานะ PM',               href: '/pm' },
     { icon: '📊',   label: 'รายงาน',                 href: '/?view=report' },
     { icon: '👥',   label: 'จัดการผู้ใช้',           href: null, action: () => setView('users') },
   ];

@@ -251,6 +251,31 @@ async function loadInspectionByFilename(filename) {
   return JSON.parse(Buffer.from(json.content, 'base64').toString('utf-8'));
 }
 
+/** โหลด JSON ไฟล์เดียวจาก path ตรงๆ — คืน null ถ้าไม่มี */
+async function loadJsonFile(filePath) {
+  return loadInspectionByPath(filePath);
+}
+
+/** เขียนทับ JSON ไฟล์เดียว (สร้าง data branch ถ้ายังไม่มี) */
+async function saveJsonFile(filePath, data, message) {
+  const { owner, repo, branch } = cfg();
+  await ensureDataBranch();
+  const apiPath = `/repos/${owner}/${repo}/contents/${encPath(filePath)}`;
+  let sha;
+  const existing = await ghReq(`${apiPath}?ref=${branch}`);
+  if (existing.status === 200) sha = (await existing.json()).sha;
+  else if (existing.status !== 404) throw new Error(`ตรวจสอบไฟล์เดิมไม่สำเร็จ HTTP ${existing.status}`);
+
+  const content = Buffer.from(JSON.stringify(data, null, 2), 'utf-8').toString('base64');
+  const put = await ghReq(apiPath, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: message || `บันทึก ${filePath}`, content, branch, ...(sha ? { sha } : {}) }),
+  });
+  if (!put.ok) throw new Error(`บันทึกลง GitHub ไม่สำเร็จ HTTP ${put.status}: ${await put.text()}`);
+  return { path: filePath };
+}
+
 module.exports = {
   saveInspectionRecord,
   saveSessionByDate,
@@ -259,4 +284,6 @@ module.exports = {
   loadInspectionByFilename,
   loadInspectionByPath,
   listInspectionDates,
+  loadJsonFile,
+  saveJsonFile,
 };

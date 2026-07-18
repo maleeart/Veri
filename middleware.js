@@ -11,6 +11,7 @@ export const config = {
     '/inspect/:path*',
     '/meter/:path*',
     '/building-meter/:path*',
+    '/pm/:path*',
     '/report/:path*',
     '/admin/:path*',
   ],

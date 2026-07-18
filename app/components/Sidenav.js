@@ -34,6 +34,7 @@ export default function Sidenav({ notifProps = null }) {
     { icon: '🚪',   label: 'Exit Sign',              key: 'exit',   href: `/form/exit?date=${today}` },
     { icon: '⚡',   label: 'Meter กฟน.',             key: 'meter',  href: '/meter' },
     { icon: '🏢',   label: 'Meter อาคาร',            key: 'bmeter', href: '/building-meter' },
+    { icon: '🔧',   label: 'สถานะ PM',               key: 'pm',     href: '/pm' },
   ];
 
   return (
@@ -63,7 +64,7 @@ export default function Sidenav({ notifProps = null }) {
       {/* Nav items */}
       <div className="sn-section-label">บันทึกข้อมูล</div>
       {navItems.map(({ icon, label, key, href, badge }) => {
-        const isActive = active === `form:${key}` || (key === 'fpg' && active === '/session');
+        const isActive = active === `form:${key}` || (key === 'fpg' && active === '/session') || (key === 'pm' && active === '/pm');
         return (
           <button key={key} className={`sn-item${isActive ? ' sn-item--active' : ''}`}
             onClick={() => router.push(href)}>
