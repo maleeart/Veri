@@ -40,5 +40,18 @@
     "valve_lash": null,
     "coolant_flush": null,
     "alignment": null
+  },
+  "generator-1": {
+    "engine_oil": null,
+    "fuel_filter": null,
+    "air_filter": null,
+    "coolant": null,
+    "belt": null,
+    "hoses": null,
+    "battery": "2023-02-18",
+    "fuel_tank": null,
+    "bank_test": null,
+    "valve_lash": null,
+    "coolant_flush": null
   }
 }
