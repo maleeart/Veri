@@ -41,9 +41,11 @@ export function daysSince(dateStr) {
   return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
 }
 
-/** 'never' | 'overdue' | 'due' | 'ok' — คิดจากเวลาอย่างเดียว */
+/** 'overdue' | 'due' | 'ok' — คิดจากเวลาอย่างเดียว
+ *  ไม่มีวันที่ (ยังไม่เคย/ไม่ทราบ) = เกินกำหนด — แบบฟอร์มรายสัปดาห์เช็คแค่ visual
+ *  ไม่ใช่การเปลี่ยนจริง ถ้าไม่มีบันทึกว่าเปลี่ยนก็ถือว่าค้าง */
 export function pmStatus(lastDate, intervalDays) {
-  if (!lastDate) return 'never';
+  if (!lastDate) return 'overdue';
   const days = daysSince(lastDate);
   if (days > intervalDays) return 'overdue';
   if (days > intervalDays - DUE_AHEAD_DAYS) return 'due';
