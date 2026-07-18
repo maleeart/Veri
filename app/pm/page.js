@@ -4,9 +4,17 @@ import { useEffect, useState, Fragment, Suspense } from 'react';
 import Sidenav from '../components/Sidenav';
 import { useCanWrite } from '../lib/useCanWrite';
 import { itemsForType, GROUP_LABELS, pmStatus, nextDue, daysSince } from '../lib/pmSchedule';
-import { BUILDINGS, fmtDate, pmSummary, lastSaturdayISO, currentISOWeek, prevISOWeek } from '../lib/systemStatus';
+import { BUILDINGS, fmtDate, pmSummary, lastDoneByBuilding, getStatus, lastSaturdayISO, currentISOWeek, prevISOWeek } from '../lib/systemStatus';
 
 const TODAY = () => new Date().toISOString().slice(0, 10);
+
+// เรียงอาคารตามความรุนแรง (แดง→เหลือง→เทา→เขียว) เพื่อให้ที่ค้างเด่นก่อน
+const SEVERITY = { overdue: 0, due: 1, never: 2, ok: 3 };
+function buildingBubbles(dates, type) {
+  const map = lastDoneByBuilding(dates, type);
+  return BUILDINGS.map(b => ({ b, st: getStatus(map[b]), date: map[b] }))
+    .sort((a, z) => SEVERITY[a.st] - SEVERITY[z.st] || a.b.localeCompare(z.b));
+}
 
 const STATUS_META = {
   overdue: { cls: 'st--overdue', icon: '🔴', label: 'เกินกำหนด' },
@@ -38,7 +46,14 @@ function PmPageInner() {
   const [pmState, setPmState] = useState(null);
   const [meterDays, setMeterDays] = useState(null);
   const [bmWeeks, setBmWeeks] = useState(null);
+  const [expandedOv, setExpandedOv] = useState(new Set()); // type ที่กางดูอาคาร
   const [err, setErr] = useState('');
+
+  const toggleOv = (type) => setExpandedOv(prev => {
+    const next = new Set(prev);
+    next.has(type) ? next.delete(type) : next.add(type);
+    return next;
+  });
 
   const today = TODAY();
 
@@ -93,7 +108,7 @@ function PmPageInner() {
       ['smoke', '🚨', 'Smoke Detector'],
       ['exit', '🚪', 'Exit Sign'],
     ]) {
-      rows.push({ icon, name, sub: `ทุก 3 เดือน · ${BUILDINGS.length} อาคาร`, chip: summaryChip(pmSummary(dates, type)) });
+      rows.push({ icon, name, type, sub: `ทุก 3 เดือน · ${BUILDINGS.length} อาคาร`, chip: summaryChip(pmSummary(dates, type)) });
     }
 
     // Meter กฟน. — รายวัน
@@ -132,16 +147,35 @@ function PmPageInner() {
             {/* ── ภาพรวมระบบ ── */}
             <div className="pm-sec-hd">ภาพรวมระบบ</div>
             <div className="ov-table">
-              {overview.map(row => (
-                <div key={row.name} className="ov-row">
-                  <span className="ov-icon">{row.icon}</span>
-                  <div className="ov-info">
-                    <span className="ov-name">{row.name}</span>
-                    <span className="ov-sub">{row.sub}</span>
-                  </div>
-                  <span className={`chip ${row.chip.cls}`}>{row.chip.txt}</span>
-                </div>
-              ))}
+              {overview.map(row => {
+                const exp = row.type && expandedOv.has(row.type);
+                return (
+                  <Fragment key={row.name}>
+                    <div className="ov-row">
+                      <span className="ov-icon">{row.icon}</span>
+                      <div className="ov-info">
+                        <span className="ov-name">{row.name}</span>
+                        <span className="ov-sub">{row.sub}</span>
+                      </div>
+                      <span className={`chip ${row.chip.cls}`}>{row.chip.txt}</span>
+                      {row.type && (
+                        <button className="ov-exp" onClick={() => toggleOv(row.type)}>
+                          {exp ? '▲ ซ่อน' : '▼ ดูอาคาร'}
+                        </button>
+                      )}
+                    </div>
+                    {exp && (
+                      <div className="ov-blds">
+                        {buildingBubbles(dates, row.type).map(({ b, st, date }) => (
+                          <span key={b} className={`bld ${STATUS_META[st].cls}`}
+                            title={`${STATUS_META[st].label}${date ? ' · ' + fmtDate(date) : ''}`}>{b}</span>
+                        ))}
+                        <span className="bld-legend">🟢 ปกติ · 🟡 ใกล้ครบ · 🔴 เกินกำหนด · ⚫ ยังไม่บันทึก</span>
+                      </div>
+                    )}
+                  </Fragment>
+                );
+              })}
             </div>
 
             {/* ── PM Fire Pump & Generator ── */}
@@ -173,6 +207,17 @@ function PmPageInner() {
         .ov-info { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
         .ov-name { font-size: 13px; font-weight: 700; color: var(--ink-primary); }
         .ov-sub { font-size: 11px; color: var(--ink-muted); }
+        .ov-exp { background: var(--bg-surface-raised); border: 1px solid var(--border-strong);
+          border-radius: 8px; padding: 4px 9px; font-size: 11px; font-weight: 600; color: var(--accent);
+          cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+        .ov-exp:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        .ov-blds { display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+          padding: 12px 16px 14px; background: var(--bg-surface-raised);
+          border-top: 1px solid var(--border-hairline); }
+        .bld { font-size: 12px; font-weight: 600; border-radius: 8px; padding: 3px 9px;
+          border: 1px solid transparent; cursor: default; }
+        .bld-legend { flex-basis: 100%; font-size: 10px; color: var(--ink-muted); margin-top: 4px; }
 
         .chip { font-size: 12px; font-weight: 600; border-radius: 8px; padding: 4px 10px;
           white-space: nowrap; border: 1px solid transparent; }

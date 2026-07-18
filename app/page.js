@@ -34,42 +34,7 @@ function weekInfo(week) {
   };
 }
 
-const BUILDINGS = [
-  'ท.0006','ท.0007','ท.0008','ท.0009','ท.0010',
-  'ท.0011','ท.0012','ท.0014','ท.0015','ท.0016',
-  'ท.0017','ท.0018','ท.0019','ท.0020','ท.0022',
-  'ท.0023','ท.0026','ท.0027','ท.0028','ท.0029',
-  'ต.0017','ต.0019','ต.0025','ต.0026','ต.0031','ต.0033',
-];
-const FREQ_MONTHS = 3; // smoke & emergency: ทุก 3 เดือน
-
-/** คืน { building → lastDate } สำหรับ type ที่ระบุ */
-function lastDoneByBuilding(dates, type) {
-  const map = {};
-  for (const d of (dates || [])) {
-    if (d.type !== type || !d.building) continue;
-    if (!map[d.building] || d.date > map[d.building]) map[d.building] = d.date;
-  }
-  return map;
-}
-
-/** daysDiff ระหว่าง date string กับวันนี้ */
-function daysSince(dateStr) {
-  return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
-}
-
-/** status: 'ok' | 'due' | 'overdue' | 'never' */
-function getStatus(lastDate) {
-  if (!lastDate) return 'never';
-  const days = daysSince(lastDate);
-  const limit = FREQ_MONTHS * 30;
-  if (days > limit) return 'overdue';
-  if (days > limit - 14) return 'due'; // เตือนล่วงหน้า 2 สัปดาห์
-  return 'ok';
-}
-
-const STATUS_BADGE = { overdue: '🔴', due: '🟡', never: '⚫', ok: '🟢' };
-const STATUS_LABEL = { overdue: 'เกินกำหนด', due: 'ใกล้ครบ', never: 'ยังไม่เคยบันทึก', ok: 'ปกติ' };
+// สถานะ PM รายอาคาร (Emergency/Smoke/Exit) ย้ายไปหน้า /pm แล้ว — ดู app/lib/systemStatus.js
 
 function HomePageInner() {
   const router = useRouter();
@@ -85,7 +50,6 @@ function HomePageInner() {
   const [justSaved, setJustSaved] = useState(false);
   const [hasDraft, setHasDraft] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [showStatus, setShowStatus] = useState(false);
   const [openGroups, setOpenGroups] = useState(new Set());
   const [selectedYear, setSelectedYear] = useState(null);     // "2026" | null = ยังไม่ตั้งค่า
   const [selectedMonth, setSelectedMonth] = useState('');     // "01".."12" | '' = ทั้งปี
@@ -152,22 +116,6 @@ function HomePageInner() {
       (!selectedYear || w.y === selectedYear) && (!selectedMonth || w.m === selectedMonth)
     );
   }, [weekRows, selectedYear, selectedMonth]);
-
-  const statusRows = useMemo(() => {
-    if (!dates) return [];
-    const smokeMap = lastDoneByBuilding(dates, 'smoke');
-    const emerMap  = lastDoneByBuilding(dates, 'emergency');
-    const exitMap  = lastDoneByBuilding(dates, 'exit');
-    return BUILDINGS.map(b => ({
-      b,
-      smoke: getStatus(smokeMap[b]),
-      emer:  getStatus(emerMap[b]),
-      exit:  getStatus(exitMap[b]),
-      smokeDate: smokeMap[b],
-      emerDate:  emerMap[b],
-      exitDate:  exitMap[b],
-    })).filter(r => r.smoke !== 'ok' || r.emer !== 'ok' || r.exit !== 'ok');
-  }, [dates]);
 
   // default selectedYear = ปีล่าสุดที่มีข้อมูล (ตั้งค่าครั้งเดียวหลังโหลด)
   useEffect(() => {
@@ -886,18 +834,6 @@ function HomePageInner() {
           <span className="card__arrow">›</span>
         </button>
 
-        {/* Card 4c — สถานะ PM (สรุปทุกระบบ) */}
-        <button
-          className="card card--pm"
-          onClick={() => router.push('/pm')}>
-          <span className="card__icon">🔧</span>
-          <div className="card__body">
-            <span className="card__title">สถานะ PM</span>
-            <span className="card__sub">สรุปสถานะทุกระบบ</span>
-          </div>
-          <span className="card__arrow">›</span>
-        </button>
-
         {/* Card 5 — History */}
         <button
           className="card card--history"
@@ -912,51 +848,23 @@ function HomePageInner() {
           <span className="card__arrow">{showHistory ? '⌄' : '›'}</span>
         </button>
 
-        {/* Card 6 — PM Status Summary (ยุบไว้ กดเปิดถึงเห็น) */}
-        {statusRows.length > 0 && (
-          <button
-            className="card card--status"
-            onClick={() => setShowStatus(v => !v)}>
-            <span className="card__icon">⚠</span>
-            <div className="card__body">
-              <span className="card__title">สรุปสถานะรายการ PM</span>
-              <span className="card__sub">{statusRows.length} อาคารต้องดำเนินการ</span>
-            </div>
-            <span className="card__arrow">{showStatus ? '⌄' : '›'}</span>
-          </button>
-        )}
+        {/* สถานะ PM — แถบนอนยาว (สรุปทุกระบบ + ดูอาคารในหน้า /pm) */}
+        <button
+          className="card card--pm"
+          onClick={() => router.push('/pm')}>
+          <span className="card__icon">🔧</span>
+          <div className="card__body">
+            <span className="card__title">สถานะ PM</span>
+            <span className="card__sub">สรุปสถานะทุกระบบ · กดดูรายอาคาร</span>
+          </div>
+          <span className="card__arrow">›</span>
+        </button>
 
       </main>
       </div>{/* /left-col */}
 
       <div className="right-col">
-      {/* ── Building Status Panel ── */}
-      {(showStatus || isDesktop) && statusRows.length > 0 && (
-        <section className="status-panel">
-          <h3 className="status-title">⚠ ต้องดำเนินการ</h3>
-          <div className="status-header-row">
-            <span className="status-col-b"></span>
-            <span className="status-col">💡 Emer</span>
-            <span className="status-col">🚨 Smoke</span>
-            <span className="status-col">🚪 Exit</span>
-          </div>
-          {statusRows.map(({ b, smoke, emer, exit, smokeDate, emerDate, exitDate }) => (
-            <div key={b} className="status-row">
-              <span className="status-col-b">{b}</span>
-              <span className="status-col" title={`${STATUS_LABEL[emer]}${emerDate ? ' · ' + emerDate : ''}`}>
-                {STATUS_BADGE[emer]}
-              </span>
-              <span className="status-col" title={`${STATUS_LABEL[smoke]}${smokeDate ? ' · ' + smokeDate : ''}`}>
-                {STATUS_BADGE[smoke]}
-              </span>
-              <span className="status-col" title={`${STATUS_LABEL[exit]}${exitDate ? ' · ' + exitDate : ''}`}>
-                {STATUS_BADGE[exit]}
-              </span>
-            </div>
-          ))}
-          <p className="status-legend">🟢 ปกติ · 🟡 ใกล้ครบ · 🔴 เกินกำหนด · ⚫ ยังไม่บันทึก</p>
-        </section>
-      )}
+      {/* สถานะ PM รายอาคาร ย้ายไปหน้า /pm แล้ว */}
 
       {/* ── History panel ── */}
       {(showHistory || isDesktop) && (
@@ -1352,6 +1260,7 @@ function HomePageInner() {
         .card--bmeter .card__arrow { color: rgba(255,255,255,0.7); margin-left: auto; }
 
         .card--pm {
+          grid-column: 1 / -1;
           background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
           box-shadow: 0 6px 18px rgba(20,184,166,0.35);
           min-height: 72px;
@@ -1373,18 +1282,6 @@ function HomePageInner() {
         .card--history .card__title { color: var(--ink-primary); font-size: 16px; }
         .card--history .card__sub   { color: var(--ink-muted); }
         .card--history .card__arrow { color: var(--ink-muted); margin-left: auto; }
-
-        /* PM Status Summary — dark, same shell as History */
-        .card--status {
-          grid-column: 1 / -1;
-          background: var(--bg-surface-raised);
-          border: 1px solid var(--border-hairline);
-          box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-        }
-        .card--status .card__icon  { font-size: 24px; color: var(--status-warn); }
-        .card--status .card__title { color: var(--ink-primary); font-size: 16px; }
-        .card--status .card__sub   { color: var(--ink-muted); }
-        .card--status .card__arrow { color: var(--ink-muted); margin-left: auto; }
 
         /* Card internals */
         .card__icon { flex-shrink: 0; }
