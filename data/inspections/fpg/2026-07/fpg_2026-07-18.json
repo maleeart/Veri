@@ -8,7 +8,7 @@
       "generalData": {
         "fuelBefore": "550",
         "runningHoursBefore": "137.3",
-        "runDurationMins": ""
+        "runDurationMins": "0"
       },
       "preVisual": [
         {
@@ -123,12 +123,12 @@
         "battery1Voltage": "13.1",
         "battery2Voltage": "13.1",
         "jockeyPump": {
-          "voltageL1L2": "",
-          "voltageL2L3": "",
-          "voltageL1L3": "",
-          "currentL1": "",
-          "currentL2": "",
-          "currentL3": ""
+          "voltageL1L2": "398.8",
+          "voltageL2L3": "396.2",
+          "voltageL1L3": "397.1",
+          "currentL1": "3.98",
+          "currentL2": "3.88",
+          "currentL3": "3.94"
         }
       },
       "testRun": {
@@ -157,7 +157,7 @@
       "generalData": {
         "fuelBefore": "930",
         "runningHoursBefore": "82.5",
-        "runDurationMins": ""
+        "runDurationMins": "0"
       },
       "preVisual": [
         {
@@ -272,12 +272,12 @@
         "battery1Voltage": "13.1",
         "battery2Voltage": "13.1",
         "jockeyPump": {
-          "voltageL1L2": "",
-          "voltageL2L3": "",
-          "voltageL1L3": "",
-          "currentL1": "",
-          "currentL2": "",
-          "currentL3": ""
+          "voltageL1L2": "398.7",
+          "voltageL2L3": "396.8",
+          "voltageL1L3": "395.3",
+          "currentL1": "4.56",
+          "currentL2": "4.63",
+          "currentL3": "5.26"
         }
       },
       "testRun": {
@@ -421,12 +421,12 @@
         "battery1Voltage": "13.8",
         "battery2Voltage": "13.8",
         "jockeyPump": {
-          "voltageL1L2": "",
-          "voltageL2L3": "",
-          "voltageL1L3": "",
-          "currentL1": "",
-          "currentL2": "",
-          "currentL3": ""
+          "voltageL1L2": "397.3",
+          "voltageL2L3": "394.6",
+          "voltageL1L3": "395.6",
+          "currentL1": "6.47",
+          "currentL2": "6.52",
+          "currentL3": "6.99"
         }
       },
       "testRun": {
