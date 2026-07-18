@@ -119,9 +119,9 @@
         }
       ],
       "readings": {
-        "waterPressure": "",
-        "battery1Voltage": "",
-        "battery2Voltage": "",
+        "waterPressure": "0",
+        "battery1Voltage": "13.1",
+        "battery2Voltage": "13.1",
         "jockeyPump": {
           "voltageL1L2": "",
           "voltageL2L3": "",
@@ -269,8 +269,8 @@
       ],
       "readings": {
         "waterPressure": "176",
-        "battery1Voltage": "",
-        "battery2Voltage": "",
+        "battery1Voltage": "13.1",
+        "battery2Voltage": "13.1",
         "jockeyPump": {
           "voltageL1L2": "",
           "voltageL2L3": "",
