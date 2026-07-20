@@ -43,14 +43,23 @@ export function daysSince(dateStr) {
 
 /** 'overdue' | 'due' | 'ok' — คิดจากเวลาอย่างเดียว
  *  ไม่มีวันที่ (ยังไม่เคย/ไม่ทราบ) = เกินกำหนด — แบบฟอร์มรายสัปดาห์เช็คแค่ visual
- *  ไม่ใช่การเปลี่ยนจริง ถ้าไม่มีบันทึกว่าเปลี่ยนก็ถือว่าค้าง */
-export function pmStatus(lastDate, intervalDays) {
+ *  ไม่ใช่การเปลี่ยนจริง ถ้าไม่มีบันทึกว่าเปลี่ยนก็ถือว่าค้าง
+ *  dueAheadDays: ระยะเตือน "ใกล้ครบ" (เหลือง) ก่อนถึงกำหนด */
+export function pmStatus(lastDate, intervalDays, dueAheadDays = DUE_AHEAD_DAYS) {
   if (!lastDate) return 'overdue';
   const days = daysSince(lastDate);
   if (days > intervalDays) return 'overdue';
-  if (days > intervalDays - DUE_AHEAD_DAYS) return 'due';
+  if (days > intervalDays - dueAheadDays) return 'due';
   return 'ok';
 }
+
+// ไฟฉุกเฉิน / ไฟทางออก — เปลี่ยนแบตทุก 2 ปี เตือนเหลืองตอน 1.5 ปี (dueAhead = ครึ่งปี)
+export const LIGHT_SYSTEMS = [
+  { id: 'emergency-light', icon: '💡', label: 'Emergency Light',
+    items: [{ key: 'battery', label: 'เปลี่ยนแบตเตอรี่ไฟฉุกเฉิน', intervalDays: 730, dueAheadDays: 182, group: 'change' }] },
+  { id: 'exit-light', icon: '🚪', label: 'Exit Sign',
+    items: [{ key: 'battery', label: 'เปลี่ยนแบตเตอรี่ไฟทางออก', intervalDays: 730, dueAheadDays: 182, group: 'change' }] },
+];
 
 /** วันครบกำหนดถัดไป (YYYY-MM-DD) หรือ null ถ้ายังไม่เคยทำ */
 export function nextDue(lastDate, intervalDays) {

@@ -5,13 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import Image from 'next/image';
 import Sidenav from './components/Sidenav';
-import { BUILDINGS, getStatus, lastDoneByBuilding, fmtDate } from './lib/systemStatus';
+import { fmtDate } from './lib/systemStatus';
 
 const THAI_MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-function fmtMonth(ym) { // "2026-06" → "มิ.ย. 69"
-  const [y, m] = ym.split('-');
-  return `${THAI_MONTHS[parseInt(m) - 1]} ${String(parseInt(y) + 543).slice(2)}`;
-}
 
 // วันศุกร์ของ ISO week (ช่างจด RAW ทุกเช้าวันศุกร์)
 function isoWeekToFriday(year, week) {
@@ -49,6 +45,7 @@ function HomePageInner() {
   const [downloading, setDownloading] = useState(null);
   const [justSaved, setJustSaved] = useState(false);
   const [hasDraft, setHasDraft] = useState(false);
+  const [showTimeline, setShowTimeline] = useState(false); // รายการล่าสุด — default ซ่อน
   const [openGroups, setOpenGroups] = useState(new Set());
   const [selectedYear, setSelectedYear] = useState(null);     // "2026" | null = ยังไม่ตั้งค่า
   const [selectedMonth, setSelectedMonth] = useState('');     // "01".."12" | '' = ทั้งปี
@@ -382,32 +379,7 @@ function HomePageInner() {
     'meter-gfn':      { icon: '⚡', label: 'Meter กฟน.' },
   };
 
-  // ── Dashboard: สรุปสิ่งที่ดำเนินการไปแล้วต่อระบบ ──
-  const thisYM = today.slice(0, 7);
-  const curYear = String(new Date().getFullYear());
-  const sysStats = useMemo(() => {
-    const s = {};
-    for (const key of ['fpg', 'emergency', 'smoke', 'exit']) {
-      const recs = (dates || []).filter(d => d.type === key);
-      const last = recs.map(d => d.date).sort().reverse()[0] || null;
-      const monthCount = recs.filter(d => d.date.slice(0, 7) === thisYM).length;
-      let covered = null;
-      if (key !== 'fpg') {
-        const byB = lastDoneByBuilding(dates, key);
-        covered = BUILDINGS.filter(b => ['ok', 'due'].includes(getStatus(byB[b]))).length;
-      }
-      s[key] = { last, monthCount, covered };
-    }
-    const bmSorted = [...weekRows].sort((a, b) => b.week.localeCompare(a.week));
-    s['building-meter'] = {
-      lastLabel: bmSorted[0]?.label || null,
-      monthCount: weekRows.filter(w => `${w.y}-${w.m}` === thisYM).length,
-    };
-    const months = meterMonths[curYear] || [];
-    s['meter-gfn'] = { lastMonth: [...months].sort().reverse()[0] || null, yearCount: months.length };
-    return s;
-  }, [dates, weekRows, meterMonths, thisYM, curYear]);
-
+  // ── รายการล่าสุด (timeline รวมทุกระบบ) — ภาพรวมต่อระบบย้ายไปหน้า /pm แล้ว ──
   const timeline = useMemo(() => {
     const items = [];
     for (const d of (dates || [])) {
@@ -419,24 +391,6 @@ function HomePageInner() {
     }
     return items.sort((a, b) => b.sort.localeCompare(a.sort)).slice(0, 12);
   }, [dates, weekRows]);
-
-  const DASH_SYS = [
-    { key: 'fpg',            icon: '🚒⚡', label: 'Fire Pump & Generator' },
-    { key: 'emergency',      icon: '💡',   label: 'Emergency Light' },
-    { key: 'smoke',          icon: '🚨',   label: 'Smoke Detector' },
-    { key: 'exit',           icon: '🚪',   label: 'Exit Sign' },
-    { key: 'meter-gfn',      icon: '⚡',   label: 'Meter กฟน.' },
-    { key: 'building-meter', icon: '🏢',   label: 'Meter อาคาร' },
-  ];
-
-  // บรรทัดสรุปต่อการ์ด (2 บรรทัด: ล่าสุด / ปริมาณ)
-  function dashLines(key) {
-    const st = sysStats[key] || {};
-    if (key === 'fpg')            return [`ล่าสุด ${st.last ? fmtDate(st.last) : '—'}`, `เดือนนี้ ${st.monthCount || 0} ครั้ง`];
-    if (key === 'meter-gfn')      return [`เดือนล่าสุด ${st.lastMonth ? fmtMonth(st.lastMonth) : '—'}`, `ปีนี้ ${st.yearCount || 0} เดือน`];
-    if (key === 'building-meter') return [`ล่าสุด ${st.lastLabel || '—'}`, `เดือนนี้ ${st.monthCount || 0} สัปดาห์`];
-    return [`ล่าสุด ${st.last ? fmtDate(st.last) : '—'}`, `ครบ ${st.covered ?? 0}/${BUILDINGS.length} อาคาร`]; // emergency/smoke/exit
-  }
 
   return (
     <div className="root">
@@ -812,43 +766,7 @@ function HomePageInner() {
         </div>
       )}
 
-      {/* ══ HOME DASHBOARD (สรุปสิ่งที่ดำเนินการแล้ว) ══ */}
       {!isReport && (<>
-      <section className="dash">
-        <h2 className="dash-h">📊 ภาพรวมการดำเนินการ</h2>
-        <div className="dash-grid">
-          {DASH_SYS.map(sys => {
-            const [l1, l2] = dashLines(sys.key);
-            return (
-              <div key={sys.key} className="dash-card">
-                <span className="dash-card-icon">{sys.icon}</span>
-                <div className="dash-card-body">
-                  <span className="dash-card-title">{sys.label}</span>
-                  <span className="dash-card-l1">{l1}</span>
-                  <span className="dash-card-l2">{l2}</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <h2 className="dash-h">🕑 รายการล่าสุด</h2>
-        <div className="dash-tl">
-          {dates === null ? <p className="dash-empty">กำลังโหลด...</p>
-            : timeline.length === 0 ? <p className="dash-empty">ยังไม่มีรายการ</p>
-            : timeline.map((t, i) => (
-              <div key={i} className="tl-row">
-                <span className="tl-icon">{t.icon}</span>
-                <div className="tl-info">
-                  <span className="tl-label">{t.label}</span>
-                  {t.detail && <span className="tl-detail">{t.detail}</span>}
-                </div>
-                <span className="tl-when">{t.when}</span>
-              </div>
-            ))}
-        </div>
-      </section>
-
       {/* ── Card launcher (mobile) ── */}
       <main className="grid">
 
@@ -926,33 +844,53 @@ function HomePageInner() {
           <span className="card__arrow">›</span>
         </button>
 
-        {/* Card 5 — รายงาน (ดู/ดาวน์โหลด ทุกระบบ) */}
-        <button
-          className="card card--history"
-          onClick={() => router.push('/?view=report')}>
-          <span className="card__icon">📊</span>
-          <div className="card__body">
-            <span className="card__title">รายงาน</span>
-            <span className="card__sub">
-              {dates === null ? 'กำลังโหลด...' : `${dates.length} รายการ · ดู/ดาวน์โหลด`}
-            </span>
-          </div>
-          <span className="card__arrow">›</span>
-        </button>
-
-        {/* สถานะ PM — แถบนอนยาว (สรุปทุกระบบ + ดูอาคารในหน้า /pm) */}
-        <button
-          className="card card--pm"
-          onClick={() => router.push('/pm')}>
-          <span className="card__icon">🔧</span>
-          <div className="card__body">
-            <span className="card__title">สถานะ PM</span>
-            <span className="card__sub">สรุปสถานะทุกระบบ · กดดูรายอาคาร</span>
-          </div>
-          <span className="card__arrow">›</span>
-        </button>
-
       </main>
+
+      {/* ── แถบสรุป: สถานะ PM · รายการล่าสุด (ยุบได้) · รายงาน — แสดงทั้ง mobile/desktop ── */}
+      <section className="home-foot">
+        <button className="foot-bar foot-bar--pm" onClick={() => router.push('/pm')}>
+          <span className="foot-ico">🔧</span>
+          <div className="foot-body">
+            <span className="foot-title">สถานะ PM</span>
+            <span className="foot-sub">สรุปทุกระบบ · รอบเปลี่ยน/ตรวจใหญ่ · กดดูรายอาคาร</span>
+          </div>
+          <span className="foot-arrow">›</span>
+        </button>
+
+        <button className="foot-bar" onClick={() => setShowTimeline(v => !v)}>
+          <span className="foot-ico">🕑</span>
+          <div className="foot-body">
+            <span className="foot-title">รายการล่าสุด</span>
+            <span className="foot-sub">{dates === null ? 'กำลังโหลด...' : `${timeline.length} รายการล่าสุด`}</span>
+          </div>
+          <span className="foot-arrow">{showTimeline ? '⌄' : '›'}</span>
+        </button>
+        {showTimeline && (
+          <div className="dash-tl">
+            {dates === null ? <p className="dash-empty">กำลังโหลด...</p>
+              : timeline.length === 0 ? <p className="dash-empty">ยังไม่มีรายการ</p>
+              : timeline.map((t, i) => (
+                <div key={i} className="tl-row">
+                  <span className="tl-icon">{t.icon}</span>
+                  <div className="tl-info">
+                    <span className="tl-label">{t.label}</span>
+                    {t.detail && <span className="tl-detail">{t.detail}</span>}
+                  </div>
+                  <span className="tl-when">{t.when}</span>
+                </div>
+              ))}
+          </div>
+        )}
+
+        <button className="foot-bar foot-bar--report" onClick={() => router.push('/?view=report')}>
+          <span className="foot-ico">📊</span>
+          <div className="foot-body">
+            <span className="foot-title">รายงาน</span>
+            <span className="foot-sub">{dates === null ? 'กำลังโหลด...' : `${dates.length} รายการ · ดู/ดาวน์โหลด`}</span>
+          </div>
+          <span className="foot-arrow">›</span>
+        </button>
+      </section>
 
       {/* History panel เดิม — ปิดไว้ (รวมเข้าเมนูรายงาน /?view=report แล้ว) */}
       {false && (
@@ -1632,6 +1570,28 @@ function HomePageInner() {
         @media (min-width: 900px) {
           .dash { padding: 24px 32px 8px; max-width: 960px; }
           .dash-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        /* ── Home foot bars (สถานะ PM · รายการล่าสุด · รายงาน) ── */
+        .home-foot { display: flex; flex-direction: column; gap: 10px; padding: 4px 16px 8px; }
+        .foot-bar { display: flex; align-items: center; gap: 12px; padding: 14px 16px; width: 100%;
+          background: var(--bg-surface); border: 1px solid var(--border-hairline); border-radius: 14px;
+          cursor: pointer; text-align: left; font-family: inherit; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+          -webkit-tap-highlight-color: transparent; }
+        .foot-bar:hover { background: var(--bg-surface-raised); }
+        .foot-ico { font-size: 22px; flex-shrink: 0; width: 26px; text-align: center; }
+        .foot-body { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+        .foot-title { font-size: 14px; font-weight: 700; color: var(--ink-primary); }
+        .foot-sub { font-size: 11px; color: var(--ink-muted); }
+        .foot-arrow { font-size: 18px; color: var(--ink-muted); flex-shrink: 0; }
+        .foot-bar--pm { background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); border-color: transparent;
+          box-shadow: 0 6px 18px rgba(20,184,166,0.35); }
+        .foot-bar--pm .foot-title { color: #fff; }
+        .foot-bar--pm .foot-sub { color: rgba(255,255,255,0.8); }
+        .foot-bar--pm .foot-arrow { color: rgba(255,255,255,0.8); }
+        .home-foot .dash-tl { margin-top: -2px; }
+        @media (min-width: 900px) {
+          .home-foot { padding: 20px 32px; max-width: 720px; }
         }
 
         /* ─── Report View ─── */

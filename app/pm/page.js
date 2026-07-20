@@ -1,12 +1,24 @@
 'use client';
 
 import { useEffect, useState, Fragment, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import Sidenav from '../components/Sidenav';
 import { useCanWrite } from '../lib/useCanWrite';
-import { itemsForType, GROUP_LABELS, pmStatus, nextDue, daysSince } from '../lib/pmSchedule';
+import { itemsForType, GROUP_LABELS, pmStatus, nextDue, daysSince, LIGHT_SYSTEMS } from '../lib/pmSchedule';
 import { BUILDINGS, fmtDate, pmSummary, lastDoneByBuilding, getStatus, lastSaturdayISO, currentISOWeek, prevISOWeek } from '../lib/systemStatus';
 
 const TODAY = () => new Date().toISOString().slice(0, 10);
+
+// ISO week → วันศุกร์ (ช่างจดทุกศุกร์) — ponytail: dup เล็กจาก app/page.js, ย้ายเข้า systemStatus ได้ถ้าต้องใช้ที่ 3
+function weekToFriday(week) {
+  const [y, w] = week.split('-W').map(Number);
+  const simple = new Date(Date.UTC(y, 0, 1 + (w - 1) * 7));
+  const dow = simple.getUTCDay();
+  const monday = new Date(simple);
+  monday.setUTCDate(dow <= 4 ? simple.getUTCDate() - dow + 1 : simple.getUTCDate() + 8 - dow);
+  monday.setUTCDate(monday.getUTCDate() + 4);
+  return monday.toISOString().slice(0, 10);
+}
 
 // เรียงอาคารตามความรุนแรง (แดง→เหลือง→เทา→เขียว) เพื่อให้ที่ค้างเด่นก่อน
 const SEVERITY = { overdue: 0, due: 1, never: 2, ok: 3 };
@@ -40,6 +52,7 @@ export default function PmPage() {
 }
 
 function PmPageInner() {
+  const router = useRouter();
   const canWrite = useCanWrite();
   const [dates, setDates] = useState(null);
   const [machines, setMachines] = useState(null);
@@ -89,18 +102,19 @@ function PmPageInner() {
 
   const loading = dates === null || machines === null;
 
-  // ── ภาพรวมระบบ (read-only) ──
+  // ── ภาพรวมระบบ (สถานะ + วันที่บันทึกล่าสุด) ──
   const overview = (() => {
     if (loading) return [];
+    const ym = today.slice(0, 7);
+    const lastOf = (type) => dates.filter(d => d.type === type).map(d => d.date).sort().reverse()[0] || null;
     const rows = [];
 
     // FPG รายสัปดาห์
     const lastSat = lastSaturdayISO();
-    const lastFpg = dates.filter(d => d.type === 'fpg').map(d => d.date).sort().reverse()[0] || null;
+    const lastFpg = lastOf('fpg');
     const fpgDone = !!(lastFpg && lastFpg >= lastSat);
-    rows.push({ icon: '🚒⚡', name: 'Fire Pump & Generator', sub: 'ทุกวันเสาร์',
-      chip: fpgDone ? { cls: 'st--ok', txt: `✅ ล่าสุด ${fmtDate(lastFpg)}` }
-                    : { cls: 'st--overdue', txt: `⚠️ ยังไม่ทำ (เสาร์ ${fmtDate(lastSat)})` } });
+    rows.push({ icon: '🚒⚡', name: 'Fire Pump & Generator', last: lastFpg,
+      chip: fpgDone ? { cls: 'st--ok', txt: '✅ ทำแล้ว' } : { cls: 'st--overdue', txt: '⚠️ ยังไม่ทำ' } });
 
     // Emergency / Smoke / Exit — รายอาคาร ทุก 3 เดือน
     for (const [type, icon, name] of [
@@ -108,24 +122,26 @@ function PmPageInner() {
       ['smoke', '🚨', 'Smoke Detector'],
       ['exit', '🚪', 'Exit Sign'],
     ]) {
-      rows.push({ icon, name, type, sub: `ทุก 3 เดือน · ${BUILDINGS.length} อาคาร`, chip: summaryChip(pmSummary(dates, type)) });
+      rows.push({ icon, name, type, last: lastOf(type), chip: summaryChip(pmSummary(dates, type)) });
     }
 
     // Meter กฟน. — รายวัน
+    const mDays = Object.keys(meterDays || {}).filter(k => meterDays[k] != null).sort();
+    const lastMeter = mDays.length ? `${ym}-${mDays[mDays.length - 1].padStart(2, '0')}` : null;
     const meterDoneToday = meterDays?.[today.slice(8, 10)] != null;
-    rows.push({ icon: '⚡', name: 'Meter กฟน.', sub: 'ทุกวัน',
-      chip: meterDoneToday ? { cls: 'st--ok', txt: '✅ บันทึกแล้ววันนี้' }
-                           : { cls: 'st--overdue', txt: `⚠️ ยังไม่บันทึกวันนี้` } });
+    rows.push({ icon: '⚡', name: 'Meter กฟน.', last: lastMeter,
+      chip: meterDoneToday ? { cls: 'st--ok', txt: '✅ วันนี้' } : { cls: 'st--overdue', txt: '⚠️ ยังไม่บันทึกวันนี้' } });
 
     // Meter อาคาร — รายสัปดาห์ (ศุกร์)
     const thisWeek = currentISOWeek(), prevWeek = prevISOWeek();
     const thisDone = (bmWeeks || []).includes(thisWeek), prevDone = (bmWeeks || []).includes(prevWeek);
     const isFriday = new Date().getDay() === 5;
     const shouldAlert = !prevDone || (isFriday && !thisDone);
-    rows.push({ icon: '🏢', name: 'Meter อาคาร', sub: 'ทุกวันศุกร์',
-      chip: !shouldAlert ? { cls: 'st--ok', txt: thisDone ? `✅ บันทึกแล้ว ${thisWeek}` : '✅ สัปดาห์ที่แล้วครบ' }
-        : !prevDone ? { cls: 'st--overdue', txt: `⚠️ ค้างสัปดาห์ที่แล้ว (${prevWeek})` }
-                    : { cls: 'st--due', txt: `🟡 ยังไม่บันทึกสัปดาห์นี้ (${thisWeek})` } });
+    const lastBm = [...(bmWeeks || [])].sort().reverse()[0] || null;
+    rows.push({ icon: '🏢', name: 'Meter อาคาร', last: lastBm ? weekToFriday(lastBm) : null,
+      chip: !shouldAlert ? { cls: 'st--ok', txt: '✅ ครบ' }
+        : !prevDone ? { cls: 'st--overdue', txt: '⚠️ ค้างสัปดาห์ที่แล้ว' }
+                    : { cls: 'st--due', txt: '🟡 ยังไม่บันทึกสัปดาห์นี้' } });
 
     return rows;
   })();
@@ -135,8 +151,9 @@ function PmPageInner() {
       <Sidenav />
       <main className="sn-shell-main pm-main">
         <header className="pm-hdr">
+          <button className="pm-back" onClick={() => router.push('/')}>‹ กลับหน้าหลัก</button>
           <h1 className="pm-title">🔧 สถานะ PM</h1>
-          <p className="pm-sub">สรุปสถานะทุกระบบ · รอบเปลี่ยน/ตรวจใหญ่ Fire Pump &amp; Generator</p>
+          <p className="pm-sub">สรุปสถานะทุกระบบ · รอบเปลี่ยน/ตรวจใหญ่</p>
         </header>
 
         {err && <p className="pm-err">{err}</p>}
@@ -155,7 +172,7 @@ function PmPageInner() {
                       <span className="ov-icon">{row.icon}</span>
                       <div className="ov-info">
                         <span className="ov-name">{row.name}</span>
-                        <span className="ov-sub">{row.sub}</span>
+                        <span className="ov-sub">บันทึกล่าสุด {row.last ? fmtDate(row.last) : '—'}</span>
                       </div>
                       <span className={`chip ${row.chip.cls}`}>{row.chip.txt}</span>
                       {row.type && (
@@ -178,11 +195,16 @@ function PmPageInner() {
               })}
             </div>
 
-            {/* ── PM Fire Pump & Generator ── */}
-            <div className="pm-sec-hd">รอบเปลี่ยน / ตรวจใหญ่ — Fire Pump &amp; Generator</div>
+            {/* ── รอบเปลี่ยน / ตรวจใหญ่ ── */}
+            <div className="pm-sec-hd">รอบเปลี่ยน / ตรวจใหญ่</div>
             {machines.map(m => (
               <MachineBlock key={m.id} machine={m}
                 entry={pmState[m.id]} canWrite={canWrite} onPost={post} />
+            ))}
+            {LIGHT_SYSTEMS.map(ls => (
+              <MachineBlock key={ls.id}
+                machine={{ id: ls.id, label: ls.label, type: 'light', location_default: '', icon: ls.icon }}
+                items={ls.items} entry={pmState[ls.id]} canWrite={canWrite} onPost={post} />
             ))}
           </>
         )}
@@ -191,6 +213,8 @@ function PmPageInner() {
       <style jsx>{`
         .pm-main { background: var(--bg-base, var(--bg-surface-raised)); min-height: 100dvh; padding: 20px 16px 60px; }
         .pm-hdr { margin-bottom: 16px; }
+        .pm-back { background: none; border: none; color: var(--accent); font-size: 13px;
+          font-weight: 600; cursor: pointer; padding: 0 0 8px; font-family: inherit; }
         .pm-title { font-size: 19px; font-weight: 800; color: var(--ink-primary); margin: 0; }
         .pm-sub { font-size: 12px; color: var(--ink-muted); margin: 3px 0 0; }
         .pm-err { color: var(--status-fail); background: var(--status-fail-bg); border-radius: 10px; padding: 10px 14px; font-size: 13px; }
@@ -230,21 +254,21 @@ function PmPageInner() {
   );
 }
 
-// ── บล็อกต่อเครื่อง: หัวสรุป (ยุบได้) → ตั้งค่า/รายการ ──
-function MachineBlock({ machine, entry, canWrite, onPost }) {
-  const items = itemsForType(machine.type);
+// ── บล็อกต่อเครื่อง/ระบบ: หัวสรุป (ยุบได้) → ตั้งค่า/รายการ ──
+function MachineBlock({ machine, items: itemsProp, entry, canWrite, onPost }) {
+  const items = itemsProp || itemsForType(machine.type);
   const configured = !!entry;
   const [open, setOpen] = useState(!configured); // ยังไม่ตั้งค่า = เปิดเลย
 
   // สรุปสถานะทั้งเครื่อง
   const counts = { overdue: 0, due: 0, never: 0, ok: 0 };
-  if (configured) for (const it of items) counts[pmStatus(entry[it.key], it.intervalDays)]++;
+  if (configured) for (const it of items) counts[pmStatus(entry[it.key], it.intervalDays, it.dueAheadDays)]++;
   const chip = configured ? summaryChip(counts) : { cls: 'st--never', txt: '⚫ ยังไม่ตั้งค่า' };
 
   return (
     <section className="mb">
       <button className="mb-hd" onClick={() => setOpen(o => !o)}>
-        <span className="mb-ico">{machine.type === 'generator' ? '⚡' : '🚒'}</span>
+        <span className="mb-ico">{machine.icon || (machine.type === 'generator' ? '⚡' : '🚒')}</span>
         <div className="mb-info">
           <span className="mb-name">{machine.label}</span>
           <span className="mb-loc">{machine.location_default}</span>
@@ -357,7 +381,7 @@ function StatusList({ machine, items, entry, canWrite, onPost }) {
 function ItemRow({ machineId, item, last, canWrite, onPost }) {
   const [date, setDate] = useState(TODAY());
   const [busy, setBusy] = useState(false);
-  const st = pmStatus(last, item.intervalDays);
+  const st = pmStatus(last, item.intervalDays, item.dueAheadDays);
   const meta = STATUS_META[st];
   const due = nextDue(last, item.intervalDays);
 
