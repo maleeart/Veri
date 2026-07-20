@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import Image from 'next/image';
 import Sidenav from './components/Sidenav';
+import { BUILDINGS, getStatus, lastDoneByBuilding, fmtDate } from './lib/systemStatus';
 
 const THAI_MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 function fmtMonth(ym) { // "2026-06" → "มิ.ย. 69"
@@ -43,13 +44,11 @@ function HomePageInner() {
   const [dates, setDates] = useState(null);
   const [weeks, setWeeks] = useState([]); // Meter อาคาร: สัปดาห์จาก Energy-Dashboard/forms
   const [meterMonths, setMeterMonths] = useState({}); // year → [yearMonth]
-  const [isDesktop, setIsDesktop] = useState(false);
   const [githubOk, setGithubOk] = useState(null);
   const [githubError, setGithubError] = useState('');
   const [downloading, setDownloading] = useState(null);
   const [justSaved, setJustSaved] = useState(false);
   const [hasDraft, setHasDraft] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
   const [openGroups, setOpenGroups] = useState(new Set());
   const [selectedYear, setSelectedYear] = useState(null);     // "2026" | null = ยังไม่ตั้งค่า
   const [selectedMonth, setSelectedMonth] = useState('');     // "01".."12" | '' = ทั้งปี
@@ -85,7 +84,7 @@ function HomePageInner() {
   const weekRows = useMemo(() => weeks.map(weekInfo), [weeks]);
 
   const viewParam = searchParams.get('view');
-  const isReport = isDesktop && viewParam === 'report';
+  const isReport = viewParam === 'report';
 
   // ปีที่มีข้อมูล (รวมทั้ง inspections และ building-meter)
   const availableYears = useMemo(() => {
@@ -150,23 +149,25 @@ function HomePageInner() {
     fetch('/api/building-meter-weeks').then(r => r.json()).then(d => setWeeks(d.weeks || [])).catch(() => {});
   }, []);
 
+  // โหลด meter-gfn เดือนของปีนี้ล่วงหน้า (ใช้ใน dashboard)
   useEffect(() => {
-    const mq = window.matchMedia('(min-width: 900px)');
-    setIsDesktop(mq.matches);
-    const handler = e => setIsDesktop(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
+    const yr = String(new Date().getFullYear());
+    if (meterMonths[yr] !== undefined) return;
+    fetch(`/api/meter-months?year=${yr}`)
+      .then(r => r.json())
+      .then(d => setMeterMonths(prev => ({ ...prev, [yr]: d.months || [] })))
+      .catch(() => {});
   }, []);
 
-  // โหลด meter months เมื่อเปิด history หรือเปลี่ยนปีที่เลือก
+  // โหลด meter months ของปีที่เลือกเมื่อเปิดรายงาน
   useEffect(() => {
     const yr = selectedYear || String(new Date().getFullYear());
-    if ((!showHistory && !isReport) || meterMonths[yr] !== undefined) return;
+    if (!isReport || meterMonths[yr] !== undefined) return;
     fetch(`/api/meter-months?year=${yr}`)
       .then(r => r.json())
       .then(d => setMeterMonths(prev => ({ ...prev, [yr]: d.months || [] })))
       .catch(() => setMeterMonths(prev => ({ ...prev, [yr]: [] })));
-  }, [showHistory, isReport, selectedYear]);
+  }, [isReport, selectedYear]);
 
   // ── notification panel ───────────────────────────────────────────────────
   const loadNotif = () => {
@@ -380,6 +381,62 @@ function HomePageInner() {
     'building-meter': { icon: '🏢', label: 'Meter อาคาร' },
     'meter-gfn':      { icon: '⚡', label: 'Meter กฟน.' },
   };
+
+  // ── Dashboard: สรุปสิ่งที่ดำเนินการไปแล้วต่อระบบ ──
+  const thisYM = today.slice(0, 7);
+  const curYear = String(new Date().getFullYear());
+  const sysStats = useMemo(() => {
+    const s = {};
+    for (const key of ['fpg', 'emergency', 'smoke', 'exit']) {
+      const recs = (dates || []).filter(d => d.type === key);
+      const last = recs.map(d => d.date).sort().reverse()[0] || null;
+      const monthCount = recs.filter(d => d.date.slice(0, 7) === thisYM).length;
+      let covered = null;
+      if (key !== 'fpg') {
+        const byB = lastDoneByBuilding(dates, key);
+        covered = BUILDINGS.filter(b => ['ok', 'due'].includes(getStatus(byB[b]))).length;
+      }
+      s[key] = { last, monthCount, covered };
+    }
+    const bmSorted = [...weekRows].sort((a, b) => b.week.localeCompare(a.week));
+    s['building-meter'] = {
+      lastLabel: bmSorted[0]?.label || null,
+      monthCount: weekRows.filter(w => `${w.y}-${w.m}` === thisYM).length,
+    };
+    const months = meterMonths[curYear] || [];
+    s['meter-gfn'] = { lastMonth: [...months].sort().reverse()[0] || null, yearCount: months.length };
+    return s;
+  }, [dates, weekRows, meterMonths, thisYM, curYear]);
+
+  const timeline = useMemo(() => {
+    const items = [];
+    for (const d of (dates || [])) {
+      const meta = TYPE_META[d.type] || {};
+      items.push({ sort: d.date, when: fmtDate(d.date), icon: meta.icon || '📄', label: meta.label || d.type, detail: d.building || '' });
+    }
+    for (const w of weekRows) {
+      items.push({ sort: `${w.y}-${w.m}-15`, when: w.label, icon: '🏢', label: 'Meter อาคาร', detail: w.week });
+    }
+    return items.sort((a, b) => b.sort.localeCompare(a.sort)).slice(0, 12);
+  }, [dates, weekRows]);
+
+  const DASH_SYS = [
+    { key: 'fpg',            icon: '🚒⚡', label: 'Fire Pump & Generator' },
+    { key: 'emergency',      icon: '💡',   label: 'Emergency Light' },
+    { key: 'smoke',          icon: '🚨',   label: 'Smoke Detector' },
+    { key: 'exit',           icon: '🚪',   label: 'Exit Sign' },
+    { key: 'meter-gfn',      icon: '⚡',   label: 'Meter กฟน.' },
+    { key: 'building-meter', icon: '🏢',   label: 'Meter อาคาร' },
+  ];
+
+  // บรรทัดสรุปต่อการ์ด (2 บรรทัด: ล่าสุด / ปริมาณ)
+  function dashLines(key) {
+    const st = sysStats[key] || {};
+    if (key === 'fpg')            return [`ล่าสุด ${st.last ? fmtDate(st.last) : '—'}`, `เดือนนี้ ${st.monthCount || 0} ครั้ง`];
+    if (key === 'meter-gfn')      return [`เดือนล่าสุด ${st.lastMonth ? fmtMonth(st.lastMonth) : '—'}`, `ปีนี้ ${st.yearCount || 0} เดือน`];
+    if (key === 'building-meter') return [`ล่าสุด ${st.lastLabel || '—'}`, `เดือนนี้ ${st.monthCount || 0} สัปดาห์`];
+    return [`ล่าสุด ${st.last ? fmtDate(st.last) : '—'}`, `ครบ ${st.covered ?? 0}/${BUILDINGS.length} อาคาร`]; // emergency/smoke/exit
+  }
 
   return (
     <div className="root">
@@ -633,7 +690,7 @@ function HomePageInner() {
       {/* ── Banners ── */}
       {justSaved && (
         <div className="banner banner--green">
-          ✓ บันทึกข้อมูลเรียบร้อย — ดาวน์โหลดได้ที่ History
+          ✓ บันทึกข้อมูลเรียบร้อย — ดาวน์โหลดได้ที่เมนูรายงาน
         </div>
       )}
       {githubOk === false && (
@@ -646,6 +703,7 @@ function HomePageInner() {
       {isReport && (
         <div className="report-view">
           <div className="report-header">
+            <button className="report-back" onClick={() => router.push('/')}>‹ กลับหน้าหลัก</button>
             <h2 className="report-title">📊 รายงานการตรวจสอบ</h2>
           </div>
           <div className="report-cats">
@@ -754,10 +812,44 @@ function HomePageInner() {
         </div>
       )}
 
-      {/* ── Two-column layout (dashboard view) ── */}
-      {!isReport && <div className="layout">
-      <div className="left-col">
-      {/* ── Card Grid ── */}
+      {/* ══ HOME DASHBOARD (สรุปสิ่งที่ดำเนินการแล้ว) ══ */}
+      {!isReport && (<>
+      <section className="dash">
+        <h2 className="dash-h">📊 ภาพรวมการดำเนินการ</h2>
+        <div className="dash-grid">
+          {DASH_SYS.map(sys => {
+            const [l1, l2] = dashLines(sys.key);
+            return (
+              <div key={sys.key} className="dash-card">
+                <span className="dash-card-icon">{sys.icon}</span>
+                <div className="dash-card-body">
+                  <span className="dash-card-title">{sys.label}</span>
+                  <span className="dash-card-l1">{l1}</span>
+                  <span className="dash-card-l2">{l2}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <h2 className="dash-h">🕑 รายการล่าสุด</h2>
+        <div className="dash-tl">
+          {dates === null ? <p className="dash-empty">กำลังโหลด...</p>
+            : timeline.length === 0 ? <p className="dash-empty">ยังไม่มีรายการ</p>
+            : timeline.map((t, i) => (
+              <div key={i} className="tl-row">
+                <span className="tl-icon">{t.icon}</span>
+                <div className="tl-info">
+                  <span className="tl-label">{t.label}</span>
+                  {t.detail && <span className="tl-detail">{t.detail}</span>}
+                </div>
+                <span className="tl-when">{t.when}</span>
+              </div>
+            ))}
+        </div>
+      </section>
+
+      {/* ── Card launcher (mobile) ── */}
       <main className="grid">
 
         {/* Card 1 — Fire Pump & Generator (ใหญ่ full-width) */}
@@ -834,18 +926,18 @@ function HomePageInner() {
           <span className="card__arrow">›</span>
         </button>
 
-        {/* Card 5 — History */}
+        {/* Card 5 — รายงาน (ดู/ดาวน์โหลด ทุกระบบ) */}
         <button
           className="card card--history"
-          onClick={() => setShowHistory(v => !v)}>
-          <span className="card__icon">📋</span>
+          onClick={() => router.push('/?view=report')}>
+          <span className="card__icon">📊</span>
           <div className="card__body">
-            <span className="card__title">History</span>
+            <span className="card__title">รายงาน</span>
             <span className="card__sub">
-              {dates === null ? 'กำลังโหลด...' : `${dates.length} รายการ`}
+              {dates === null ? 'กำลังโหลด...' : `${dates.length} รายการ · ดู/ดาวน์โหลด`}
             </span>
           </div>
-          <span className="card__arrow">{showHistory ? '⌄' : '›'}</span>
+          <span className="card__arrow">›</span>
         </button>
 
         {/* สถานะ PM — แถบนอนยาว (สรุปทุกระบบ + ดูอาคารในหน้า /pm) */}
@@ -861,13 +953,9 @@ function HomePageInner() {
         </button>
 
       </main>
-      </div>{/* /left-col */}
 
-      <div className="right-col">
-      {/* สถานะ PM รายอาคาร ย้ายไปหน้า /pm แล้ว */}
-
-      {/* ── History panel ── */}
-      {(showHistory || isDesktop) && (
+      {/* History panel เดิม — ปิดไว้ (รวมเข้าเมนูรายงาน /?view=report แล้ว) */}
+      {false && (
         <section className="history-panel">
           {githubOk === false && <p className="history-empty">⚠ ต้องตั้งค่า GitHub token ก่อน</p>}
           {dates?.length === 0 && weekRows.length === 0 && <p className="history-empty">ยังไม่มีประวัติ</p>}
@@ -1074,8 +1162,7 @@ function HomePageInner() {
           })()}
         </section>
       )}
-      </div>{/* /right-col */}
-      </div>}{/* /layout */}
+      </>)}
 
       </div>{/* /page-main */}
 
@@ -1519,8 +1606,39 @@ function HomePageInner() {
         }
         .btn-del:disabled { opacity: 0.5; }
 
+        /* ─── Home Dashboard ─── */
+        .dash { padding: 18px 16px 4px; display: flex; flex-direction: column; gap: 6px; }
+        .dash-h { font-size: 14px; font-weight: 800; color: var(--ink-primary); margin: 12px 0 4px; }
+        .dash-h:first-child { margin-top: 0; }
+        .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .dash-card { display: flex; gap: 10px; padding: 12px; background: var(--bg-surface);
+          border: 1px solid var(--border-hairline); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .dash-card-icon { font-size: 22px; flex-shrink: 0; }
+        .dash-card-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+        .dash-card-title { font-size: 12px; font-weight: 700; color: var(--ink-primary);
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .dash-card-l1 { font-size: 11px; color: var(--ink-secondary); }
+        .dash-card-l2 { font-size: 11px; color: var(--ink-muted); }
+        .dash-tl { display: flex; flex-direction: column; background: var(--bg-surface);
+          border: 1px solid var(--border-hairline); border-radius: 14px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .tl-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--border-hairline); }
+        .tl-row:first-child { border-top: none; }
+        .tl-icon { font-size: 18px; flex-shrink: 0; width: 24px; text-align: center; }
+        .tl-info { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+        .tl-label { font-size: 13px; font-weight: 600; color: var(--ink-primary); }
+        .tl-detail { font-size: 11px; color: var(--ink-muted); }
+        .tl-when { font-size: 11px; color: var(--ink-muted); white-space: nowrap; flex-shrink: 0; }
+        .dash-empty { padding: 16px; font-size: 13px; color: var(--ink-muted); text-align: center; margin: 0; }
+        @media (min-width: 900px) {
+          .dash { padding: 24px 32px 8px; max-width: 960px; }
+          .dash-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
         /* ─── Report View ─── */
+        .report-view { padding: 16px; }
         .report-header { margin-bottom: 16px; }
+        .report-back { background: none; border: none; color: var(--accent); font-size: 13px;
+          font-weight: 600; cursor: pointer; padding: 0 0 8px; font-family: inherit; }
         .report-title  { font-size: 20px; font-weight: 800; color: var(--ink-primary); margin: 0 0 16px; }
         .report-cats {
           display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
