@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo, Suspense } from 'react';
+import { useEffect, useState, useMemo, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import Image from 'next/image';
@@ -333,6 +333,76 @@ function HomePageInner() {
     } catch (err) { alert('เกิดข้อผิดพลาด: ' + err.message); }
     finally { setDownloading(null); }
   };
+
+  // ── download ZIP ────────────────────────────────────────────────────────────
+  const [zipLoading, setZipLoading] = useState(false);
+
+  const handleDownloadZip = useCallback(async (rows, currentType) => {
+    if (!rows.length) return;
+    setZipLoading(true);
+    try {
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      const foldered = currentType === ''; // ทั้งหมด → แยก folder
+
+      const getUrl = (row) => {
+        if (row.kind === 'bm')   return `/api/export-building-meter?week=${row.week}`;
+        if (row.kind === 'mgfn') return `/api/export-meter?month=${row.ym}`;
+        if (row.type === 'fpg')  return `/api/export-combined?date=${row.date}`;
+        if (row.type === 'exit') {
+          const p = new URLSearchParams({ date: row.date });
+          if (row.filename) p.set('filename', row.filename);
+          if (row.building) p.set('building', row.building);
+          if (row.floor)    p.set('floor', row.floor);
+          return `/api/export-exit?${p}`;
+        }
+        // emergency / smoke
+        const p = new URLSearchParams({ type: row.type, date: row.date });
+        if (row.filename) p.set('filename', row.filename);
+        if (row.building) p.set('building', row.building);
+        if (row.floor)    p.set('floor', row.floor);
+        return `/api/export-list?${p}`;
+      };
+
+      const getFilename = (row) => {
+        const san = s => String(s || '').replace(/[\\/:*?"<>|]/g, '').trim();
+        if (row.kind === 'bm')   return `BuildingMeter_${row.week}.xlsx`;
+        if (row.kind === 'mgfn') return `MeterGFN_${row.ym}.xlsx`;
+        if (row.type === 'fpg')  return `FPG_${row.date}.xlsx`;
+        const parts = [row.type.toUpperCase(), row.date, san(row.building), san(row.floor)].filter(Boolean);
+        return parts.join('_') + '.xlsx';
+      };
+
+      const folderOf = (row) => {
+        if (row.kind === 'bm')   return 'Meter-อาคาร';
+        if (row.kind === 'mgfn') return 'Meter-กฟน';
+        return row.type || 'other';
+      };
+
+      await Promise.all(rows.map(async (row) => {
+        try {
+          const res = await fetch(getUrl(row));
+          if (!res.ok) return;
+          const buf = await res.arrayBuffer();
+          const fname = getFilename(row);
+          const path = foldered ? `${folderOf(row)}/${fname}` : fname;
+          zip.file(path, buf);
+        } catch {}
+      }));
+
+      const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `รายงาน_${selectedYear || 'ทั้งหมด'}${selectedMonth ? `-${selectedMonth}` : ''}${selectedBuilding ? `_${selectedBuilding}` : ''}.zip`;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert('ดาวน์โหลด ZIP ไม่สำเร็จ: ' + e.message);
+    } finally {
+      setZipLoading(false);
+    }
+  }, [selectedYear, selectedMonth, selectedBuilding]);
 
   // ── UI ใหม่ ───────────────────────────────────────────────────────────────
   // Report view: derive from URL ?view=report
@@ -703,7 +773,18 @@ function HomePageInner() {
               </div>
             )}
           </div>
-          <p className="report-count">{reportRows.length} รายการ</p>
+          <div className="report-count-row">
+            <p className="report-count">{reportRows.length} รายการ</p>
+            {reportRows.length > 0 && (
+              <button
+                className="btn-dl-zip"
+                disabled={zipLoading}
+                onClick={() => handleDownloadZip(reportRows, reportType)}
+              >
+                {zipLoading ? '⏳ กำลังสร้าง ZIP...' : '📦 ดาวน์โหลดทั้งหมด (.zip)'}
+              </button>
+            )}
+          </div>
           <div className="report-list">
             {reportRows.length === 0 && <p className="history-empty">ไม่มีข้อมูลในเงื่อนไขนี้</p>}
             {reportRows.map((row, i) => {
@@ -1619,7 +1700,14 @@ function HomePageInner() {
           display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
         }
         .report-filters .filter-col { flex: 1; min-width: 140px; max-width: 220px; }
-        .report-count { font-size: 12px; color: var(--ink-muted); margin: 0 0 12px; }
+        .report-count-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .report-count { font-size: 12px; color: var(--ink-muted); margin: 0; }
+        .btn-dl-zip {
+          padding: 7px 14px; border-radius: 10px; border: 1.5px solid var(--accent);
+          background: var(--accent); color: #fff; font-size: 13px; font-weight: 700;
+          cursor: pointer; white-space: nowrap; transition: opacity .12s;
+        }
+        .btn-dl-zip:disabled { opacity: .6; cursor: default; }
         .report-list  { display: flex; flex-direction: column; gap: 6px; }
         .report-row {
           display: flex; align-items: center; gap: 12px;
