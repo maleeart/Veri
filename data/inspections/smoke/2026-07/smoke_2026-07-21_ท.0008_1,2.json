@@ -1,0 +1,146 @@
+{
+  "date": "2026-07-21",
+  "type": "smoke",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-07-21",
+      "building": "ท.0008",
+      "floor": "1,2",
+      "inspector": "ธนวิชญ์",
+      "model": "FAP-129N",
+      "serial": "",
+      "mfg": "Bosch",
+      "lotYear": ""
+    },
+    "devices": [
+      {
+        "location": "ห้องสำนักงาน ชั้น1",
+        "remarks": "",
+        "zone": "1",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องประชุม 1 ชั้น1",
+        "remarks": "",
+        "zone": "1",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องอาหาร ชั้น1",
+        "remarks": "",
+        "zone": "1",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องเก็บเครื่องมือ ชั้น1",
+        "remarks": "",
+        "zone": "1",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องน้ำชาย ชั้น1",
+        "remarks": "",
+        "zone": "1",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องน้ำหญิง ชั้น1",
+        "remarks": "",
+        "zone": "1",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้อง Accessory Parts",
+        "remarks": "",
+        "zone": "2",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "พื้นที่คลังสินค้า",
+        "remarks": "อุปกรณ์ติดตั้งบนที่สูง",
+        "zone": "3",
+        "externalCondition": "normal",
+        "cleaned": "no",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องสำนักงาน ชั้น2",
+        "remarks": "",
+        "zone": "4",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องรับรอง ชั้น2",
+        "remarks": "",
+        "zone": "4",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องกอง กบออ-ธ. ชั้น2",
+        "remarks": "",
+        "zone": "4",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องประชุม2 ชั้น2",
+        "remarks": "",
+        "zone": "4",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "Beam พื้นที่คลังฝั่งขวา",
+        "remarks": "อุปกรณ์ติดตั้งบนที่สูง",
+        "zone": "5",
+        "externalCondition": "normal",
+        "cleaned": "no",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "Beam พื้นที่คลังฝั่งขวา",
+        "remarks": "อุปกรณ์ติดตั้งบนที่สูง",
+        "zone": "6",
+        "externalCondition": "normal",
+        "cleaned": "no",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "Beam พื้นที่คลังฝั่งซ้าย",
+        "remarks": "อุปกรณ์ติดตั้งบนที่สูง",
+        "zone": "7",
+        "externalCondition": "normal",
+        "cleaned": "no",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "Beam พื้นที่คลังฝั่งซ้าย",
+        "remarks": "อุปกรณ์ติดตั้งบนที่สูง",
+        "zone": "8",
+        "externalCondition": "normal",
+        "cleaned": "no",
+        "workingCondition": "normal"
+      }
+    ]
+  }
+}
