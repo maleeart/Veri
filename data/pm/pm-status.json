@@ -56,5 +56,8 @@
   },
   "emergency-light": {
     "battery": null
+  },
+  "exit-light": {
+    "battery": null
   }
 }
