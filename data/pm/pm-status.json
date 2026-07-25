@@ -53,5 +53,8 @@
     "bank_test": null,
     "valve_lash": null,
     "coolant_flush": null
+  },
+  "emergency-light": {
+    "battery": null
   }
 }
