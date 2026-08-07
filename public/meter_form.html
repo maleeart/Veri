@@ -1,7 +1,9 @@
 <!DOCTYPE html>
+<!-- ponytail: fork of Energy-Dashboard/docs/meter_form.html recolored to Veri dark theme; form logic + Apps Script calls unchanged -->
 <html lang="th">
 <head>
-<!-- ponytail: fork of Energy-Dashboard/docs/meter_form.html recolored to Veri dark theme; form logic + Apps Script calls unchanged -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="SNO GO.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>บันทึกมิเตอร์ไฟฟ้า</title>
@@ -323,7 +325,7 @@ function getCurrentWeekId() {
   // คำนวณจำนวนสัปดาห์
   const week = Math.ceil((((now - yearStart) / 86400000) + 1) / 7);
   
-  return `${now.getFullYear()}-W${String(week).padStart(2, '0')}`;
+  return now.getFullYear() + '-W' + ('0' + week).slice(-2);
 }
 
 function toggleManual() {
@@ -334,8 +336,25 @@ function toggleManual() {
 }
 
 // ── Week display ───────────────────────────────────────────
+function formatReadingDate(dateStr) {
+  if (!dateStr) return '';
+  const str = String(dateStr).trim();
+  // ถ้าตัวอักษรยาวเกิน 10 (เช่นมีเวลาปนมา) หรือมี T หรือมีเครื่องหมาย :
+  if (str.length > 10 || str.includes('T') || str.includes(':')) {
+    const d = new Date(str);
+    if (!isNaN(d.getTime())) {
+      const yyyy = d.getFullYear();
+      const mm = ('0' + (d.getMonth() + 1)).slice(-2);
+      const dd = ('0' + d.getDate()).slice(-2);
+      return `${dd}/${mm}/${yyyy}`;
+    }
+  }
+  return str;
+}
+
 function setWeekDisplay(w, rows = []) {
-  const readingDate = rows?.[0]?.reading_date || '';
+  let readingDate = rows?.[0]?.reading_date || '';
+  readingDate = formatReadingDate(readingDate);
   document.getElementById('weekLabel').textContent =
     readingDate ? `${w} (${readingDate})` : w;
   document.getElementById('latestWeekBadge').textContent = w;
@@ -363,7 +382,17 @@ async function fetchWeekData(w) {
     const res  = await fetch(`${APPS_SCRIPT_URL}?week_id=${w}`);
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || 'โหลดข้อมูลไม่สำเร็จ');
-    allRows = data.rows || [];
+    
+    // คลีนคีย์ทั้งหมดที่มีอักขระ BOM (\uFEFF) นำหน้า
+    allRows = (data.rows || []).map(row => {
+      const cleanRow = {};
+      for (const k in row) {
+        const cleanKey = k.replace(/^\uFEFF/, '').trim();
+        cleanRow[cleanKey] = row[k];
+      }
+      return cleanRow;
+    });
+
     setWeekDisplay(w, allRows);
     renderList();
     document.getElementById('statsBar').style.display   = 'flex';
@@ -471,6 +500,7 @@ async function saveRow(meterId) {
   const raw_unit    = row ? (row.raw_unit || 'kWh') : 'kWh';
   const reader      = rdrEl  ? rdrEl.value.trim()  : '';
   const note        = noteEl ? noteEl.value.trim() : '';
+ // ✅ เพิ่มตรงนี้ — ถามยืนยันก่อนลบค่า
   if (raw_reading === '') {
     if (!confirm('ต้องการลบค่ามิเตอร์นี้ให้เป็นช่องว่างใช่ไหม?')) return;
   }
@@ -501,6 +531,7 @@ async function saveRow(meterId) {
 
 // ── Export to GitHub ───────────────────────────────────────
 async function exportToGitHub() {
+  // ป้องกัน push ขณะมี save ค้างอยู่
   if (pendingSave) {
     showToast('⏳ กรุณารอบันทึกให้เสร็จก่อน', 'error');
     return;
@@ -524,6 +555,7 @@ async function exportToGitHub() {
       body   : JSON.stringify({ action: 'export', week_id: weekId }),
     });
     const data = await res.json();
+    // Apps Script แจ้งว่ามีคนอื่น push อยู่
     if (data.error && data.error.includes('push อยู่แล้ว')) {
       showToast('⏳ ' + data.error, 'error');
       return;
