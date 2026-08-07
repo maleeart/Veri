@@ -379,7 +379,7 @@ function HomePageInner() {
         return row.type || 'other';
       };
 
-      await Promise.all(rows.map(async (row) => {
+      await Promise.all(rows.filter(r => r.kind !== 'mgfn-year').map(async (row) => {
         try {
           const res = await fetch(getUrl(row));
           if (!res.ok) return;
@@ -430,7 +430,16 @@ function HomePageInner() {
       const months = meterMonths[yr] || [];
       for (const ym of months) {
         const [, m] = ym.split('-');
+        if (selectedMonth && m !== selectedMonth) continue;
         rows.push({ kind: 'mgfn', ym, label: `${THAI_MONTHS[parseInt(m)-1]} ${parseInt(yr)+543}` });
+      }
+      if (selectedYear && !selectedMonth) {
+        rows.push({
+          kind: 'mgfn-year',
+          year: selectedYear,
+          ym: `${selectedYear}-99`,
+          label: `รวมทั้งปี พ.ศ. ${parseInt(selectedYear) + 543}`
+        });
       }
     }
     return rows.sort((a, b) => {
@@ -438,7 +447,7 @@ function HomePageInner() {
       const db = b.date || b.week || b.ym || '';
       return db.localeCompare(da);
     });
-  }, [isReport, reportType, filteredDates, filteredWeeks, meterMonths, selectedYear]);
+  }, [isReport, reportType, filteredDates, filteredWeeks, meterMonths, selectedYear, selectedMonth]);
 
   const TYPE_META = {
     fpg:       { icon: '🚒⚡', label: 'Fire Pump & Generator' },
@@ -837,6 +846,21 @@ function HomePageInner() {
                     </div>
                     <div className="hist-actions">
                       <button className="btn-dl" onClick={() => { window.location.href = `/api/export-meter?month=${row.ym}`; }}>⬇︎ Excel</button>
+                    </div>
+                  </div>
+                );
+              }
+              if (row.kind === 'mgfn-year') {
+                return (
+                  <div key={i} className="report-row" style={{ borderLeft: '3px solid var(--accent)' }}>
+                    <span className="report-row-icon">⚡</span>
+                    <div className="report-row-info">
+                      <span className="report-row-type">Meter กฟน. (รวมทั้งปี)</span>
+                      <span className="report-row-loc">{row.label}</span>
+                      <span className="report-row-date">{row.year}</span>
+                    </div>
+                    <div className="hist-actions">
+                      <button className="btn-dl" onClick={() => { window.location.href = `/api/export-meter?year=${row.year}`; }}>⬇︎ Excel</button>
                     </div>
                   </div>
                 );
