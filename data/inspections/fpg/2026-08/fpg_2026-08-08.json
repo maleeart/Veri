@@ -120,15 +120,15 @@
       ],
       "readings": {
         "waterPressure": "0",
-        "battery1Voltage": "",
-        "battery2Voltage": "",
+        "battery1Voltage": "13.11",
+        "battery2Voltage": "13.08",
         "jockeyPump": {
-          "voltageL1L2": "",
-          "voltageL2L3": "",
-          "voltageL1L3": "",
-          "currentL1": "",
-          "currentL2": "",
-          "currentL3": ""
+          "voltageL1L2": "396.9",
+          "voltageL2L3": "394.3",
+          "voltageL1L3": "394.9",
+          "currentL1": "3.98",
+          "currentL2": "3.92",
+          "currentL3": "4.06"
         }
       },
       "testRun": {
