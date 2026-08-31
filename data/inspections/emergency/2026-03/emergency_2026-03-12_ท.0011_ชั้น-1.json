@@ -1,0 +1,218 @@
+{
+  "date": "2026-03-12",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-03-12",
+      "building": "ท.0011",
+      "floor": "ชั้น 1",
+      "inspector": "ธนวิชญ์",
+      "model": "sg209cd3",
+      "serial": "67107704",
+      "mfg": "sunny ",
+      "lotYear": "2024-10"
+    },
+    "devices": [
+      {
+        "location": "ประตูม้วนห้องเครื่องมือ",
+        "remarks": "",
+        "id": "1/1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูทางห้องเก็บของ",
+        "remarks": "",
+        "id": "1/2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องเครื่องมือ",
+        "remarks": "",
+        "id": "1/3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ทางเข้าห้องเก็บของ",
+        "remarks": "",
+        "id": "1/4",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง หอน-ธ.",
+        "remarks": "",
+        "id": "1/5",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หลังห้อง หอน-ธ.",
+        "remarks": "",
+        "id": "1/6",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูม้วนห้อง หอน-ธ.",
+        "remarks": "",
+        "id": "1/7",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องประชุม",
+        "remarks": "",
+        "id": "1/8",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องแม่บ้าน",
+        "remarks": "",
+        "id": "1/9",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องระบบไฟฟ้า",
+        "remarks": "",
+        "id": "1/10",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องเครื่องมือ",
+        "remarks": "",
+        "id": "1/11",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องสำนักงาน หอด-ธ.",
+        "remarks": "",
+        "id": "1/12",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หลังห้อง หอด-ธ.",
+        "remarks": "",
+        "id": "1/13",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูม้วนห้องเครื่องมือ",
+        "remarks": "",
+        "id": "1/14",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูม้วนห้องเครื่องมือ",
+        "remarks": "",
+        "id": "1/15",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูข้างห้อง หอด-ธ.",
+        "remarks": "",
+        "id": "1/16",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้อง หอด-ธ.",
+        "remarks": "",
+        "id": "1/17",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องเครื่องมือ",
+        "remarks": "",
+        "id": "1/18",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องเก็บลังเครื่องมือ",
+        "remarks": "",
+        "id": "1/19",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หลังห้องเก็บลังเครื่องมือ",
+        "remarks": "",
+        "id": "1/20",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หลังห้องเก็บลังเครื่องมือ",
+        "remarks": "",
+        "id": "1/21",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "พื้นที่คลัง",
+        "remarks": "",
+        "id": "1/22",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "พื้นที่งานซ่อม",
+        "remarks": "",
+        "id": "1/23",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "พื้นที่งานซ่อม",
+        "remarks": "",
+        "id": "1/24",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ข้างตู้ MDB",
+        "remarks": "",
+        "id": "1/25",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
