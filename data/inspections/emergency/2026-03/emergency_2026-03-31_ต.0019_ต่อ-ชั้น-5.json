@@ -1,0 +1,42 @@
+{
+  "date": "2026-03-31",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-03-31",
+      "building": "ต.0019",
+      "floor": "ต่อ ชั้น 5",
+      "inspector": "ธนวิชญ์",
+      "model": "sg209cd3",
+      "serial": "67107704",
+      "mfg": "sunny ",
+      "lotYear": "2024-10"
+    },
+    "devices": [
+      {
+        "location": "ห้องประชุมด้านซ้าย",
+        "remarks": "",
+        "id": "31",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องประชุมด้านซ้าย",
+        "remarks": "",
+        "id": "32",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องประชุมด้านซ้ายทางเข้า",
+        "remarks": "",
+        "id": "33",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
