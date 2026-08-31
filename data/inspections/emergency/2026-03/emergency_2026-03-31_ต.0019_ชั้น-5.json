@@ -1,0 +1,258 @@
+{
+  "date": "2026-03-31",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-03-31",
+      "building": "ต.0019",
+      "floor": "ชั้น 5",
+      "inspector": "ธนวิชญ์",
+      "model": "sg209cd3",
+      "serial": "67107704",
+      "mfg": "sunny ",
+      "lotYear": "2024-10"
+    },
+    "devices": [
+      {
+        "location": "โถงหน้าลิฟท์",
+        "remarks": "",
+        "id": "1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องระบบไฟฟ้า",
+        "remarks": "",
+        "id": "2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ทางเดิน",
+        "remarks": "",
+        "id": "3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องน้ำคนพิการ",
+        "remarks": "",
+        "id": "4",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "พื้นที่ประกอบอาหาร",
+        "remarks": "",
+        "id": "5",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องน้ำชาย",
+        "remarks": "",
+        "id": "6",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องหญิง",
+        "remarks": "",
+        "id": "7",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องฟิตเนสข้างกระจก",
+        "remarks": "",
+        "id": "8",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องฟิตเนสข้างกระจก",
+        "remarks": "",
+        "id": "9",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องฟิตเนสข้างกระจก",
+        "remarks": "",
+        "id": "10",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องฟิตเนสข้างกระจก",
+        "remarks": "",
+        "id": "11",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องฟิตเนสข้างกระจกทางเข้า",
+        "remarks": "",
+        "id": "12",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าประตูฟิตเนส",
+        "remarks": "",
+        "id": "13",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูทางออกระเบียงข้างฟิตเนส",
+        "remarks": "",
+        "id": "14",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูทางออก",
+        "remarks": "",
+        "id": "15",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ข้างห้องประชุม",
+        "remarks": "",
+        "id": "16",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ข้างห้องประชุม",
+        "remarks": "",
+        "id": "17",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ข้างห้องประชุม",
+        "remarks": "",
+        "id": "18",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องประชุม",
+        "remarks": "",
+        "id": "19",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องควบคุมเสียง",
+        "remarks": "",
+        "id": "20",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูทางเข้า2",
+        "remarks": "",
+        "id": "21",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ข้างระเบียงห้องประชุมฝั่งซ้าย",
+        "remarks": "",
+        "id": "22",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ข้างระเบียงห้องประชุมฝั่งซ้าย",
+        "remarks": "",
+        "id": "23",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ข้างระเบียงห้องประชุมฝั่งซ้าย",
+        "remarks": "",
+        "id": "24",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ข้างระเบียงห้องประชุมฝั่งซ้าย",
+        "remarks": "",
+        "id": "25",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ข้างระเบียงห้องประชุมฝั่งซ้าย",
+        "remarks": "",
+        "id": "26",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ข้างระเบียงห้องประชุมฝั่งซ้าย",
+        "remarks": "",
+        "id": "27",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "บนเวทีห้องประชุม",
+        "remarks": "",
+        "id": "28",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องเก็บของประชุม",
+        "remarks": "",
+        "id": "29",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องรับรอง",
+        "remarks": "",
+        "id": "30",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
