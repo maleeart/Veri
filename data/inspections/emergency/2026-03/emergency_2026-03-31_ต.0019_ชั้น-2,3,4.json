@@ -1,0 +1,74 @@
+{
+  "date": "2026-03-31",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-03-31",
+      "building": "ต.0019",
+      "floor": "ชั้น 2,3,4",
+      "inspector": "ธนวิชญ์",
+      "model": "sg209cd3",
+      "serial": "67107704",
+      "mfg": "sunny ",
+      "lotYear": "2024-10"
+    },
+    "devices": [
+      {
+        "location": "โถงลิฟท์ชั้น2",
+        "remarks": "",
+        "id": "2/1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถงลิฟท์ชั้น3",
+        "remarks": "",
+        "id": "3/1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องระบบไฟฟ้าชั้น3",
+        "remarks": "",
+        "id": "3/2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "บันไดชั้น3",
+        "remarks": "",
+        "id": "3/3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูหนีไฟชั้น3",
+        "remarks": "",
+        "id": "3/4",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "บันไดชั้น4",
+        "remarks": "",
+        "id": "4/1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูหนีไฟชั้น4",
+        "remarks": "",
+        "id": "4/2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
