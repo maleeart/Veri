@@ -1,0 +1,146 @@
+{
+  "date": "2026-03-09",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-03-09",
+      "building": "ท.0006",
+      "floor": "ชั้น 1 - 2",
+      "inspector": "ธนวิชญ์",
+      "model": "sg209cd3",
+      "serial": "67107704",
+      "mfg": "sunny",
+      "lotYear": "2024-10"
+    },
+    "devices": [
+      {
+        "location": "ห้องสำนักงาน",
+        "remarks": "",
+        "id": "1/1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องสำนักงาน",
+        "remarks": "",
+        "id": "1/2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องประชุมชั้น1",
+        "remarks": "",
+        "id": "1/3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "บันไดทางขึ้นชั้น2",
+        "remarks": "",
+        "id": "1/4",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูม้วน ด้านขวา ",
+        "remarks": "",
+        "id": "1/5",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูม้วนด้านขวา",
+        "remarks": "",
+        "id": "1/6",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ปรตูม้วนหลังอาคาร",
+        "remarks": "",
+        "id": "1/7",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "เสากลางคลัง",
+        "remarks": "",
+        "id": "1/8",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "เสากลางคลัง",
+        "remarks": "",
+        "id": "1/9",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "เสากลางคลัง",
+        "remarks": "",
+        "id": "1/10",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูม้วนหน้าอาคาร",
+        "remarks": "",
+        "id": "1/11",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูม้วนด้านซ้าย",
+        "remarks": "",
+        "id": "1/12",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูม้วนด้านซ้าย",
+        "remarks": "",
+        "id": "1/13",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "พื้นที่คลังชั้น2 หน้าประตู",
+        "remarks": "",
+        "id": "2/1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "พื้นที่คลังชั้น2 หลังห้อง",
+        "remarks": "",
+        "id": "2/2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูหนีไฟ",
+        "remarks": "",
+        "id": "2/3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
