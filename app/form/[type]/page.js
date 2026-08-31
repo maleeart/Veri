@@ -8,7 +8,7 @@ import Sidenav from '../../components/Sidenav';
 const BUILDINGS = [
   'ท.0006','ท.0007','ท.0008','ท.0009','ท.0010',
   'ท.0011','ท.0012','ท.0014','ท.0015','ท.0016',
-  'ท.0017','ท.0018','ท.0019','ท.0020','ท.0022',
+  'ท.0017','ท.0018','ท.0019','ท.0020','ท.0021','ท.0022',
   'ท.0023','ท.0026','ท.0027','ท.0028','ท.0029',
   'ต.0017','ต.0019','ต.0025','ต.0026','ต.0031','ต.0033',
 ];
@@ -129,8 +129,8 @@ function FormPageInner() {
   // กดถัดไปจากหน้าเลือกอาคาร — เช็คไฟล์เก่าของอาคารนี้ก่อน (ตึกเดียวมีได้หลายชั้น = หลายไฟล์)
   // ถ้าเจอ ให้เลือกเองว่าจะเอา template จากชั้นไหน แทนที่จะเดาให้อัตโนมัติ
   const handleBuildingNext = async () => {
-    if (!general.building?.trim()) {
-      setValidationError('กรุณาเลือกอาคารก่อน');
+    if (!general.building?.trim() || general.building === 'อื่นๆ') {
+      setValidationError('กรุณาระบุชื่ออาคาร');
       return;
     }
     setValidationError(null);
@@ -300,12 +300,24 @@ function FormPageInner() {
           <div className="field-row">
             <label className="field-label">อาคาร</label>
             <select className="field-select"
-              value={general.building}
+              value={BUILDINGS.includes(general.building) ? general.building : (general.building ? 'อื่นๆ' : '')}
               onChange={e => { setGeneral(g => ({ ...g, building: e.target.value })); setValidationError(null); }}>
               <option value="">-- เลือกอาคาร --</option>
               {BUILDINGS.map(b => <option key={b} value={b}>{b}</option>)}
+              <option value="อื่นๆ">อื่นๆ</option>
             </select>
           </div>
+          {(general.building === 'อื่นๆ' || (general.building && !BUILDINGS.includes(general.building))) && (
+            <Field
+              label="ระบุชื่ออาคาร"
+              placeholder="กรอกชื่ออาคารเอง"
+              value={general.building === 'อื่นๆ' ? '' : general.building}
+              onChange={v => {
+                setGeneral(g => ({ ...g, building: v || 'อื่นๆ' }));
+                setValidationError(null);
+              }}
+            />
+          )}
           {validationError && <p className="validation-err">{validationError}</p>}
           <button className="btn-next" style={{ background: accentColor }}
             disabled={checkingTemplates}
