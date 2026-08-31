@@ -1,0 +1,90 @@
+{
+  "date": "2026-03-12",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-03-12",
+      "building": "ท.0011",
+      "floor": "ชั้น 2",
+      "inspector": "ธนวิชญ์",
+      "model": "sg209cd3",
+      "serial": "67107704",
+      "mfg": "sunny ",
+      "lotYear": "2024-10"
+    },
+    "devices": [
+      {
+        "location": "ลานเก็บของด้านซ้าย",
+        "remarks": "",
+        "id": "2/1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ทางเดินด้านซ้าย",
+        "remarks": "",
+        "id": "2/2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ระเบียงทางเดิน",
+        "remarks": "",
+        "id": "2/3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ระเบียงขนของ",
+        "remarks": "",
+        "id": "2/4",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "พื้นที่บันได",
+        "remarks": "",
+        "id": "2/5",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ลานด้านขวา",
+        "remarks": "",
+        "id": "2/6",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ระเบียงด้านขวา",
+        "remarks": "",
+        "id": "2/7",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ลานเก็บของด้านขวา",
+        "remarks": "",
+        "id": "2/8",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ทางเดินชั้น2",
+        "remarks": "",
+        "id": "2/9",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
