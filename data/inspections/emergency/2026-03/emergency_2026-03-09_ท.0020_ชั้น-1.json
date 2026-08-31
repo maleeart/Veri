@@ -1,0 +1,154 @@
+{
+  "date": "2026-03-09",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-03-09",
+      "building": "ท.0020",
+      "floor": "ชั้น 1",
+      "inspector": "ธนวิชญ์",
+      "model": "sg209cd3",
+      "serial": "67107704",
+      "mfg": "sunny ",
+      "lotYear": "2024-10"
+    },
+    "devices": [
+      {
+        "location": "โถงทางเข้า",
+        "remarks": "",
+        "id": "1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องสำนักงาน",
+        "remarks": "",
+        "id": "2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องสำนักงาน",
+        "remarks": "",
+        "id": "3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องน้ำชาย",
+        "remarks": "",
+        "id": "4",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องน้ำชาย",
+        "remarks": "",
+        "id": "5",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องน้ำหญิง",
+        "remarks": "",
+        "id": "6",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องระบบไฟฟ้า",
+        "remarks": "",
+        "id": "7",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ทดสอบเดินเครื่องโรงไฟฟ้า",
+        "remarks": "",
+        "id": "8",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ทดสอบเดินเครื่องโรงไฟฟ้า",
+        "remarks": "",
+        "id": "9",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องวิทยากร",
+        "remarks": "",
+        "id": "10",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องประชุมชัยพฤกษ์",
+        "remarks": "",
+        "id": "11",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องประชุมฝั่งขวา",
+        "remarks": "",
+        "id": "12",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องประชุมฝั่งขวา",
+        "remarks": "",
+        "id": "13",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หลังห้องประชุม",
+        "remarks": "",
+        "id": "14",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หลังห้องประชุม",
+        "remarks": "",
+        "id": "15",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องประชุมฝั่งซ้าย",
+        "remarks": "",
+        "id": "16",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องประชุมฝั่งซ้าย",
+        "remarks": "",
+        "id": "17",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
