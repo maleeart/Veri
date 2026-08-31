@@ -1,0 +1,26 @@
+{
+  "date": "2026-03-20",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-03-20",
+      "building": "ต.0033",
+      "floor": "ชั้น 1",
+      "inspector": "ธนวิชญ์",
+      "model": "sg209cd3",
+      "serial": "67107704",
+      "mfg": "sunny ",
+      "lotYear": "2024-10"
+    },
+    "devices": [
+      {
+        "location": "หน้าประตูทางเข้าอาคาร",
+        "remarks": "",
+        "id": "1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
