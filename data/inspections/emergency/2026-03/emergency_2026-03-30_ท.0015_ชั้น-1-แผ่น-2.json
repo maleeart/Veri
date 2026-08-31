@@ -1,0 +1,162 @@
+{
+  "date": "2026-03-30",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-03-30",
+      "building": "ท.0015",
+      "floor": "ชั้น 1 แผ่น 2",
+      "inspector": "ธนวิชญ์",
+      "model": "",
+      "serial": "",
+      "mfg": "",
+      "lotYear": ""
+    },
+    "devices": [
+      {
+        "location": "หน้าห้องทดสอบน้ำ",
+        "remarks": "",
+        "id": "26",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องทดสอบน้ำ",
+        "remarks": "",
+        "id": "27",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "บันไดทางขึ้นชั้นบริการ 1",
+        "remarks": "",
+        "id": "28",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องปั๊มลม",
+        "remarks": "",
+        "id": "29",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ทางเดิน 1",
+        "remarks": "",
+        "id": "30",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องเก็บพัสดุรอจำหน่าย",
+        "remarks": "",
+        "id": "31",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องเก็บอุปกรณ์ทดสอบ",
+        "remarks": "",
+        "id": "32",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องอุปกรณ์ภาคสนาม",
+        "remarks": "",
+        "id": "33",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องอุปกรณ์ภาคสนาม",
+        "remarks": "",
+        "id": "34",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องเก็บสารเคมี",
+        "remarks": "",
+        "id": "35",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องเก็บสารเคมี",
+        "remarks": "",
+        "id": "36",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องเก็บของสารเคมี",
+        "remarks": "",
+        "id": "37",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องล้างขวดตัวอย่าง",
+        "remarks": "",
+        "id": "38",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องเก็บสารเคมีอันตราย",
+        "remarks": "",
+        "id": "39",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องปั๊มน้ำ",
+        "remarks": "",
+        "id": "40",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องควบคุม",
+        "remarks": "",
+        "id": "41",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องควบคุมระบบไฟฟ้าชั้น1",
+        "remarks": "",
+        "id": "42",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "บันไดทางหนีไฟชั้น1",
+        "remarks": "",
+        "id": "43",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
