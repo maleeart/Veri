@@ -1,0 +1,90 @@
+{
+  "date": "2026-03-30",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-03-30",
+      "building": "ท.0017",
+      "floor": "ชั้น 1 - 2",
+      "inspector": "ธนวิชญ์",
+      "model": "sg209cd3",
+      "serial": "67107704",
+      "mfg": "sunny ",
+      "lotYear": "2024-10"
+    },
+    "devices": [
+      {
+        "location": "หน้าประตูทางเข้า",
+        "remarks": "",
+        "id": "1/1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องฝึกเชื่อมเหล็ก Auto ",
+        "remarks": "",
+        "id": "1/2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องฝึกเชื่อมเหล็ก Auto ",
+        "remarks": "",
+        "id": "1/3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องระบบไฟฟ้า",
+        "remarks": "",
+        "id": "1/4",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "บันไดทางขึ้นชั้น2",
+        "remarks": "",
+        "id": "2/1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องผู้ควบคุม",
+        "remarks": "",
+        "id": "2/2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ทางเดินชั้น2",
+        "remarks": "",
+        "id": "2/3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องประชุม",
+        "remarks": "",
+        "id": "2/4",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องพักช่าง",
+        "remarks": "",
+        "id": "2/5",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
