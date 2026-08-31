@@ -1,0 +1,242 @@
+{
+  "date": "2026-03-18",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-03-18",
+      "building": "ท.0026",
+      "floor": "ชั้น 1,2,3",
+      "inspector": "ธนวิชญ์",
+      "model": "sg209cd3",
+      "serial": "67107704",
+      "mfg": "sunny ",
+      "lotYear": "2024-10"
+    },
+    "devices": [
+      {
+        "location": "โถงทางเข้าอาคาร ชั้น1",
+        "remarks": "ไม่ได้ติดตั้งอุปกรณ์",
+        "id": "1/1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องส่วนกลาง กขบ. ชั้น1",
+        "remarks": "",
+        "id": "1/2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง หคน-ห,หรย-ห.,หรช-ห. ชั้น1",
+        "remarks": "ไม่ได้ติดตั้งอุปกรณ์",
+        "id": "1/3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง หคน-ห,หรย-ห.,หรช-ห. ชั้น1",
+        "remarks": "",
+        "id": "1/4",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถงทางเดิน ชั้น1",
+        "remarks": "",
+        "id": "1/5",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องอาหาร ชั้น1",
+        "remarks": "ไม่ได้ติดตั้งอุปกรณ์",
+        "id": "1/6",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องระบบไฟฟ้า ชั้น1",
+        "remarks": "ไม่ได้ติดตั้งอุปกรณ์",
+        "id": "1/7",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง หวข-ห. ชั้น1",
+        "remarks": "",
+        "id": "1/8",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง หธข-ห.,หบข-ห. ชั้น1",
+        "remarks": "ไม่ได้ติดตั้งอุปกรณ์",
+        "id": "1/9",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง หธข-ห.,หบข-ห. ชั้น1",
+        "remarks": "ไม่ได้ติดตั้งอุปกรณ์",
+        "id": "1/10",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "บันไดทางขึ้น ชั้น1",
+        "remarks": "ไม่ได้ติดตั้งอุปกรณ์",
+        "id": "1/11",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "บันได ชั้น2",
+        "remarks": "",
+        "id": "2/12",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถงทางเดิน ชั้น2",
+        "remarks": "",
+        "id": "2/13",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูหน้าห้องประชุม2 ชั้น2",
+        "remarks": "",
+        "id": "2/14",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูทางเข้าฝั่งฝ่ายบริหารขนส่ง ชั้น2",
+        "remarks": "",
+        "id": "2/15",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูฝ่ายบริหารขนส่ง ชั้น2",
+        "remarks": "",
+        "id": "2/16",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องอาหาร ชั้น2",
+        "remarks": "ไม่ได้ติดตั้งอุปกรณ์",
+        "id": "2/17",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องระบบไฟฟ้า ชั้น2",
+        "remarks": "",
+        "id": "2/18",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องสำนักงานบริหารขนส่ง ชั้น2",
+        "remarks": "",
+        "id": "2/19",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้อง กวข-ห. ชั้น2",
+        "remarks": "",
+        "id": "2/20",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถงทางเดิน ชั้น3",
+        "remarks": "",
+        "id": "3/21",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูห้องกองขนส่งทางน้ำ ชั้น3",
+        "remarks": "",
+        "id": "3/22",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องกองขนส่งทางน้ำ ชั้น3",
+        "remarks": "",
+        "id": "3/23",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องศูนย์คุณภาพ",
+        "remarks": "",
+        "id": "3/24",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องอาหาร ชั้น3",
+        "remarks": "",
+        "id": "3/25",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องระบบไฟฟ้า ชั้น3",
+        "remarks": "",
+        "id": "3/26",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง server",
+        "remarks": "",
+        "id": "3/27",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องประชุม4 ชั้น3",
+        "remarks": "",
+        "id": "3/28",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
