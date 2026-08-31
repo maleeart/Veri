@@ -1,0 +1,50 @@
+{
+  "date": "2026-03-20",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-03-20",
+      "building": "ต.0031",
+      "floor": "ชั้น 1",
+      "inspector": "ธนวิชญ์",
+      "model": "sg209cd3",
+      "serial": "67107704",
+      "mfg": "sunny ",
+      "lotYear": "2024-10"
+    },
+    "devices": [
+      {
+        "location": "ทางเข้าห้องน้ำ",
+        "remarks": "ไม่ได้ติดตั้งอุปกรณ์",
+        "id": "1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถงทานอาหาร",
+        "remarks": "",
+        "id": "2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ฝั่งระเบียง",
+        "remarks": "ไม่ได้ติดตั้งอุปกรณ์",
+        "id": "3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องอาหาร VIP",
+        "remarks": "",
+        "id": "4",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
