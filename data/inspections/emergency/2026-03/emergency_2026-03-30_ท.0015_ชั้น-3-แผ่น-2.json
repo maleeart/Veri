@@ -1,0 +1,90 @@
+{
+  "date": "2026-03-30",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-03-30",
+      "building": "ท.0015",
+      "floor": "ชั้น 3 แผ่น 2",
+      "inspector": "ธนวิชญ์",
+      "model": "",
+      "serial": "",
+      "mfg": "",
+      "lotYear": ""
+    },
+    "devices": [
+      {
+        "location": "ห้องปฏิบัติการพัฒนาเคมี2",
+        "remarks": "",
+        "id": "26",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องElemental anaysis ",
+        "remarks": "",
+        "id": "27",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง Rpvot ",
+        "remarks": "",
+        "id": "28",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องทดสอบน้ำ3",
+        "remarks": "",
+        "id": "29",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "บันไดหนีไฟชั้น3",
+        "remarks": "",
+        "id": "30",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องทดสอบน้ำ",
+        "remarks": "",
+        "id": "31",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "พื้นที่วางตู้เย็น",
+        "remarks": "",
+        "id": "32",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้อง Kinetic viscosity",
+        "remarks": "",
+        "id": "33",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง Kinetic viscosity",
+        "remarks": "",
+        "id": "34",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
