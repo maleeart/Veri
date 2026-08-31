@@ -1,0 +1,130 @@
+{
+  "date": "2026-03-09",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-03-09",
+      "building": "ท.0020",
+      "floor": "ชั้น 2",
+      "inspector": "ธนวิชญ์",
+      "model": "sg209cd3",
+      "serial": "67107704",
+      "mfg": "sunny ",
+      "lotYear": "2024-10"
+    },
+    "devices": [
+      {
+        "location": "หน้าลิฟท์ชั้น2",
+        "remarks": "",
+        "id": "18",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง 201",
+        "remarks": "",
+        "id": "19",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง 201",
+        "remarks": "",
+        "id": "20",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องน้ำชาย",
+        "remarks": "",
+        "id": "21",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องน้ำชาย",
+        "remarks": "",
+        "id": "22",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องน้ำหญิง",
+        "remarks": "",
+        "id": "23",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องระบบไฟฟ้า",
+        "remarks": "",
+        "id": "24",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง 202",
+        "remarks": "",
+        "id": "25",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง 202",
+        "remarks": "",
+        "id": "26",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ทางเดินหน้าห้อง 203",
+        "remarks": "",
+        "id": "27",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง 208",
+        "remarks": "",
+        "id": "28",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง 204",
+        "remarks": "",
+        "id": "29",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องอาหาร",
+        "remarks": "",
+        "id": "30",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องควบคุมระบบเสียง",
+        "remarks": "",
+        "id": "31",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
