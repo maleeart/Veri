@@ -1,0 +1,186 @@
+{
+  "date": "2026-03-09",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-03-09",
+      "building": "ท.0008",
+      "floor": "ชั้น 1 - 2",
+      "inspector": "ธนวิชญ์",
+      "model": "sg209cd3",
+      "serial": "67107704",
+      "mfg": "sunny",
+      "lotYear": "2024-10"
+    },
+    "devices": [
+      {
+        "location": "ประตูทางเข้าสำนักงาน",
+        "remarks": "",
+        "id": "1/1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องสำนักงาน",
+        "remarks": "",
+        "id": "1/2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องประชุม",
+        "remarks": "",
+        "id": "1/3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องอาหาร",
+        "remarks": "",
+        "id": "1/4",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องอาหาร",
+        "remarks": "",
+        "id": "1/5",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ข้างตู้ MDB",
+        "remarks": "",
+        "id": "1/6",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูม้วนด้านขวา",
+        "remarks": "",
+        "id": "1/7",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูม้วนด้วนขวา",
+        "remarks": "",
+        "id": "1/8",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูม้วนหลังคลัง",
+        "remarks": "",
+        "id": "1/9",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูม้วนหลังคลัง",
+        "remarks": "",
+        "id": "1/10",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูม้วนด้านซ้าย",
+        "remarks": "",
+        "id": "1/11",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "เสากลางคลัง",
+        "remarks": "",
+        "id": "1/12",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "เสากลางคลัง",
+        "remarks": "",
+        "id": "1/13",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "เสากลางคลัง",
+        "remarks": "",
+        "id": "1/14",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ประตูม้วนด้านซ้าย",
+        "remarks": "",
+        "id": "1/15",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องเก็บอุปกรณ์หน้าห้อง",
+        "remarks": "",
+        "id": "1/16",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องเก็บอุปกรณ์หลังห้อง",
+        "remarks": "",
+        "id": "1/17",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "บันไดชั้น 2",
+        "remarks": "",
+        "id": "2/1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ด้านหน้าห้องประชุมชั้น 2",
+        "remarks": "",
+        "id": "2/2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ทางเข้าห้องสำนักงานชั้น 2",
+        "remarks": "",
+        "id": "2/3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องกองชั้น 2",
+        "remarks": "",
+        "id": "2/3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
