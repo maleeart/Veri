@@ -1,0 +1,106 @@
+{
+  "date": "2026-03-09",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-03-09",
+      "building": "ท.0020",
+      "floor": "ชั้น 3",
+      "inspector": "ธนวิชญ์",
+      "model": "sg209cd3",
+      "serial": "67107704",
+      "mfg": "sunny ",
+      "lotYear": "2024-10"
+    },
+    "devices": [
+      {
+        "location": "ทางเดินข้างลิฟท์",
+        "remarks": "",
+        "id": "32",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องน้ำชาย",
+        "remarks": "",
+        "id": "33",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องน้ำชาย",
+        "remarks": "",
+        "id": "34",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องน้ำหญิง",
+        "remarks": "",
+        "id": "35",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องระบบไฟฟ้า",
+        "remarks": "",
+        "id": "36",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง 301",
+        "remarks": "",
+        "id": "37",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง 301",
+        "remarks": "",
+        "id": "38",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้อง 302",
+        "remarks": "",
+        "id": "39",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง 302",
+        "remarks": "",
+        "id": "40",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องอาหาร",
+        "remarks": "",
+        "id": "41",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าประตูหนีไฟ",
+        "remarks": "",
+        "id": "42",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
