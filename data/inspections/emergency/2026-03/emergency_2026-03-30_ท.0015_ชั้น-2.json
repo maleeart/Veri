@@ -1,0 +1,258 @@
+{
+  "date": "2026-03-30",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-03-30",
+      "building": "ท.0015",
+      "floor": "ชั้น 2",
+      "inspector": "ธนวิชญ์",
+      "model": "",
+      "serial": "",
+      "mfg": "",
+      "lotYear": ""
+    },
+    "devices": [
+      {
+        "location": "บันไดชั้น2",
+        "remarks": "",
+        "id": "1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าลิฟท์ชั้น2",
+        "remarks": "",
+        "id": "2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "แผนกวิเคราะห์น้ำ",
+        "remarks": "",
+        "id": "3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องเครื่อง Xerox ",
+        "remarks": "",
+        "id": "4",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องน้ำชาย",
+        "remarks": "",
+        "id": "5",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องน้ำหญิง",
+        "remarks": "",
+        "id": "6",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องอาหาร",
+        "remarks": "",
+        "id": "7",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องสื่อสาร",
+        "remarks": "",
+        "id": "8",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องระบบไฟฟ้า",
+        "remarks": "",
+        "id": "9",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "air lock ",
+        "remarks": "",
+        "id": "10",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องปฏิบัติการทดสอบน้ำ",
+        "remarks": "",
+        "id": "11",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องปฏิบัติการทดสอบน้ำ",
+        "remarks": "",
+        "id": "12",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องปฏิบัติการทดสอบน้ำ",
+        "remarks": "",
+        "id": "13",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้อง Oven and furnace ",
+        "remarks": "",
+        "id": "14",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง Oven and furnace ",
+        "remarks": "",
+        "id": "15",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง Received ",
+        "remarks": "",
+        "id": "16",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องเก็บตัวอย่าง",
+        "remarks": "",
+        "id": "17",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "พื้นที่ ix resin",
+        "remarks": "",
+        "id": "18",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "Ftir",
+        "remarks": "",
+        "id": "19",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง calibration ",
+        "remarks": "",
+        "id": "20",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง balance 2",
+        "remarks": "",
+        "id": "21",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องปฏิบัติการทดสอบทั่วไป",
+        "remarks": "",
+        "id": "22",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ทางเดิน 2",
+        "remarks": "",
+        "id": "23",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องทดสอบสาร",
+        "remarks": "",
+        "id": "24",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง Total organic carbon ",
+        "remarks": "",
+        "id": "25",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง Demin water ",
+        "remarks": "",
+        "id": "26",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง Prepared ",
+        "remarks": "",
+        "id": "27",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง ICP/AAS",
+        "remarks": "",
+        "id": "28",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้อง ICP/AAS",
+        "remarks": "",
+        "id": "29",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "บันไดหนีไฟ",
+        "remarks": "",
+        "id": "30",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
