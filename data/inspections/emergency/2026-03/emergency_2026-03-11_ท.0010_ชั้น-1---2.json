@@ -1,0 +1,138 @@
+{
+  "date": "2026-03-11",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-03-11",
+      "building": "ท.0010",
+      "floor": "ชั้น 1 - 2",
+      "inspector": "ธนวิชญ์",
+      "model": "sg209cd3",
+      "serial": "67107704",
+      "mfg": "sunny ",
+      "lotYear": "2024-10"
+    },
+    "devices": [
+      {
+        "location": "ประตูทางเข้าอาคาร",
+        "remarks": "",
+        "id": "1/1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ทางเดินชั้น1",
+        "remarks": "",
+        "id": "1/2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องเตรียมชิ้นงาน",
+        "remarks": "",
+        "id": "1/3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องสารเคมี",
+        "remarks": "",
+        "id": "1/4",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "บันไดทางขึ้นชั้น2",
+        "remarks": "",
+        "id": "1/5",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องระบบไฟฟ้า",
+        "remarks": "",
+        "id": "1/6",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "พื้นที่สำหรับทดสอบ",
+        "remarks": "",
+        "id": "1/7",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้อง RT-source",
+        "remarks": "",
+        "id": "1/8",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "บันไดทางขึ้นชั้น2 หน้าอาคาร",
+        "remarks": "",
+        "id": "2/1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ทางเดินชั้น2",
+        "remarks": "",
+        "id": "2/2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ทางเดินหน้าสำนักงานชั้น2",
+        "remarks": "",
+        "id": "2/3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "หน้าห้องอาหาร",
+        "remarks": "",
+        "id": "2/4",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องระบบไฟฟ้าชั้น2",
+        "remarks": "",
+        "id": "2/5",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "บันไดชั้น2",
+        "remarks": "",
+        "id": "2/6",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องสำนักงานชั้น2",
+        "remarks": "",
+        "id": "2/7",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
