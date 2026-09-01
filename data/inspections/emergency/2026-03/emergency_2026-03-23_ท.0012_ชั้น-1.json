@@ -6,7 +6,7 @@
       "inspectionDate": "2026-03-23",
       "building": "ท.0012",
       "floor": "ชั้น 1",
-      "inspector": "ธนวิชญ์",
+      "inspector": "ธนวิช",
       "model": "",
       "serial": "",
       "mfg": "",
@@ -18,208 +18,208 @@
         "remarks": "",
         "id": "1",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "หน้าทางห้องประชุม กกอ-ธ.",
         "remarks": "",
         "id": "2",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "พื้นที่สำนักงาน กกอ-ธ.",
         "remarks": "",
         "id": "3",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ทางเดินเข้าห้องพัก กกอ-ธ.",
         "remarks": "",
         "id": "4",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "หน้าประตูห้องพัก กกอ-ธ.",
         "remarks": "",
         "id": "5",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ในห้องตรงประตูห้องพัก กกอ-ธ.",
         "remarks": "",
         "id": "6",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "สำนักงาน กกอ-ธ.",
         "remarks": "",
         "id": "7",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "กลางห้องสำนักงาน กกอ-ธ.",
         "remarks": "",
         "id": "8",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ข้างล็อบบี้ รปภ.",
         "remarks": "",
         "id": "9",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ประตูห้อง กกห-ธ.",
         "remarks": "",
         "id": "10",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ทางเข้า กกห-ธ.",
         "remarks": "",
         "id": "11",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ห้องพัก กกห-ธ.",
         "remarks": "",
         "id": "12",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "กลางห้องพัก กกห-ธ.",
         "remarks": "",
         "id": "13",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "พื้นที่สำนักงาน กกห-ธ.",
         "remarks": "",
         "id": "14",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ฝั่งประตูหนีไฟ กกห-ธ.",
         "remarks": "",
         "id": "15",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ฝั่งประตูหนีไฟ กกห-ธ.",
         "remarks": "",
         "id": "16",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "หน้าประตูหนีไฟ กกห-ธ.",
         "remarks": "",
         "id": "17",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "หน้าห้องสื่อสาร กกห-ธ.",
         "remarks": "",
         "id": "18",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "หน้าห้องประชุม 2",
         "remarks": "",
         "id": "19",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ห้องประชุม 2",
         "remarks": "",
         "id": "20",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ห้องประชุม 1",
         "remarks": "",
         "id": "21",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ห้องน้ำหญิง",
         "remarks": "",
         "id": "22",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ห้องน้ำชาย",
         "remarks": "",
         "id": "23",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ห้องอาหาร",
         "remarks": "",
         "id": "24",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ห้องระบบไฟฟ้า",
         "remarks": "",
         "id": "25",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ห้องสื่อสาร",
         "remarks": "",
         "id": "26",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       }
     ]
   }
