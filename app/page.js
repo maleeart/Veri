@@ -1099,11 +1099,19 @@ function HomePageInner() {
                           {downloading === dlKey ? '⏳' : '⬇︎ Excel'}
                         </button>
                         {isAdmin ? (
-                          <button className="btn-del"
-                            disabled={deleting === dlKey}
-                            onClick={() => setConfirmDelete({ date, type, filename, building, floor, _sha, _path })}>
-                            {deleting === dlKey ? '⏳' : '🗑'}
-                          </button>
+                          <>
+                            <button className="btn-edit"
+                              onClick={() => type === 'fpg'
+                                ? router.push(`/session?date=${date}`)
+                                : router.push(`/form/${type}?date=${date}&filename=${encodeURIComponent(filename || '')}&edit=1`)}>
+                              ✏️
+                            </button>
+                            <button className="btn-del"
+                              disabled={deleting === dlKey}
+                              onClick={() => setConfirmDelete({ date, type, filename, building, floor, _sha, _path })}>
+                              {deleting === dlKey ? '⏳' : '🗑'}
+                            </button>
+                          </>
                         ) : role === 'user' && (
                           <>
                             <button className="btn-edit"

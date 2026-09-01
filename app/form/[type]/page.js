@@ -88,11 +88,23 @@ function FormPageInner() {
   const [prefilledFrom, setPrefilledFrom] = useState(null); // ข้อความรอบที่ดึงมาเติมให้ (แสดงใน step อุปกรณ์)
   const [floorTemplates, setFloorTemplates] = useState([]); // รายการไฟล์เก่าของอาคารนี้ (ล่าสุดต่อชั้น) ให้เลือก
   const [editReason, setEditReason] = useState('');
+  const [allInspections, setAllInspections] = useState([]);
+  const [detectedEditFile, setDetectedEditFile] = useState(null);
   const isEditMode = searchParams.get('edit') === '1';
   const [showTemplatePopup, setShowTemplatePopup] = useState(false);
   const [checkingTemplates, setCheckingTemplates] = useState(false);
   const draftRef = useRef(null);
   const canWrite = useCanWrite();
+
+  const saveDate = general.inspectionDate || date;
+  const matchedExisting = (allInspections || []).find(x =>
+    x.type === type &&
+    x.date === saveDate &&
+    x.building === (general.building || '').trim() &&
+    (!x.floor || !general.floor || (x.floor || '').trim() === (general.floor || '').trim())
+  );
+  const effectiveIsEditMode = isEditMode || Boolean(detectedEditFile) || Boolean(matchedExisting);
+  const effectiveOriginalFilename = searchParams.get('filename') || detectedEditFile || matchedExisting?.filename || null;
 
   if (!cfg) return <main style={{ padding: 40 }}>ไม่รู้จักประเภทฟอร์มนี้</main>;
 
@@ -137,6 +149,7 @@ function FormPageInner() {
     setCheckingTemplates(true);
     try {
       const { dates } = await fetch('/api/inspections').then(r => r.json());
+      setAllInspections(dates || []);
       const matches = (dates || [])
         .filter(x => x.type === type && x.building === general.building)
         .sort((a, b) => b.date.localeCompare(a.date));
@@ -164,9 +177,19 @@ function FormPageInner() {
   // ผู้ใช้เลือก template จาก popup (หรือเลือก "เริ่มใหม่" → tmpl = null)
   const applyTemplate = async (tmpl) => {
     setShowTemplatePopup(false);
-    if (!tmpl) { setStep(1); return; } // เริ่มใหม่ → กรอกข้อมูลทั่วไปเอง
+    if (!tmpl) { setDetectedEditFile(null); setStep(1); return; } // เริ่มใหม่ → กรอกข้อมูลทั่วไปเอง
     try {
       const rec = await fetch(`/api/inspections?filename=${encodeURIComponent(tmpl.filename)}`).then(r => r.json());
+      const isSameDate = (tmpl.date === saveDate);
+      if (isSameDate) {
+        setDetectedEditFile(tmpl.filename);
+        if (rec.records?.general) setGeneral(g => ({ ...g, ...rec.records.general, inspectionDate: g.inspectionDate || date }));
+        if (rec.records?.devices?.length) setDevices(rec.records.devices);
+        setPrefilledFrom(`แก้ไข: ${tmpl.floor ? 'ชั้น ' + tmpl.floor + ' · ' : ''}${tmpl.date}`);
+        setStep(2);
+        return;
+      }
+      setDetectedEditFile(null);
       const prevDevices = rec.records?.devices || [];
       const prevGeneral = rec.records?.general || {};
       setGeneral(g => ({
@@ -223,7 +246,7 @@ function FormPageInner() {
       setValidationError('กรุณากรอกชื่อผู้ตรวจสอบก่อน');
       return;
     }
-    if (isEditMode && !editReason.trim()) {
+    if (effectiveIsEditMode && !editReason.trim()) {
       setValidationError('กรุณาระบุเหตุผลในการแก้ไขก่อนบันทึก');
       return;
     }
@@ -239,7 +262,18 @@ function FormPageInner() {
       await fetch('/api/save-record', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: saveDate, type, building, floor, records: { general, devices, ...(isEditMode && editReason.trim() ? { editReason: editReason.trim() } : {}) }, ...(isEditMode ? { originalFilename: searchParams.get('filename') } : {}) }),
+        body: JSON.stringify({
+          date: saveDate,
+          type,
+          building,
+          floor,
+          records: {
+            general,
+            devices,
+            ...(effectiveIsEditMode && editReason.trim() ? { editReason: editReason.trim() } : {})
+          },
+          ...(effectiveIsEditMode && effectiveOriginalFilename ? { originalFilename: effectiveOriginalFilename } : {})
+        }),
       });
 
       localStorage.removeItem(DRAFT_KEY);
@@ -456,7 +490,7 @@ function FormPageInner() {
               </div>
             )}
 
-            {isEditMode && (
+            {effectiveIsEditMode && (
               <div className="edit-reason-box">
                 <label className="edit-reason-label">เหตุผลในการแก้ไข <span style={{color:'var(--status-fail)'}}>*</span></label>
                 <textarea
