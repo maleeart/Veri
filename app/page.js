@@ -815,6 +815,34 @@ function HomePageInner() {
                         <button className="btn-dl btn-dl--preview" onClick={() => router.push(previewUrl)}>Preview</button>
                       )}
                       <button className="btn-dl" onClick={() => handleDownload(row.date, row.type, row.filename, row.building, row.floor)}>⬇︎ Excel</button>
+                      {isAdmin ? (
+                        <>
+                          <button className="btn-edit" title="แก้ไข"
+                            onClick={() => row.type === 'fpg'
+                              ? router.push(`/session?date=${row.date}`)
+                              : router.push(`/form/${row.type}?date=${row.date}&filename=${encodeURIComponent(row.filename || '')}&edit=1`)}>
+                            ✏️
+                          </button>
+                          <button className="btn-del" title="ลบ"
+                            disabled={deleting === (row.filename || row.date)}
+                            onClick={() => setConfirmDelete({ date: row.date, type: row.type, filename: row.filename, building: row.building, floor: row.floor, _sha: row._sha, _path: row._path })}>
+                            {deleting === (row.filename || row.date) ? '⏳' : '🗑'}
+                          </button>
+                        </>
+                      ) : role === 'user' && (
+                        <>
+                          <button className="btn-edit" title="แก้ไข"
+                            onClick={() => row.type === 'fpg'
+                              ? router.push(`/session?date=${row.date}`)
+                              : router.push(`/form/${row.type}?date=${row.date}&filename=${encodeURIComponent(row.filename || '')}&edit=1`)}>
+                            ✏️
+                          </button>
+                          <button className="btn-del" title="ขอลบ"
+                            onClick={() => { setDeleteRequest({ filename: row.filename, type: row.type, date: row.date, building: row.building, floor: row.floor }); setDeleteReason(''); }}>
+                            🗑
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 );
