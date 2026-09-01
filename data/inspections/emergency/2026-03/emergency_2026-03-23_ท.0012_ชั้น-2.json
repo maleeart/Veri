@@ -18,224 +18,224 @@
         "remarks": "",
         "id": "27",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "หน้าห้องประชุม 3",
         "remarks": "",
         "id": "28",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ห้องน้ำหญิง",
         "remarks": "",
         "id": "29",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ห้องน้ำชาย",
         "remarks": "",
         "id": "30",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ห้องอาหาร",
         "remarks": "",
         "id": "31",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ห้องระบบไฟฟ้า",
         "remarks": "",
         "id": "32",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "หน้าห้องแผนก กมน-ธ.",
         "remarks": "",
         "id": "33",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ห้องพัก กมน-ธ.",
         "remarks": "",
         "id": "34",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ข้างห้องพัก กมน-ธ.",
         "remarks": "",
         "id": "35",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ห้องประชุม 5",
         "remarks": "",
         "id": "36",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ทางเดินห้อง กมน-ธ.",
         "remarks": "",
         "id": "37",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ทางเดินห้อง กมน-ธ.",
         "remarks": "",
         "id": "38",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ทางเดินห้อง กมน-ธ.",
         "remarks": "",
         "id": "39",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ทางเดินไปประตูหนีไฟ กมน-ธ.",
         "remarks": "",
         "id": "40",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "หลังห้องพัก กมน-ธ.",
         "remarks": "",
         "id": "41",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "หน้าประตูหนีไฟ กมน-ธ.",
         "remarks": "",
         "id": "42",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ประตูหนีไฟออกอาคาร",
         "remarks": "",
         "id": "43",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "หลังห้อง กฟน-ธ.",
         "remarks": "",
         "id": "44",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "กลางห้องสำนักงาน กฟน-ธ.",
         "remarks": "",
         "id": "45",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ห้องประชุม กฟน-ธ.",
         "remarks": "",
         "id": "46",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ประตูทางเข้า กฟน-ธ.",
         "remarks": "",
         "id": "47",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ฝั่งซ้ายหน้าห้อง กบคค-ธ.",
         "remarks": "",
         "id": "48",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ฝั่งซ้ายหลังห้อง กบคค-ธ.",
         "remarks": "",
         "id": "49",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "หน้าห้องกอง กบคค-ธ.",
         "remarks": "",
         "id": "50",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ล็อบบี้ กบคค-ธ.",
         "remarks": "",
         "id": "51",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ห้องประชุม 4",
         "remarks": "",
         "id": "52",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ทางเดินหน้าห้อง กบคค-ธ.",
         "remarks": "",
         "id": "53",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       },
       {
         "location": "ห้องประชุม 3",
         "remarks": "",
         "id": "54",
         "lightCondition": "pass",
-        "statusLight": "normal",
-        "testResult": "on"
+        "statusLight": "abnormal",
+        "testResult": "off"
       }
     ]
   }
