@@ -1,0 +1,210 @@
+{
+  "date": "2026-03-19",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-03-19",
+      "building": "ท.0029",
+      "floor": "ชั้น 1",
+      "inspector": "ธนวิชญ์",
+      "model": "sg209cd3",
+      "serial": "67107704",
+      "mfg": "sunny ",
+      "lotYear": "2024-11"
+    },
+    "devices": [
+      {
+        "location": "โถง ชั้น1",
+        "remarks": "",
+        "id": "1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถง ชั้น1",
+        "remarks": "",
+        "id": "2",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถง ชั้น1",
+        "remarks": "",
+        "id": "3",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถง ชั้น1",
+        "remarks": "",
+        "id": "4",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถง ชั้น1",
+        "remarks": "",
+        "id": "5",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถง ชั้น1",
+        "remarks": "",
+        "id": "6",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถง ชั้น1",
+        "remarks": "",
+        "id": "7",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถง ชั้น1",
+        "remarks": "",
+        "id": "8",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถง ชั้น1",
+        "remarks": "",
+        "id": "9",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถง ชั้น1",
+        "remarks": "",
+        "id": "10",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "โถง ชั้น1",
+        "remarks": "",
+        "id": "11",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องระบบไฟฟ้า",
+        "remarks": "",
+        "id": "12",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องเปลี่ยนชุด",
+        "remarks": "",
+        "id": "13",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "ห้องพักผ่อน",
+        "remarks": "",
+        "id": "14",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "สำนักงาน หร-ห. ชั้น2",
+        "remarks": "",
+        "id": "15",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "สำนักงาน หร-ห. ชั้น2",
+        "remarks": "",
+        "id": "16",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "สำนักงาน หร-ห. ชั้น2",
+        "remarks": "",
+        "id": "17",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "สำนักงาน หร-ห. ชั้น2",
+        "remarks": "",
+        "id": "18",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "สำนักงาน หซย-ห. ชั้น2",
+        "remarks": "",
+        "id": "19",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "สำนักงาน หซย-ห. ชั้น2",
+        "remarks": "",
+        "id": "20",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "สำนักงาน หซย-ห. ชั้น2",
+        "remarks": "",
+        "id": "21",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "สำนักงาน หซย-ห. ชั้น2",
+        "remarks": "",
+        "id": "22",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "สำนักงาน หซย-ห. ชั้น2",
+        "remarks": "",
+        "id": "23",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      },
+      {
+        "location": "สำนักงาน หซย-ห. ชั้น2",
+        "remarks": "",
+        "id": "24",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
