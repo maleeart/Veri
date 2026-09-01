@@ -181,6 +181,7 @@
         "statusLight": "normal",
         "testResult": "on"
       }
-    ]
+    ],
+    "editReason": "บันทึกไม่ได้"
   }
 }
