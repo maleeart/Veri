@@ -179,6 +179,44 @@ function HomePageInner() {
     if (role && role !== 'visitor') loadNotif();
   }, [role, isAdmin]);
 
+  const [readNotifIds, setReadNotifIds] = useState(new Set());
+
+  useEffect(() => {
+    try {
+      const email = session?.user?.email || 'default';
+      const saved = localStorage.getItem(`veri_read_notifs_${email}`);
+      if (saved) setReadNotifIds(new Set(JSON.parse(saved)));
+    } catch {}
+  }, [session?.user?.email]);
+
+  const markAsRead = (id) => {
+    if (!id) return;
+    setReadNotifIds(prev => {
+      const next = new Set(prev);
+      next.add(id);
+      try {
+        const email = session?.user?.email || 'default';
+        localStorage.setItem(`veri_read_notifs_${email}`, JSON.stringify([...next]));
+      } catch {}
+      return next;
+    });
+  };
+
+  const markAllAsRead = () => {
+    const allIds = [
+      ...(notifRequests || []).map(r => r.id),
+      ...(notifEditLogs || []).map(l => l.id)
+    ].filter(Boolean);
+    setReadNotifIds(prev => {
+      const next = new Set([...prev, ...allIds]);
+      try {
+        const email = session?.user?.email || 'default';
+        localStorage.setItem(`veri_read_notifs_${email}`, JSON.stringify([...next]));
+      } catch {}
+      return next;
+    });
+  };
+
   const handleApprove = async (id) => {
     setNotifBusy(id);
     try {
@@ -188,6 +226,7 @@ function HomePageInner() {
         body: JSON.stringify({ id, action: 'approve' }),
       });
       if (!res.ok) { const e = await res.json().catch(() => ({})); alert(e.error || 'ดำเนินการไม่สำเร็จ'); return; }
+      markAsRead(id);
       setNotifRequests(prev => (prev || []).map(r => r.id === id ? { ...r, status: 'approved' } : r));
       setDates(prev => {
         const req = notifRequests?.find(r => r.id === id);
@@ -207,22 +246,26 @@ function HomePageInner() {
         body: JSON.stringify({ id, action: 'reject', rejectReason }),
       });
       if (!res.ok) { const e = await res.json().catch(() => ({})); alert(e.error || 'ดำเนินการไม่สำเร็จ'); return; }
+      markAsRead(id);
       setNotifRequests(prev => (prev || []).map(r => r.id === id ? { ...r, status: 'rejected', rejectReason } : r));
       setRejectingId(null); setRejectReason('');
     } catch (e) { alert(String(e.message || e)); }
     finally { setNotifBusy(null); }
   };
 
-  const notifPendingCount = useMemo(() => {
-    return (notifRequests || []).filter(r => r.status === 'pending').length;
-  }, [notifRequests]);
+  const unreadDeleteCount = useMemo(() => {
+    if (!notifRequests) return 0;
+    if (isAdmin) return notifRequests.filter(r => r.status === 'pending' && !readNotifIds.has(r.id)).length;
+    return notifRequests.filter(r => (r.status === 'pending' || r.status === 'rejected') && !readNotifIds.has(r.id)).length;
+  }, [isAdmin, notifRequests, readNotifIds]);
 
-  const notifCount = useMemo(() => {
-    if (isAdmin) return notifPendingCount;
-    return (notifRequests || []).filter(r => r.status === 'pending' || r.status === 'rejected').length;
-  }, [isAdmin, notifPendingCount, notifRequests]);
+  const unreadEditCount = useMemo(() => {
+    if (!notifEditLogs) return 0;
+    return notifEditLogs.filter(l => !readNotifIds.has(l.id)).length;
+  }, [notifEditLogs, readNotifIds]);
 
-  const notifUnread = Boolean(notifCount && notifCount > 0);
+  const notifCount = unreadDeleteCount + unreadEditCount;
+  const notifUnread = notifCount > 0;
 
   // ── user: ขอลบ ───────────────────────────────────────────────────────────
   const handleDeleteRequest = async () => {
@@ -545,7 +588,14 @@ function HomePageInner() {
           <div className="notif-panel" onClick={e => e.stopPropagation()}>
             <div className="notif-hd">
               <span className="notif-hd-title">📬 {isAdmin ? 'การแจ้งเตือน & คำขอ' : 'สถานะคำขอ & ประวัติ'}</span>
-              <button className="notif-close" onClick={closeNotif} title="ปิด">✕</button>
+              <div className="notif-hd-actions">
+                {notifCount > 0 && (
+                  <button className="notif-mark-all" onClick={markAllAsRead} title="ทำเครื่องหมายว่าอ่านแล้วทั้งหมด">
+                    ✓ อ่านทั้งหมด
+                  </button>
+                )}
+                <button className="notif-close" onClick={closeNotif} title="ปิด">✕</button>
+              </div>
             </div>
 
             {/* Tabs */}
@@ -553,15 +603,15 @@ function HomePageInner() {
               <button className={`notif-tab ${notifTab === 'delete' ? 'notif-tab--active' : ''}`}
                 onClick={() => setNotifTab('delete')}>
                 <span>🗑 คำขอลบ</span>
-                {notifPendingCount > 0 && (
-                  <span className="notif-tab-badge">{notifPendingCount}</span>
+                {unreadDeleteCount > 0 && (
+                  <span className="notif-tab-badge">{unreadDeleteCount}</span>
                 )}
               </button>
               <button className={`notif-tab ${notifTab === 'edit' ? 'notif-tab--active' : ''}`}
                 onClick={() => setNotifTab('edit')}>
                 <span>✏️ ประวัติแก้ไข</span>
-                {(notifEditLogs?.length || 0) > 0 && (
-                  <span className="notif-tab-badge notif-tab-badge--blue">{notifEditLogs.length}</span>
+                {unreadEditCount > 0 && (
+                  <span className="notif-tab-badge notif-tab-badge--blue">{unreadEditCount}</span>
                 )}
               </button>
             </div>
@@ -581,16 +631,25 @@ function HomePageInner() {
                   const isPending  = r.status === 'pending';
                   const isApproved = r.status === 'approved';
                   const isRejected = r.status === 'rejected';
+                  const isUnread = !readNotifIds.has(r.id);
                   const loc = [r.building, r.floor].filter(Boolean).join(' · ');
                   return (
-                    <div key={r.id} className={`notif-item notif-item--${r.status}`}>
+                    <div key={r.id} className={`notif-item notif-item--${r.status} ${isUnread ? 'notif-item--unread' : ''}`}>
                       <div className="notif-item-top">
                         <span className="notif-item-type">
+                          {isUnread && <span className="notif-unread-dot" title="ยังไม่อ่าน">●</span>}
                           {meta.icon || '📄'} {meta.label || r.type?.toUpperCase()} · {r.date}
                         </span>
-                        <span className={`notif-status notif-status--${r.status}`}>
-                          {isPending ? '⏳ รอดำเนินการ' : isApproved ? '✅ อนุมัติแล้ว' : '❌ ปฏิเสธ'}
-                        </span>
+                        <div className="notif-item-badges">
+                          {isUnread && (
+                            <button className="notif-btn-read" title="ทำเครื่องหมายว่าอ่านแล้ว" onClick={() => markAsRead(r.id)}>
+                              ✓ อ่านแล้ว
+                            </button>
+                          )}
+                          <span className={`notif-status notif-status--${r.status}`}>
+                            {isPending ? '⏳ รอดำเนินการ' : isApproved ? '✅ อนุมัติแล้ว' : '❌ ปฏิเสธ'}
+                          </span>
+                        </div>
                       </div>
                       {loc && <p className="notif-loc-txt">📍 อาคาร {loc}</p>}
                       <div className="notif-reason-box">
@@ -648,14 +707,23 @@ function HomePageInner() {
                 )}
                 {notifEditLogs?.map(item => {
                   const meta = TYPE_META[item.type] || {};
+                  const isUnread = !readNotifIds.has(item.id);
                   const loc = [item.building, item.floor].filter(Boolean).join(' · ');
                   return (
-                    <div key={item.id} className="notif-item notif-item--edit">
+                    <div key={item.id} className={`notif-item notif-item--edit ${isUnread ? 'notif-item--unread' : ''}`}>
                       <div className="notif-item-top">
                         <span className="notif-item-type">
+                          {isUnread && <span className="notif-unread-dot" title="ยังไม่อ่าน">●</span>}
                           {meta.icon || '📄'} {meta.label || item.type?.toUpperCase()} · {item.date}
                         </span>
-                        <span className="notif-status notif-status--edit">✏️ แก้ไขแล้ว</span>
+                        <div className="notif-item-badges">
+                          {isUnread && (
+                            <button className="notif-btn-read" title="ทำเครื่องหมายว่าอ่านแล้ว" onClick={() => markAsRead(item.id)}>
+                              ✓ อ่านแล้ว
+                            </button>
+                          )}
+                          <span className="notif-status notif-status--edit">✏️ แก้ไขแล้ว</span>
+                        </div>
                       </div>
                       {loc && <p className="notif-loc-txt">📍 อาคาร {loc}</p>}
                       <div className="notif-reason-box">
@@ -2036,6 +2104,9 @@ function HomePageInner() {
         .notif-panel { background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: 20px; width: 100%; max-width: 440px; max-height: 82dvh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
         .notif-hd { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 14px; border-bottom: 1px solid var(--border-hairline); position: sticky; top: 0; background: var(--bg-surface); border-radius: 20px 20px 0 0; z-index: 10; }
         .notif-hd-title { font-size: 15px; font-weight: 800; color: var(--ink-primary); display: flex; align-items: center; gap: 6px; }
+        .notif-hd-actions { display: flex; align-items: center; gap: 8px; }
+        .notif-mark-all { background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.3); color: var(--accent-strong); font-size: 11px; font-weight: 700; border-radius: 8px; padding: 4px 8px; cursor: pointer; transition: background 0.12s; }
+        .notif-mark-all:hover { background: rgba(37,99,235,0.22); }
         .notif-close { background: none; border: none; font-size: 16px; cursor: pointer; color: var(--ink-muted); padding: 4px 6px; border-radius: 6px; }
         .notif-close:hover { color: var(--ink-primary); background: var(--bg-surface-raised); }
         .notif-tabs { display: flex; border-bottom: 1px solid var(--border-hairline); padding: 0 10px; gap: 6px; background: var(--bg-surface); position: sticky; top: 53px; z-index: 9; }
@@ -2048,9 +2119,14 @@ function HomePageInner() {
         .notif-empty { color: var(--ink-muted); font-size: 13px; margin: 0; }
         .notif-item { padding: 14px 18px; border-bottom: 1px solid var(--border-hairline); display: flex; flex-direction: column; gap: 6px; transition: background 0.12s; }
         .notif-item:hover { background: rgba(255,255,255,0.015); }
+        .notif-item--unread { background: rgba(37,99,235,0.05); border-left: 3px solid var(--accent); }
         .notif-item--approved { opacity: 0.8; }
         .notif-item-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-        .notif-item-type { font-size: 13px; font-weight: 700; color: var(--ink-primary); line-height: 1.4; }
+        .notif-item-type { font-size: 13px; font-weight: 700; color: var(--ink-primary); line-height: 1.4; display: flex; align-items: center; gap: 4px; }
+        .notif-unread-dot { color: var(--accent); font-size: 10px; line-height: 1; flex-shrink: 0; }
+        .notif-item-badges { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .notif-btn-read { background: var(--bg-surface-raised); border: 1px solid var(--border-strong); color: var(--ink-secondary); font-size: 10px; font-weight: 700; border-radius: 6px; padding: 2px 7px; cursor: pointer; transition: all 0.12s; white-space: nowrap; }
+        .notif-btn-read:hover { background: var(--status-pass-bg); border-color: var(--status-pass); color: var(--status-pass); }
         .notif-loc-txt { font-size: 12px; color: var(--ink-secondary); margin: 0; }
         .notif-status { font-size: 11px; font-weight: 700; border-radius: 8px; padding: 3px 8px; white-space: nowrap; flex-shrink: 0; }
         .notif-status--pending  { background: rgba(217,119,6,0.12); color: var(--status-warn); border: 1px solid var(--status-warn); }
