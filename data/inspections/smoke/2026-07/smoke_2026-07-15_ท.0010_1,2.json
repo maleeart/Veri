@@ -6,10 +6,11 @@
       "inspectionDate": "2026-07-15",
       "building": "ท.0010",
       "floor": "1,2",
-      "inspector": "ธนวิชญ์",
+      "inspector": "ธนวิช",
       "model": "SD-651",
       "serial": "",
-      "mfg": "Notifier "
+      "mfg": "Notifier ",
+      "lotYear": ""
     },
     "devices": [
       {
@@ -134,10 +135,10 @@
       },
       {
         "location": "ห้องอาหาร ชั้น2",
-        "remarks": "Heat Detector",
+        "remarks": "",
         "zone": "7",
         "externalCondition": "normal",
-        "cleaned": "no",
+        "cleaned": "yes",
         "workingCondition": "normal"
       },
       {
@@ -212,7 +213,6 @@
         "cleaned": "yes",
         "workingCondition": "normal"
       }
-    ],
-    "editReason": "เพิ่มรายละเอียดข้อมูลใน zone"
+    ]
   }
 }
