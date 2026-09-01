@@ -221,6 +221,7 @@
         "statusLight": "abnormal",
         "testResult": "off"
       }
-    ]
+    ],
+    "editReason": "ทดสอบ"
   }
 }
