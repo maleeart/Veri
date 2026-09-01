@@ -100,8 +100,8 @@ function FormPageInner() {
   const matchedExisting = (allInspections || []).find(x =>
     x.type === type &&
     x.date === saveDate &&
-    x.building === (general.building || '').trim() &&
-    (!x.floor || !general.floor || (x.floor || '').trim() === (general.floor || '').trim())
+    String(x.building || '').trim() === String(general.building || '').trim() &&
+    (!x.floor || !general.floor || String(x.floor || '').trim() === String(general.floor || '').trim())
   );
   const effectiveIsEditMode = isEditMode || Boolean(detectedEditFile) || Boolean(matchedExisting);
   const effectiveOriginalFilename = searchParams.get('filename') || detectedEditFile || matchedExisting?.filename || null;

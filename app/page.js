@@ -538,7 +538,7 @@ function HomePageInner() {
         <div className="user-box">
           {role !== 'visitor' && (
             <button className="notif-btn" title="สถานะคำขอ" onClick={openNotif}>
-              {notifOpened && !notifUnread ? '📭' : '✉️'}
+              {!notifUnread ? '📭' : '✉️'}
               {notifUnread && <span className="notif-badge">{notifCount}</span>}
             </button>
           )}
