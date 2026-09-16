@@ -98,7 +98,7 @@ export default function ElecReport({ data }) {
       {/* ══════════════════════════════════════════════════════════════════
           PAGE 1 (หน้า ๑๓): ประกาศกรมสวัสดิการและคุ้มครองแรงงาน
       ══════════════════════════════════════════════════════════════════ */}
-      <div className="a4-page espsib-paper">
+      <div className="a4-page espsib-paper espsib-paper--gazette">
         <div className="gazette-top-right">หน้า ๑๓</div>
         <div className="gazette-header-box">
           <div className="gazette-border-line" />
@@ -144,7 +144,7 @@ export default function ElecReport({ data }) {
       {/* ══════════════════════════════════════════════════════════════════
           PAGE 2: แบบบันทึกผลการตรวจสอบและรับรองระบบไฟฟ้าฯ
       ══════════════════════════════════════════════════════════════════ */}
-      <div className="a4-page espsib-paper page-break">
+      <div className="a4-page espsib-paper espsib-paper--page2 page-break">
         <div className="form-header-center">
           <h2 className="form-h2">บันทึกผลการตรวจสอบและรับรองระบบไฟฟ้าและบริภัณฑ์ไฟฟ้า</h2>
           <h3 className="form-h3">กรมสวัสดิการและคุ้มครองแรงงาน กระทรวงแรงงาน</h3>
@@ -263,57 +263,59 @@ export default function ElecReport({ data }) {
           PAGE 3 (หน้า -๒-): ๑. ข้อมูลทั่วไป & ๒.๑.๑ สายอากาศ
       ══════════════════════════════════════════════════════════════════ */}
       {highVoltageSystems.map((hv, hIdx) => (
-        <div key={`page3_${hv.id || hIdx}`} className="a4-page espsib-paper page-break">
+        <div key={`page3_${hv.id || hIdx}`} className="a4-page espsib-paper espsib-paper--table page-break">
           <div className="paper-page-num">-๒-</div>
 
-          <div className="section-hdr-txt">๑. ข้อมูลทั่วไป</div>
-          <div className="tmpl-body">
-            <p className="doc-line">
-              - ระบบไฟฟ้าที่ใช้ในสถานประกอบกิจการ <Dot value={general.voltage} minWidth={70} /> โวลต์ <Dot value={general.phase} minWidth={35} /> เฟส <Dot value={general.wires} minWidth={35} /> สาย
-            </p>
-            <p className="doc-line">
-              - ขนาดเครื่องวัดหน่วยไฟฟ้า <Dot value={general.meterAmp} minWidth={70} /> แอมแปร์ <Dot value={general.meterVolt} minWidth={70} /> โวลต์ <Dot value={general.meterPhase} minWidth={35} /> เฟส <Dot value={general.meterWires} minWidth={35} /> สาย
-            </p>
-            <p className="doc-line" style={{ paddingLeft: '14pt' }}>
-              หมายเลขเครื่องวัด <Dot value={general.meterNo} minWidth={300} />
-            </p>
-            <p className="doc-line">
-              - ปริมาณการใช้พลังไฟฟ้าสูงสุดในรอบ ๑๒ เดือน ที่ผ่านมา <Dot value={general.peakKw12Months} minWidth={140} /> กิโลวัตต์
-            </p>
-            <p className="doc-line">
-              - หม้อแปลงกำลัง จำนวน <Dot value={general.transformerCount} minWidth={50} /> เครื่อง รวม <Dot value={general.transformerTotalKva} minWidth={120} /> เควีเอ
-            </p>
-            <p className="doc-line">
-              - เครื่องกำเนิดไฟฟ้า/เครื่องกำเนิดไฟฟ้าสำรอง จำนวน <Dot value={general.generatorCount} minWidth={50} /> เครื่อง รวม <Dot value={general.generatorTotalKva} minWidth={120} /> เควีเอ
-            </p>
-            <p className="doc-line">
-              - ผู้รับผิดชอบระบบไฟฟ้า ๑. <Dot value={general.responsiblePerson1?.name} minWidth={180} /> ตำแหน่ง <Dot value={general.responsiblePerson1?.position} minWidth={140} />
-            </p>
-            <p className="doc-line" style={{ paddingLeft: '120pt' }}>
-              ๒. <Dot value={general.responsiblePerson2?.name} minWidth={180} /> ตำแหน่ง <Dot value={general.responsiblePerson2?.position} minWidth={140} />
-            </p>
-            <p className="doc-line">
-              - แบบการติดตั้งระบบไฟฟ้าจริง (As built Drawing)
-            </p>
-            <p className="doc-line" style={{ paddingLeft: '14pt' }}>
-              <CircleOpt checked={general.asBuiltDrawing === 'yes'} label="มี" />
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-              <CircleOpt checked={general.asBuiltDrawing === 'no'} label="ไม่มี เหตุผล" />
-              &nbsp;<Dot value={general.asBuiltReason} minWidth={300} />
-            </p>
-          </div>
+          <div className="section-indent-box">
+            <div className="section-hdr-txt">๑. ข้อมูลทั่วไป</div>
+            <div className="tmpl-body">
+              <p className="doc-line">
+                - ระบบไฟฟ้าที่ใช้ในสถานประกอบกิจการ <Dot value={general.voltage} minWidth={70} /> โวลต์ <Dot value={general.phase} minWidth={35} /> เฟส <Dot value={general.wires} minWidth={35} /> สาย
+              </p>
+              <p className="doc-line">
+                - ขนาดเครื่องวัดหน่วยไฟฟ้า <Dot value={general.meterAmp} minWidth={70} /> แอมแปร์ <Dot value={general.meterVolt} minWidth={70} /> โวลต์ <Dot value={general.meterPhase} minWidth={35} /> เฟส <Dot value={general.meterWires} minWidth={35} /> สาย
+              </p>
+              <p className="doc-line" style={{ paddingLeft: '14pt' }}>
+                หมายเลขเครื่องวัด <Dot value={general.meterNo} minWidth={300} />
+              </p>
+              <p className="doc-line">
+                - ปริมาณการใช้พลังไฟฟ้าสูงสุดในรอบ ๑๒ เดือน ที่ผ่านมา <Dot value={general.peakKw12Months} minWidth={140} /> กิโลวัตต์
+              </p>
+              <p className="doc-line">
+                - หม้อแปลงกำลัง จำนวน <Dot value={general.transformerCount} minWidth={50} /> เครื่อง รวม <Dot value={general.transformerTotalKva} minWidth={120} /> เควีเอ
+              </p>
+              <p className="doc-line">
+                - เครื่องกำเนิดไฟฟ้า/เครื่องกำเนิดไฟฟ้าสำรอง จำนวน <Dot value={general.generatorCount} minWidth={50} /> เครื่อง รวม <Dot value={general.generatorTotalKva} minWidth={120} /> เควีเอ
+              </p>
+              <p className="doc-line">
+                - ผู้รับผิดชอบระบบไฟฟ้า ๑. <Dot value={general.responsiblePerson1?.name} minWidth={180} /> ตำแหน่ง <Dot value={general.responsiblePerson1?.position} minWidth={140} />
+              </p>
+              <p className="doc-line" style={{ paddingLeft: '120pt' }}>
+                ๒. <Dot value={general.responsiblePerson2?.name} minWidth={180} /> ตำแหน่ง <Dot value={general.responsiblePerson2?.position} minWidth={140} />
+              </p>
+              <p className="doc-line">
+                - แบบการติดตั้งระบบไฟฟ้าจริง (As built Drawing)
+              </p>
+              <p className="doc-line" style={{ paddingLeft: '14pt' }}>
+                <CircleOpt checked={general.asBuiltDrawing === 'yes'} label="มี" />
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <CircleOpt checked={general.asBuiltDrawing === 'no'} label="ไม่มี เหตุผล" />
+                &nbsp;<Dot value={general.asBuiltReason} minWidth={300} />
+              </p>
+            </div>
 
-          <div className="section-hdr-txt" style={{ marginTop: '12pt' }}>๒. รายการตรวจสอบ</div>
+            <div className="section-hdr-txt" style={{ marginTop: '12pt' }}>๒. รายการตรวจสอบ</div>
+          </div>
 
           <table className="tmpl-table">
             <thead>
               <tr>
-                <th style={{ width: '15%' }}>อุปกรณ์</th>
-                <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
-                <th style={{ width: '8%' }}>ใช้ได้</th>
-                <th style={{ width: '11%' }}>ควรปรับปรุง</th>
+                <th style={{ width: '13%' }}>อุปกรณ์</th>
+                <th style={{ width: '38%' }}>รายการตรวจสอบ</th>
+                <th style={{ width: '7%' }}>ใช้ได้</th>
+                <th style={{ width: '12%' }}>ควรปรับปรุง</th>
                 <th style={{ width: '10%' }}>ต้องแก้ไข</th>
-                <th style={{ width: '16%' }}>คำแนะนำ/ความเห็น</th>
+                <th style={{ width: '20%' }}>คำแนะนำ/ความเห็น</th>
               </tr>
             </thead>
             <tbody>
@@ -357,18 +359,18 @@ export default function ElecReport({ data }) {
       {transformers.map((tf, tIdx) => {
         const hv = highVoltageSystems[tIdx] || highVoltageSystems[0] || {};
         return (
-          <div key={`page4_${tf.id || tIdx}`} className="a4-page espsib-paper page-break">
+          <div key={`page4_${tf.id || tIdx}`} className="a4-page espsib-paper espsib-paper--table page-break">
             <div className="paper-page-num">-๓-</div>
 
             <table className="tmpl-table">
               <thead>
                 <tr>
-                  <th style={{ width: '15%' }}>อุปกรณ์</th>
-                  <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
-                  <th style={{ width: '8%' }}>ใช้ได้</th>
-                  <th style={{ width: '11%' }}>ควรปรับปรุง</th>
+                  <th style={{ width: '13%' }}>อุปกรณ์</th>
+                  <th style={{ width: '38%' }}>รายการตรวจสอบ</th>
+                  <th style={{ width: '7%' }}>ใช้ได้</th>
+                  <th style={{ width: '12%' }}>ควรปรับปรุง</th>
                   <th style={{ width: '10%' }}>ต้องแก้ไข</th>
-                  <th style={{ width: '16%' }}>คำแนะนำ/ความเห็น</th>
+                  <th style={{ width: '20%' }}>คำแนะนำ/ความเห็น</th>
                 </tr>
               </thead>
               <tbody>
@@ -467,18 +469,18 @@ export default function ElecReport({ data }) {
       {transformers.map((tf, tIdx) => {
         const it = tf.items || {};
         return (
-          <div key={`page5_${tf.id || tIdx}`} className="a4-page espsib-paper page-break">
+          <div key={`page5_${tf.id || tIdx}`} className="a4-page espsib-paper espsib-paper--table page-break">
             <div className="paper-page-num">-๔-</div>
 
             <table className="tmpl-table">
               <thead>
                 <tr>
-                  <th style={{ width: '15%' }}>อุปกรณ์</th>
-                  <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
-                  <th style={{ width: '8%' }}>ใช้ได้</th>
-                  <th style={{ width: '11%' }}>ควรปรับปรุง</th>
+                  <th style={{ width: '13%' }}>อุปกรณ์</th>
+                  <th style={{ width: '38%' }}>รายการตรวจสอบ</th>
+                  <th style={{ width: '7%' }}>ใช้ได้</th>
+                  <th style={{ width: '12%' }}>ควรปรับปรุง</th>
                   <th style={{ width: '10%' }}>ต้องแก้ไข</th>
-                  <th style={{ width: '16%' }}>คำแนะนำ/ความเห็น</th>
+                  <th style={{ width: '20%' }}>คำแนะนำ/ความเห็น</th>
                 </tr>
               </thead>
               <tbody>
@@ -626,18 +628,18 @@ export default function ElecReport({ data }) {
       {mainSwitchboards.map((msb, mIdx) => {
         const it = msb.items || {};
         return (
-          <div key={`page6_${msb.id || mIdx}`} className="a4-page espsib-paper page-break">
+          <div key={`page6_${msb.id || mIdx}`} className="a4-page espsib-paper espsib-paper--table page-break">
             <div className="paper-page-num">-๕-</div>
 
             <table className="tmpl-table">
               <thead>
                 <tr>
-                  <th style={{ width: '15%' }}>อุปกรณ์</th>
-                  <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
-                  <th style={{ width: '8%' }}>ใช้ได้</th>
-                  <th style={{ width: '11%' }}>ควรปรับปรุง</th>
+                  <th style={{ width: '13%' }}>อุปกรณ์</th>
+                  <th style={{ width: '38%' }}>รายการตรวจสอบ</th>
+                  <th style={{ width: '7%' }}>ใช้ได้</th>
+                  <th style={{ width: '12%' }}>ควรปรับปรุง</th>
                   <th style={{ width: '10%' }}>ต้องแก้ไข</th>
-                  <th style={{ width: '16%' }}>คำแนะนำ/ความเห็น</th>
+                  <th style={{ width: '20%' }}>คำแนะนำ/ความเห็น</th>
                 </tr>
               </thead>
               <tbody>
@@ -788,18 +790,18 @@ export default function ElecReport({ data }) {
           PAGE 7 (หน้า -๖-): ๒.๔.๑ วงจรเมน (Main Circuit)
       ══════════════════════════════════════════════════════════════════ */}
       {mainCircuits.map((mc, cIdx) => (
-        <div key={`page7_${mc.id || cIdx}`} className="a4-page espsib-paper page-break">
+        <div key={`page7_${mc.id || cIdx}`} className="a4-page espsib-paper espsib-paper--table page-break">
           <div className="paper-page-num">-๖-</div>
 
           <table className="tmpl-table">
             <thead>
               <tr>
-                <th style={{ width: '15%' }}>อุปกรณ์</th>
-                <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
-                <th style={{ width: '8%' }}>ใช้ได้</th>
-                <th style={{ width: '11%' }}>ควรปรับปรุง</th>
+                <th style={{ width: '13%' }}>อุปกรณ์</th>
+                <th style={{ width: '38%' }}>รายการตรวจสอบ</th>
+                <th style={{ width: '7%' }}>ใช้ได้</th>
+                <th style={{ width: '12%' }}>ควรปรับปรุง</th>
                 <th style={{ width: '10%' }}>ต้องแก้ไข</th>
-                <th style={{ width: '16%' }}>คำแนะนำ/ความเห็น</th>
+                <th style={{ width: '20%' }}>คำแนะนำ/ความเห็น</th>
               </tr>
             </thead>
             <tbody>
@@ -898,18 +900,18 @@ export default function ElecReport({ data }) {
       {subPanels.map((sp, sIdx) => {
         const it = sp.items || {};
         return (
-          <div key={`page8_${sp.id || sIdx}`} className="a4-page espsib-paper page-break">
+          <div key={`page8_${sp.id || sIdx}`} className="a4-page espsib-paper espsib-paper--table page-break">
             <div className="paper-page-num">-๗-</div>
 
             <table className="tmpl-table">
               <thead>
                 <tr>
-                  <th style={{ width: '15%' }}>อุปกรณ์</th>
-                  <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
-                  <th style={{ width: '8%' }}>ใช้ได้</th>
-                  <th style={{ width: '11%' }}>ควรปรับปรุง</th>
+                  <th style={{ width: '13%' }}>อุปกรณ์</th>
+                  <th style={{ width: '38%' }}>รายการตรวจสอบ</th>
+                  <th style={{ width: '7%' }}>ใช้ได้</th>
+                  <th style={{ width: '12%' }}>ควรปรับปรุง</th>
                   <th style={{ width: '10%' }}>ต้องแก้ไข</th>
-                  <th style={{ width: '16%' }}>คำแนะนำ/ความเห็น</th>
+                  <th style={{ width: '20%' }}>คำแนะนำ/ความเห็น</th>
                 </tr>
               </thead>
               <tbody>
@@ -1049,18 +1051,18 @@ export default function ElecReport({ data }) {
       {/* ══════════════════════════════════════════════════════════════════
           PAGE 9 (หน้า -๘-): ๒.๕ บริภัณฑ์ไฟฟ้า & ๓. สรุปผลการตรวจสอบ
       ══════════════════════════════════════════════════════════════════ */}
-      <div className="a4-page espsib-paper page-break">
+      <div className="a4-page espsib-paper espsib-paper--table page-break">
         <div className="paper-page-num">-๘-</div>
 
         <table className="tmpl-table">
           <thead>
             <tr>
-              <th style={{ width: '15%' }}>อุปกรณ์</th>
-              <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
-              <th style={{ width: '8%' }}>ใช้ได้</th>
-              <th style={{ width: '11%' }}>ควรปรับปรุง</th>
+              <th style={{ width: '13%' }}>อุปกรณ์</th>
+              <th style={{ width: '38%' }}>รายการตรวจสอบ</th>
+              <th style={{ width: '7%' }}>ใช้ได้</th>
+              <th style={{ width: '12%' }}>ควรปรับปรุง</th>
               <th style={{ width: '10%' }}>ต้องแก้ไข</th>
-              <th style={{ width: '16%' }}>คำแนะนำ/ความเห็น</th>
+              <th style={{ width: '20%' }}>คำแนะนำ/ความเห็น</th>
             </tr>
           </thead>
           <tbody>
@@ -1106,50 +1108,52 @@ export default function ElecReport({ data }) {
           <strong>หมายเหตุ</strong> หากมีบริภัณฑ์ไฟฟ้าอื่นที่จำเป็นต้องตรวจสอบเพิ่มเติม (เช่น มอเตอร์ไฟฟ้า ตู้เย็นหรือเครื่องทำน้ำดื่ม เครื่องทำความร้อน เครื่องเชื่อมไฟฟ้า เป็นต้น) ให้จัดทำเป็นเอกสารแนบ
         </div>
 
-        <div className="section-hdr-txt">๓. สรุปผลการตรวจสอบระบบไฟฟ้าและบริภัณฑ์ไฟฟ้า</div>
+        <div className="section-indent-box">
+          <div className="section-hdr-txt">๓. สรุปผลการตรวจสอบระบบไฟฟ้าและบริภัณฑ์ไฟฟ้า</div>
 
-        <div className="tmpl-body" style={{ margin: '8pt 0' }}>
-          <p className="doc-line">
-            <CircleOpt
-              checked={conclusion.result === 'pass'}
-              label="ใช้งานได้ ทั้งนี้ระบบไฟฟ้าและบริภัณฑ์ไฟฟ้าต้องมีการบำรุงรักษาอย่างถูกวิธีและตามหลักวิชาการทางด้านวิศวกรรมศาสตร์"
-            />
-          </p>
-          <p className="doc-line" style={{ marginTop: '6pt' }}>
-            <CircleOpt
-              checked={conclusion.result === 'repair'}
-              label="ใช้งานได้ แต่ต้องแก้ไขตามรายงานการตรวจสอบภายใน"
-            />
-            &nbsp;<Dot value={conclusion.repairDays} minWidth={40} /> วัน
-          </p>
-        </div>
-
-        <div style={{ marginTop: '12pt' }}>
-          <div className="bold-txt" style={{ fontSize: '11.5pt', marginBottom: '4pt' }}>ความเห็นและข้อเสนอแนะ</div>
-          <div className="suggestions-ruled-box">
-            {conclusion.suggestions ? (
-              <div className="suggestions-text">{conclusion.suggestions}</div>
-            ) : null}
-            <div className="ruled-line" />
-            <div className="ruled-line" />
-            <div className="ruled-line" />
-            <div className="ruled-line" />
-          </div>
-        </div>
-
-        <div className="final-sign-wrap">
-          <div className="final-sign-col">
-            <div className="sign-canvas-img">
-              {(conclusion.inspectorSignature || inspector.signature) ? (
-                <img src={conclusion.inspectorSignature || inspector.signature} alt="ลายเซ็นวิศวกร" />
-              ) : null}
-            </div>
-            <p>ลงชื่อ ................................................................</p>
-            <p>( <span className="sign-name-text">{inspector.name || '................................................................'}</span> )</p>
-            <p className="sign-role">วิศวกรผู้ตรวจสอบ</p>
-            <p style={{ marginTop: '4pt' }}>
-              วันที่ <Dot value={inspDate.d} minWidth={30} /> เดือน <Dot value={inspDate.m} minWidth={80} /> พ.ศ. <Dot value={inspDate.y} minWidth={40} />
+          <div className="tmpl-body" style={{ margin: '8pt 0' }}>
+            <p className="doc-line">
+              <CircleOpt
+                checked={conclusion.result === 'pass'}
+                label="ใช้งานได้ ทั้งนี้ระบบไฟฟ้าและบริภัณฑ์ไฟฟ้าต้องมีการบำรุงรักษาอย่างถูกวิธีและตามหลักวิชาการทางด้านวิศวกรรมศาสตร์"
+              />
             </p>
+            <p className="doc-line" style={{ marginTop: '6pt' }}>
+              <CircleOpt
+                checked={conclusion.result === 'repair'}
+                label="ใช้งานได้ แต่ต้องแก้ไขตามรายงานการตรวจสอบภายใน"
+              />
+              &nbsp;<Dot value={conclusion.repairDays} minWidth={40} /> วัน
+            </p>
+          </div>
+
+          <div style={{ marginTop: '12pt' }}>
+            <div className="bold-txt" style={{ fontSize: '11.5pt', marginBottom: '4pt' }}>ความเห็นและข้อเสนอแนะ</div>
+            <div className="suggestions-ruled-box">
+              {conclusion.suggestions ? (
+                <div className="suggestions-text">{conclusion.suggestions}</div>
+              ) : null}
+              <div className="ruled-line" />
+              <div className="ruled-line" />
+              <div className="ruled-line" />
+              <div className="ruled-line" />
+            </div>
+          </div>
+
+          <div className="final-sign-wrap">
+            <div className="final-sign-col">
+              <div className="sign-canvas-img">
+                {(conclusion.inspectorSignature || inspector.signature) ? (
+                  <img src={conclusion.inspectorSignature || inspector.signature} alt="ลายเซ็นวิศวกร" />
+                ) : null}
+              </div>
+              <p>ลงชื่อ ................................................................</p>
+              <p>( <span className="sign-name-text">{inspector.name || '................................................................'}</span> )</p>
+              <p className="sign-role">วิศวกรผู้ตรวจสอบ</p>
+              <p style={{ marginTop: '4pt' }}>
+                วันที่ <Dot value={inspDate.d} minWidth={30} /> เดือน <Dot value={inspDate.m} minWidth={80} /> พ.ศ. <Dot value={inspDate.y} minWidth={40} />
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -1158,7 +1162,7 @@ export default function ElecReport({ data }) {
           PHOTO APPENDIX: ภาพถ่ายประกอบการตรวจสอบ
       ══════════════════════════════════════════════════════════════════ */}
       {photos.length > 0 && (
-        <div className="a4-page espsib-paper page-break">
+        <div className="a4-page espsib-paper espsib-paper--table page-break">
           <div className="form-header-center" style={{ marginBottom: '16pt' }}>
             <h2 className="form-h2">เอกสารแนบ: ภาพถ่ายประกอบการตรวจสอบระบบไฟฟ้าและบริภัณฑ์ไฟฟ้า</h2>
             <p style={{ fontSize: '10pt', color: '#555' }}>
@@ -1195,17 +1199,33 @@ export default function ElecReport({ data }) {
         /* ── Standard A4 Canvas ── */
         .espsib-paper {
           width: 210mm;
+          max-width: 100%;
           min-height: 297mm;
-          padding: 20mm 18mm 18mm 20mm;
           box-sizing: border-box;
           background: #ffffff;
           color: #000000;
           font-family: 'TH Sarabun New', 'Sarabun', 'Noto Sans Thai', serif;
           font-size: 11pt;
           line-height: 1.45;
-          margin-bottom: 24px;
+          margin: 0 auto 24px auto;
           box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
           position: relative;
+        }
+
+        /* Dedicated paddings matching official PDF template */
+        .espsib-paper--gazette {
+          padding: 22mm 24mm 20mm 24mm;
+        }
+        .espsib-paper--page2 {
+          padding: 16mm 12mm 14mm 16mm;
+        }
+        .espsib-paper--table {
+          padding: 12mm 10mm 12mm 14mm;
+        }
+
+        .section-indent-box {
+          padding-left: 9mm;
+          padding-right: 4mm;
         }
 
         /* ── Typography & Lines ── */
@@ -1498,18 +1518,27 @@ export default function ElecReport({ data }) {
         @media print {
           @page {
             size: A4 portrait;
-            margin: 12mm 15mm;
+            margin: 0;
           }
           body {
             background: #ffffff !important;
             color: #000000 !important;
           }
           .espsib-paper {
-            width: 100% !important;
-            min-height: auto !important;
-            padding: 0 !important;
-            margin: 0 !important;
+            width: 210mm !important;
+            min-height: 297mm !important;
+            max-width: none !important;
+            margin: 0 auto !important;
             box-shadow: none !important;
+          }
+          .espsib-paper--gazette {
+            padding: 22mm 24mm 20mm 24mm !important;
+          }
+          .espsib-paper--page2 {
+            padding: 16mm 12mm 14mm 16mm !important;
+          }
+          .espsib-paper--table {
+            padding: 12mm 10mm 12mm 14mm !important;
           }
           .page-break {
             page-break-before: always !important;

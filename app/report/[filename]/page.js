@@ -66,7 +66,7 @@ function ReportInner() {
       <style jsx global>{`
         /* ═══════════════ PRINT ═══════════════ */
         @media print {
-          @page { size: A4 portrait; margin: 12mm 15mm; }
+          @page { size: A4 portrait; margin: 0; }
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           body {
             font-family: 'TH Sarabun New', 'Sarabun', 'Noto Sans Thai', sans-serif !important;
@@ -77,7 +77,7 @@ function ReportInner() {
           }
           .no-print  { display: none !important; }
           .rp-root   { padding: 0 !important; background: none !important; }
-          .rp-pages  { max-width: none !important; width: 100% !important; padding: 0 !important; }
+          .rp-pages  { max-width: none !important; width: 100% !important; padding: 0 !important; margin: 0 !important; }
           .page-break { page-break-before: always; }
           tr   { page-break-inside: avoid; }
           thead { display: table-header-group; }
@@ -109,11 +109,21 @@ function ReportInner() {
 
         /* A4 page card */
         .rp-pages {
-          max-width: 210mm; margin: 0 auto; padding: 16px 16px 60px;
-          display: flex; flex-direction: column; gap: 0;
+          width: 100%;
+          max-width: calc(210mm + 32px);
+          margin: 0 auto;
+          padding: 16px 16px 60px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0;
         }
         .a4-page {
-          background: #fff; padding: 14mm 15mm;
+          width: 210mm;
+          max-width: 100%;
+          box-sizing: border-box;
+          background: #fff;
+          padding: 14mm 15mm;
           box-shadow: 0 4px 28px rgba(0,0,0,0.22);
           margin-bottom: 14px;
           color: #000;
