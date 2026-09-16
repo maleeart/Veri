@@ -1212,19 +1212,19 @@ export default function ElecReport({ data }) {
           position: relative;
         }
 
-        /* Dedicated paddings matching official PDF template */
+        /* Dedicated paddings matching official PDF template (162-164mm standard width) */
         .espsib-paper--gazette {
-          padding: 22mm 24mm 20mm 24mm;
+          padding: 25mm 28mm 25mm 28mm;
         }
         .espsib-paper--page2 {
-          padding: 16mm 12mm 14mm 16mm;
+          padding: 22mm 24mm 20mm 26mm;
         }
         .espsib-paper--table {
-          padding: 12mm 10mm 12mm 14mm;
+          padding: 18mm 22mm 16mm 24mm;
         }
 
         .section-indent-box {
-          padding-left: 9mm;
+          padding-left: 6mm;
           padding-right: 4mm;
         }
 
@@ -1527,18 +1527,19 @@ export default function ElecReport({ data }) {
           .espsib-paper {
             width: 210mm !important;
             min-height: 297mm !important;
-            max-width: none !important;
+            max-width: 210mm !important;
             margin: 0 auto !important;
             box-shadow: none !important;
+            box-sizing: border-box !important;
           }
           .espsib-paper--gazette {
-            padding: 22mm 24mm 20mm 24mm !important;
+            padding: 25mm 28mm 25mm 28mm !important;
           }
           .espsib-paper--page2 {
-            padding: 16mm 12mm 14mm 16mm !important;
+            padding: 22mm 24mm 20mm 26mm !important;
           }
           .espsib-paper--table {
-            padding: 12mm 10mm 12mm 14mm !important;
+            padding: 18mm 22mm 16mm 24mm !important;
           }
           .page-break {
             page-break-before: always !important;

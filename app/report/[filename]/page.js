@@ -49,6 +49,14 @@ function ReportInner() {
       <div className="no-print toolbar">
         <button className="btn-back" onClick={() => router.back()}>‹ กลับ</button>
         <span className="toolbar-title">ตัวอย่างก่อนพิมพ์ · {typeLabel}</span>
+        {isElec && (
+          <button
+            className="btn-edit-report"
+            onClick={() => router.push(`/electrical-annual?filename=${encodeURIComponent(filename)}&edit=1${searchParams.get('path') ? `&path=${encodeURIComponent(searchParams.get('path'))}` : ''}`)}
+          >
+            ✏️ แก้ไขข้อมูล
+          </button>
+        )}
         <button className="btn-print" onClick={() => window.print()}>📄 ออกรายงาน PDF (A4)</button>
       </div>
 
@@ -100,6 +108,12 @@ function ReportInner() {
           padding: 7px 14px; border-radius: 8px; border: 1px solid #374151;
           background: #1f2937; color: #d1d5db; font-size: 13px; cursor: pointer;
         }
+        .btn-edit-report {
+          padding: 8px 14px; border-radius: 8px; border: 1px solid #d97706;
+          background: #d97706; color: #fff; font-size: 13px; font-weight: 700;
+          cursor: pointer; white-space: nowrap; transition: background 0.15s;
+        }
+        .btn-edit-report:hover { background: #b45309; }
         .btn-print {
           padding: 9px 18px; border-radius: 8px; border: none;
           background: #dc2626; color: #fff; font-size: 13px; font-weight: 700;

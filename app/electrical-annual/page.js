@@ -135,8 +135,12 @@ const createDefaultOtherEquipment = (idx = 1) => ({
   other: { status: 'pass', note: '', photo: null },
 });
 
-const createInitialState = () => {
-  const today = new Date().toISOString().slice(0, 10);
+const createInitialState = (targetYear) => {
+  const today = new Date();
+  const y = targetYear || today.getFullYear();
+  const m = String(today.getMonth() + 1).padStart(2, '0');
+  const d = String(today.getDate()).padStart(2, '0');
+  const dateStr = `${y}-${m}-${d}`;
   return {
     inspector: {
       name: '',
@@ -173,7 +177,7 @@ const createInitialState = () => {
       district: '',
       province: '',
       phone: '',
-      inspectionDate: today,
+      inspectionDate: dateStr,
       employerSignature: '',
     },
     general: {
@@ -206,7 +210,118 @@ const createInitialState = () => {
       repairDays: '',
       suggestions: '',
       inspectorSignature: '',
-      inspectionDate: today,
+      inspectionDate: dateStr,
+    },
+  };
+};
+
+// ── Clone previous inspection record as clean starting template ──────────────
+const cloneAsTemplate = (sourceData, targetYear) => {
+  if (!sourceData) return createInitialState(targetYear);
+  const today = new Date();
+  const m = String(today.getMonth() + 1).padStart(2, '0');
+  const d = String(today.getDate()).padStart(2, '0');
+  const newDate = `${targetYear}-${m}-${d}`;
+
+  const cleanCheck = (item) => {
+    if (!item) return { status: 'pass', note: '', photo: null };
+    return {
+      status: 'pass',
+      note: '',
+      photo: null,
+      ...(item.wireType !== undefined ? { wireType: item.wireType } : {}),
+      ...(item.wireSize !== undefined ? { wireSize: item.wireSize } : {}),
+    };
+  };
+
+  return {
+    inspector: {
+      ...(sourceData.inspector || {}),
+      signature: '',
+    },
+    workplace: {
+      ...(sourceData.workplace || {}),
+      inspectionDate: newDate,
+      employerSignature: '',
+    },
+    general: {
+      ...(sourceData.general || {}),
+    },
+    highVoltageSystems: (sourceData.highVoltageSystems || []).map((hv, idx) => ({
+      ...hv,
+      id: `hv_${Date.now()}_${idx + 1}`,
+      aerialName: hv.aerialName || '',
+      aerial: Object.fromEntries(
+        Object.entries(hv.aerial || {}).map(([k, it]) => [k, cleanCheck(it)])
+      ),
+      disconnectors: {
+        dropFuse: cleanCheck(hv.disconnectors?.dropFuse),
+        disconnectSwitch: cleanCheck(hv.disconnectors?.disconnectSwitch),
+        rmu: cleanCheck(hv.disconnectors?.rmu),
+        otherText: hv.disconnectors?.otherText || '',
+        other: cleanCheck(hv.disconnectors?.other),
+      },
+      otherText: hv.otherText || '',
+      other: cleanCheck(hv.other),
+    })),
+    transformers: (sourceData.transformers || []).map((tf, idx) => ({
+      ...tf,
+      id: `tf_${Date.now()}_${idx + 1}`,
+      items: Object.fromEntries(
+        Object.entries(tf.items || {}).map(([k, it]) => [
+          k,
+          k === 'otherText' ? (it || '') : cleanCheck(it),
+        ])
+      ),
+    })),
+    mainSwitchboards: (sourceData.mainSwitchboards || []).map((msb, idx) => ({
+      ...msb,
+      id: `msb_${Date.now()}_${idx + 1}`,
+      items: Object.fromEntries(
+        Object.entries(msb.items || {}).map(([k, it]) => [k, cleanCheck(it)])
+      ),
+      grounding: cleanCheck(msb.grounding),
+      temperature: 'normal',
+      temperatureNote: '',
+      temperaturePhoto: null,
+      other: cleanCheck(msb.other),
+    })),
+    mainCircuits: (sourceData.mainCircuits || []).map((mc, idx) => ({
+      ...mc,
+      id: `mc_${Date.now()}_${idx + 1}`,
+      items: Object.fromEntries(
+        Object.entries(mc.items || {}).map(([k, it]) => [k, cleanCheck(it)])
+      ),
+      temperature: 'normal',
+      temperatureNote: '',
+      temperaturePhoto: null,
+      other: cleanCheck(mc.other),
+    })),
+    subPanels: (sourceData.subPanels || []).map((sp, idx) => ({
+      ...sp,
+      id: `sp_${Date.now()}_${idx + 1}`,
+      items: Object.fromEntries(
+        Object.entries(sp.items || {}).map(([k, it]) => [k, cleanCheck(it)])
+      ),
+      grounding: cleanCheck(sp.grounding),
+      temperature: 'normal',
+      temperatureNote: '',
+      temperaturePhoto: null,
+      other: cleanCheck(sp.other),
+    })),
+    otherEquipments: (sourceData.otherEquipments || []).map((eq, idx) => ({
+      ...eq,
+      id: `eq_${Date.now()}_${idx + 1}`,
+      installation: cleanCheck(eq.installation),
+      external: cleanCheck(eq.external),
+      other: cleanCheck(eq.other),
+    })),
+    conclusion: {
+      result: 'pass',
+      repairDays: '',
+      suggestions: '',
+      inspectorSignature: '',
+      inspectionDate: newDate,
     },
   };
 };
@@ -348,18 +463,48 @@ function ElectricalAnnualInner() {
   const { data: session } = useSession();
   const canWrite = useCanWrite();
 
-  const isEditMode = searchParams.get('edit') === '1';
-  const editFilename = searchParams.get('filename');
+  const urlIsEdit = searchParams.get('edit') === '1';
+  const urlFilename = searchParams.get('filename');
+
+  const [isEditMode, setIsEditMode] = useState(urlIsEdit);
+  const [editFilename, setEditFilename] = useState(urlFilename);
+  const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear());
+  const [prefilledFrom, setPrefilledFrom] = useState('');
+  const [allElecRecords, setAllElecRecords] = useState([]);
+  const [duplicateModalRecord, setDuplicateModalRecord] = useState(null);
+  const [templateModalOffer, setTemplateModalOffer] = useState(null);
 
   const DRAFT_KEY = 'draft:elec:annual';
   const [step, setStep] = useState(1); // 1: ผู้ตรวจ&สถานประกอบการ, 2: ข้อมูลทั่วไป, 3: ตรวจสอบอุปกรณ์, 4: สรุปผล
-  const [data, setData] = useState(createInitialState);
+  const [data, setData] = useState(() => createInitialState(new Date().getFullYear()));
   const [editReason, setEditReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [validationError, setValidationError] = useState('');
   const [hasDraft, setHasDraft] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+
+  // Sync URL query params with state
+  useEffect(() => {
+    setIsEditMode(urlIsEdit);
+    setEditFilename(urlFilename);
+  }, [urlIsEdit, urlFilename]);
+
+  // Load all existing elec inspection dates
+  useEffect(() => {
+    let active = true;
+    fetch('/api/inspections')
+      .then((r) => (r.ok ? r.json() : { dates: [] }))
+      .then((res) => {
+        if (!active) return;
+        const elec = (res.dates || []).filter((d) => d.type === 'elec');
+        setAllElecRecords(elec);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Load existing file or draft
   useEffect(() => {
@@ -370,6 +515,9 @@ function ElectricalAnnualInner() {
           if (res?.records?.formData) {
             setData(res.records.formData);
             if (res.records.editReason) setEditReason(res.records.editReason);
+            const dateStr = res.records.formData.workplace?.inspectionDate || res.date || '';
+            const yr = parseInt(dateStr.slice(0, 4));
+            if (yr && !isNaN(yr)) setSelectedYear(yr);
           }
         })
         .catch(() => {});
@@ -379,8 +527,12 @@ function ElectricalAnnualInner() {
     try {
       const savedDraft = localStorage.getItem(DRAFT_KEY);
       if (savedDraft) {
-        setData(JSON.parse(savedDraft));
+        const parsed = JSON.parse(savedDraft);
+        setData(parsed);
         setHasDraft(true);
+        const dateStr = parsed.workplace?.inspectionDate || '';
+        const yr = parseInt(dateStr.slice(0, 4));
+        if (yr && !isNaN(yr)) setSelectedYear(yr);
       }
     } catch {}
   }, [isEditMode, editFilename]);
@@ -396,9 +548,137 @@ function ElectricalAnnualInner() {
   const clearDraft = () => {
     try {
       localStorage.removeItem(DRAFT_KEY);
-      setData(createInitialState());
+      setData(createInitialState(selectedYear));
       setHasDraft(false);
+      setPrefilledFrom('');
     } catch {}
+  };
+
+  // Available years list
+  const currentYear = new Date().getFullYear();
+  const baseYears = [currentYear + 2, currentYear + 1, currentYear, currentYear - 1, currentYear - 2, currentYear - 3];
+  const recordYears = allElecRecords.map((r) => parseInt(r.date?.slice(0, 4))).filter(Boolean);
+  const availableYears = Array.from(new Set([...baseYears, ...recordYears, selectedYear])).sort((a, b) => b - a);
+
+  // Year Change Handler with Duplicate Detection & Template Copying
+  const handleYearChange = (newYear) => {
+    if (newYear === selectedYear) return;
+
+    // 1. Duplicate check: does newYear have an existing saved report?
+    const match = allElecRecords.find((r) => r.date?.startsWith(String(newYear)));
+    if (match) {
+      setDuplicateModalRecord({ year: newYear, record: match });
+      return;
+    }
+
+    // 2. Next/New year check: does any previous record exist?
+    const priorRecords = allElecRecords
+      .map((r) => ({ ...r, year: parseInt(r.date?.slice(0, 4)) }))
+      .filter((r) => !isNaN(r.year) && r.year < newYear)
+      .sort((a, b) => b.year - a.year);
+
+    const latestPrior = priorRecords[0] || allElecRecords[0];
+    if (latestPrior) {
+      const priorYr = parseInt(latestPrior.date?.slice(0, 4)) || latestPrior.year;
+      setTemplateModalOffer({ targetYear: newYear, priorRecord: latestPrior, priorYear: priorYr });
+      return;
+    }
+
+    // 3. No existing records anywhere -> apply directly
+    applyYearDirectly(newYear);
+  };
+
+  const applyYearDirectly = (year) => {
+    setSelectedYear(year);
+    setIsEditMode(false);
+    setEditFilename(null);
+    setPrefilledFrom('');
+    setData((prev) => {
+      const today = new Date();
+      const m = String(today.getMonth() + 1).padStart(2, '0');
+      const d = String(today.getDate()).padStart(2, '0');
+      const newDate = `${year}-${m}-${d}`;
+      return {
+        ...prev,
+        workplace: { ...prev.workplace, inspectionDate: newDate },
+        conclusion: { ...prev.conclusion, inspectionDate: newDate },
+      };
+    });
+    router.replace('/electrical-annual');
+  };
+
+  // Duplicate Modal Handlers
+  const handleUseExisting = async (modalData) => {
+    const rec = modalData.record;
+    const url = rec._path
+      ? `/api/inspections?path=${encodeURIComponent(rec._path)}`
+      : `/api/inspections?filename=${encodeURIComponent(rec.filename)}`;
+    try {
+      const res = await fetch(url).then((r) => r.json());
+      if (res?.records?.formData) {
+        setData(res.records.formData);
+        if (res.records.editReason) setEditReason(res.records.editReason);
+        setIsEditMode(true);
+        setEditFilename(rec.filename);
+        setSelectedYear(modalData.year);
+        setPrefilledFrom('');
+        router.replace(`/electrical-annual?filename=${encodeURIComponent(rec.filename)}&edit=1`);
+      }
+    } catch (e) {
+      setValidationError('ไม่สามารถโหลดข้อมูลเดิมได้: ' + e.message);
+    }
+    setDuplicateModalRecord(null);
+  };
+
+  const handleCreateFreshForDuplicateYear = (modalData) => {
+    const fresh = createInitialState(modalData.year);
+    setData(fresh);
+    setIsEditMode(false);
+    setEditFilename(null);
+    setSelectedYear(modalData.year);
+    setPrefilledFrom('');
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {}
+    router.replace('/electrical-annual');
+    setDuplicateModalRecord(null);
+  };
+
+  const handleCancelDuplicateModal = () => {
+    setDuplicateModalRecord(null);
+  };
+
+  // Template Offer Modal Handlers
+  const handleApplyTemplate = async (offerData) => {
+    const prior = offerData.priorRecord;
+    const url = prior._path
+      ? `/api/inspections?path=${encodeURIComponent(prior._path)}`
+      : `/api/inspections?filename=${encodeURIComponent(prior.filename)}`;
+    try {
+      const res = await fetch(url).then((r) => r.json());
+      if (res?.records?.formData) {
+        const cloned = cloneAsTemplate(res.records.formData, offerData.targetYear);
+        setData(cloned);
+        setSelectedYear(offerData.targetYear);
+        setIsEditMode(false);
+        setEditFilename(null);
+        setPrefilledFrom(`พ.ศ. ${offerData.priorYear + 543} (${offerData.priorYear})`);
+        router.replace('/electrical-annual');
+      }
+    } catch (e) {
+      setValidationError('ไม่สามารถโหลดข้อมูลเทมเพลตได้: ' + e.message);
+      applyYearDirectly(offerData.targetYear);
+    }
+    setTemplateModalOffer(null);
+  };
+
+  const handleDeclineTemplate = (offerData) => {
+    applyYearDirectly(offerData.targetYear);
+    setTemplateModalOffer(null);
+  };
+
+  const handleCancelTemplateModal = () => {
+    setTemplateModalOffer(null);
   };
 
   // Updaters for nested state
@@ -610,6 +890,51 @@ function ElectricalAnnualInner() {
           </button>
         </div>
       </header>
+
+      {/* ── Year Selector & Report Status Bar ── */}
+      <div className="elec-year-bar">
+        <div className="elec-year-bar__left">
+          <label className="year-label" htmlFor="elec-year-select">
+            <span className="year-icon">📅</span>
+            <span className="year-text">เล่มรายงานประจำปี:</span>
+          </label>
+          <div className="year-select-wrap">
+            <select
+              id="elec-year-select"
+              className="elec-year-select"
+              value={selectedYear}
+              onChange={(e) => handleYearChange(parseInt(e.target.value))}
+            >
+              {availableYears.map((yr) => {
+                const bYear = yr + 543;
+                const hasRec = allElecRecords.some((r) => r.date?.startsWith(String(yr)));
+                return (
+                  <option key={yr} value={yr}>
+                    พ.ศ. {bYear} ({yr}){hasRec ? ' ✓ มีข้อมูลในระบบ' : ''}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+        </div>
+
+        <div className="elec-year-bar__right">
+          {isEditMode ? (
+            <span className="year-mode-pill year-mode-pill--edit">
+              ✏️ กำลังแก้ไขรายงานปี พ.ศ. {selectedYear + 543}
+            </span>
+          ) : (
+            <span className="year-mode-pill year-mode-pill--new">
+              ✨ รายงานฉบับใหม่ปี พ.ศ. {selectedYear + 543}
+            </span>
+          )}
+          {prefilledFrom && (
+            <span className="year-mode-pill year-mode-pill--tmpl">
+              📋 เทมเพลตจาก: {prefilledFrom}
+            </span>
+          )}
+        </div>
+      </div>
 
       {/* Step Navigation Bar */}
       <nav className="step-nav">
@@ -2101,6 +2426,125 @@ function ElectricalAnnualInner() {
         </div>
       )}
 
+      {/* ── Modal: Duplicate Year Detected ── */}
+      {duplicateModalRecord && (
+        <div className="elec-modal-overlay" onClick={handleCancelDuplicateModal}>
+          <div className="elec-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="elec-modal-hdr elec-modal-hdr--amber">
+              <span className="elec-modal-icon">⚠️</span>
+              <div>
+                <h3 className="elec-modal-title">
+                  พบข้อมูลรายงานประจำปี พ.ศ. {duplicateModalRecord.year + 543} ({duplicateModalRecord.year})
+                </h3>
+                <p className="elec-modal-sub">มีบันทึกการตรวจสอบของปีนี้อยู่ในระบบแล้ว</p>
+              </div>
+            </div>
+
+            <div className="elec-modal-body">
+              <div className="elec-modal-info-box">
+                <div className="info-line">
+                  <span className="info-label">🏢 สถานประกอบกิจการ:</span>
+                  <span className="info-val">
+                    {duplicateModalRecord.record.building || duplicateModalRecord.record.label || 'บริภัณฑ์ไฟฟ้าประจำปี'}
+                  </span>
+                </div>
+                <div className="info-line">
+                  <span className="info-label">📅 วันที่ตรวจบันทึก:</span>
+                  <span className="info-val">{duplicateModalRecord.record.date}</span>
+                </div>
+                <div className="info-line">
+                  <span className="info-label">📁 ไฟล์ข้อมูล:</span>
+                  <span className="info-val" style={{ fontSize: 11, fontFamily: 'monospace' }}>
+                    {duplicateModalRecord.record.filename}
+                  </span>
+                </div>
+              </div>
+              <p className="elec-modal-question">
+                ปีนี้มีบันทึกการตรวจสอบอยู่แล้ว ท่านต้องการ <strong>ใช้ข้อมูลที่มีอยู่ (เข้าไปแก้ไข)</strong> หรือ <strong>สร้างใหม่</strong> สำหรับปี พ.ศ. {duplicateModalRecord.year + 543} ?
+              </p>
+            </div>
+
+            <div className="elec-modal-actions">
+              <button
+                type="button"
+                className="btn-modal-action btn-modal-action--edit"
+                onClick={() => handleUseExisting(duplicateModalRecord)}
+              >
+                ✏️ ใช้ข้อมูลที่มีอยู่ (เข้าไปแก้ไข)
+              </button>
+              <button
+                type="button"
+                className="btn-modal-action btn-modal-action--fresh"
+                onClick={() => handleCreateFreshForDuplicateYear(duplicateModalRecord)}
+              >
+                ➕ สร้างใหม่สำหรับปีนี้
+              </button>
+              <button
+                type="button"
+                className="btn-modal-action btn-modal-action--cancel"
+                onClick={handleCancelDuplicateModal}
+              >
+                ✕ ยกเลิก
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal: Offer Previous Year as Template ── */}
+      {templateModalOffer && (
+        <div className="elec-modal-overlay" onClick={handleCancelTemplateModal}>
+          <div className="elec-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="elec-modal-hdr elec-modal-hdr--indigo">
+              <span className="elec-modal-icon">💡</span>
+              <div>
+                <h3 className="elec-modal-title">
+                  เริ่มต้นรายงานประจำปี พ.ศ. {templateModalOffer.targetYear + 543} ({templateModalOffer.targetYear})
+                </h3>
+                <p className="elec-modal-sub">
+                  ตรวจพบข้อมูลจากรายงานปี พ.ศ. {templateModalOffer.priorYear + 543} ({templateModalOffer.priorYear})
+                </p>
+              </div>
+            </div>
+
+            <div className="elec-modal-body">
+              <div className="elec-modal-template-preview">
+                <div className="tmpl-feat-title">✨ ต้องการใช้ข้อมูลเดิมเป็น template เริ่มต้นไหม?</div>
+                <ul className="tmpl-feat-list">
+                  <li>✓ <strong>คัดลอกข้อมูลทั่วไป:</strong> สถานประกอบการ, วิศวกร, โวลต์/เฟส, ข้อมูลเครื่องวัด</li>
+                  <li>✓ <strong>คัดลอกสเปกอุปกรณ์ครบถ้วน:</strong> พิกัดหม้อแปลง (kVA), ขนาด Breaker, ชนิดสายไฟ, จำนวนตู้ MDB และแผงย่อย</li>
+                  <li>✓ <strong>รีเซ็ตผลการตรวจสอบ & รูปถ่าย:</strong> ล้างเครื่องหมายตรวจและรูป เพื่อให้เริ่มตรวจใหม่ของปี {templateModalOffer.targetYear + 543} ได้ทันที</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="elec-modal-actions">
+              <button
+                type="button"
+                className="btn-modal-action btn-modal-action--apply-tmpl"
+                onClick={() => handleApplyTemplate(templateModalOffer)}
+              >
+                📋 ใช้ข้อมูลเดิมเป็น template เริ่มต้น (แนะนำ)
+              </button>
+              <button
+                type="button"
+                className="btn-modal-action btn-modal-action--fresh"
+                onClick={() => handleDeclineTemplate(templateModalOffer)}
+              >
+                📄 ไม่ใช้ (เริ่มกรอกใหม่ทั้งหมด)
+              </button>
+              <button
+                type="button"
+                className="btn-modal-action btn-modal-action--cancel"
+                onClick={handleCancelTemplateModal}
+              >
+                ✕ ยกเลิก
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Page Styles ── */}
       <style jsx global>{`
         .elec-page {
@@ -2713,6 +3157,287 @@ function ElectricalAnnualInner() {
           .check-row__options {
             width: 100%;
             justify-content: space-between;
+          }
+          .elec-year-bar {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+        }
+
+        /* ── Year Selector Bar ── */
+        .elec-year-bar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 12px;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-hairline);
+          border-radius: 12px;
+          padding: 10px 14px;
+          margin-bottom: 16px;
+        }
+        .elec-year-bar__left {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .year-label {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 13px;
+          font-weight: 700;
+          color: var(--ink-primary);
+        }
+        .year-select-wrap {
+          position: relative;
+        }
+        .elec-year-select {
+          appearance: none;
+          background: var(--bg-surface-raised);
+          color: var(--ink-primary);
+          border: 1.5px solid var(--accent-strong);
+          border-radius: 8px;
+          padding: 6px 30px 6px 12px;
+          font-size: 13.5px;
+          font-weight: 700;
+          cursor: pointer;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23e11d48' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 10px center;
+        }
+        .elec-year-select:focus {
+          outline: none;
+          box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.2);
+        }
+        .elec-year-bar__right {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+        .year-mode-pill {
+          font-size: 12px;
+          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 20px;
+          white-space: nowrap;
+        }
+        .year-mode-pill--edit {
+          background: #fef3c7;
+          color: #92400e;
+          border: 1px solid #fde68a;
+        }
+        .year-mode-pill--new {
+          background: #ecfdf5;
+          color: #065f46;
+          border: 1px solid #a7f3d0;
+        }
+        .year-mode-pill--tmpl {
+          background: #e0e7ff;
+          color: #3730a3;
+          border: 1px solid #c7d2fe;
+        }
+
+        /* ── Elec Custom Popups ── */
+        .elec-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(15, 23, 42, 0.7);
+          backdrop-filter: blur(5px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1200;
+          padding: 16px;
+        }
+        .elec-modal-card {
+          background: var(--bg-surface-raised, #ffffff);
+          border: 1px solid var(--border-hairline, #e2e8f0);
+          border-radius: 18px;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+          width: 100%;
+          max-width: 520px;
+          overflow: hidden;
+          animation: modalPopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes modalPopIn {
+          from { opacity: 0; transform: scale(0.95) translateY(10px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .elec-modal-hdr {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          padding: 18px 20px 14px;
+        }
+        .elec-modal-hdr--amber {
+          background: linear-gradient(135deg, #fffbeb, #fef3c7);
+          border-bottom: 1px solid #fde68a;
+        }
+        .elec-modal-hdr--indigo {
+          background: linear-gradient(135deg, #eff6ff, #e0e7ff);
+          border-bottom: 1px solid #c7d2fe;
+        }
+        .elec-modal-icon {
+          font-size: 28px;
+          line-height: 1;
+        }
+        .elec-modal-title {
+          font-size: 16px;
+          font-weight: 800;
+          color: #1e293b;
+          margin: 0;
+        }
+        .elec-modal-sub {
+          font-size: 12.5px;
+          color: #475569;
+          margin: 2px 0 0;
+        }
+        .elec-modal-body {
+          padding: 18px 20px;
+        }
+        .elec-modal-info-box {
+          background: var(--bg-surface, #f8fafc);
+          border: 1px solid var(--border-hairline, #e2e8f0);
+          border-radius: 10px;
+          padding: 10px 14px;
+          margin-bottom: 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .info-line {
+          display: flex;
+          align-items: baseline;
+          gap: 8px;
+          font-size: 12.5px;
+        }
+        .info-label {
+          color: var(--ink-muted);
+          min-width: 110px;
+        }
+        .info-val {
+          color: var(--ink-primary);
+          font-weight: 600;
+          word-break: break-all;
+        }
+        .elec-modal-question {
+          font-size: 13.5px;
+          color: var(--ink-primary);
+          line-height: 1.5;
+          margin: 0;
+        }
+        .elec-modal-template-preview {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 14px 16px;
+        }
+        .tmpl-feat-title {
+          font-size: 13.5px;
+          font-weight: 800;
+          color: #1e293b;
+          margin-bottom: 10px;
+        }
+        .tmpl-feat-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          font-size: 12.5px;
+          color: #334155;
+          line-height: 1.45;
+        }
+        .elec-modal-actions {
+          padding: 14px 20px 18px;
+          background: var(--bg-surface, #f8fafc);
+          border-top: 1px solid var(--border-hairline, #e2e8f0);
+          display: flex;
+          flex-direction: column;
+          gap: 9px;
+        }
+        .btn-modal-action {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          padding: 11px 16px;
+          border-radius: 10px;
+          font-size: 13.5px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          border: 1px solid transparent;
+        }
+        .btn-modal-action--edit {
+          background: #d97706;
+          color: #fff;
+        }
+        .btn-modal-action--edit:hover {
+          background: #b45309;
+        }
+        .btn-modal-action--apply-tmpl {
+          background: #4338ca;
+          color: #fff;
+        }
+        .btn-modal-action--apply-tmpl:hover {
+          background: #3730a3;
+        }
+        .btn-modal-action--fresh {
+          background: var(--bg-surface-raised, #fff);
+          border-color: var(--border-strong, #cbd5e1);
+          color: var(--ink-primary);
+        }
+        .btn-modal-action--fresh:hover {
+          background: var(--bg-surface-hover, #f1f5f9);
+        }
+        .btn-modal-action--cancel {
+          background: transparent;
+          color: var(--ink-muted);
+          padding: 7px 16px;
+          font-size: 12.5px;
+        }
+        .btn-modal-action--cancel:hover {
+          color: var(--ink-primary);
+        }
+
+        /* ── Media Print ── */
+        @media print {
+          .elec-hdr,
+          .elec-year-bar,
+          .step-nav,
+          .elec-card,
+          .step-actions,
+          .btn-row,
+          .preview-modal-hdr,
+          .alert,
+          .elec-modal-overlay {
+            display: none !important;
+          }
+          .elec-page {
+            padding: 0 !important;
+            margin: 0 !important;
+            max-width: none !important;
+          }
+          .preview-modal-overlay {
+            position: static !important;
+            background: transparent !important;
+            padding: 0 !important;
+            display: block !important;
+          }
+          .preview-modal-box {
+            max-height: none !important;
+            width: 100% !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
+          .preview-modal-body {
+            padding: 0 !important;
           }
         }
       `}</style>
