@@ -1,0 +1,425 @@
+{
+  "date": "2026-11-30",
+  "type": "elec",
+  "records": {
+    "formData": {
+      "inspector": {
+        "name": "นายตวงเพชร ชัยยานนท์",
+        "age": "31",
+        "address": "123/256 หมู่ที่ 3 บ้านดีเดอะแฮมิลตัน ชัยพฤกษ์-วงแหวน ",
+        "moo": "3",
+        "soi": "-",
+        "road": "บางกรวย-ไทรน้อย",
+        "subdistrict": "ไทรน้อย",
+        "district": "ไทรน้อย",
+        "province": "นนทบุรี",
+        "phone": "0871818884",
+        "licenseLevel": "ภาคีวิศวกร",
+        "licenseBranch": "วิศวกรรมไฟฟ้า แขนงไฟฟ้ากำลัง",
+        "licenseNo": "ภกฟ.51921",
+        "licenseStart": "2024-01-17",
+        "licenseEnd": "2029-01-16",
+        "certType": "sec9",
+        "juristicName": "",
+        "certNo": "03020125683373",
+        "certStart": "2025-06-30",
+        "certEnd": "",
+        "signature": "data:image/png;base64,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X9I2xJc1jhx+YXwqV99BRkmABEigqwSGnECHVrUn1CmvD71JBkwK9DZPz3CzEYIKvbpOMLOkbDVcrE32IbsLczvGuHuYUmJ4BkT/jVzPwLmwNmVuZiABEiCBThIYcgJdWAa0c2sPl9ObelGITjIb/Nn1/O0J1bKxJ8eYDy54sgLXcypYYcI5+8pgXddrAmCJEWFkY+w8KMoaCPIbIMSfGVzXzqshARLINAJDTqBjiNF0b0gVXrbUzpM8kZgR7dCEgq4akmRhEgjAAe40giABEiCBTCGgp60cWkH3n7sBfekU6B4Mdzt1zuIcCHNvSJVOfalNFu6SAAmQAAlkIIEhJ9AxRgoe7k4wBOdw91h4WzOY3WqoGAaV/cc7xi0JkAAJkEDmEhhyAh1dncfHbwenfI2j8CLo930Pg7ASPegB93SeZgAAA9JJREFU2e6MZ14ZbkmABEiABPqfwJAS6HmFFRcDuZ6mVAdTNg2jyd1hEf+LOdNvhsn9r0iox/9H4Mz1p/hBRkiABEiABDKWQNpjbjL2CtJsWE5B1VR4tz+E7CFdBBf+Ql1V6Jg0izMbCZAACZAACWQ0gSGjocO7/VzcCVuYQ5y/hrWsL8noO8PGkQAJkAAJkEAnCEBRHfwhb9byEVZ20w7vSjHD15V1kdAd3j63JEACJEACJDDQCQwJDb12xWyfY5dcrgzx0EC/cWw/CZAACZAACfgJDJmJZQJSHBpTxmypYjVYc3qjHwLjJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACJEACvUrg/wEV0YKKyHBb8gAAAABJRU5ErkJggg=="
+      },
+      "workplace": {
+        "name": "รัฐวิสาหกิจ-การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย สำนักงานไทรน้อย",
+        "businessType": "ผลิต จัดให้ได้มาและจำหน่ายพลังงานไฟฟ้าพร้อมทั้งธุรกิจอื่นๆที่เกี่ยวเนื่องกับการไฟฟ้า",
+        "employerName": "นายมรินทร์ ปฐมชัยอัมพร",
+        "address": "81",
+        "moo": "-",
+        "soi": "-",
+        "road": "บางกรวย-ไทรน้อย",
+        "subdistrict": "ไทรน้อย",
+        "district": "ไทรน้อย",
+        "province": "นนทบุรี",
+        "phone": "02469911",
+        "inspectionDate": "2026-11-30",
+        "employerSignature": ""
+      },
+      "general": {
+        "voltage": "24000/416/240",
+        "phase": "3",
+        "wires": "4",
+        "meterAmp": "212",
+        "meterVolt": "24000",
+        "meterPhase": "3",
+        "meterWires": "3",
+        "meterNo": "72008665",
+        "peakKw12Months": "3304000",
+        "transformerCount": "7",
+        "transformerTotalKva": "11500",
+        "generatorCount": "",
+        "generatorTotalKva": "-",
+        "responsiblePerson1": {
+          "name": "นายตวงเพชร ชัยยานนท์",
+          "position": "วิศวกรไฟฟ้า"
+        },
+        "responsiblePerson2": {
+          "name": "",
+          "position": ""
+        },
+        "asBuiltDrawing": "yes",
+        "asBuiltReason": ""
+      },
+      "highVoltageSystems": [
+        {
+          "id": "hv_1789539514338_1",
+          "title": "ระบบแรงสูง ชุดที่ 1",
+          "aerial": {
+            "pole": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "poleTop": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "guyWire": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "stringing": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "clearance": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "lightning": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "joints": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "grounding": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            }
+          },
+          "disconnectors": {
+            "dropFuse": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "disconnectSwitch": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "rmu": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "otherText": "",
+            "other": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            }
+          },
+          "otherText": "",
+          "other": {
+            "status": "pass",
+            "note": "",
+            "photo": null
+          }
+        }
+      ],
+      "transformers": [
+        {
+          "id": "tf_1789539514339_1",
+          "no": "1",
+          "kva": "",
+          "voltage": "",
+          "impedance": "",
+          "type": "Oil",
+          "typeOther": "",
+          "installType": "sitting",
+          "installTypeOther": "",
+          "primaryProtection": {
+            "type": "",
+            "amp": ""
+          },
+          "items": {
+            "wiring": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "lightningArrester": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "dropFuse": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "touchProtection": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "bodyGround": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "groundRod": {
+              "status": "pass",
+              "note": "",
+              "photo": null,
+              "wireType": "",
+              "wireSize": ""
+            },
+            "externalCondition": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "environment": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "otherText": "",
+            "other": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            }
+          }
+        }
+      ],
+      "mainSwitchboards": [
+        {
+          "id": "msb_1789539514339_1",
+          "no": "1",
+          "sourceTransformer": "1",
+          "locationType": "indoor",
+          "locationOther": "",
+          "items": {
+            "generalCondition": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "busbarJoints": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "workingSpace": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "lighting": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "bonding": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "livePartProtection": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "singleLineDiagram": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            }
+          },
+          "overcurrentProtection": {
+            "type": "",
+            "icKa": "",
+            "volt": "",
+            "atAmp": "",
+            "afAmp": ""
+          },
+          "grounding": {
+            "status": "pass",
+            "note": "",
+            "photo": null,
+            "wireType": "",
+            "wireSize": ""
+          },
+          "temperature": "normal",
+          "temperatureNote": "",
+          "temperaturePhoto": null,
+          "otherText": "",
+          "other": {
+            "status": "pass",
+            "note": "",
+            "photo": null
+          }
+        }
+      ],
+      "mainCircuits": [
+        {
+          "id": "mc_1789539514339_1",
+          "title": "วงจรเมน ชุดที่ 1",
+          "phaseWire": {
+            "type": "",
+            "size": ""
+          },
+          "neutralWire": {
+            "type": "",
+            "size": ""
+          },
+          "raceway": "conduit",
+          "racewayOther": "",
+          "items": {
+            "racewayCondition": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "insulation": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "joints": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "inductionHeatProtection": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            }
+          },
+          "temperature": "normal",
+          "temperatureNote": "",
+          "temperaturePhoto": null,
+          "otherText": "",
+          "other": {
+            "status": "pass",
+            "note": "",
+            "photo": null
+          }
+        }
+      ],
+      "subPanels": [
+        {
+          "id": "sp_1789539514339_1",
+          "no": "1",
+          "location": "",
+          "sourceMdb": "1",
+          "locationType": "indoor",
+          "locationOther": "",
+          "items": {
+            "generalCondition": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "busbarJoints": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "workingSpace": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "lighting": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "bonding": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            },
+            "livePartProtection": {
+              "status": "pass",
+              "note": "",
+              "photo": null
+            }
+          },
+          "overcurrentProtection": {
+            "type": "",
+            "icKa": "",
+            "volt": "",
+            "atAmp": "",
+            "afAmp": ""
+          },
+          "grounding": {
+            "status": "pass",
+            "note": "",
+            "photo": null,
+            "wireType": "",
+            "wireSize": ""
+          },
+          "temperature": "normal",
+          "temperatureNote": "",
+          "temperaturePhoto": null,
+          "otherText": "",
+          "other": {
+            "status": "pass",
+            "note": "",
+            "photo": null
+          }
+        }
+      ],
+      "otherEquipments": [
+        {
+          "id": "eq_1789539514339_1",
+          "name": "",
+          "installation": {
+            "status": "pass",
+            "note": "",
+            "photo": null
+          },
+          "external": {
+            "status": "pass",
+            "note": "",
+            "photo": null
+          },
+          "otherText": "",
+          "other": {
+            "status": "pass",
+            "note": "",
+            "photo": null
+          }
+        }
+      ],
+      "conclusion": {
+        "result": "pass",
+        "repairDays": "",
+        "suggestions": "จากการตรวจสอบสภาพของสายไฟฟ้า อุปกรณ์เครื่องมือวัดไฟฟ้า อุปกรณ์ป้องกันในระบบไฟฟ้า จุดต่อของสายไฟฟ้าต่างๆ แผงสวิทช์ไฟฟ้าแรงต่ำ หม้อแปลงไฟฟ้า ระบบสายอากาศ สามารถใช้งานโดยปลอดภัยไม่น้อยกว่า 1 ปี นับตั้งแต่วันลงลายมือชื่อรับรองรายงานการตรวจสอบ ทั้งนี้ ต้องมีการใช้งานอย่างถูกวิธี และมีการบำรุงรักษาตามหลักวิศวกรรมในทุกปี",
+        "inspectorSignature": "",
+        "inspectionDate": "2026-11-30"
+      }
+    }
+  }
+}
