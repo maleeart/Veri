@@ -1060,7 +1060,7 @@ function HomePageInner() {
           <span className="card__icon">⚡📋</span>
           <div className="card__body">
             <span className="card__title">บริภัณฑ์ไฟฟ้าประจำปี</span>
-            <span className="card__sub">แบบฟอร์ม ESPSIB001</span>
+            <span className="card__sub">ส่งกรมสวัสดิ์</span>
           </div>
           <span className="card__arrow">›</span>
         </button>
@@ -1512,6 +1512,18 @@ function HomePageInner() {
         .card--exit .card__title { color: #fff; font-size: 15px; }
         .card--exit .card__sub   { color: rgba(255,255,255,0.75); }
         .card--exit .card__arrow { color: rgba(255,255,255,0.7); margin-left: auto; }
+
+        /* บริภัณฑ์ไฟฟ้าประจำปี (ส่งกรมสวัสดิ์) — ruby / crimson */
+        .card--elec {
+          background: linear-gradient(135deg, #991b1b 0%, #e11d48 100%);
+          box-shadow: 0 6px 18px rgba(225,29,72,0.35);
+          min-height: 72px;
+          gap: 12px;
+        }
+        .card--elec .card__icon  { font-size: 26px; }
+        .card--elec .card__title { color: #fff; font-size: 15px; }
+        .card--elec .card__sub   { color: rgba(255,255,255,0.75); }
+        .card--elec .card__arrow { color: rgba(255,255,255,0.7); margin-left: auto; }
 
         /* Meter กฟน. — amber */
         .card--meter {

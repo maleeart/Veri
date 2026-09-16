@@ -320,7 +320,7 @@ export default function ElecReport({ data }) {
             </thead>
             <tbody>
               <tr>
-                <td rowSpan={10} className="bold-cell top-cell">
+                <td rowSpan={9} className="bold-cell top-cell">
                   ๒.๑ แรงสูง {highVoltageSystems.length > 1 ? `(ชุดที่ ${hIdx+1})` : ''}
                 </td>
                 <td className="bold-cell" colSpan={5} style={{ background: '#fafafa' }}>
@@ -485,7 +485,7 @@ export default function ElecReport({ data }) {
               </thead>
               <tbody>
                 <tr>
-                  <td rowSpan={18} className="bold-cell top-cell">
+                  <td rowSpan={19} className="bold-cell top-cell">
                     หม้อแปลง<br />(ลูกที่ {tf.no || tIdx+1})
                   </td>
                   <td>๒.๒.๔ การต่อสายแรงต่ำและแรงสูงที่หม้อแปลง</td>
@@ -644,7 +644,7 @@ export default function ElecReport({ data }) {
               </thead>
               <tbody>
                 <tr>
-                  <td rowSpan={16} className="bold-cell top-cell">
+                  <td rowSpan={15} className="bold-cell top-cell">
                     ๒.๓ ตู้เมน<br />สวิตช์
                   </td>
                   <td colSpan={5} className="inner-spec-cell">
@@ -806,7 +806,7 @@ export default function ElecReport({ data }) {
             </thead>
             <tbody>
               <tr>
-                <td rowSpan={9} className="bold-cell top-cell">
+                <td rowSpan={7} className="bold-cell top-cell">
                   ๒.๔ แรงต่ำ<br />ภายในอาคาร
                 </td>
                 <td colSpan={5} className="inner-spec-cell">
@@ -916,7 +916,7 @@ export default function ElecReport({ data }) {
               </thead>
               <tbody>
                 <tr>
-                  <td rowSpan={14} className="bold-cell top-cell">
+                  <td rowSpan={13} className="bold-cell top-cell">
                     แผงย่อย<br />(DB)
                   </td>
                   <td colSpan={5} className="inner-spec-cell">
