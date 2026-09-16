@@ -1,28 +1,43 @@
 'use client';
 
-function Checkmark({ checked }) {
+function formatThaiDate(isoDate) {
+  if (!isoDate) return { d: '..........', m: '..............................', y: '..........' };
+  const parts = String(isoDate).split('-');
+  if (parts.length < 3) return { d: '..........', m: '..............................', y: '..........' };
+  const d = String(parseInt(parts[2], 10));
+  const mIdx = parseInt(parts[1], 10) - 1;
+  const thMonths = [
+    'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+  ];
+  const m = thMonths[mIdx] || '';
+  const y = String(parseInt(parts[0], 10) + 543);
+  return { d, m, y, full: `${d} ${m} ${y}` };
+}
+
+function CircleOpt({ checked, label }) {
   return (
-    <span style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: '14px',
-      height: '14px',
-      borderRadius: '50%',
-      border: '1.5px solid #000',
-      fontSize: '11px',
-      lineHeight: 1,
-      fontWeight: 800,
-      marginRight: '4px',
-      verticalAlign: 'middle',
-    }}>
-      {checked ? '✓' : ''}
+    <span className="tmpl-circle-opt">
+      <span className={`tmpl-circle ${checked ? 'tmpl-circle--checked' : ''}`}>
+        {checked ? '✓' : ''}
+      </span>
+      <span className="tmpl-circle-lbl">{label}</span>
     </span>
   );
 }
 
-function StatusTick({ status, target }) {
-  return status === target ? <span style={{ fontWeight: 800, fontSize: '12pt' }}>✓</span> : null;
+function Dot({ value, minWidth = 50, placeholder = '........................................' }) {
+  if (!value) {
+    return <span className="tmpl-dots" style={{ minWidth }}>{placeholder}</span>;
+  }
+  return <span className="tmpl-val" style={{ minWidth }}>{value}</span>;
+}
+
+function StatusMark({ status, target }) {
+  if (status === target) {
+    return <span className="tbl-check">✓</span>;
+  }
+  return null;
 }
 
 export default function ElecReport({ data }) {
@@ -30,24 +45,26 @@ export default function ElecReport({ data }) {
   const inspector = f.inspector || {};
   const workplace = f.workplace || {};
   const general = f.general || {};
-  const highVoltageSystems = f.highVoltageSystems || [];
-  const transformers = f.transformers || [];
-  const mainSwitchboards = f.mainSwitchboards || [];
-  const mainCircuits = f.mainCircuits || [];
-  const subPanels = f.subPanels || [];
-  const otherEquipments = f.otherEquipments || [];
+  const highVoltageSystems = f.highVoltageSystems || [{}];
+  const transformers = f.transformers || [{}];
+  const mainSwitchboards = f.mainSwitchboards || [{}];
+  const mainCircuits = f.mainCircuits || [{}];
+  const subPanels = f.subPanels || [{}];
+  const otherEquipments = f.otherEquipments || [{}];
   const conclusion = f.conclusion || {};
 
-  // Collect all photos with labels for appendix
+  const inspDate = formatThaiDate(conclusion.inspectionDate || workplace.inspectionDate || data.date);
+
+  // Collect photos for appendix
   const photos = [];
   highVoltageSystems.forEach((hv, idx) => {
     Object.entries(hv.aerial || {}).forEach(([k, v]) => {
-      if (v?.photo) photos.push({ label: `ระบบแรงสูง ชุดที่ ${idx+1} - สายอากาศ (${k})`, photo: v.photo, note: v.note });
+      if (v?.photo) photos.push({ label: `ระบบแรงสูง (${hv.aerialName || `ชุดที่ ${idx+1}`}) - สายอากาศ : ${k}`, photo: v.photo, note: v.note });
     });
     Object.entries(hv.disconnectors || {}).forEach(([k, v]) => {
-      if (v?.photo) photos.push({ label: `ระบบแรงสูง ชุดที่ ${idx+1} - เครื่องปลดวงจร (${k})`, photo: v.photo, note: v.note });
+      if (v?.photo) photos.push({ label: `ระบบแรงสูง (${hv.aerialName || `ชุดที่ ${idx+1}`}) - เครื่องปลดวงจร : ${k}`, photo: v.photo, note: v.note });
     });
-    if (hv.other?.photo) photos.push({ label: `ระบบแรงสูง ชุดที่ ${idx+1} - อื่นๆ`, photo: hv.other.photo, note: hv.other.note });
+    if (hv.other?.photo) photos.push({ label: `ระบบแรงสูง (${hv.aerialName || `ชุดที่ ${idx+1}`}) - อื่นๆ`, photo: hv.other.photo, note: hv.other.note });
   });
   transformers.forEach((tf, idx) => {
     Object.entries(tf.items || {}).forEach(([k, v]) => {
@@ -59,11 +76,10 @@ export default function ElecReport({ data }) {
       if (v?.photo) photos.push({ label: `ตู้ MDB ที่ ${msb.no || idx+1} - ${k}`, photo: v.photo, note: v.note });
     });
     if (msb.grounding?.photo) photos.push({ label: `ตู้ MDB ที่ ${msb.no || idx+1} - สายดิน`, photo: msb.grounding.photo, note: msb.grounding.note });
-    if (msb.temperaturePhoto) photos.push({ label: `ตู้ MDB ที่ ${msb.no || idx+1} - อุณหภูมิ`, photo: msb.temperaturePhoto, note: msb.temperatureNote });
   });
   mainCircuits.forEach((mc, idx) => {
     Object.entries(mc.items || {}).forEach(([k, v]) => {
-      if (v?.photo) photos.push({ label: `วงจรเมน ชุดที่ ${idx+1} - ${k}`, photo: v.photo, note: v.note });
+      if (v?.photo) photos.push({ label: `วงจรเมน (${mc.title || idx+1}) - ${k}`, photo: v.photo, note: v.note });
     });
   });
   subPanels.forEach((sp, idx) => {
@@ -78,806 +94,1086 @@ export default function ElecReport({ data }) {
 
   return (
     <div className="espsib-report-root">
-      {/* ════════ PAGE 1: ประกาศกรมสวัสดิการและคุ้มครองแรงงาน ════════ */}
-      <div className="a4-page espsib-doc">
-        <div style={{ textAlign: 'right', fontSize: '11pt', marginBottom: '8pt' }}>หน้า ๑๓</div>
-        <div style={{ textAlign: 'center', fontSize: '12pt', marginBottom: '14pt' }}>
-          เล่ม ๑๓๒ ตอนพิเศษ ๓๕๑ ง &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ราชกิจจานุเบกษา &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ๓๐ ธันวาคม ๒๕๕๘
+
+      {/* ══════════════════════════════════════════════════════════════════
+          PAGE 1 (หน้า ๑๓): ประกาศกรมสวัสดิการและคุ้มครองแรงงาน
+      ══════════════════════════════════════════════════════════════════ */}
+      <div className="a4-page espsib-paper">
+        <div className="gazette-top-right">หน้า ๑๓</div>
+        <div className="gazette-header-box">
+          <div className="gazette-border-line" />
+          <div className="gazette-meta">
+            เล่ม ๑๓๒ ตอนพิเศษ ๓๕๑ ง &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ราชกิจจานุเบกษา &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ๓๐ ธันวาคม ๒๕๕๘
+          </div>
+          <div className="gazette-border-line" />
         </div>
 
-        <div style={{ textAlign: 'center', fontWeight: 800, fontSize: '14pt', margin: '20pt 0 6pt' }}>
-          ประกาศกรมสวัสดิการและคุ้มครองแรงงาน
-        </div>
-        <div style={{ textAlign: 'center', fontWeight: 700, fontSize: '12.5pt', marginBottom: '16pt' }}>
-          เรื่อง หลักเกณฑ์ วิธีการ และเงื่อนไขการจัดทำบันทึกผลการตรวจสอบและรับรองระบบไฟฟ้าและบริภัณฑ์ไฟฟ้า
-        </div>
-
-        <p className="doc-p indent">
-          อาศัยอำนาจตามความในข้อ ๑๒ แห่งกฎกระทรวงกำหนดมาตรฐานในการบริหารจัดการ และดำเนินการด้านความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงานเกี่ยวกับไฟฟ้า พ.ศ. ๒๕๕๘ อธิบดีกรมสวัสดิการและคุ้มครองแรงงาน จึงออกประกาศไว้ ดังต่อไปนี้
-        </p>
-        <p className="doc-p indent">
-          <strong>ข้อ ๑</strong> ประกาศนี้ให้ใช้บังคับตั้งแต่วันถัดจากวันประกาศในราชกิจจานุเบกษาเป็นต้นไป
-        </p>
-        <p className="doc-p indent">
-          <strong>ข้อ ๒</strong> ให้นายจ้างจัดให้มีการตรวจสอบและจัดให้มีการบำรุงรักษาระบบไฟฟ้าและบริภัณฑ์ไฟฟ้าของสถานประกอบกิจการเพื่อให้ใช้งานได้อย่างปลอดภัยอย่างน้อยปีละหนึ่งครั้ง และจัดทำบันทึกผลการตรวจสอบและรับรองระบบไฟฟ้าและบริภัณฑ์ไฟฟ้า ตามแบบท้ายประกาศนี้
-        </p>
-        <p className="doc-p indent">
-          กรณีนายจ้างได้ดำเนินการตรวจสอบและรับรองระบบไฟฟ้าและบริภัณฑ์ไฟฟ้าตามกฎหมายว่าด้วยโรงงานหรือกฎหมายว่าด้วยการควบคุมอาคาร โดยมีวิศวกรไฟฟ้าเป็นผู้บันทึกผลการตรวจสอบ ให้ถือว่าเป็นการตรวจสอบและรับรองระบบไฟฟ้าและบริภัณฑ์ไฟฟ้าตามประกาศฉบับนี้ ทั้งนี้ ผู้จัดทำบันทึกผลการตรวจสอบและรับรองต้องเป็นบุคคลที่ขึ้นทะเบียนตามมาตรา ๙ หรือเป็นนิติบุคคลที่ได้รับใบอนุญาตตามมาตรา ๑๑ แห่งพระราชบัญญัติความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน พ.ศ. ๒๕๕๔ แล้วแต่กรณี
-        </p>
-        <p className="doc-p indent">
-          <strong>ข้อ ๓</strong> ให้นายจ้างแจ้งผลการตรวจสอบและรับรองระบบไฟฟ้าและบริภัณฑ์ไฟฟ้าต่อพนักงานตรวจความปลอดภัยในเขตพื้นที่รับผิดชอบภายในสิบห้าวันนับแต่วันที่ตรวจสอบ
-        </p>
-
-        <div style={{ textAlign: 'center', marginTop: '40pt' }}>
-          <p style={{ margin: '4pt 0' }}>ประกาศ ณ วันที่ ๒๔ ธันวาคม พ.ศ. ๒๕๕๘</p>
-          <p style={{ margin: '14pt 0 4pt', fontWeight: 700 }}>พรรณี ศรียุทธศักดิ์</p>
-          <p style={{ margin: 0 }}>อธิบดีกรมสวัสดิการและคุ้มครองแรงงาน</p>
-        </div>
-      </div>
-
-      {/* ════════ PAGE 2: บันทึกผลการตรวจสอบและรับรองระบบไฟฟ้าฯ ════════ */}
-      <div className="a4-page espsib-doc page-break">
-        <div style={{ textAlign: 'center', fontWeight: 800, fontSize: '13pt', marginTop: '10pt' }}>
-          บันทึกผลการตรวจสอบและรับรองระบบไฟฟ้าและบริภัณฑ์ไฟฟ้า
-        </div>
-        <div style={{ textAlign: 'center', fontSize: '11.5pt', marginBottom: '16pt' }}>
-          กรมสวัสดิการและคุ้มครองแรงงาน กระทรวงแรงงาน
-        </div>
-
-        <p className="doc-p indent">
-          ข้าพเจ้า <span className="fill-txt">{inspector.name || '....................................................................'}</span>
-          &nbsp;&nbsp;อายุ <span className="fill-txt">{inspector.age || '......'}</span> ปี
-        </p>
-        <p className="doc-p">
-          ที่อยู่เลขที่ <span className="fill-txt">{inspector.address || '............'}</span>
-          &nbsp;หมู่ที่ <span className="fill-txt">{inspector.moo || '......'}</span>
-          &nbsp;ตรอก/ซอย <span className="fill-txt">{inspector.soi || '..................'}</span>
-          &nbsp;ถนน <span className="fill-txt">{inspector.road || '..................'}</span>
-        </p>
-        <p className="doc-p">
-          แขวง/ตำบล <span className="fill-txt">{inspector.subdistrict || '..................'}</span>
-          &nbsp;เขต/อำเภอ <span className="fill-txt">{inspector.district || '..................'}</span>
-          &nbsp;จังหวัด <span className="fill-txt">{inspector.province || '..................'}</span>
-        </p>
-        <p className="doc-p">
-          โทรศัพท์ <span className="fill-txt">{inspector.phone || '........................'}</span>
-          &nbsp;ได้รับใบอนุญาตเป็นผู้ประกอบวิชาชีพวิศวกรรมควบคุม ระดับ <span className="fill-txt">{inspector.licenseLevel || '........................'}</span>
-        </p>
-        <p className="doc-p">
-          สาขาวิศวกรรมไฟฟ้า แขนงไฟฟ้ากำลัง ตามกฎหมายว่าด้วยวิศวกร เลขทะเบียน <span className="fill-txt">{inspector.licenseNo || '........................'}</span>
-        </p>
-        <p className="doc-p">
-          ตั้งแต่วันที่ <span className="fill-txt">{inspector.licenseStart || '........................'}</span>
-          &nbsp;ถึงวันที่ <span className="fill-txt">{inspector.licenseEnd || '........................'}</span>
-          &nbsp;และไม่อยู่ในระหว่างถูกสั่งพักหรือเพิกถอนใบอนุญาตดังกล่าว พร้อมแนบสำเนาใบอนุญาตมาด้วยแล้ว โดย
-        </p>
-
-        <div style={{ margin: '8pt 0 8pt 24pt' }}>
-          <p className="doc-p">
-            <Checkmark checked={inspector.certType === 'sec9'} /> ได้ขึ้นทะเบียนตามมาตรา ๙ หรือ
-          </p>
-          <p className="doc-p">
-            <Checkmark checked={inspector.certType === 'sec11'} /> ได้รับใบอนุญาตตามมาตรา ๑๑ (ในนามนิติบุคคล <span className="fill-txt">{inspector.juristicName || '...................................................'}</span>)
+        <div className="gazette-title">
+          <h2>ประกาศกรมสวัสดิการและคุ้มครองแรงงาน</h2>
+          <p className="gazette-sub">
+            เรื่อง หลักเกณฑ์ วิธีการ และเงื่อนไขการจัดทำบันทึกผลการตรวจสอบและรับรอง<br />
+            ระบบไฟฟ้าและบริภัณฑ์ไฟฟ้า
           </p>
         </div>
 
-        <p className="doc-p">
-          แห่งพระราชบัญญัติความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน พ.ศ. ๒๕๕๔ ทะเบียนหรือใบอนุญาต เลขที่ <span className="fill-txt">{inspector.certNo || '........................'}</span>
-          &nbsp;ตั้งแต่วันที่ <span className="fill-txt">{inspector.certStart || '........................'}</span>
-          &nbsp;ถึงวันที่ <span className="fill-txt">{inspector.certEnd || '........................'}</span>
-        </p>
-
-        <p className="doc-p indent" style={{ marginTop: '12pt' }}>
-          ข้าพเจ้าได้ดำเนินการตรวจสอบระบบไฟฟ้าและบริภัณฑ์ไฟฟ้าของสถานประกอบกิจการ
-        </p>
-        <p className="doc-p">
-          ชื่อสถานประกอบกิจการ <span className="fill-txt">{workplace.name || '....................................................................................................'}</span>
-        </p>
-        <p className="doc-p">
-          ประกอบกิจการ <span className="fill-txt">{workplace.businessType || '..................................................................................................................'}</span>
-        </p>
-        <p className="doc-p">
-          ชื่อนายจ้าง/ผู้กระทำแทน <span className="fill-txt">{workplace.employerName || '....................................................................................................'}</span>
-        </p>
-        <p className="doc-p">
-          ตั้งอยู่เลขที่ <span className="fill-txt">{workplace.address || '............'}</span>
-          &nbsp;หมู่ที่ <span className="fill-txt">{workplace.moo || '......'}</span>
-          &nbsp;ตรอก/ซอย <span className="fill-txt">{workplace.soi || '..................'}</span>
-          &nbsp;ถนน <span className="fill-txt">{workplace.road || '..................'}</span>
-        </p>
-        <p className="doc-p">
-          แขวง/ตำบล <span className="fill-txt">{workplace.subdistrict || '..................'}</span>
-          &nbsp;เขต/อำเภอ <span className="fill-txt">{workplace.district || '..................'}</span>
-          &nbsp;จังหวัด <span className="fill-txt">{workplace.province || '..................'}</span>
-        </p>
-        <p className="doc-p">
-          โทรศัพท์ <span className="fill-txt">{workplace.phone || '........................'}</span>
-          &nbsp;เมื่อวันที่ <span className="fill-txt">{workplace.inspectionDate || data.date || '........................'}</span>
-        </p>
-
-        <p className="doc-p indent" style={{ marginTop: '12pt' }}>
-          ข้าพเจ้าขอรับรองว่าระบบไฟฟ้าและบริภัณฑ์ไฟฟ้าของสถานประกอบกิจการแห่งนี้ สามารถใช้งานได้อย่างปลอดภัยตามรายละเอียดและเงื่อนไขของการตรวจสอบ และเอกสารแนบเพิ่มเติม (ถ้ามี) ทั้งนี้ต้องมีการใช้งานอย่างถูกวิธีและมีการบำรุงรักษาตามหลักวิชาการ ข้าพเจ้าจึงลงลายมือชื่อไว้เป็นหลักฐาน
-        </p>
-
-        <div className="sig-table-wrap">
-          <div className="sig-col">
-            <div className="sig-box-img">
-              {inspector.signature ? <img src={inspector.signature} alt="ลายเซ็นวิศวกร" /> : <div className="sig-line" />}
-            </div>
-            <p>ลงชื่อ ............................................................</p>
-            <p>( {inspector.name || '............................................................'} )</p>
-            <p>วิศวกรผู้ตรวจสอบ</p>
-          </div>
-
-          <div className="sig-col">
-            <div className="sig-box-img">
-              {workplace.employerSignature ? <img src={workplace.employerSignature} alt="ลายเซ็นนายจ้าง" /> : <div className="sig-line" />}
-            </div>
-            <p>ลงชื่อ ............................................................</p>
-            <p>( {workplace.employerName || '............................................................'} )</p>
-            <p>นายจ้าง/ผู้กระทำแทน</p>
-          </div>
+        <div className="gazette-body">
+          <p className="indent">
+            อาศัยอำนาจตามความในข้อ ๑๒ แห่งกฎกระทรวงกำหนดมาตรฐานในการบริหารจัดการ และดำเนินการด้านความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงานเกี่ยวกับไฟฟ้า พ.ศ. ๒๕๕๘ อธิบดีกรมสวัสดิการและคุ้มครองแรงงาน จึงออกประกาศไว้ ดังต่อไปนี้
+          </p>
+          <p className="indent">
+            <strong>ข้อ ๑</strong> &nbsp;ประกาศนี้ให้ใช้บังคับตั้งแต่วันถัดจากวันประกาศในราชกิจจานุเบกษาเป็นต้นไป
+          </p>
+          <p className="indent">
+            <strong>ข้อ ๒</strong> &nbsp;ให้นายจ้างจัดให้มีการตรวจสอบและจัดให้มีการบำรุงรักษาระบบไฟฟ้าและบริภัณฑ์ไฟฟ้าของสถานประกอบกิจการเพื่อให้ใช้งานได้อย่างปลอดภัยอย่างน้อยปีละหนึ่งครั้ง และจัดทำบันทึกผลการตรวจสอบและรับรองระบบไฟฟ้าและบริภัณฑ์ไฟฟ้า ตามแบบท้ายประกาศนี้
+          </p>
+          <p className="indent">
+            กรณีนายจ้างได้ดำเนินการตรวจสอบและรับรองระบบไฟฟ้าและบริภัณฑ์ไฟฟ้าตามกฎหมายว่าด้วยโรงงานหรือกฎหมายว่าด้วยการควบคุมอาคาร โดยมีวิศวกรไฟฟ้าเป็นผู้บันทึกผลการตรวจสอบ ให้ถือว่าเป็นการตรวจสอบและรับรองระบบไฟฟ้าและบริภัณฑ์ไฟฟ้าตามประกาศฉบับนี้ ทั้งนี้ ผู้จัดทำบันทึกผลการตรวจสอบและรับรองต้องเป็นบุคคลที่ขึ้นทะเบียนตามมาตรา ๙ หรือเป็นนิติบุคคลที่ได้รับใบอนุญาตตามมาตรา ๑๑ แห่งพระราชบัญญัติความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน พ.ศ. ๒๕๕๔ แล้วแต่กรณี
+          </p>
+          <p className="indent">
+            <strong>ข้อ ๓</strong> &nbsp;ให้นายจ้างแจ้งผลการตรวจสอบและรับรองระบบไฟฟ้าและบริภัณฑ์ไฟฟ้าต่อพนักงานตรวจความปลอดภัยในเขตพื้นที่รับผิดชอบภายในสิบห้าวันนับแต่วันที่ตรวจสอบ
+          </p>
         </div>
 
-        <div style={{ marginTop: '20pt', fontSize: '9pt', color: '#444', borderTop: '1px solid #999', paddingTop: '6pt' }}>
-          <strong>หมายเหตุ:</strong> วิศวกรผู้ตรวจสอบ หมายถึง วิศวกรตามคำนิยาม “วิศวกร” ในกฎกระทรวงกำหนดมาตรฐานในการบริหาร จัดการ และดำเนินการด้านความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงานเกี่ยวกับไฟฟ้า พ.ศ. ๒๕๕๘
+        <div className="gazette-sign-block">
+          <p>ประกาศ ณ วันที่ ๒๔ ธันวาคม พ.ศ. ๒๕๕๘</p>
+          <p className="name">พรรณี ศรียุทธศักดิ์</p>
+          <p>อธิบดีกรมสวัสดิการและคุ้มครองแรงงาน</p>
         </div>
       </div>
 
-      {/* ════════ PAGE 3: -๒- ๑. ข้อมูลทั่วไป & ๒. รายการตรวจสอบ ════════ */}
-      <div className="a4-page espsib-doc page-break">
-        <div style={{ textAlign: 'center', fontSize: '11pt', marginBottom: '8pt' }}>-๒-</div>
-        
-        <h3 className="sec-title">๑. ข้อมูลทั่วไป</h3>
-        <p className="doc-p">
-          - ระบบไฟฟ้าที่ใช้ในสถานประกอบกิจการ <span className="fill-txt">{general.voltage || '.........'}</span> โวลต์ <span className="fill-txt">{general.phase || '...'}</span> เฟส <span className="fill-txt">{general.wires || '...'}</span> สาย
-        </p>
-        <p className="doc-p">
-          - ขนาดเครื่องวัดหน่วยไฟฟ้า <span className="fill-txt">{general.meterAmp || '.........'}</span> แอมแปร์ <span className="fill-txt">{general.meterVolt || '.........'}</span> โวลต์ <span className="fill-txt">{general.meterPhase || '...'}</span> เฟส <span className="fill-txt">{general.meterWires || '...'}</span> สาย
-          &nbsp;หมายเลขเครื่องวัด <span className="fill-txt">{general.meterNo || '................................................'}</span>
-        </p>
-        <p className="doc-p">
-          - ปริมาณการใช้พลังไฟฟ้าสูงสุดในรอบ ๑๒ เดือน ที่ผ่านมา <span className="fill-txt">{general.peakKw12Months || '........................'}</span> กิโลวัตต์
-        </p>
-        <p className="doc-p">
-          - หม้อแปลงกำลัง จำนวน <span className="fill-txt">{general.transformerCount || '.........'}</span> เครื่อง รวม <span className="fill-txt">{general.transformerTotalKva || '..................'}</span> เควีเอ
-        </p>
-        <p className="doc-p">
-          - เครื่องกำเนิดไฟฟ้า/เครื่องกำเนิดไฟฟ้าสำรอง จำนวน <span className="fill-txt">{general.generatorCount || '.........'}</span> เครื่อง รวม <span className="fill-txt">{general.generatorTotalKva || '..................'}</span> เควีเอ
-        </p>
-        <p className="doc-p">
-          - ผู้รับผิดชอบระบบไฟฟ้า ๑. <span className="fill-txt">{general.responsiblePerson1?.name || '...................................................'}</span> ตำแหน่ง <span className="fill-txt">{general.responsiblePerson1?.position || '................................................'}</span>
-        </p>
-        <p className="doc-p" style={{ paddingLeft: '110pt' }}>
-          ๒. <span className="fill-txt">{general.responsiblePerson2?.name || '...................................................'}</span> ตำแหน่ง <span className="fill-txt">{general.responsiblePerson2?.position || '................................................'}</span>
-        </p>
-        <p className="doc-p">
-          - แบบการติดตั้งระบบไฟฟ้าจริง (As built Drawing)
-          &nbsp;&nbsp;&nbsp;&nbsp;<Checkmark checked={general.asBuiltDrawing === 'yes'} /> มี
-          &nbsp;&nbsp;&nbsp;&nbsp;<Checkmark checked={general.asBuiltDrawing === 'no'} /> ไม่มี เหตุผล <span className="fill-txt">{general.asBuiltReason || '....................................................................................'}</span>
-        </p>
+      {/* ══════════════════════════════════════════════════════════════════
+          PAGE 2: แบบบันทึกผลการตรวจสอบและรับรองระบบไฟฟ้าฯ
+      ══════════════════════════════════════════════════════════════════ */}
+      <div className="a4-page espsib-paper page-break">
+        <div className="form-header-center">
+          <h2 className="form-h2">บันทึกผลการตรวจสอบและรับรองระบบไฟฟ้าและบริภัณฑ์ไฟฟ้า</h2>
+          <h3 className="form-h3">กรมสวัสดิการและคุ้มครองแรงงาน กระทรวงแรงงาน</h3>
+        </div>
 
-        <h3 className="sec-title" style={{ marginTop: '16pt' }}>๒. รายการตรวจสอบ</h3>
+        <div className="tmpl-body" style={{ marginTop: '16pt' }}>
+          <p className="doc-line indent">
+            ข้าพเจ้า <Dot value={inspector.name} minWidth={260} />
+            อายุ <Dot value={inspector.age} minWidth={40} /> ปี
+          </p>
+          <p className="doc-line">
+            ที่อยู่เลขที่ <Dot value={inspector.address} minWidth={60} />
+            &nbsp;หมู่ที่ <Dot value={inspector.moo} minWidth={40} />
+            &nbsp;ตรอก/ซอย <Dot value={inspector.soi} minWidth={110} />
+            &nbsp;ถนน <Dot value={inspector.road} minWidth={140} />
+          </p>
+          <p className="doc-line">
+            แขวง/ตำบล <Dot value={inspector.subdistrict} minWidth={130} />
+            &nbsp;เขต/อำเภอ <Dot value={inspector.district} minWidth={130} />
+            &nbsp;จังหวัด <Dot value={inspector.province} minWidth={130} />
+          </p>
+          <p className="doc-line">
+            โทรศัพท์ <Dot value={inspector.phone} minWidth={130} />
+            &nbsp;ได้รับใบอนุญาตเป็นผู้ประกอบวิชาชีพวิศวกรรมควบคุม ระดับ <Dot value={inspector.licenseLevel} minWidth={160} />
+          </p>
+          <p className="doc-line">
+            สาขาวิศวกรรมไฟฟ้า แขนงไฟฟ้ากำลัง ตามกฎหมายว่าด้วยวิศวกร เลขทะเบียน <Dot value={inspector.licenseNo} minWidth={180} />
+          </p>
+          <p className="doc-line">
+            ตั้งแต่วันที่ <Dot value={inspector.licenseStart} minWidth={110} />
+            &nbsp;ถึงวันที่ <Dot value={inspector.licenseEnd} minWidth={110} />
+            &nbsp;และไม่อยู่ในระหว่างถูกสั่งพักหรือเพิกถอนใบอนุญาตดังกล่าว
+          </p>
+          <p className="doc-line">
+            พร้อมแนบสำเนาใบอนุญาตมาด้วยแล้ว โดย
+          </p>
 
-        <table className="espsib-table">
-          <thead>
-            <tr>
-              <th style={{ width: '15%' }}>อุปกรณ์</th>
-              <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
-              <th style={{ width: '9%' }}>ใช้ได้</th>
-              <th style={{ width: '11%' }}>ควรปรับปรุง</th>
-              <th style={{ width: '10%' }}>ต้องแก้ไข</th>
-              <th style={{ width: '15%' }}>คำแนะนำ/ความเห็น</th>
-            </tr>
-          </thead>
-          <tbody>
-            {highVoltageSystems.map((hv, hIdx) => (
-              <tr key={hv.id}>
-                <td style={{ verticalAlign: 'top', fontWeight: 700 }}>
+          <div style={{ margin: '6pt 0 6pt 24pt' }}>
+            <p className="doc-line">
+              <CircleOpt checked={inspector.certType === 'sec9'} label="ได้ขึ้นทะเบียนตามมาตรา ๙ หรือ" />
+            </p>
+            <p className="doc-line">
+              <CircleOpt checked={inspector.certType === 'sec11'} label="ได้รับใบอนุญาตตามมาตรา ๑๑ (ในนามนิติบุคคล" />
+              &nbsp;<Dot value={inspector.juristicName} minWidth={220} /> )
+            </p>
+          </div>
+
+          <p className="doc-line">
+            แห่งพระราชบัญญัติความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน พ.ศ. ๒๕๕๔ ทะเบียนหรือ
+          </p>
+          <p className="doc-line">
+            ใบอนุญาต เลขที่ <Dot value={inspector.certNo} minWidth={130} />
+            &nbsp;ตั้งแต่วันที่ <Dot value={inspector.certStart} minWidth={110} />
+            &nbsp;ถึงวันที่ <Dot value={inspector.certEnd} minWidth={110} />
+          </p>
+
+          <p className="doc-line indent" style={{ marginTop: '10pt' }}>
+            ข้าพเจ้าได้ดำเนินการตรวจสอบระบบไฟฟ้าและบริภัณฑ์ไฟฟ้าของสถานประกอบกิจการ
+          </p>
+          <p className="doc-line">
+            ชื่อสถานประกอบกิจการ <Dot value={workplace.name} minWidth={450} />
+          </p>
+          <p className="doc-line">
+            ประกอบกิจการ <Dot value={workplace.businessType} minWidth={485} />
+          </p>
+          <p className="doc-line">
+            ชื่อนายจ้าง/ผู้กระทำแทน <Dot value={workplace.employerName} minWidth={440} />
+          </p>
+          <p className="doc-line">
+            ตั้งอยู่เลขที่ <Dot value={workplace.address} minWidth={60} />
+            &nbsp;หมู่ที่ <Dot value={workplace.moo} minWidth={40} />
+            &nbsp;ตรอก/ซอย <Dot value={workplace.soi} minWidth={110} />
+            &nbsp;ถนน <Dot value={workplace.road} minWidth={140} />
+          </p>
+          <p className="doc-line">
+            แขวง/ตำบล <Dot value={workplace.subdistrict} minWidth={130} />
+            &nbsp;เขต/อำเภอ <Dot value={workplace.district} minWidth={130} />
+            &nbsp;จังหวัด <Dot value={workplace.province} minWidth={130} />
+          </p>
+          <p className="doc-line">
+            โทรศัพท์ <Dot value={workplace.phone} minWidth={160} />
+            &nbsp;เมื่อวันที่ <Dot value={workplace.inspectionDate || data.date} minWidth={180} />
+          </p>
+
+          <p className="doc-line indent" style={{ marginTop: '10pt' }}>
+            ข้าพเจ้าขอรับรองว่าระบบไฟฟ้าและบริภัณฑ์ไฟฟ้าของสถานประกอบกิจการแห่งนี้ สามารถใช้งานได้อย่างปลอดภัยตามรายละเอียดและเงื่อนไขของการตรวจสอบ และเอกสารแนบเพิ่มเติม (ถ้ามี) ทั้งนี้ต้องมีการใช้งานอย่างถูกวิธีและมีการบำรุงรักษาตามหลักวิชาการ ข้าพเจ้าจึงลงลายมือชื่อไว้เป็นหลักฐาน
+          </p>
+
+          <div className="dual-sign-row">
+            <div className="sign-col">
+              <div className="sign-canvas-img">
+                {inspector.signature ? <img src={inspector.signature} alt="ลายเซ็น" /> : null}
+              </div>
+              <p>ลงชื่อ ................................................................</p>
+              <p>( <span className="sign-name-text">{inspector.name || '................................................................'}</span> )</p>
+              <p className="sign-role">วิศวกรผู้ตรวจสอบ</p>
+            </div>
+
+            <div className="sign-col">
+              <div className="sign-canvas-img">
+                {workplace.employerSignature ? <img src={workplace.employerSignature} alt="ลายเซ็น" /> : null}
+              </div>
+              <p>ลงชื่อ ................................................................</p>
+              <p>( <span className="sign-name-text">{workplace.employerName || '................................................................'}</span> )</p>
+              <p className="sign-role">นายจ้าง/ผู้กระทำแทน</p>
+            </div>
+          </div>
+
+          <div className="form-footer-note">
+            <strong>หมายเหตุ</strong> วิศวกรผู้ตรวจสอบ หมายถึง วิศวกรตามคำนิยาม “วิศวกร” ในกฎกระทรวงกำหนดมาตรฐานในการบริหาร จัดการ และดำเนินการด้านความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงานเกี่ยวกับไฟฟ้า พ.ศ. ๒๕๕๘ เป็นผู้ตรวจสอบและรับรองระบบไฟฟ้าและบริภัณฑ์ไฟฟ้าจนกว่าจะได้มีบุคคลที่ขึ้นทะเบียนตามมาตรา ๙ หรือนิติบุคคลที่ได้รับใบอนุญาตตามมาตรา ๑๑ แห่งพระราชบัญญัติความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน พ.ศ. ๒๕๕๔
+          </div>
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════
+          PAGE 3 (หน้า -๒-): ๑. ข้อมูลทั่วไป & ๒.๑.๑ สายอากาศ
+      ══════════════════════════════════════════════════════════════════ */}
+      {highVoltageSystems.map((hv, hIdx) => (
+        <div key={`page3_${hv.id || hIdx}`} className="a4-page espsib-paper page-break">
+          <div className="paper-page-num">-๒-</div>
+
+          <div className="section-hdr-txt">๑. ข้อมูลทั่วไป</div>
+          <div className="tmpl-body">
+            <p className="doc-line">
+              - ระบบไฟฟ้าที่ใช้ในสถานประกอบกิจการ <Dot value={general.voltage} minWidth={70} /> โวลต์ <Dot value={general.phase} minWidth={35} /> เฟส <Dot value={general.wires} minWidth={35} /> สาย
+            </p>
+            <p className="doc-line">
+              - ขนาดเครื่องวัดหน่วยไฟฟ้า <Dot value={general.meterAmp} minWidth={70} /> แอมแปร์ <Dot value={general.meterVolt} minWidth={70} /> โวลต์ <Dot value={general.meterPhase} minWidth={35} /> เฟส <Dot value={general.meterWires} minWidth={35} /> สาย
+            </p>
+            <p className="doc-line" style={{ paddingLeft: '14pt' }}>
+              หมายเลขเครื่องวัด <Dot value={general.meterNo} minWidth={300} />
+            </p>
+            <p className="doc-line">
+              - ปริมาณการใช้พลังไฟฟ้าสูงสุดในรอบ ๑๒ เดือน ที่ผ่านมา <Dot value={general.peakKw12Months} minWidth={140} /> กิโลวัตต์
+            </p>
+            <p className="doc-line">
+              - หม้อแปลงกำลัง จำนวน <Dot value={general.transformerCount} minWidth={50} /> เครื่อง รวม <Dot value={general.transformerTotalKva} minWidth={120} /> เควีเอ
+            </p>
+            <p className="doc-line">
+              - เครื่องกำเนิดไฟฟ้า/เครื่องกำเนิดไฟฟ้าสำรอง จำนวน <Dot value={general.generatorCount} minWidth={50} /> เครื่อง รวม <Dot value={general.generatorTotalKva} minWidth={120} /> เควีเอ
+            </p>
+            <p className="doc-line">
+              - ผู้รับผิดชอบระบบไฟฟ้า ๑. <Dot value={general.responsiblePerson1?.name} minWidth={180} /> ตำแหน่ง <Dot value={general.responsiblePerson1?.position} minWidth={140} />
+            </p>
+            <p className="doc-line" style={{ paddingLeft: '120pt' }}>
+              ๒. <Dot value={general.responsiblePerson2?.name} minWidth={180} /> ตำแหน่ง <Dot value={general.responsiblePerson2?.position} minWidth={140} />
+            </p>
+            <p className="doc-line">
+              - แบบการติดตั้งระบบไฟฟ้าจริง (As built Drawing)
+            </p>
+            <p className="doc-line" style={{ paddingLeft: '14pt' }}>
+              <CircleOpt checked={general.asBuiltDrawing === 'yes'} label="มี" />
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              <CircleOpt checked={general.asBuiltDrawing === 'no'} label="ไม่มี เหตุผล" />
+              &nbsp;<Dot value={general.asBuiltReason} minWidth={300} />
+            </p>
+          </div>
+
+          <div className="section-hdr-txt" style={{ marginTop: '12pt' }}>๒. รายการตรวจสอบ</div>
+
+          <table className="tmpl-table">
+            <thead>
+              <tr>
+                <th style={{ width: '15%' }}>อุปกรณ์</th>
+                <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
+                <th style={{ width: '8%' }}>ใช้ได้</th>
+                <th style={{ width: '11%' }}>ควรปรับปรุง</th>
+                <th style={{ width: '10%' }}>ต้องแก้ไข</th>
+                <th style={{ width: '16%' }}>คำแนะนำ/ความเห็น</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td rowSpan={10} className="bold-cell top-cell">
                   ๒.๑ แรงสูง {highVoltageSystems.length > 1 ? `(ชุดที่ ${hIdx+1})` : ''}
                 </td>
-                <td colSpan={5} style={{ padding: 0 }}>
-                  <table className="inner-table">
-                    <tbody>
-                      <tr>
-                        <td style={{ width: '47.1%', fontWeight: 700 }} colSpan={5}>
-                          ๒.๑.๑ สายอากาศ : {hv.aerialName ? <span className="fill-txt">{hv.aerialName}</span> : '................................................'}
-                        </td>
-                      </tr>
-                      {[
-                        { key: 'pole', label: '- สภาพเสา' },
-                        { key: 'poleTop', label: '- การประกอบอุปกรณ์หัวเสา' },
-                        { key: 'guyWire', label: '- สายยึดโยง (Guy Wire)' },
-                        { key: 'stringing', label: '- การพาดสาย (สภาพสาย ระยะหย่อนยาน)' },
-                        { key: 'clearance', label: '- ระยะห่างของสายกับอาคาร สิ่งก่อสร้าง หรือต้นไม้' },
-                        { key: 'lightning', label: '- การติดตั้งล่อฟ้าและสภาพ' },
-                        { key: 'joints', label: '- สภาพของจุดต่อสาย' },
-                        { key: 'grounding', label: '- การต่อลงดินและสภาพ' },
-                      ].map(({ key, label }) => {
-                        const it = hv.aerial?.[key] || {};
-                        return (
-                          <tr key={key}>
-                            <td style={{ width: '47.1%' }}>{label}</td>
-                            <td className="c" style={{ width: '10.6%' }}><StatusTick status={it.status} target="pass" /></td>
-                            <td className="c" style={{ width: '12.9%' }}><StatusTick status={it.status} target="improve" /></td>
-                            <td className="c" style={{ width: '11.8%' }}><StatusTick status={it.status} target="fix" /></td>
-                            <td style={{ width: '17.6%', fontSize: '9pt' }}>{it.note || ''}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                <td className="bold-cell" colSpan={5} style={{ background: '#fafafa' }}>
+                  ๒.๑.๑ สายอากาศ : <Dot value={hv.aerialName} minWidth={220} />
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* ════════ PAGE 4: -๓- เครื่องปลดวงจร & หม้อแปลง ════════ */}
-      <div className="a4-page espsib-doc page-break">
-        <div style={{ textAlign: 'center', fontSize: '11pt', marginBottom: '8pt' }}>-๓-</div>
-        <table className="espsib-table">
-          <thead>
-            <tr>
-              <th style={{ width: '15%' }}>อุปกรณ์</th>
-              <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
-              <th style={{ width: '9%' }}>ใช้ได้</th>
-              <th style={{ width: '11%' }}>ควรปรับปรุง</th>
-              <th style={{ width: '10%' }}>ต้องแก้ไข</th>
-              <th style={{ width: '15%' }}>คำแนะนำ/ความเห็น</th>
-            </tr>
-          </thead>
-          <tbody>
-            {highVoltageSystems.map((hv) => (
-              <>
-                <tr key={`${hv.id}_disc`}>
-                  <td style={{ verticalAlign: 'top' }}></td>
-                  <td colSpan={5} style={{ padding: 0 }}>
-                    <table className="inner-table">
-                      <tbody>
-                        <tr>
-                          <td colSpan={5} style={{ fontWeight: 700 }}>
-                            ๒.๑.๒ การติดตั้งเครื่องปลดวงจรต้นทาง (ส่วนของผู้ใช้ไฟ) :
-                          </td>
-                        </tr>
-                        {[
-                          { key: 'dropFuse', label: '- ดรอปฟิวส์คัตเอาท์' },
-                          { key: 'disconnectSwitch', label: '- สวิตช์ตัดตอน (Disconnecting Switch)' },
-                          { key: 'rmu', label: '- RMU' },
-                          { key: 'other', label: `- อื่นๆ ${hv.disconnectors?.otherText || ''}` },
-                        ].map(({ key, label }) => {
-                          const it = hv.disconnectors?.[key] || {};
-                          return (
-                            <tr key={key}>
-                              <td style={{ width: '47.1%' }}>{label}</td>
-                              <td className="c" style={{ width: '10.6%' }}><StatusTick status={it.status} target="pass" /></td>
-                              <td className="c" style={{ width: '12.9%' }}><StatusTick status={it.status} target="improve" /></td>
-                              <td className="c" style={{ width: '11.8%' }}><StatusTick status={it.status} target="fix" /></td>
-                              <td style={{ width: '17.6%', fontSize: '9pt' }}>{it.note || ''}</td>
-                            </tr>
-                          );
-                        })}
-                        <tr>
-                          <td style={{ width: '47.1%' }}>๒.๑.๓ อื่นๆ : {hv.otherText || ''}</td>
-                          <td className="c" style={{ width: '10.6%' }}><StatusTick status={hv.other?.status} target="pass" /></td>
-                          <td className="c" style={{ width: '12.9%' }}><StatusTick status={hv.other?.status} target="improve" /></td>
-                          <td className="c" style={{ width: '11.8%' }}><StatusTick status={hv.other?.status} target="fix" /></td>
-                          <td style={{ width: '17.6%', fontSize: '9pt' }}>{hv.other?.note || ''}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </td>
-                </tr>
-              </>
-            ))}
-
-            {transformers.map((tf, tIdx) => (
-              <tr key={tf.id}>
-                <td style={{ verticalAlign: 'top', fontWeight: 700 }}>
-                  ๒.๒ หม้อแปลง
-                </td>
-                <td colSpan={5} style={{ padding: 0 }}>
-                  <div style={{ padding: '6pt 8pt' }}>
-                    <p className="doc-p" style={{ fontWeight: 700 }}>๒.๒.๑ หม้อแปลงลูกที่ {tf.no || tIdx+1}</p>
-                    <p className="doc-p">
-                      ขนาด <span className="fill-txt">{tf.kva || '.........'}</span> kVA แรงดัน <span className="fill-txt">{tf.voltage || '.........'}</span> V
-                      &nbsp;Impedance Voltage <span className="fill-txt">{tf.impedance || '.........'}</span> %
-                    </p>
-                    <p className="doc-p">
-                      ชนิด &nbsp;<Checkmark checked={tf.type === 'Oil'} /> Oil
-                      &nbsp;&nbsp;<Checkmark checked={tf.type === 'Dry'} /> Dry
-                      &nbsp;&nbsp;<Checkmark checked={tf.type === 'other'} /> อื่นๆ {tf.typeOther || ''}
-                    </p>
-                    <p className="doc-p" style={{ marginTop: '6pt', fontWeight: 700 }}>๒.๒.๒ การติดตั้ง</p>
-                    <p className="doc-p">
-                      <Checkmark checked={tf.installType === 'sitting'} /> นั่งร้าน
-                      &nbsp;&nbsp;<Checkmark checked={tf.installType === 'hanging'} /> แบบแขวน
-                      &nbsp;&nbsp;<Checkmark checked={tf.installType === 'yard'} /> ลานหม้อแปลง
-                      &nbsp;&nbsp;<Checkmark checked={tf.installType === 'room'} /> ในห้องหม้อแปลง
-                    </p>
-                    <p className="doc-p" style={{ marginTop: '6pt', fontWeight: 700 }}>๒.๒.๓ เครื่องป้องกันกระแสเกินด้านไฟเข้า</p>
-                    <p className="doc-p">
-                      แบบ <span className="fill-txt">{tf.primaryProtection?.type || '................................................'}</span>
-                      &nbsp;พิกัดกระแส <span className="fill-txt">{tf.primaryProtection?.amp || '............'}</span> A
-                    </p>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* ════════ PAGE 5: -๔- รายการตรวจสอบหม้อแปลงต่อ ════════ */}
-      <div className="a4-page espsib-doc page-break">
-        <div style={{ textAlign: 'center', fontSize: '11pt', marginBottom: '8pt' }}>-๔-</div>
-        <table className="espsib-table">
-          <thead>
-            <tr>
-              <th style={{ width: '15%' }}>อุปกรณ์</th>
-              <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
-              <th style={{ width: '9%' }}>ใช้ได้</th>
-              <th style={{ width: '11%' }}>ควรปรับปรุง</th>
-              <th style={{ width: '10%' }}>ต้องแก้ไข</th>
-              <th style={{ width: '15%' }}>คำแนะนำ/ความเห็น</th>
-            </tr>
-          </thead>
-          <tbody>
-            {transformers.map((tf, tIdx) => {
-              const it = tf.items || {};
-              return (
-                <tr key={`${tf.id}_items`}>
-                  <td style={{ verticalAlign: 'top', fontWeight: 700 }}>หม้อแปลง (ลูกที่ {tf.no || tIdx+1})</td>
-                  <td colSpan={5} style={{ padding: 0 }}>
-                    <table className="inner-table">
-                      <tbody>
-                        {[
-                          { key: 'wiring', label: '๒.๒.๔ การต่อสายแรงต่ำและแรงสูงที่หม้อแปลง' },
-                          { key: 'lightningArrester', label: '๒.๒.๕ การติดตั้งล่อฟ้าแรงสูง (Lightning Arrester)' },
-                          { key: 'dropFuse', label: '๒.๒.๖ การติดตั้งดรอปฟิวส์คัตเอาท์' },
-                          { key: 'touchProtection', label: '๒.๒.๗ การป้องกันการสัมผัสส่วนที่มีไฟฟ้า' },
-                          { key: 'bodyGround', label: '๒.๒.๘ สายดินกับตัวถังหม้อแปลงและล่อฟ้าแรงสูง' },
-                        ].map(({ key, label }) => (
-                          <tr key={key}>
-                            <td style={{ width: '47.1%' }}>{label}</td>
-                            <td className="c" style={{ width: '10.6%' }}><StatusTick status={it[key]?.status} target="pass" /></td>
-                            <td className="c" style={{ width: '12.9%' }}><StatusTick status={it[key]?.status} target="improve" /></td>
-                            <td className="c" style={{ width: '11.8%' }}><StatusTick status={it[key]?.status} target="fix" /></td>
-                            <td style={{ width: '17.6%', fontSize: '9pt' }}>{it[key]?.note || ''}</td>
-                          </tr>
-                        ))}
-                        <tr>
-                          <td style={{ width: '47.1%' }}>
-                            ๒.๒.๙ สายดินของหม้อแปลง
-                            <div style={{ fontSize: '9pt', color: '#333' }}>
-                              สายต่อหลักดิน ชนิด {it.groundRod?.wireType || '.......'} ขนาด {it.groundRod?.wireSize || '.......'} mm²
-                            </div>
-                          </td>
-                          <td className="c" style={{ width: '10.6%' }}><StatusTick status={it.groundRod?.status} target="pass" /></td>
-                          <td className="c" style={{ width: '12.9%' }}><StatusTick status={it.groundRod?.status} target="improve" /></td>
-                          <td className="c" style={{ width: '11.8%' }}><StatusTick status={it.groundRod?.status} target="fix" /></td>
-                          <td style={{ width: '17.6%', fontSize: '9pt' }}>{it.groundRod?.note || ''}</td>
-                        </tr>
-                        <tr>
-                          <td style={{ width: '47.1%' }}>๒.๒.๑๐ สภาพภายนอกหม้อแปลง (สารดูดความชื้น, บุชชิ่ง, รั่วซึม, อุณหภูมิ)</td>
-                          <td className="c" style={{ width: '10.6%' }}><StatusTick status={it.externalCondition?.status} target="pass" /></td>
-                          <td className="c" style={{ width: '12.9%' }}><StatusTick status={it.externalCondition?.status} target="improve" /></td>
-                          <td className="c" style={{ width: '11.8%' }}><StatusTick status={it.externalCondition?.status} target="fix" /></td>
-                          <td style={{ width: '17.6%', fontSize: '9pt' }}>{it.externalCondition?.note || ''}</td>
-                        </tr>
-                        <tr>
-                          <td style={{ width: '47.1%' }}>๒.๒.๑๑ สภาพแวดล้อมหม้อแปลง (ระบายอากาศ, ความชื้น, รั้วกั้น, สภาพทั่วไป)</td>
-                          <td className="c" style={{ width: '10.6%' }}><StatusTick status={it.environment?.status} target="pass" /></td>
-                          <td className="c" style={{ width: '12.9%' }}><StatusTick status={it.environment?.status} target="improve" /></td>
-                          <td className="c" style={{ width: '11.8%' }}><StatusTick status={it.environment?.status} target="fix" /></td>
-                          <td style={{ width: '17.6%', fontSize: '9pt' }}>{it.environment?.note || ''}</td>
-                        </tr>
-                        <tr>
-                          <td style={{ width: '47.1%' }}>๒.๒.๑๒ อื่นๆ : {it.otherText || ''}</td>
-                          <td className="c" style={{ width: '10.6%' }}><StatusTick status={it.other?.status} target="pass" /></td>
-                          <td className="c" style={{ width: '12.9%' }}><StatusTick status={it.other?.status} target="improve" /></td>
-                          <td className="c" style={{ width: '11.8%' }}><StatusTick status={it.other?.status} target="fix" /></td>
-                          <td style={{ width: '17.6%', fontSize: '9pt' }}>{it.other?.note || ''}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* ════════ PAGE 6: -๕- ตู้เมนสวิตช์ MDB ════════ */}
-      <div className="a4-page espsib-doc page-break">
-        <div style={{ textAlign: 'center', fontSize: '11pt', marginBottom: '8pt' }}>-๕-</div>
-        <table className="espsib-table">
-          <thead>
-            <tr>
-              <th style={{ width: '15%' }}>อุปกรณ์</th>
-              <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
-              <th style={{ width: '9%' }}>ใช้ได้</th>
-              <th style={{ width: '11%' }}>ควรปรับปรุง</th>
-              <th style={{ width: '10%' }}>ต้องแก้ไข</th>
-              <th style={{ width: '15%' }}>คำแนะนำ/ความเห็น</th>
-            </tr>
-          </thead>
-          <tbody>
-            {mainSwitchboards.map((msb, mIdx) => {
-              const it = msb.items || {};
-              return (
-                <tr key={msb.id}>
-                  <td style={{ verticalAlign: 'top', fontWeight: 700 }}>
-                    ๒.๓ ตู้เมนสวิตช์ {mainSwitchboards.length > 1 ? `(ตู้ที่ ${msb.no || mIdx+1})` : ''}
-                  </td>
-                  <td colSpan={5} style={{ padding: 0 }}>
-                    <div style={{ padding: '4pt 8pt', background: '#fafafa', borderBottom: '1px solid #ccc', fontSize: '9pt' }}>
-                      <strong>๒.๓.๑ ตู้เมนสวิตช์ที่</strong> {msb.no || mIdx+1} &nbsp;&nbsp;
-                      <strong>รับจากหม้อแปลงที่</strong> {msb.sourceTransformer || '1'} &nbsp;&nbsp;
-                      <Checkmark checked={msb.locationType === 'outdoor'} /> ติดตั้งภายนอกอาคาร &nbsp;&nbsp;
-                      <Checkmark checked={msb.locationType === 'indoor'} /> ติดตั้งภายในอาคาร
-                    </div>
-                    <table className="inner-table">
-                      <tbody>
-                        {[
-                          { key: 'generalCondition', label: '- สภาพทั่วไป' },
-                          { key: 'busbarJoints', label: '- จุดต่อสายและจุดต่อบัสบาร์' },
-                          { key: 'workingSpace', label: '- ที่ว่างเพื่อปฏิบัติงานที่จุดติดตั้งตู้เมนสวิตช์' },
-                          { key: 'lighting', label: '- แสงสว่างเหนือที่ว่างเพื่อปฏิบัติงาน' },
-                          { key: 'bonding', label: '- การต่อฝาก' },
-                          { key: 'livePartProtection', label: '- การป้องกันส่วนสัมผัสที่มีไฟฟ้า' },
-                          { key: 'singleLineDiagram', label: '- ป้ายชื่อและแผนภาพเส้นเดี่ยว (Single Line Diagram)' },
-                        ].map(({ key, label }) => (
-                          <tr key={key}>
-                            <td style={{ width: '47.1%' }}>{label}</td>
-                            <td className="c" style={{ width: '10.6%' }}><StatusTick status={it[key]?.status} target="pass" /></td>
-                            <td className="c" style={{ width: '12.9%' }}><StatusTick status={it[key]?.status} target="improve" /></td>
-                            <td className="c" style={{ width: '11.8%' }}><StatusTick status={it[key]?.status} target="fix" /></td>
-                            <td style={{ width: '17.6%', fontSize: '9pt' }}>{it[key]?.note || ''}</td>
-                          </tr>
-                        ))}
-                        <tr>
-                          <td style={{ width: '47.1%' }}>
-                            <strong>๒.๓.๒ เครื่องป้องกันกระแสเกิน</strong>
-                            <div style={{ fontSize: '9pt', color: '#333' }}>
-                              ชนิด {msb.overcurrentProtection?.type || '.......'} IC {msb.overcurrentProtection?.icKa || '.......'} kA แรงดัน {msb.overcurrentProtection?.volt || '.......'} V AT {msb.overcurrentProtection?.atAmp || '.......'} A AF {msb.overcurrentProtection?.afAmp || '.......'} A
-                            </div>
-                          </td>
-                          <td className="c" style={{ width: '10.6%' }}>✓</td>
-                          <td className="c" style={{ width: '12.9%' }}></td>
-                          <td className="c" style={{ width: '11.8%' }}></td>
-                          <td style={{ width: '17.6%' }}></td>
-                        </tr>
-                        <tr>
-                          <td style={{ width: '47.1%' }}>
-                            <strong>๒.๓.๓ สายดินของแผงสวิตช์</strong>
-                            <div style={{ fontSize: '9pt', color: '#333' }}>
-                              สายต่อหลักดิน ชนิด {msb.grounding?.wireType || '.......'} ขนาด {msb.grounding?.wireSize || '.......'} mm²
-                            </div>
-                          </td>
-                          <td className="c" style={{ width: '10.6%' }}><StatusTick status={msb.grounding?.status} target="pass" /></td>
-                          <td className="c" style={{ width: '12.9%' }}><StatusTick status={msb.grounding?.status} target="improve" /></td>
-                          <td className="c" style={{ width: '11.8%' }}><StatusTick status={msb.grounding?.status} target="fix" /></td>
-                          <td style={{ width: '17.6%', fontSize: '9pt' }}>{msb.grounding?.note || ''}</td>
-                        </tr>
-                        <tr>
-                          <td style={{ width: '47.1%' }}>
-                            <strong>๒.๓.๔ อุณหภูมิของอุปกรณ์</strong>
-                            &nbsp;&nbsp;<Checkmark checked={msb.temperature === 'normal'} /> ปกติ
-                            &nbsp;&nbsp;<Checkmark checked={msb.temperature === 'abnormal'} /> ผิดปกติ
-                          </td>
-                          <td className="c" style={{ width: '10.6%' }}><StatusTick status={msb.temperature === 'normal' ? 'pass' : 'fix'} target="pass" /></td>
-                          <td className="c" style={{ width: '12.9%' }}></td>
-                          <td className="c" style={{ width: '11.8%' }}><StatusTick status={msb.temperature === 'normal' ? 'pass' : 'fix'} target="fix" /></td>
-                          <td style={{ width: '17.6%', fontSize: '9pt' }}>{msb.temperatureNote || ''}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* ════════ PAGE 7: -๖- ๒.๔ แรงต่ำภายในอาคาร (วงจรเมน) ════════ */}
-      <div className="a4-page espsib-doc page-break">
-        <div style={{ textAlign: 'center', fontSize: '11pt', marginBottom: '8pt' }}>-๖-</div>
-        <table className="espsib-table">
-          <thead>
-            <tr>
-              <th style={{ width: '15%' }}>อุปกรณ์</th>
-              <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
-              <th style={{ width: '9%' }}>ใช้ได้</th>
-              <th style={{ width: '11%' }}>ควรปรับปรุง</th>
-              <th style={{ width: '10%' }}>ต้องแก้ไข</th>
-              <th style={{ width: '15%' }}>คำแนะนำ/ความเห็น</th>
-            </tr>
-          </thead>
-          <tbody>
-            {mainCircuits.map((mc, cIdx) => (
-              <tr key={mc.id}>
-                <td style={{ verticalAlign: 'top', fontWeight: 700 }}>
-                  ๒.๔ แรงต่ำภายในอาคาร
-                </td>
-                <td colSpan={5} style={{ padding: 0 }}>
-                  <div style={{ padding: '6pt 8pt' }}>
-                    <p className="doc-p" style={{ fontWeight: 700 }}>๒.๔.๑ วงจรเมน (Main Circuit) {mainCircuits.length > 1 ? `ชุดที่ ${cIdx+1}` : ''}</p>
-                    <p className="doc-p" style={{ fontWeight: 700, margin: '4pt 0' }}>๒.๔.๑.๑ สายเข้าเมนสวิตช์</p>
-                    <p className="doc-p">
-                      - สายเฟส ชนิด <span className="fill-txt">{mc.phaseWire?.type || '.........'}</span> ขนาด <span className="fill-txt">{mc.phaseWire?.size || '.........'}</span> mm²
-                    </p>
-                    <p className="doc-p">
-                      - สายนิวทรัล ชนิด <span className="fill-txt">{mc.neutralWire?.type || '.........'}</span> ขนาด <span className="fill-txt">{mc.neutralWire?.size || '.........'}</span> mm²
-                    </p>
-                    <p className="doc-p" style={{ margin: '4pt 0' }}>
-                      เดินใน &nbsp;<Checkmark checked={mc.raceway === 'conduit'} /> ท่อร้อยสาย (Conduit)
-                      &nbsp;&nbsp;<Checkmark checked={mc.raceway === 'wireway'} /> รางเดินสาย (Wire Way)
-                      &nbsp;&nbsp;<Checkmark checked={mc.raceway === 'cabletray'} /> รางเคเบิล (Cable Tray)
-                    </p>
-                    <p className="doc-p">
-                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<Checkmark checked={mc.raceway === 'rack'} /> ลูกถ้วยราวยึดสาย (Rack)
-                      &nbsp;&nbsp;<Checkmark checked={mc.raceway === 'other'} /> อื่นๆ {mc.racewayOther || ''}
-                    </p>
-                  </div>
-                  <table className="inner-table">
-                    <tbody>
-                      {[
-                        { key: 'racewayCondition', label: '๒.๔.๑.๒ รางเดินสายและรางเคเบิล (การติดตั้ง, ความต่อเนื่อง, การต่อฝาก)' },
-                        { key: 'insulation', label: '๒.๔.๑.๓ สภาพฉนวนสายไฟ' },
-                        { key: 'joints', label: '๒.๔.๑.๔ สภาพจุดต่อของสาย' },
-                        { key: 'inductionHeatProtection', label: '๒.๔.๑.๕ การป้องกันความร้อนจากการเหนี่ยวนำ' },
-                      ].map(({ key, label }) => (
-                        <tr key={key}>
-                          <td style={{ width: '47.1%' }}>{label}</td>
-                          <td className="c" style={{ width: '10.6%' }}><StatusTick status={mc.items?.[key]?.status} target="pass" /></td>
-                          <td className="c" style={{ width: '12.9%' }}><StatusTick status={mc.items?.[key]?.status} target="improve" /></td>
-                          <td className="c" style={{ width: '11.8%' }}><StatusTick status={mc.items?.[key]?.status} target="fix" /></td>
-                          <td style={{ width: '17.6%', fontSize: '9pt' }}>{mc.items?.[key]?.note || ''}</td>
-                        </tr>
-                      ))}
-                      <tr>
-                        <td style={{ width: '47.1%' }}>
-                          ๒.๔.๑.๖ อุณหภูมิของอุปกรณ์ &nbsp;&nbsp;<Checkmark checked={mc.temperature === 'normal'} /> ปกติ &nbsp;&nbsp;<Checkmark checked={mc.temperature === 'abnormal'} /> ผิดปกติ
-                        </td>
-                        <td className="c" style={{ width: '10.6%' }}><StatusTick status={mc.temperature === 'normal' ? 'pass' : 'fix'} target="pass" /></td>
-                        <td className="c" style={{ width: '12.9%' }}></td>
-                        <td className="c" style={{ width: '11.8%' }}><StatusTick status={mc.temperature === 'normal' ? 'pass' : 'fix'} target="fix" /></td>
-                        <td style={{ width: '17.6%', fontSize: '9pt' }}>{mc.temperatureNote || ''}</td>
-                      </tr>
-                      <tr>
-                        <td style={{ width: '47.1%' }}>๒.๔.๑.๗ อื่นๆ : {mc.otherText || ''}</td>
-                        <td className="c" style={{ width: '10.6%' }}><StatusTick status={mc.other?.status} target="pass" /></td>
-                        <td className="c" style={{ width: '12.9%' }}><StatusTick status={mc.other?.status} target="improve" /></td>
-                        <td className="c" style={{ width: '11.8%' }}><StatusTick status={mc.other?.status} target="fix" /></td>
-                        <td style={{ width: '17.6%', fontSize: '9pt' }}>{mc.other?.note || ''}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* ════════ PAGE 8: -๗- ๒.๔.๒ แผงย่อย (DB) ════════ */}
-      <div className="a4-page espsib-doc page-break">
-        <div style={{ textAlign: 'center', fontSize: '11pt', marginBottom: '8pt' }}>-๗-</div>
-        <table className="espsib-table">
-          <thead>
-            <tr>
-              <th style={{ width: '15%' }}>อุปกรณ์</th>
-              <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
-              <th style={{ width: '9%' }}>ใช้ได้</th>
-              <th style={{ width: '11%' }}>ควรปรับปรุง</th>
-              <th style={{ width: '10%' }}>ต้องแก้ไข</th>
-              <th style={{ width: '15%' }}>คำแนะนำ/ความเห็น</th>
-            </tr>
-          </thead>
-          <tbody>
-            {subPanels.map((sp, sIdx) => {
-              const it = sp.items || {};
-              return (
-                <tr key={sp.id}>
-                  <td style={{ verticalAlign: 'top', fontWeight: 700 }}>
-                    แผงย่อย (DB)
-                  </td>
-                  <td colSpan={5} style={{ padding: 0 }}>
-                    <div style={{ padding: '6pt 8pt', background: '#fafafa', borderBottom: '1px solid #ccc' }}>
-                      <p className="doc-p"><strong>๒.๔.๒ แผงย่อยที่</strong> {sp.no || sIdx+1}</p>
-                      <p className="doc-p"><strong>ตำแหน่งหรือพื้นที่ติดตั้ง</strong> {sp.location || '–'}</p>
-                      <p className="doc-p"><strong>รับจากตู้เมนสวิตช์ที่</strong> {sp.sourceMdb || '1'}</p>
-                      <p className="doc-p" style={{ margin: '3pt 0' }}>
-                        <strong>๒.๔.๒.๑ การติดตั้ง</strong>
-                        &nbsp;&nbsp;<Checkmark checked={sp.locationType === 'outdoor'} /> ภายนอกอาคาร
-                        &nbsp;&nbsp;<Checkmark checked={sp.locationType === 'indoor'} /> ภายในอาคาร
-                      </p>
-                    </div>
-                    <table className="inner-table">
-                      <tbody>
-                        {[
-                          { key: 'generalCondition', label: '- สภาพทั่วไป' },
-                          { key: 'busbarJoints', label: '- จุดต่อสาย และจุดต่อบัสบาร์' },
-                          { key: 'workingSpace', label: '- ที่ว่างเพื่อปฏิบัติงานที่จุดติดตั้งแผงย่อย' },
-                          { key: 'lighting', label: '- แสงสว่างเหนือที่ว่างเพื่อปฏิบัติงาน' },
-                          { key: 'bonding', label: '- การต่อฝาก' },
-                          { key: 'livePartProtection', label: '- การป้องกันส่วนสัมผัสที่มีไฟฟ้า' },
-                        ].map(({ key, label }) => (
-                          <tr key={key}>
-                            <td style={{ width: '47.1%' }}>{label}</td>
-                            <td className="c" style={{ width: '10.6%' }}><StatusTick status={it[key]?.status} target="pass" /></td>
-                            <td className="c" style={{ width: '12.9%' }}><StatusTick status={it[key]?.status} target="improve" /></td>
-                            <td className="c" style={{ width: '11.8%' }}><StatusTick status={it[key]?.status} target="fix" /></td>
-                            <td style={{ width: '17.6%', fontSize: '9pt' }}>{it[key]?.note || ''}</td>
-                          </tr>
-                        ))}
-                        <tr>
-                          <td style={{ width: '47.1%' }}>
-                            <strong>๒.๔.๒.๒ เครื่องป้องกันกระแสเกินของแผงย่อย</strong>
-                            <div style={{ fontSize: '9pt', color: '#333' }}>
-                              ชนิด {sp.overcurrentProtection?.type || '.......'} IC {sp.overcurrentProtection?.icKa || '.......'} kA แรงดัน {sp.overcurrentProtection?.volt || '.......'} V AT {sp.overcurrentProtection?.atAmp || '.......'} A AF {sp.overcurrentProtection?.afAmp || '.......'} A
-                            </div>
-                          </td>
-                          <td className="c" style={{ width: '10.6%' }}>✓</td>
-                          <td className="c" style={{ width: '12.9%' }}></td>
-                          <td className="c" style={{ width: '11.8%' }}></td>
-                          <td style={{ width: '17.6%' }}></td>
-                        </tr>
-                        <tr>
-                          <td style={{ width: '47.1%' }}>
-                            <strong>๒.๔.๒.๓ สายดินของแผงย่อย</strong>
-                            <div style={{ fontSize: '9pt', color: '#333' }}>
-                              สายดิน ชนิด {sp.grounding?.wireType || '.......'} ขนาด {sp.grounding?.wireSize || '.......'} mm²
-                            </div>
-                          </td>
-                          <td className="c" style={{ width: '10.6%' }}><StatusTick status={sp.grounding?.status} target="pass" /></td>
-                          <td className="c" style={{ width: '12.9%' }}><StatusTick status={sp.grounding?.status} target="improve" /></td>
-                          <td className="c" style={{ width: '11.8%' }}><StatusTick status={sp.grounding?.status} target="fix" /></td>
-                          <td style={{ width: '17.6%', fontSize: '9pt' }}>{sp.grounding?.note || ''}</td>
-                        </tr>
-                        <tr>
-                          <td style={{ width: '47.1%' }}>
-                            <strong>๒.๔.๒.๔ อุณหภูมิของอุปกรณ์</strong>
-                            &nbsp;&nbsp;<Checkmark checked={sp.temperature === 'normal'} /> ปกติ
-                            &nbsp;&nbsp;<Checkmark checked={sp.temperature === 'abnormal'} /> ผิดปกติ
-                          </td>
-                          <td className="c" style={{ width: '10.6%' }}><StatusTick status={sp.temperature === 'normal' ? 'pass' : 'fix'} target="pass" /></td>
-                          <td className="c" style={{ width: '12.9%' }}></td>
-                          <td className="c" style={{ width: '11.8%' }}><StatusTick status={sp.temperature === 'normal' ? 'pass' : 'fix'} target="fix" /></td>
-                          <td style={{ width: '17.6%', fontSize: '9pt' }}>{sp.temperatureNote || ''}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        <div style={{ marginTop: '14pt', fontSize: '9pt', color: '#444' }}>
-          <strong>หมายเหตุ:</strong> ๑. แผงย่อย คือ แผงวงจรที่ต่อจากตู้เมนสวิตช์ &nbsp;&nbsp;&nbsp;&nbsp; ๒. ใช้เอกสารการตรวจสอบแผงย่อย ๑ ฉบับ ต่อ ๑ แผงย่อย
+              {[
+                { key: 'pole', label: '- สภาพเสา' },
+                { key: 'poleTop', label: '- การประกอบอุปกรณ์หัวเสา' },
+                { key: 'guyWire', label: '- สายยึดโยง (Guy Wire)' },
+                { key: 'stringing', label: '- การพาดสาย (สภาพสาย ระยะหย่อนยาน)' },
+                { key: 'clearance', label: '- ระยะห่างของสายกับอาคาร สิ่งก่อสร้าง หรือต้นไม้' },
+                { key: 'lightning', label: '- การติดตั้งล่อฟ้าและสภาพ' },
+                { key: 'joints', label: '- สภาพของจุดต่อสาย' },
+                { key: 'grounding', label: '- การต่อลงดินและสภาพ' },
+              ].map(({ key, label }) => {
+                const item = hv.aerial?.[key] || {};
+                return (
+                  <tr key={key}>
+                    <td>{label}</td>
+                    <td className="c"><StatusMark status={item.status} target="pass" /></td>
+                    <td className="c"><StatusMark status={item.status} target="improve" /></td>
+                    <td className="c"><StatusMark status={item.status} target="fix" /></td>
+                    <td className="note-cell">{item.note || ''}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
-      </div>
+      ))}
 
-      {/* ════════ PAGE 9: -๘- ๒.๕ บริภัณฑ์ไฟฟ้า & ๓. สรุปผล ════════ */}
-      <div className="a4-page espsib-doc page-break">
-        <div style={{ textAlign: 'center', fontSize: '11pt', marginBottom: '8pt' }}>-๘-</div>
-        <table className="espsib-table">
+      {/* ══════════════════════════════════════════════════════════════════
+          PAGE 4 (หน้า -๓-): เครื่องปลดวงจร & ข้อมูลหม้อแปลง
+      ══════════════════════════════════════════════════════════════════ */}
+      {transformers.map((tf, tIdx) => {
+        const hv = highVoltageSystems[tIdx] || highVoltageSystems[0] || {};
+        return (
+          <div key={`page4_${tf.id || tIdx}`} className="a4-page espsib-paper page-break">
+            <div className="paper-page-num">-๓-</div>
+
+            <table className="tmpl-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '15%' }}>อุปกรณ์</th>
+                  <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
+                  <th style={{ width: '8%' }}>ใช้ได้</th>
+                  <th style={{ width: '11%' }}>ควรปรับปรุง</th>
+                  <th style={{ width: '10%' }}>ต้องแก้ไข</th>
+                  <th style={{ width: '16%' }}>คำแนะนำ/ความเห็น</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td rowSpan={6} className="top-cell"></td>
+                  <td className="bold-cell" colSpan={5} style={{ background: '#fafafa' }}>
+                    ๒.๑.๒ การติดตั้งเครื่องปลดวงจรต้นทาง (ส่วนของผู้ใช้ไฟ) :
+                  </td>
+                </tr>
+                {[
+                  { key: 'dropFuse', label: '- ดรอปฟิวส์คัตเอาท์' },
+                  { key: 'disconnectSwitch', label: '- สวิตช์ตัดตอน (Disconnecting Switch)' },
+                  { key: 'rmu', label: '- RMU' },
+                  { key: 'other', label: `- อื่นๆ ${hv.disconnectors?.otherText || ''}` },
+                ].map(({ key, label }) => {
+                  const item = hv.disconnectors?.[key] || {};
+                  return (
+                    <tr key={key}>
+                      <td>{label}</td>
+                      <td className="c"><StatusMark status={item.status} target="pass" /></td>
+                      <td className="c"><StatusMark status={item.status} target="improve" /></td>
+                      <td className="c"><StatusMark status={item.status} target="fix" /></td>
+                      <td className="note-cell">{item.note || ''}</td>
+                    </tr>
+                  );
+                })}
+                <tr>
+                  <td>๒.๑.๓ อื่นๆ : {hv.otherText || ''}</td>
+                  <td className="c"><StatusMark status={hv.other?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={hv.other?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={hv.other?.status} target="fix" /></td>
+                  <td className="note-cell">{hv.other?.note || ''}</td>
+                </tr>
+
+                {/* ๒.๒ หม้อแปลง */}
+                <tr>
+                  <td rowSpan={3} className="bold-cell top-cell">๒.๒ หม้อแปลง</td>
+                  <td colSpan={5} className="inner-spec-cell">
+                    <p className="doc-line bold-txt">๒.๒.๑ หม้อแปลงลูกที่ <Dot value={tf.no || tIdx+1} minWidth={40} /></p>
+                    <p className="doc-line">
+                      ขนาด <Dot value={tf.kva} minWidth={60} /> kVA แรงดัน <Dot value={tf.voltage} minWidth={60} /> V
+                    </p>
+                    <p className="doc-line">
+                      Impedance Voltage <Dot value={tf.impedance} minWidth={60} /> %
+                    </p>
+                    <p className="doc-line">
+                      ชนิด &nbsp;
+                      <CircleOpt checked={tf.type === 'Oil'} label="Oil" />
+                      &nbsp;&nbsp;&nbsp;&nbsp;
+                      <CircleOpt checked={tf.type === 'Dry'} label="Dry" />
+                      &nbsp;&nbsp;&nbsp;&nbsp;
+                      <CircleOpt checked={tf.type === 'other'} label="อื่นๆ" />
+                      &nbsp;<Dot value={tf.typeOther} minWidth={100} />
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td colSpan={5} className="inner-spec-cell">
+                    <p className="doc-line bold-txt">๒.๒.๒ การติดตั้ง</p>
+                    <p className="doc-line">
+                      <CircleOpt checked={tf.installType === 'sitting'} label="นั่งร้าน" />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                      <CircleOpt checked={tf.installType === 'hanging'} label="แบบแขวน" />
+                    </p>
+                    <p className="doc-line">
+                      <CircleOpt checked={tf.installType === 'yard'} label="ลานหม้อแปลง" />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                      <CircleOpt checked={tf.installType === 'room'} label="ในห้องหม้อแปลง" />
+                    </p>
+                    <p className="doc-line">
+                      <CircleOpt checked={tf.installType === 'other'} label="อื่นๆ" />
+                      &nbsp;<Dot value={tf.installTypeOther} minWidth={140} />
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td colSpan={5} className="inner-spec-cell">
+                    <p className="doc-line bold-txt">๒.๒.๓ เครื่องป้องกันกระแสเกินด้านไฟเข้า</p>
+                    <p className="doc-line">
+                      แบบ <Dot value={tf.primaryProtection?.type} minWidth={220} />
+                    </p>
+                    <p className="doc-line">
+                      พิกัดกระแส <Dot value={tf.primaryProtection?.amp} minWidth={80} /> A
+                    </p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        );
+      })}
+
+      {/* ══════════════════════════════════════════════════════════════════
+          PAGE 5 (หน้า -๔-): รายการตรวจสอบหม้อแปลง
+      ══════════════════════════════════════════════════════════════════ */}
+      {transformers.map((tf, tIdx) => {
+        const it = tf.items || {};
+        return (
+          <div key={`page5_${tf.id || tIdx}`} className="a4-page espsib-paper page-break">
+            <div className="paper-page-num">-๔-</div>
+
+            <table className="tmpl-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '15%' }}>อุปกรณ์</th>
+                  <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
+                  <th style={{ width: '8%' }}>ใช้ได้</th>
+                  <th style={{ width: '11%' }}>ควรปรับปรุง</th>
+                  <th style={{ width: '10%' }}>ต้องแก้ไข</th>
+                  <th style={{ width: '16%' }}>คำแนะนำ/ความเห็น</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td rowSpan={18} className="bold-cell top-cell">
+                    หม้อแปลง<br />(ลูกที่ {tf.no || tIdx+1})
+                  </td>
+                  <td>๒.๒.๔ การต่อสายแรงต่ำและแรงสูงที่หม้อแปลง</td>
+                  <td className="c"><StatusMark status={it.wiring?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.wiring?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.wiring?.status} target="fix" /></td>
+                  <td className="note-cell">{it.wiring?.note || ''}</td>
+                </tr>
+                <tr>
+                  <td>๒.๒.๕ การติดตั้งล่อฟ้าแรงสูง (Lightning Arrester)</td>
+                  <td className="c"><StatusMark status={it.lightningArrester?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.lightningArrester?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.lightningArrester?.status} target="fix" /></td>
+                  <td className="note-cell">{it.lightningArrester?.note || ''}</td>
+                </tr>
+                <tr>
+                  <td>๒.๒.๖ การติดตั้งดรอปฟิวส์คัตเอาท์</td>
+                  <td className="c"><StatusMark status={it.dropFuse?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.dropFuse?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.dropFuse?.status} target="fix" /></td>
+                  <td className="note-cell">{it.dropFuse?.note || ''}</td>
+                </tr>
+                <tr>
+                  <td>๒.๒.๗ การป้องกันการสัมผัสส่วนที่มีไฟฟ้า</td>
+                  <td className="c"><StatusMark status={it.touchProtection?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.touchProtection?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.touchProtection?.status} target="fix" /></td>
+                  <td className="note-cell">{it.touchProtection?.note || ''}</td>
+                </tr>
+                <tr>
+                  <td>๒.๒.๘ สายดินกับตัวถังหม้อแปลงและล่อฟ้าแรงสูง</td>
+                  <td className="c"><StatusMark status={it.bodyGround?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.bodyGround?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.bodyGround?.status} target="fix" /></td>
+                  <td className="note-cell">{it.bodyGround?.note || ''}</td>
+                </tr>
+
+                {/* ๒.๒.๙ */}
+                <tr>
+                  <td colSpan={5} className="sub-cat-row">๒.๒.๙ สายดินของหม้อแปลง</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- สภาพหลักดินและจุดต่อ</td>
+                  <td className="c"><StatusMark status={it.groundRod?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.groundRod?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.groundRod?.status} target="fix" /></td>
+                  <td className="note-cell">{it.groundRod?.note || ''}</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>
+                    - สายต่อหลักดิน ชนิด <Dot value={it.groundRod?.wireType} minWidth={60} /> ขนาด <Dot value={it.groundRod?.wireSize} minWidth={50} /> mm²
+                  </td>
+                  <td className="c">✓</td>
+                  <td className="c"></td>
+                  <td className="c"></td>
+                  <td className="note-cell"></td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- สภาพสายดินและจุดต่อ</td>
+                  <td className="c"><StatusMark status={it.groundRod?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.groundRod?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.groundRod?.status} target="fix" /></td>
+                  <td className="note-cell"></td>
+                </tr>
+
+                {/* ๒.๒.๑๐ */}
+                <tr>
+                  <td colSpan={5} className="sub-cat-row">๒.๒.๑๐ สภาพภายนอกหม้อแปลง</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- สารดูดความชื้น</td>
+                  <td className="c"><StatusMark status={it.externalCondition?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.externalCondition?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.externalCondition?.status} target="fix" /></td>
+                  <td className="note-cell">{it.externalCondition?.note || ''}</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- สภาพบุชชิ่ง</td>
+                  <td className="c"><StatusMark status={it.externalCondition?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.externalCondition?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.externalCondition?.status} target="fix" /></td>
+                  <td className="note-cell"></td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- ปริมาณและการรั่วซึมของน้ำมันหม้อแปลง</td>
+                  <td className="c"><StatusMark status={it.externalCondition?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.externalCondition?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.externalCondition?.status} target="fix" /></td>
+                  <td className="note-cell"></td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- อุณหภูมิหม้อแปลง</td>
+                  <td className="c"><StatusMark status={it.externalCondition?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.externalCondition?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.externalCondition?.status} target="fix" /></td>
+                  <td className="note-cell"></td>
+                </tr>
+
+                {/* ๒.๒.๑๑ */}
+                <tr>
+                  <td colSpan={5} className="sub-cat-row">๒.๒.๑๑ สภาพแวดล้อมหม้อแปลง</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- การระบายอากาศ</td>
+                  <td className="c"><StatusMark status={it.environment?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.environment?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.environment?.status} target="fix" /></td>
+                  <td className="note-cell">{it.environment?.note || ''}</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- ความชื้น</td>
+                  <td className="c"><StatusMark status={it.environment?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.environment?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.environment?.status} target="fix" /></td>
+                  <td className="note-cell"></td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- สภาพรั้วกั้น/ลานและการต่อลงดิน</td>
+                  <td className="c"><StatusMark status={it.environment?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.environment?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.environment?.status} target="fix" /></td>
+                  <td className="note-cell"></td>
+                </tr>
+                <tr>
+                  <td>๒.๒.๑๒ อื่นๆ : {it.otherText || ''}</td>
+                  <td className="c"><StatusMark status={it.other?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.other?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.other?.status} target="fix" /></td>
+                  <td className="note-cell">{it.other?.note || ''}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        );
+      })}
+
+      {/* ══════════════════════════════════════════════════════════════════
+          PAGE 6 (หน้า -๕-): ๒.๓ ตู้เมนสวิตช์ MDB
+      ══════════════════════════════════════════════════════════════════ */}
+      {mainSwitchboards.map((msb, mIdx) => {
+        const it = msb.items || {};
+        return (
+          <div key={`page6_${msb.id || mIdx}`} className="a4-page espsib-paper page-break">
+            <div className="paper-page-num">-๕-</div>
+
+            <table className="tmpl-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '15%' }}>อุปกรณ์</th>
+                  <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
+                  <th style={{ width: '8%' }}>ใช้ได้</th>
+                  <th style={{ width: '11%' }}>ควรปรับปรุง</th>
+                  <th style={{ width: '10%' }}>ต้องแก้ไข</th>
+                  <th style={{ width: '16%' }}>คำแนะนำ/ความเห็น</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td rowSpan={16} className="bold-cell top-cell">
+                    ๒.๓ ตู้เมน<br />สวิตช์
+                  </td>
+                  <td colSpan={5} className="inner-spec-cell">
+                    <p className="doc-line bold-txt">๒.๓.๑ ตู้เมนสวิตช์ที่ <Dot value={msb.no || mIdx+1} minWidth={40} /></p>
+                    <p className="doc-line">
+                      รับจากหม้อแปลงที่ <Dot value={msb.sourceTransformer || '1'} minWidth={40} />
+                    </p>
+                    <p className="doc-line">
+                      <CircleOpt checked={msb.locationType === 'outdoor'} label="ติดตั้งภายนอกอาคาร" />
+                    </p>
+                    <p className="doc-line">
+                      <CircleOpt checked={msb.locationType === 'indoor'} label="ติดตั้งภายในอาคาร" />
+                    </p>
+                    <p className="doc-line">
+                      <CircleOpt checked={msb.locationType === 'other'} label="อื่นๆ" />
+                      &nbsp;<Dot value={msb.locationOther} minWidth={140} />
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- สภาพทั่วไป</td>
+                  <td className="c"><StatusMark status={it.generalCondition?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.generalCondition?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.generalCondition?.status} target="fix" /></td>
+                  <td className="note-cell">{it.generalCondition?.note || ''}</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- จุดต่อสายและจุดต่อบัสบาร์</td>
+                  <td className="c"><StatusMark status={it.busbarJoints?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.busbarJoints?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.busbarJoints?.status} target="fix" /></td>
+                  <td className="note-cell">{it.busbarJoints?.note || ''}</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- ที่ว่างเพื่อปฏิบัติงานที่จุดติดตั้งตู้เมนสวิตช์</td>
+                  <td className="c"><StatusMark status={it.workingSpace?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.workingSpace?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.workingSpace?.status} target="fix" /></td>
+                  <td className="note-cell">{it.workingSpace?.note || ''}</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- แสงสว่างเหนือที่ว่างเพื่อปฏิบัติงาน</td>
+                  <td className="c"><StatusMark status={it.lighting?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.lighting?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.lighting?.status} target="fix" /></td>
+                  <td className="note-cell">{it.lighting?.note || ''}</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- การต่อฝาก</td>
+                  <td className="c"><StatusMark status={it.bonding?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.bonding?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.bonding?.status} target="fix" /></td>
+                  <td className="note-cell">{it.bonding?.note || ''}</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- การป้องกันส่วนสัมผัสที่มีไฟฟ้า</td>
+                  <td className="c"><StatusMark status={it.livePartProtection?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.livePartProtection?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.livePartProtection?.status} target="fix" /></td>
+                  <td className="note-cell">{it.livePartProtection?.note || ''}</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- ป้ายชื่อและแผนภาพเส้นเดี่ยว (Single Line Diagram) ของเมนสวิตช์</td>
+                  <td className="c"><StatusMark status={it.singleLineDiagram?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.singleLineDiagram?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.singleLineDiagram?.status} target="fix" /></td>
+                  <td className="note-cell">{it.singleLineDiagram?.note || ''}</td>
+                </tr>
+
+                {/* ๒.๓.๒ */}
+                <tr>
+                  <td colSpan={5} className="inner-spec-cell">
+                    <p className="doc-line bold-txt">๒.๓.๒ เครื่องป้องกันกระแสเกิน</p>
+                    <p className="doc-line">
+                      ชนิด <Dot value={msb.overcurrentProtection?.type} minWidth={140} />
+                    </p>
+                    <p className="doc-line">
+                      IC <Dot value={msb.overcurrentProtection?.icKa} minWidth={60} /> kA
+                      &nbsp;&nbsp;แรงดัน <Dot value={msb.overcurrentProtection?.volt} minWidth={60} /> V
+                    </p>
+                    <p className="doc-line">
+                      พิกัดกระแส AT <Dot value={msb.overcurrentProtection?.atAmp} minWidth={60} /> A
+                      &nbsp;&nbsp;AF <Dot value={msb.overcurrentProtection?.afAmp} minWidth={60} /> A
+                    </p>
+                  </td>
+                </tr>
+
+                {/* ๒.๓.๓ */}
+                <tr>
+                  <td colSpan={5} className="sub-cat-row">๒.๓.๓ สายดินของแผงสวิตช์</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- สภาพหลักดินและจุดต่อ</td>
+                  <td className="c"><StatusMark status={msb.grounding?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={msb.grounding?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={msb.grounding?.status} target="fix" /></td>
+                  <td className="note-cell">{msb.grounding?.note || ''}</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>
+                    - สายต่อหลักดิน ชนิด <Dot value={msb.grounding?.wireType} minWidth={60} /> ขนาด <Dot value={msb.grounding?.wireSize} minWidth={50} /> mm²
+                  </td>
+                  <td className="c">✓</td>
+                  <td className="c"></td>
+                  <td className="c"></td>
+                  <td className="note-cell"></td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- สภาพสายดินและจุดต่อ</td>
+                  <td className="c"><StatusMark status={msb.grounding?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={msb.grounding?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={msb.grounding?.status} target="fix" /></td>
+                  <td className="note-cell"></td>
+                </tr>
+
+                {/* ๒.๓.๔ */}
+                <tr>
+                  <td>
+                    ๒.๓.๔ อุณหภูมิของอุปกรณ์<br />
+                    &nbsp;&nbsp;<CircleOpt checked={msb.temperature === 'normal'} label="ปกติ" />
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <CircleOpt checked={msb.temperature === 'abnormal'} label="ผิดปกติ" />
+                  </td>
+                  <td className="c"><StatusMark status={msb.temperature === 'normal' ? 'pass' : 'fix'} target="pass" /></td>
+                  <td className="c"></td>
+                  <td className="c"><StatusMark status={msb.temperature === 'normal' ? 'pass' : 'fix'} target="fix" /></td>
+                  <td className="note-cell">{msb.temperatureNote || ''}</td>
+                </tr>
+                <tr>
+                  <td>๒.๓.๕ อื่นๆ : {msb.otherText || ''}</td>
+                  <td className="c"><StatusMark status={msb.other?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={msb.other?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={msb.other?.status} target="fix" /></td>
+                  <td className="note-cell">{msb.other?.note || ''}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        );
+      })}
+
+      {/* ══════════════════════════════════════════════════════════════════
+          PAGE 7 (หน้า -๖-): ๒.๔.๑ วงจรเมน (Main Circuit)
+      ══════════════════════════════════════════════════════════════════ */}
+      {mainCircuits.map((mc, cIdx) => (
+        <div key={`page7_${mc.id || cIdx}`} className="a4-page espsib-paper page-break">
+          <div className="paper-page-num">-๖-</div>
+
+          <table className="tmpl-table">
+            <thead>
+              <tr>
+                <th style={{ width: '15%' }}>อุปกรณ์</th>
+                <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
+                <th style={{ width: '8%' }}>ใช้ได้</th>
+                <th style={{ width: '11%' }}>ควรปรับปรุง</th>
+                <th style={{ width: '10%' }}>ต้องแก้ไข</th>
+                <th style={{ width: '16%' }}>คำแนะนำ/ความเห็น</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td rowSpan={9} className="bold-cell top-cell">
+                  ๒.๔ แรงต่ำ<br />ภายในอาคาร
+                </td>
+                <td colSpan={5} className="inner-spec-cell">
+                  <p className="doc-line bold-txt">๒.๔.๑ วงจรเมน (Main Circuit) {mainCircuits.length > 1 ? `(ชุดที่ ${cIdx+1})` : ''}</p>
+                  <p className="doc-line bold-txt">๒.๔.๑.๑ สายเข้าเมนสวิตช์</p>
+                  <p className="doc-line" style={{ paddingLeft: '10pt' }}>
+                    - สายเฟส ชนิด <Dot value={mc.phaseWire?.type} minWidth={70} /> ขนาด <Dot value={mc.phaseWire?.size} minWidth={50} /> mm²
+                  </p>
+                  <p className="doc-line" style={{ paddingLeft: '10pt' }}>
+                    - สายนิวทรัล ชนิด <Dot value={mc.neutralWire?.type} minWidth={70} /> ขนาด <Dot value={mc.neutralWire?.size} minWidth={50} /> mm²
+                  </p>
+                  <p className="doc-line">
+                    เดินใน &nbsp;
+                    <CircleOpt checked={mc.raceway === 'conduit'} label="ท่อร้อยสาย (Conduit)" />
+                  </p>
+                  <p className="doc-line" style={{ paddingLeft: '32pt' }}>
+                    <CircleOpt checked={mc.raceway === 'wireway'} label="รางเดินสาย (Wire Way)" />
+                  </p>
+                  <p className="doc-line" style={{ paddingLeft: '32pt' }}>
+                    <CircleOpt checked={mc.raceway === 'cabletray'} label="รางเคเบิล (Cable Tray)" />
+                    &nbsp;แบบ <Dot value={mc.racewayOther} minWidth={80} />
+                  </p>
+                  <p className="doc-line" style={{ paddingLeft: '32pt' }}>
+                    <CircleOpt checked={mc.raceway === 'rack'} label="ลูกถ้วยราวยึดสาย (Rack)" />
+                  </p>
+                  <p className="doc-line" style={{ paddingLeft: '32pt' }}>
+                    <CircleOpt checked={mc.raceway === 'other'} label="อื่นๆ" />
+                    &nbsp;<Dot value={mc.racewayOther} minWidth={100} />
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  ๒.๔.๑.๒ รางเดินสายและรางเคเบิล<br />
+                  &nbsp;&nbsp;- สภาพการติดตั้งและใช้งาน<br />
+                  &nbsp;&nbsp;- ความต่อเนื่องทางไฟฟ้า การต่อฝากและการต่อลงดิน
+                </td>
+                <td className="c"><StatusMark status={mc.items?.racewayCondition?.status} target="pass" /></td>
+                <td className="c"><StatusMark status={mc.items?.racewayCondition?.status} target="improve" /></td>
+                <td className="c"><StatusMark status={mc.items?.racewayCondition?.status} target="fix" /></td>
+                <td className="note-cell">{mc.items?.racewayCondition?.note || ''}</td>
+              </tr>
+              <tr>
+                <td>๒.๔.๑.๓ สภาพฉนวนสายไฟ</td>
+                <td className="c"><StatusMark status={mc.items?.insulation?.status} target="pass" /></td>
+                <td className="c"><StatusMark status={mc.items?.insulation?.status} target="improve" /></td>
+                <td className="c"><StatusMark status={mc.items?.insulation?.status} target="fix" /></td>
+                <td className="note-cell">{mc.items?.insulation?.note || ''}</td>
+              </tr>
+              <tr>
+                <td>๒.๔.๑.๔ สภาพจุดต่อของสาย</td>
+                <td className="c"><StatusMark status={mc.items?.joints?.status} target="pass" /></td>
+                <td className="c"><StatusMark status={mc.items?.joints?.status} target="improve" /></td>
+                <td className="c"><StatusMark status={mc.items?.joints?.status} target="fix" /></td>
+                <td className="note-cell">{mc.items?.joints?.note || ''}</td>
+              </tr>
+              <tr>
+                <td>๒.๔.๑.๕ การป้องกันความร้อนจากการเหนี่ยวนำ</td>
+                <td className="c"><StatusMark status={mc.items?.inductionHeatProtection?.status} target="pass" /></td>
+                <td className="c"><StatusMark status={mc.items?.inductionHeatProtection?.status} target="improve" /></td>
+                <td className="c"><StatusMark status={mc.items?.inductionHeatProtection?.status} target="fix" /></td>
+                <td className="note-cell">{mc.items?.inductionHeatProtection?.note || ''}</td>
+              </tr>
+              <tr>
+                <td>
+                  ๒.๔.๑.๖ อุณหภูมิของอุปกรณ์<br />
+                  &nbsp;&nbsp;<CircleOpt checked={mc.temperature === 'normal'} label="ปกติ" />
+                  &nbsp;&nbsp;&nbsp;&nbsp;
+                  <CircleOpt checked={mc.temperature === 'abnormal'} label="ผิดปกติ" />
+                </td>
+                <td className="c"><StatusMark status={mc.temperature === 'normal' ? 'pass' : 'fix'} target="pass" /></td>
+                <td className="c"></td>
+                <td className="c"><StatusMark status={mc.temperature === 'normal' ? 'pass' : 'fix'} target="fix" /></td>
+                <td className="note-cell">{mc.temperatureNote || ''}</td>
+              </tr>
+              <tr>
+                <td>๒.๔.๑.๗ อื่นๆ : {mc.otherText || ''}</td>
+                <td className="c"><StatusMark status={mc.other?.status} target="pass" /></td>
+                <td className="c"><StatusMark status={mc.other?.status} target="improve" /></td>
+                <td className="c"><StatusMark status={mc.other?.status} target="fix" /></td>
+                <td className="note-cell">{mc.other?.note || ''}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      ))}
+
+      {/* ══════════════════════════════════════════════════════════════════
+          PAGE 8 (หน้า -๗-): ๒.๔.๒ แผงย่อย (Sub Panel / DB)
+      ══════════════════════════════════════════════════════════════════ */}
+      {subPanels.map((sp, sIdx) => {
+        const it = sp.items || {};
+        return (
+          <div key={`page8_${sp.id || sIdx}`} className="a4-page espsib-paper page-break">
+            <div className="paper-page-num">-๗-</div>
+
+            <table className="tmpl-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '15%' }}>อุปกรณ์</th>
+                  <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
+                  <th style={{ width: '8%' }}>ใช้ได้</th>
+                  <th style={{ width: '11%' }}>ควรปรับปรุง</th>
+                  <th style={{ width: '10%' }}>ต้องแก้ไข</th>
+                  <th style={{ width: '16%' }}>คำแนะนำ/ความเห็น</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td rowSpan={14} className="bold-cell top-cell">
+                    แผงย่อย<br />(DB)
+                  </td>
+                  <td colSpan={5} className="inner-spec-cell">
+                    <p className="doc-line bold-txt">๒.๔.๒ แผงย่อยที่ <Dot value={sp.no || sIdx+1} minWidth={40} /></p>
+                    <p className="doc-line">ตำแหน่งหรือพื้นที่ติดตั้ง <Dot value={sp.location} minWidth={220} /></p>
+                    <p className="doc-line">รับจากตู้เมนสวิตช์ที่ <Dot value={sp.sourceMdb || '1'} minWidth={40} /></p>
+                    <p className="doc-line bold-txt">๒.๔.๒.๑ การติดตั้ง</p>
+                    <p className="doc-line">
+                      <CircleOpt checked={sp.locationType === 'outdoor'} label="ภายนอกอาคาร" />
+                    </p>
+                    <p className="doc-line">
+                      <CircleOpt checked={sp.locationType === 'indoor'} label="ภายในอาคาร" />
+                    </p>
+                    <p className="doc-line">
+                      <CircleOpt checked={sp.locationType === 'other'} label="อื่นๆ" />
+                      &nbsp;<Dot value={sp.locationOther} minWidth={140} />
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- สภาพทั่วไป</td>
+                  <td className="c"><StatusMark status={it.generalCondition?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.generalCondition?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.generalCondition?.status} target="fix" /></td>
+                  <td className="note-cell">{it.generalCondition?.note || ''}</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- จุดต่อสาย และจุดต่อบัสบาร์</td>
+                  <td className="c"><StatusMark status={it.busbarJoints?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.busbarJoints?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.busbarJoints?.status} target="fix" /></td>
+                  <td className="note-cell">{it.busbarJoints?.note || ''}</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- ที่ว่างเพื่อปฏิบัติงานที่จุดติดตั้งแผงย่อย</td>
+                  <td className="c"><StatusMark status={it.workingSpace?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.workingSpace?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.workingSpace?.status} target="fix" /></td>
+                  <td className="note-cell">{it.workingSpace?.note || ''}</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- แสงสว่างเหนือที่ว่างเพื่อปฏิบัติงาน</td>
+                  <td className="c"><StatusMark status={it.lighting?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.lighting?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.lighting?.status} target="fix" /></td>
+                  <td className="note-cell">{it.lighting?.note || ''}</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- การต่อฝาก</td>
+                  <td className="c"><StatusMark status={it.bonding?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.bonding?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.bonding?.status} target="fix" /></td>
+                  <td className="note-cell">{it.bonding?.note || ''}</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- การป้องกันส่วนสัมผัสที่มีไฟฟ้า</td>
+                  <td className="c"><StatusMark status={it.livePartProtection?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={it.livePartProtection?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={it.livePartProtection?.status} target="fix" /></td>
+                  <td className="note-cell">{it.livePartProtection?.note || ''}</td>
+                </tr>
+
+                {/* ๒.๔.๒.๒ */}
+                <tr>
+                  <td colSpan={5} className="inner-spec-cell">
+                    <p className="doc-line bold-txt">๒.๔.๒.๒ เครื่องป้องกันกระแสเกินของแผงย่อย</p>
+                    <p className="doc-line">
+                      ชนิด <Dot value={sp.overcurrentProtection?.type} minWidth={140} />
+                    </p>
+                    <p className="doc-line">
+                      IC <Dot value={sp.overcurrentProtection?.icKa} minWidth={60} /> kA
+                      &nbsp;&nbsp;แรงดัน <Dot value={sp.overcurrentProtection?.volt} minWidth={60} /> V
+                    </p>
+                    <p className="doc-line">
+                      พิกัดกระแส AT <Dot value={sp.overcurrentProtection?.atAmp} minWidth={60} /> A
+                      &nbsp;&nbsp;AF <Dot value={sp.overcurrentProtection?.afAmp} minWidth={60} /> A
+                    </p>
+                  </td>
+                </tr>
+
+                {/* ๒.๔.๒.๓ */}
+                <tr>
+                  <td colSpan={5} className="sub-cat-row">๒.๔.๒.๓ สายดินของแผงย่อย</td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>
+                    - สายดิน ชนิด <Dot value={sp.grounding?.wireType} minWidth={60} /> ขนาด <Dot value={sp.grounding?.wireSize} minWidth={50} /> mm²
+                  </td>
+                  <td className="c">✓</td>
+                  <td className="c"></td>
+                  <td className="c"></td>
+                  <td className="note-cell"></td>
+                </tr>
+                <tr>
+                  <td style={{ paddingLeft: '14pt' }}>- สภาพสายดินและจุดต่อ</td>
+                  <td className="c"><StatusMark status={sp.grounding?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={sp.grounding?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={sp.grounding?.status} target="fix" /></td>
+                  <td className="note-cell">{sp.grounding?.note || ''}</td>
+                </tr>
+
+                {/* ๒.๔.๒.๔ */}
+                <tr>
+                  <td>
+                    ๒.๔.๒.๔ อุณหภูมิของอุปกรณ์<br />
+                    &nbsp;&nbsp;<CircleOpt checked={sp.temperature === 'normal'} label="ปกติ" />
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <CircleOpt checked={sp.temperature === 'abnormal'} label="ผิดปกติ" />
+                  </td>
+                  <td className="c"><StatusMark status={sp.temperature === 'normal' ? 'pass' : 'fix'} target="pass" /></td>
+                  <td className="c"></td>
+                  <td className="c"><StatusMark status={sp.temperature === 'normal' ? 'pass' : 'fix'} target="fix" /></td>
+                  <td className="note-cell">{sp.temperatureNote || ''}</td>
+                </tr>
+                <tr>
+                  <td>๒.๔.๒.๕ อื่นๆ : {sp.otherText || ''}</td>
+                  <td className="c"><StatusMark status={sp.other?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={sp.other?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={sp.other?.status} target="fix" /></td>
+                  <td className="note-cell">{sp.other?.note || ''}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div className="form-footer-note" style={{ marginTop: '14pt' }}>
+              <strong>หมายเหตุ :</strong> ๑. แผงย่อย คือ แผงวงจรที่ต่อจากตู้เมนสวิตช์ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ๒. ใช้เอกสารการตรวจสอบแผงย่อย ๑ ฉบับ ต่อ ๑ แผงย่อย
+            </div>
+          </div>
+        );
+      })}
+
+      {/* ══════════════════════════════════════════════════════════════════
+          PAGE 9 (หน้า -๘-): ๒.๕ บริภัณฑ์ไฟฟ้า & ๓. สรุปผลการตรวจสอบ
+      ══════════════════════════════════════════════════════════════════ */}
+      <div className="a4-page espsib-paper page-break">
+        <div className="paper-page-num">-๘-</div>
+
+        <table className="tmpl-table">
           <thead>
             <tr>
               <th style={{ width: '15%' }}>อุปกรณ์</th>
               <th style={{ width: '40%' }}>รายการตรวจสอบ</th>
-              <th style={{ width: '9%' }}>ใช้ได้</th>
+              <th style={{ width: '8%' }}>ใช้ได้</th>
               <th style={{ width: '11%' }}>ควรปรับปรุง</th>
               <th style={{ width: '10%' }}>ต้องแก้ไข</th>
-              <th style={{ width: '15%' }}>คำแนะนำ/ความเห็น</th>
+              <th style={{ width: '16%' }}>คำแนะนำ/ความเห็น</th>
             </tr>
           </thead>
           <tbody>
             {otherEquipments.map((eq, eIdx) => (
-              <tr key={eq.id}>
-                <td style={{ verticalAlign: 'top', fontWeight: 700 }}>
-                  ๒.๕ บริภัณฑ์ไฟฟ้า
+              <tr key={eq.id || eIdx}>
+                <td rowSpan={4} className="bold-cell top-cell">
+                  ๒.๕ บริภัณฑ์<br />ไฟฟ้า
                 </td>
-                <td colSpan={5} style={{ padding: 0 }}>
-                  <div style={{ padding: '4pt 8pt', background: '#fafafa', borderBottom: '1px solid #ccc' }}>
-                    <strong>ชื่อบริภัณฑ์ไฟฟ้า:</strong> {eq.name || `รายการที่ ${eIdx+1}`}
-                  </div>
-                  <table className="inner-table">
-                    <tbody>
-                      <tr>
-                        <td style={{ width: '47.1%' }}>๒.๕.๑ การติดตั้ง</td>
-                        <td className="c" style={{ width: '10.6%' }}><StatusTick status={eq.installation?.status} target="pass" /></td>
-                        <td className="c" style={{ width: '12.9%' }}><StatusTick status={eq.installation?.status} target="improve" /></td>
-                        <td className="c" style={{ width: '11.8%' }}><StatusTick status={eq.installation?.status} target="fix" /></td>
-                        <td style={{ width: '17.6%', fontSize: '9pt' }}>{eq.installation?.note || ''}</td>
-                      </tr>
-                      <tr>
-                        <td style={{ width: '47.1%' }}>๒.๕.๒ สภาพภายนอก</td>
-                        <td className="c" style={{ width: '10.6%' }}><StatusTick status={eq.external?.status} target="pass" /></td>
-                        <td className="c" style={{ width: '12.9%' }}><StatusTick status={eq.external?.status} target="improve" /></td>
-                        <td className="c" style={{ width: '11.8%' }}><StatusTick status={eq.external?.status} target="fix" /></td>
-                        <td style={{ width: '17.6%', fontSize: '9pt' }}>{eq.external?.note || ''}</td>
-                      </tr>
-                      <tr>
-                        <td style={{ width: '47.1%' }}>๒.๕.๓ อื่นๆ : {eq.otherText || ''}</td>
-                        <td className="c" style={{ width: '10.6%' }}><StatusTick status={eq.other?.status} target="pass" /></td>
-                        <td className="c" style={{ width: '12.9%' }}><StatusTick status={eq.other?.status} target="improve" /></td>
-                        <td className="c" style={{ width: '11.8%' }}><StatusTick status={eq.other?.status} target="fix" /></td>
-                        <td style={{ width: '17.6%', fontSize: '9pt' }}>{eq.other?.note || ''}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                <td colSpan={5} className="bold-cell" style={{ background: '#fafafa' }}>
+                  ชื่อบริภัณฑ์ไฟฟ้า <Dot value={eq.name} minWidth={260} />
                 </td>
               </tr>
+            ))}
+            {otherEquipments.map((eq, eIdx) => (
+              <>
+                <tr key={`eq_inst_${eIdx}`}>
+                  <td>๒.๕.๑ การติดตั้ง</td>
+                  <td className="c"><StatusMark status={eq.installation?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={eq.installation?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={eq.installation?.status} target="fix" /></td>
+                  <td className="note-cell">{eq.installation?.note || ''}</td>
+                </tr>
+                <tr key={`eq_ext_${eIdx}`}>
+                  <td>๒.๕.๒ สภาพภายนอก</td>
+                  <td className="c"><StatusMark status={eq.external?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={eq.external?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={eq.external?.status} target="fix" /></td>
+                  <td className="note-cell">{eq.external?.note || ''}</td>
+                </tr>
+                <tr key={`eq_oth_${eIdx}`}>
+                  <td>๒.๕.๓ อื่นๆ : {eq.otherText || ''}</td>
+                  <td className="c"><StatusMark status={eq.other?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={eq.other?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={eq.other?.status} target="fix" /></td>
+                  <td className="note-cell">{eq.other?.note || ''}</td>
+                </tr>
+              </>
             ))}
           </tbody>
         </table>
 
-        <div style={{ marginTop: '16pt' }}>
-          <h3 className="sec-title">๓. สรุปผลการตรวจสอบระบบไฟฟ้าและบริภัณฑ์ไฟฟ้า</h3>
-          <div style={{ margin: '8pt 0 8pt 16pt' }}>
-            <p className="doc-p" style={{ marginBottom: '6pt' }}>
-              <Checkmark checked={conclusion.result === 'pass'} /> ใช้งานได้ ทั้งนี้ ระบบไฟฟ้าและบริภัณฑ์ไฟฟ้าต้องมีการบำรุงรักษาอย่างถูกวิธีและตามหลักวิชาการทางด้านวิศวกรรมศาสตร์
-            </p>
-            <p className="doc-p">
-              <Checkmark checked={conclusion.result === 'repair'} /> ใช้งานได้ แต่ต้องแก้ไขตามรายงานการตรวจสอบภายใน <span className="fill-txt">{conclusion.repairDays || '............'}</span> วัน
-            </p>
-          </div>
+        <div className="form-footer-note" style={{ margin: '8pt 0 14pt' }}>
+          <strong>หมายเหตุ</strong> หากมีบริภัณฑ์ไฟฟ้าอื่นที่จำเป็นต้องตรวจสอบเพิ่มเติม (เช่น มอเตอร์ไฟฟ้า ตู้เย็นหรือเครื่องทำน้ำดื่ม เครื่องทำความร้อน เครื่องเชื่อมไฟฟ้า เป็นต้น) ให้จัดทำเป็นเอกสารแนบ
+        </div>
 
-          <div style={{ marginTop: '12pt' }}>
-            <strong>ความเห็นและข้อเสนอแนะ</strong>
-            <div style={{
-              minHeight: '80pt',
-              border: '1px solid #ccc',
-              borderRadius: '4pt',
-              padding: '8pt',
-              marginTop: '4pt',
-              whiteSpace: 'pre-wrap',
-              fontSize: '10pt',
-              lineHeight: 1.6
-            }}>
-              {conclusion.suggestions || '– ไม่มีข้อเสนอแนะเพิ่มเติม –'}
-            </div>
-          </div>
+        <div className="section-hdr-txt">๓. สรุปผลการตรวจสอบระบบไฟฟ้าและบริภัณฑ์ไฟฟ้า</div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24pt' }}>
-            <div style={{ textAlign: 'center', minWidth: '220pt' }}>
-              <div className="sig-box-img" style={{ margin: '0 auto' }}>
-                {(conclusion.inspectorSignature || inspector.signature) ? (
-                  <img src={conclusion.inspectorSignature || inspector.signature} alt="ลายเซ็นวิศวกร" />
-                ) : (
-                  <div className="sig-line" />
-                )}
-              </div>
-              <p style={{ margin: '4pt 0' }}>ลงชื่อ ............................................................</p>
-              <p style={{ margin: '4pt 0' }}>( {inspector.name || '............................................................'} )</p>
-              <p style={{ margin: '4pt 0', fontWeight: 700 }}>วิศวกรผู้ตรวจสอบ</p>
-              <p style={{ margin: '4pt 0' }}>วันที่ <span className="fill-txt">{conclusion.inspectionDate || workplace.inspectionDate || data.date}</span></p>
+        <div className="tmpl-body" style={{ margin: '8pt 0' }}>
+          <p className="doc-line">
+            <CircleOpt
+              checked={conclusion.result === 'pass'}
+              label="ใช้งานได้ ทั้งนี้ระบบไฟฟ้าและบริภัณฑ์ไฟฟ้าต้องมีการบำรุงรักษาอย่างถูกวิธีและตามหลักวิชาการทางด้านวิศวกรรมศาสตร์"
+            />
+          </p>
+          <p className="doc-line" style={{ marginTop: '6pt' }}>
+            <CircleOpt
+              checked={conclusion.result === 'repair'}
+              label="ใช้งานได้ แต่ต้องแก้ไขตามรายงานการตรวจสอบภายใน"
+            />
+            &nbsp;<Dot value={conclusion.repairDays} minWidth={40} /> วัน
+          </p>
+        </div>
+
+        <div style={{ marginTop: '12pt' }}>
+          <div className="bold-txt" style={{ fontSize: '11.5pt', marginBottom: '4pt' }}>ความเห็นและข้อเสนอแนะ</div>
+          <div className="suggestions-ruled-box">
+            {conclusion.suggestions ? (
+              <div className="suggestions-text">{conclusion.suggestions}</div>
+            ) : null}
+            <div className="ruled-line" />
+            <div className="ruled-line" />
+            <div className="ruled-line" />
+            <div className="ruled-line" />
+          </div>
+        </div>
+
+        <div className="final-sign-wrap">
+          <div className="final-sign-col">
+            <div className="sign-canvas-img">
+              {(conclusion.inspectorSignature || inspector.signature) ? (
+                <img src={conclusion.inspectorSignature || inspector.signature} alt="ลายเซ็นวิศวกร" />
+              ) : null}
             </div>
+            <p>ลงชื่อ ................................................................</p>
+            <p>( <span className="sign-name-text">{inspector.name || '................................................................'}</span> )</p>
+            <p className="sign-role">วิศวกรผู้ตรวจสอบ</p>
+            <p style={{ marginTop: '4pt' }}>
+              วันที่ <Dot value={inspDate.d} minWidth={30} /> เดือน <Dot value={inspDate.m} minWidth={80} /> พ.ศ. <Dot value={inspDate.y} minWidth={40} />
+            </p>
           </div>
         </div>
       </div>
 
-      {/* ════════ PHOTO APPENDIX (ถ้ามีรูปภาพแนบ) ════════ */}
+      {/* ══════════════════════════════════════════════════════════════════
+          PHOTO APPENDIX: ภาพถ่ายประกอบการตรวจสอบ
+      ══════════════════════════════════════════════════════════════════ */}
       {photos.length > 0 && (
-        <div className="a4-page espsib-doc page-break">
-          <div style={{ textAlign: 'center', fontWeight: 800, fontSize: '13pt', marginBottom: '14pt' }}>
-            เอกสารแนบ: ภาพถ่ายประกอบการตรวจสอบระบบไฟฟ้าและบริภัณฑ์ไฟฟ้า
+        <div className="a4-page espsib-paper page-break">
+          <div className="form-header-center" style={{ marginBottom: '16pt' }}>
+            <h2 className="form-h2">เอกสารแนบ: ภาพถ่ายประกอบการตรวจสอบระบบไฟฟ้าและบริภัณฑ์ไฟฟ้า</h2>
+            <p style={{ fontSize: '10pt', color: '#555' }}>
+              {workplace.name || ''} · วันที่ {inspDate.full}
+            </p>
           </div>
-          <div className="photo-grid">
+          <div className="appendix-photo-grid">
             {photos.map((p, idx) => (
-              <div key={idx} className="photo-card">
-                <div className="photo-frame">
+              <div key={idx} className="appendix-card">
+                <div className="appendix-img-box">
                   <img src={p.photo} alt={p.label} />
                 </div>
-                <div className="photo-cap">
+                <div className="appendix-caption">
                   <strong>ภาพที่ {idx + 1}:</strong> {p.label}
-                  {p.note && <div className="photo-note">({p.note})</div>}
+                  {p.note && <div className="appendix-note">คำแนะนำ/ความเห็น: {p.note}</div>}
                 </div>
               </div>
             ))}
@@ -885,144 +1181,341 @@ export default function ElecReport({ data }) {
         </div>
       )}
 
-      {/* ── Document Styles ── */}
+      {/* ══════════════════════════════════════════════════════════════════
+          AUTHENTIC TEMPLATE STYLES
+      ══════════════════════════════════════════════════════════════════ */}
       <style jsx global>{`
         .espsib-report-root {
           width: 100%;
-        }
-        .espsib-doc {
-          font-family: 'TH Sarabun New', 'Sarabun', 'Noto Sans Thai', sans-serif;
-          font-size: 11pt;
-          line-height: 1.6;
-          color: #000;
-          padding: 24mm 20mm;
-          box-sizing: border-box;
-          background: #fff;
-          margin-bottom: 20px;
-          box-shadow: 0 4px 14px rgba(0,0,0,0.15);
-        }
-        .doc-p {
-          margin: 3pt 0;
-        }
-        .doc-p.indent {
-          text-indent: 36pt;
-        }
-        .fill-txt {
-          font-weight: 700;
-          border-bottom: 1px dotted #444;
-          padding: 0 4pt;
-        }
-        .sec-title {
-          font-size: 12pt;
-          font-weight: 800;
-          margin: 10pt 0 6pt;
-        }
-        .sig-table-wrap {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20pt;
-          margin-top: 30pt;
-          text-align: center;
-        }
-        .sig-col {
           display: flex;
           flex-direction: column;
           align-items: center;
         }
-        .sig-box-img {
-          height: 50pt;
+
+        /* ── Standard A4 Canvas ── */
+        .espsib-paper {
+          width: 210mm;
+          min-height: 297mm;
+          padding: 20mm 18mm 18mm 20mm;
+          box-sizing: border-box;
+          background: #ffffff;
+          color: #000000;
+          font-family: 'TH Sarabun New', 'Sarabun', 'Noto Sans Thai', serif;
+          font-size: 11pt;
+          line-height: 1.45;
+          margin-bottom: 24px;
+          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+          position: relative;
+        }
+
+        /* ── Typography & Lines ── */
+        .paper-page-num {
+          text-align: center;
+          font-size: 11pt;
+          margin-bottom: 8pt;
+        }
+        .doc-line {
+          margin: 3.5pt 0;
+          line-height: 1.45;
+          font-size: 11pt;
+        }
+        .indent {
+          text-indent: 32pt;
+        }
+        .bold-txt {
+          font-weight: 700;
+        }
+        .section-hdr-txt {
+          font-size: 12pt;
+          font-weight: 800;
+          margin: 8pt 0 4pt;
+        }
+
+        /* ── Fill dotted styling ── */
+        .tmpl-dots {
+          display: inline-block;
+          letter-spacing: 1.5px;
+          color: #555;
+          text-align: center;
+          vertical-align: bottom;
+        }
+        .tmpl-val {
+          display: inline-block;
+          font-weight: 700;
+          border-bottom: 1px dotted #000;
+          padding: 0 4pt;
+          text-align: center;
+          color: #000;
+          vertical-align: bottom;
+        }
+
+        /* ── Option circle ── */
+        .tmpl-circle-opt {
+          display: inline-flex;
+          align-items: center;
+          gap: 4pt;
+          vertical-align: middle;
+        }
+        .tmpl-circle {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          border: 1.2px solid #000;
+          font-size: 9px;
+          font-weight: 800;
+          line-height: 1;
+          vertical-align: middle;
+        }
+        .tmpl-circle--checked {
+          background: #000;
+          color: #fff;
+        }
+        .tmpl-circle-lbl {
+          font-size: 11pt;
+        }
+
+        /* ── Gazette (Page 1) Header ── */
+        .gazette-top-right {
+          text-align: right;
+          font-size: 11pt;
+          margin-bottom: 6pt;
+        }
+        .gazette-header-box {
+          margin-bottom: 18pt;
+        }
+        .gazette-border-line {
+          height: 1px;
+          background: #000;
+          width: 100%;
+          margin: 3pt 0;
+        }
+        .gazette-meta {
+          text-align: center;
+          font-size: 11pt;
+          padding: 2pt 0;
+        }
+        .gazette-title {
+          text-align: center;
+          margin: 22pt 0 16pt;
+        }
+        .gazette-title h2 {
+          font-size: 13.5pt;
+          font-weight: 800;
+          margin: 0 0 4pt;
+        }
+        .gazette-sub {
+          font-size: 12pt;
+          font-weight: 700;
+          line-height: 1.4;
+          margin: 0;
+        }
+        .gazette-body p {
+          margin: 8pt 0;
+          text-align: justify;
+          line-height: 1.55;
+        }
+        .gazette-sign-block {
+          text-align: center;
+          margin-top: 40pt;
+          line-height: 1.6;
+        }
+        .gazette-sign-block .name {
+          font-weight: 700;
+          margin: 12pt 0 2pt;
+        }
+
+        /* ── Page 2 & Form Titles ── */
+        .form-header-center {
+          text-align: center;
+          margin-bottom: 12pt;
+        }
+        .form-h2 {
+          font-size: 12.5pt;
+          font-weight: 800;
+          margin: 0 0 2pt;
+        }
+        .form-h3 {
+          font-size: 11.5pt;
+          font-weight: 700;
+          margin: 0;
+        }
+
+        /* ── Signatures ── */
+        .dual-sign-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 24pt;
+          margin-top: 24pt;
+          text-align: center;
+        }
+        .sign-col {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .sign-canvas-img {
+          height: 44pt;
           display: flex;
           align-items: center;
           justify-content: center;
           margin-bottom: 4pt;
         }
-        .sig-box-img img {
-          max-height: 48pt;
-          max-width: 160pt;
+        .sign-canvas-img img {
+          max-height: 42pt;
+          max-width: 150pt;
           object-fit: contain;
         }
-        .sig-line {
-          height: 1px;
-          width: 140pt;
-          border-bottom: 1px dotted #888;
+        .sign-name-text {
+          font-weight: 700;
         }
-        /* Tables */
-        .espsib-table {
+        .sign-role {
+          font-weight: 700;
+          margin-top: 2pt;
+        }
+
+        .final-sign-wrap {
+          display: flex;
+          justify-content: flex-end;
+          margin-top: 22pt;
+        }
+        .final-sign-col {
+          text-align: center;
+          min-width: 210pt;
+        }
+
+        .form-footer-note {
+          font-size: 9pt;
+          color: #333;
+          margin-top: 14pt;
+          line-height: 1.4;
+          text-align: justify;
+        }
+
+        /* ── Authentic Table ── */
+        .tmpl-table {
           width: 100%;
           border-collapse: collapse;
-          margin-top: 8pt;
+          margin-top: 6pt;
           font-size: 10pt;
-        }
-        .espsib-table th, .espsib-table td {
           border: 1px solid #000;
-          padding: 4pt 6pt;
+        }
+        .tmpl-table th, .tmpl-table td {
+          border: 1px solid #000;
+          padding: 3.5pt 5pt;
           vertical-align: middle;
         }
-        .espsib-table th {
-          background: #f0f0f0;
+        .tmpl-table th {
+          background: #ffffff;
           font-weight: 800;
           text-align: center;
         }
-        .inner-table {
-          width: 100%;
-          border-collapse: collapse;
-          margin: 0;
+        .bold-cell {
+          font-weight: 700;
         }
-        .inner-table td {
-          border: none;
-          border-bottom: 1px solid #ccc;
-          padding: 3pt 4pt;
+        .top-cell {
+          vertical-align: top !important;
         }
-        .inner-table tr:last-child td {
-          border-bottom: none;
+        .inner-spec-cell {
+          padding: 5pt 7pt !important;
+          line-height: 1.4;
+        }
+        .sub-cat-row {
+          font-weight: 700;
+          background: #fbfbfb;
         }
         .c {
           text-align: center;
         }
-        /* Photo Appendix */
-        .photo-grid {
+        .tbl-check {
+          font-size: 12pt;
+          font-weight: 800;
+        }
+        .note-cell {
+          font-size: 9pt;
+          line-height: 1.25;
+        }
+
+        /* ── Suggestions ruled lines ── */
+        .suggestions-ruled-box {
+          position: relative;
+          min-height: 75pt;
+          border: 1px solid #000;
+          padding: 6pt 8pt;
+          background: #fff;
+        }
+        .suggestions-text {
+          font-size: 10.5pt;
+          line-height: 1.6;
+          white-space: pre-wrap;
+          font-weight: 600;
+        }
+        .ruled-line {
+          border-bottom: 1px dotted #bbb;
+          height: 18pt;
+        }
+
+        /* ── Appendix Photos ── */
+        .appendix-photo-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 16pt;
-          margin-top: 14pt;
         }
-        .photo-card {
-          border: 1px solid #ddd;
+        .appendix-card {
+          border: 1px solid #ccc;
           padding: 8pt;
           border-radius: 4pt;
           background: #fff;
           page-break-inside: avoid;
         }
-        .photo-frame {
-          height: 140pt;
+        .appendix-img-box {
+          height: 150pt;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #f9f9f9;
+          background: #f8fafc;
           overflow: hidden;
         }
-        .photo-frame img {
+        .appendix-img-box img {
           max-width: 100%;
           max-height: 100%;
           object-fit: contain;
         }
-        .photo-cap {
+        .appendix-caption {
           font-size: 9.5pt;
           margin-top: 6pt;
-          line-height: 1.4;
+          line-height: 1.35;
         }
-        .photo-note {
-          color: #555;
+        .appendix-note {
+          color: #444;
+          margin-top: 2pt;
           font-style: italic;
         }
+
+        /* ── Print Setup ── */
         @media print {
-          .espsib-doc {
+          @page {
+            size: A4 portrait;
+            margin: 12mm 15mm;
+          }
+          body {
+            background: #ffffff !important;
+            color: #000000 !important;
+          }
+          .espsib-paper {
+            width: 100% !important;
+            min-height: auto !important;
             padding: 0 !important;
             margin: 0 !important;
             box-shadow: none !important;
           }
           .page-break {
             page-break-before: always !important;
+          }
+          tr {
+            page-break-inside: avoid !important;
           }
         }
       `}</style>
