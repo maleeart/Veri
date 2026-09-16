@@ -715,25 +715,46 @@ function ElectricalAnnualInner() {
   };
 
   const addTransformer = () => {
-    setData((d) => ({
-      ...d,
-      transformers: [...d.transformers, createDefaultTransformer(d.transformers.length + 1)],
-    }));
+    setData((d) => {
+      const nextTfs = [...d.transformers, createDefaultTransformer(d.transformers.length + 1)];
+      return {
+        ...d,
+        transformers: nextTfs,
+        general: {
+          ...d.general,
+          transformerCount: String(nextTfs.length),
+        },
+      };
+    });
   };
 
   const removeTransformer = (idx) => {
     if (data.transformers.length <= 1) return;
-    setData((d) => ({
-      ...d,
-      transformers: d.transformers.filter((_, i) => i !== idx),
-    }));
+    setData((d) => {
+      const nextTfs = d.transformers.filter((_, i) => i !== idx);
+      return {
+        ...d,
+        transformers: nextTfs,
+        general: {
+          ...d.general,
+          transformerCount: String(nextTfs.length),
+        },
+      };
+    });
   };
 
   const addMainSwitchboard = () => {
-    setData((d) => ({
-      ...d,
-      mainSwitchboards: [...d.mainSwitchboards, createDefaultMainSwitchboard(d.mainSwitchboards.length + 1)],
-    }));
+    setData((d) => {
+      const nextIdx = d.mainSwitchboards.length + 1;
+      const defaultTf = d.transformers[0]?.no || '1';
+      return {
+        ...d,
+        mainSwitchboards: [
+          ...d.mainSwitchboards,
+          { ...createDefaultMainSwitchboard(nextIdx), sourceTransformer: defaultTf },
+        ],
+      };
+    });
   };
 
   const removeMainSwitchboard = (idx) => {
@@ -760,10 +781,17 @@ function ElectricalAnnualInner() {
   };
 
   const addSubPanel = () => {
-    setData((d) => ({
-      ...d,
-      subPanels: [...d.subPanels, createDefaultSubPanel(d.subPanels.length + 1)],
-    }));
+    setData((d) => {
+      const nextIdx = d.subPanels.length + 1;
+      const defaultMdb = d.mainSwitchboards[0]?.no || '1';
+      return {
+        ...d,
+        subPanels: [
+          ...d.subPanels,
+          { ...createDefaultSubPanel(nextIdx), sourceMdb: defaultMdb },
+        ],
+      };
+    });
   };
 
   const removeSubPanel = (idx) => {
@@ -1736,13 +1764,29 @@ function ElectricalAnnualInner() {
                   </div>
                   <div className="field">
                     <label>รับจากหม้อแปลงที่</label>
-                    <input
-                      type="text"
-                      value={msb.sourceTransformer}
+                    <select
+                      value={msb.sourceTransformer || (data.transformers[0]?.no || '1')}
                       onChange={(e) => {
-                        const arr = [...data.mainSwitchboards]; arr[idx].sourceTransformer = e.target.value; setData(d => ({ ...d, mainSwitchboards: arr }));
+                        const arr = [...data.mainSwitchboards];
+                        arr[idx].sourceTransformer = e.target.value;
+                        setData(d => ({ ...d, mainSwitchboards: arr }));
                       }}
-                    />
+                    >
+                      {data.transformers.map((tf, tIdx) => {
+                        const val = tf.no || `${tIdx + 1}`;
+                        const label = tf.kva ? `หม้อแปลงลูกที่ ${val} (${tf.kva} kVA)` : `หม้อแปลงลูกที่ ${val}`;
+                        return (
+                          <option key={tf.id || tIdx} value={val}>
+                            {label}
+                          </option>
+                        );
+                      })}
+                      {msb.sourceTransformer && !data.transformers.some((tf, tIdx) => (tf.no || `${tIdx + 1}`) === String(msb.sourceTransformer)) && (
+                        <option value={msb.sourceTransformer}>
+                          หม้อแปลงลูกที่ {msb.sourceTransformer}
+                        </option>
+                      )}
+                    </select>
                   </div>
                   <div className="field">
                     <label>ลักษณะการติดตั้ง</label>
@@ -2070,13 +2114,28 @@ function ElectricalAnnualInner() {
                   </div>
                   <div className="field">
                     <label>รับจากตู้เมนสวิตช์ที่</label>
-                    <input
-                      type="text"
-                      value={sp.sourceMdb}
+                    <select
+                      value={sp.sourceMdb || (data.mainSwitchboards[0]?.no || '1')}
                       onChange={(e) => {
-                        const arr = [...data.subPanels]; arr[idx].sourceMdb = e.target.value; setData(d => ({ ...d, subPanels: arr }));
+                        const arr = [...data.subPanels];
+                        arr[idx].sourceMdb = e.target.value;
+                        setData(d => ({ ...d, subPanels: arr }));
                       }}
-                    />
+                    >
+                      {data.mainSwitchboards.map((msb, mIdx) => {
+                        const val = msb.no || `${mIdx + 1}`;
+                        return (
+                          <option key={msb.id || mIdx} value={val}>
+                            ตู้เมนสวิตช์ที่ {val}
+                          </option>
+                        );
+                      })}
+                      {sp.sourceMdb && !data.mainSwitchboards.some((msb, mIdx) => (msb.no || `${mIdx + 1}`) === String(sp.sourceMdb)) && (
+                        <option value={sp.sourceMdb}>
+                          ตู้เมนสวิตช์ที่ {sp.sourceMdb}
+                        </option>
+                      )}
+                    </select>
                   </div>
                   <div className="field">
                     <label>การติดตั้ง</label>

@@ -357,10 +357,127 @@ export default function ElecReport({ data }) {
         );
       })()}
 
-      {/* ── ADDITIONAL HIGH VOLTAGE SYSTEMS (ชุดที่ ๒ เป็นต้นไป: เพิ่มทั้งข้อ ๒.๑.๑ - ๒.๑.๓ ครบถ้วน) ── */}
+      {/* ══════════════════════════════════════════════════════════════════
+          PAGE 4 (หน้า -๓-): เครื่องปลดวงจร (ชุดที่ ๑) & ข้อมูลหม้อแปลง (ลูกที่ ๑)
+      ══════════════════════════════════════════════════════════════════ */}
+      {(() => {
+        const hv0 = highVoltageSystems[0] || {};
+        const tf0 = transformers[0] || {};
+        return (
+          <div key="page4_main" className="a4-page espsib-paper espsib-paper--table page-break">
+            <div className="paper-page-num">-๓-</div>
+
+            <table className="tmpl-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '14%' }}>อุปกรณ์</th>
+                  <th style={{ width: '26%' }}>รายการตรวจสอบ</th>
+                  <th style={{ width: '8%' }}>ใช้ได้</th>
+                  <th style={{ width: '12%' }}>ควรปรับปรุง</th>
+                  <th style={{ width: '11%' }}>ต้องแก้ไข</th>
+                  <th style={{ width: '29%' }}>คำแนะนำ/ความเห็น</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td rowSpan={6} className="bold-cell top-cell">
+                    ๒.๑ แรงสูง<br />{highVoltageSystems.length > 1 ? '(ชุดที่ ๑)' : ''}
+                  </td>
+                  <td className="bold-cell" colSpan={5} style={{ background: '#fafafa' }}>
+                    ๒.๑.๒ การติดตั้งเครื่องปลดวงจรต้นทาง (ส่วนของผู้ใช้ไฟ) :
+                  </td>
+                </tr>
+                {[
+                  { key: 'dropFuse', label: '- ดรอปฟิวส์คัตเอาท์' },
+                  { key: 'disconnectSwitch', label: '- สวิตช์ตัดตอน (Disconnecting Switch)' },
+                  { key: 'rmu', label: '- RMU' },
+                  { key: 'other', label: `- อื่นๆ ${hv0.disconnectors?.otherText || ''}` },
+                ].map(({ key, label }) => {
+                  const item = hv0.disconnectors?.[key] || {};
+                  return (
+                    <tr key={key}>
+                      <td>{label}</td>
+                      <td className="c"><StatusMark status={item.status} target="pass" /></td>
+                      <td className="c"><StatusMark status={item.status} target="improve" /></td>
+                      <td className="c"><StatusMark status={item.status} target="fix" /></td>
+                      <td className="note-cell">{item.note || ''}</td>
+                    </tr>
+                  );
+                })}
+                <tr>
+                  <td>๒.๑.๓ อื่นๆ : {hv0.otherText || ''}</td>
+                  <td className="c"><StatusMark status={hv0.other?.status} target="pass" /></td>
+                  <td className="c"><StatusMark status={hv0.other?.status} target="improve" /></td>
+                  <td className="c"><StatusMark status={hv0.other?.status} target="fix" /></td>
+                  <td className="note-cell">{hv0.other?.note || ''}</td>
+                </tr>
+
+                {/* ๒.๒ หม้อแปลงลูกที่ ๑ (เฉพาะเมื่อมีระบบแรงสูง ๑ ชุด จึงรวมไว้ในหน้านี้ตามต้นฉบับ) */}
+                {highVoltageSystems.length <= 1 && transformers.length > 0 && (
+                  <>
+                    <tr>
+                      <td rowSpan={3} className="bold-cell top-cell">๒.๒ หม้อแปลง</td>
+                      <td colSpan={5} className="inner-spec-cell">
+                        <p className="doc-line bold-txt">๒.๒.๑ หม้อแปลงลูกที่ <Dot value={tf0.no || '1'} minWidth={40} /></p>
+                        <p className="doc-line">
+                          ขนาด <Dot value={tf0.kva} minWidth={60} /> kVA แรงดัน <Dot value={tf0.voltage} minWidth={60} /> V
+                        </p>
+                        <p className="doc-line">
+                          Impedance Voltage <Dot value={tf0.impedance} minWidth={60} /> %
+                        </p>
+                        <p className="doc-line">
+                          ชนิด &nbsp;
+                          <CircleOpt checked={tf0.type === 'Oil'} label="Oil" />
+                          &nbsp;&nbsp;&nbsp;&nbsp;
+                          <CircleOpt checked={tf0.type === 'Dry'} label="Dry" />
+                          &nbsp;&nbsp;&nbsp;&nbsp;
+                          <CircleOpt checked={tf0.type === 'other'} label="อื่นๆ" />
+                          &nbsp;<Dot value={tf0.typeOther} minWidth={100} />
+                        </p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colSpan={5} className="inner-spec-cell">
+                        <p className="doc-line bold-txt">๒.๒.๒ การติดตั้ง</p>
+                        <p className="doc-line">
+                          <CircleOpt checked={tf0.installType === 'sitting'} label="นั่งร้าน" />
+                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                          <CircleOpt checked={tf0.installType === 'hanging'} label="แบบแขวน" />
+                        </p>
+                        <p className="doc-line">
+                          <CircleOpt checked={tf0.installType === 'yard'} label="ลานหม้อแปลง" />
+                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                          <CircleOpt checked={tf0.installType === 'room'} label="ในห้องหม้อแปลง" />
+                        </p>
+                        <p className="doc-line">
+                          <CircleOpt checked={tf0.installType === 'other'} label="อื่นๆ" />
+                          &nbsp;<Dot value={tf0.installTypeOther} minWidth={140} />
+                        </p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colSpan={5} className="inner-spec-cell">
+                        <p className="doc-line bold-txt">๒.๒.๓ เครื่องป้องกันกระแสเกินด้านไฟเข้า</p>
+                        <p className="doc-line">
+                          แบบ <Dot value={tf0.primaryProtection?.type} minWidth={220} />
+                        </p>
+                        <p className="doc-line">
+                          พิกัดกระแส <Dot value={tf0.primaryProtection?.amp} minWidth={80} /> A
+                        </p>
+                      </td>
+                    </tr>
+                  </>
+                )}
+              </tbody>
+            </table>
+          </div>
+        );
+      })()}
+
+      {/* ── ADDITIONAL HIGH VOLTAGE SYSTEMS (ชุดที่ ๒ เป็นต้นไป: แสดงครบทั้ง ๒.๑.๑ - ๒.๑.๓ ต่อเนื่องหลังจากชุดที่ ๑ จบแล้ว) ── */}
       {highVoltageSystems.slice(1).map((hv, idx) => (
         <div key={`page_hv_extra_${hv.id || idx + 1}`} className="a4-page espsib-paper espsib-paper--table page-break">
-          <div className="paper-page-num">-๒- (ชุดที่ {idx + 2})</div>
+          <div className="paper-page-num">-๓- (ชุดที่ {idx + 2})</div>
 
           <div className="section-indent-box">
             <div className="section-hdr-txt">๒. รายการตรวจสอบ (ต่อ)</div>
@@ -441,15 +558,12 @@ export default function ElecReport({ data }) {
         </div>
       ))}
 
-      {/* ══════════════════════════════════════════════════════════════════
-          PAGE 4 (หน้า -๓-): เครื่องปลดวงจร (ชุดที่ ๑) & ข้อมูลหม้อแปลง (ลูกที่ ๑)
-      ══════════════════════════════════════════════════════════════════ */}
-      {(() => {
-        const hv0 = highVoltageSystems[0] || {};
-        const tf0 = transformers[0] || {};
+      {/* ── หม้อแปลงลูกที่ ๑: เมื่อมีระบบแรงสูงมากกว่า ๑ ชุด สเปก ๒.๒.๑ - ๒.๒.๓ จะแยกหน้าขึ้นมาหลังจากระบบแรงสูงทุกชุดเสร็จสิ้น ── */}
+      {highVoltageSystems.length > 1 && transformers.length > 0 && (() => {
+        const tf0 = transformers[0];
         return (
-          <div key="page4_main" className="a4-page espsib-paper espsib-paper--table page-break">
-            <div className="paper-page-num">-๓-</div>
+          <div key="page_tf0_specs_multi_hv" className="a4-page espsib-paper espsib-paper--table page-break">
+            <div className="paper-page-num">-๓- (ลูกที่ {tf0.no || '1'})</div>
 
             <table className="tmpl-table">
               <thead>
@@ -464,92 +578,58 @@ export default function ElecReport({ data }) {
               </thead>
               <tbody>
                 <tr>
-                  <td rowSpan={6} className="top-cell"></td>
-                  <td className="bold-cell" colSpan={5} style={{ background: '#fafafa' }}>
-                    ๒.๑.๒ การติดตั้งเครื่องปลดวงจรต้นทาง (ส่วนของผู้ใช้ไฟ) :
+                  <td rowSpan={3} className="bold-cell top-cell">
+                    ๒.๒ หม้อแปลง<br />(ลูกที่ {tf0.no || '1'})
+                  </td>
+                  <td colSpan={5} className="inner-spec-cell">
+                    <p className="doc-line bold-txt">๒.๒.๑ หม้อแปลงลูกที่ <Dot value={tf0.no || '1'} minWidth={40} /></p>
+                    <p className="doc-line">
+                      ขนาด <Dot value={tf0.kva} minWidth={60} /> kVA แรงดัน <Dot value={tf0.voltage} minWidth={60} /> V
+                    </p>
+                    <p className="doc-line">
+                      Impedance Voltage <Dot value={tf0.impedance} minWidth={60} /> %
+                    </p>
+                    <p className="doc-line">
+                      ชนิด &nbsp;
+                      <CircleOpt checked={tf0.type === 'Oil'} label="Oil" />
+                      &nbsp;&nbsp;&nbsp;&nbsp;
+                      <CircleOpt checked={tf0.type === 'Dry'} label="Dry" />
+                      &nbsp;&nbsp;&nbsp;&nbsp;
+                      <CircleOpt checked={tf0.type === 'other'} label="อื่นๆ" />
+                      &nbsp;<Dot value={tf0.typeOther} minWidth={100} />
+                    </p>
                   </td>
                 </tr>
-                {[
-                  { key: 'dropFuse', label: '- ดรอปฟิวส์คัตเอาท์' },
-                  { key: 'disconnectSwitch', label: '- สวิตช์ตัดตอน (Disconnecting Switch)' },
-                  { key: 'rmu', label: '- RMU' },
-                  { key: 'other', label: `- อื่นๆ ${hv0.disconnectors?.otherText || ''}` },
-                ].map(({ key, label }) => {
-                  const item = hv0.disconnectors?.[key] || {};
-                  return (
-                    <tr key={key}>
-                      <td>{label}</td>
-                      <td className="c"><StatusMark status={item.status} target="pass" /></td>
-                      <td className="c"><StatusMark status={item.status} target="improve" /></td>
-                      <td className="c"><StatusMark status={item.status} target="fix" /></td>
-                      <td className="note-cell">{item.note || ''}</td>
-                    </tr>
-                  );
-                })}
                 <tr>
-                  <td>๒.๑.๓ อื่นๆ : {hv0.otherText || ''}</td>
-                  <td className="c"><StatusMark status={hv0.other?.status} target="pass" /></td>
-                  <td className="c"><StatusMark status={hv0.other?.status} target="improve" /></td>
-                  <td className="c"><StatusMark status={hv0.other?.status} target="fix" /></td>
-                  <td className="note-cell">{hv0.other?.note || ''}</td>
+                  <td colSpan={5} className="inner-spec-cell">
+                    <p className="doc-line bold-txt">๒.๒.๒ การติดตั้ง</p>
+                    <p className="doc-line">
+                      <CircleOpt checked={tf0.installType === 'sitting'} label="นั่งร้าน" />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                      <CircleOpt checked={tf0.installType === 'hanging'} label="แบบแขวน" />
+                    </p>
+                    <p className="doc-line">
+                      <CircleOpt checked={tf0.installType === 'yard'} label="ลานหม้อแปลง" />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                      <CircleOpt checked={tf0.installType === 'room'} label="ในห้องหม้อแปลง" />
+                    </p>
+                    <p className="doc-line">
+                      <CircleOpt checked={tf0.installType === 'other'} label="อื่นๆ" />
+                      &nbsp;<Dot value={tf0.installTypeOther} minWidth={140} />
+                    </p>
+                  </td>
                 </tr>
-
-                {/* ๒.๒ หม้อแปลงลูกที่ ๑ */}
-                {transformers.length > 0 && (
-                  <>
-                    <tr>
-                      <td rowSpan={3} className="bold-cell top-cell">๒.๒ หม้อแปลง</td>
-                      <td colSpan={5} className="inner-spec-cell">
-                        <p className="doc-line bold-txt">๒.๒.๑ หม้อแปลงลูกที่ <Dot value={tf0.no || '1'} minWidth={40} /></p>
-                        <p className="doc-line">
-                          ขนาด <Dot value={tf0.kva} minWidth={60} /> kVA แรงดัน <Dot value={tf0.voltage} minWidth={60} /> V
-                        </p>
-                        <p className="doc-line">
-                          Impedance Voltage <Dot value={tf0.impedance} minWidth={60} /> %
-                        </p>
-                        <p className="doc-line">
-                          ชนิด &nbsp;
-                          <CircleOpt checked={tf0.type === 'Oil'} label="Oil" />
-                          &nbsp;&nbsp;&nbsp;&nbsp;
-                          <CircleOpt checked={tf0.type === 'Dry'} label="Dry" />
-                          &nbsp;&nbsp;&nbsp;&nbsp;
-                          <CircleOpt checked={tf0.type === 'other'} label="อื่นๆ" />
-                          &nbsp;<Dot value={tf0.typeOther} minWidth={100} />
-                        </p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td colSpan={5} className="inner-spec-cell">
-                        <p className="doc-line bold-txt">๒.๒.๒ การติดตั้ง</p>
-                        <p className="doc-line">
-                          <CircleOpt checked={tf0.installType === 'sitting'} label="นั่งร้าน" />
-                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                          <CircleOpt checked={tf0.installType === 'hanging'} label="แบบแขวน" />
-                        </p>
-                        <p className="doc-line">
-                          <CircleOpt checked={tf0.installType === 'yard'} label="ลานหม้อแปลง" />
-                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                          <CircleOpt checked={tf0.installType === 'room'} label="ในห้องหม้อแปลง" />
-                        </p>
-                        <p className="doc-line">
-                          <CircleOpt checked={tf0.installType === 'other'} label="อื่นๆ" />
-                          &nbsp;<Dot value={tf0.installTypeOther} minWidth={140} />
-                        </p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td colSpan={5} className="inner-spec-cell">
-                        <p className="doc-line bold-txt">๒.๒.๓ เครื่องป้องกันกระแสเกินด้านไฟเข้า</p>
-                        <p className="doc-line">
-                          แบบ <Dot value={tf0.primaryProtection?.type} minWidth={220} />
-                        </p>
-                        <p className="doc-line">
-                          พิกัดกระแส <Dot value={tf0.primaryProtection?.amp} minWidth={80} /> A
-                        </p>
-                      </td>
-                    </tr>
-                  </>
-                )}
+                <tr>
+                  <td colSpan={5} className="inner-spec-cell">
+                    <p className="doc-line bold-txt">๒.๒.๓ เครื่องป้องกันกระแสเกินด้านไฟเข้า</p>
+                    <p className="doc-line">
+                      แบบ <Dot value={tf0.primaryProtection?.type} minWidth={220} />
+                    </p>
+                    <p className="doc-line">
+                      พิกัดกระแส <Dot value={tf0.primaryProtection?.amp} minWidth={80} /> A
+                    </p>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
