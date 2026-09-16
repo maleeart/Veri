@@ -4,12 +4,14 @@ import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import SignaturePad from '../components/SignaturePad';
+import ElecReport from '../components/ElecReport';
 import { useCanWrite } from '../lib/useCanWrite';
 
 // ── Default Initial Form Data ────────────────────────────────────────────────
 const createDefaultHighVoltage = (idx = 1) => ({
   id: `hv_${Date.now()}_${idx}`,
   title: `ระบบแรงสูง ชุดที่ ${idx}`,
+  aerialName: '',
   aerial: {
     pole: { status: 'pass', note: '', photo: null },
     poleTop: { status: 'pass', note: '', photo: null },
@@ -357,6 +359,7 @@ function ElectricalAnnualInner() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [validationError, setValidationError] = useState('');
   const [hasDraft, setHasDraft] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   // Load existing file or draft
   useEffect(() => {
@@ -557,10 +560,14 @@ function ElectricalAnnualInner() {
         throw new Error(err.error || 'บันทึกข้อมูลไม่สำเร็จ');
       }
 
+      const resJson = await res.json().catch(() => ({}));
+      const savedPath = resJson.path || '';
+      const savedStem = savedPath ? savedPath.split('/').pop().replace(/\.json$/, '') : `elec_${inspectionDate}`;
+
       localStorage.removeItem(DRAFT_KEY);
       setSaveSuccess(true);
       setTimeout(() => {
-        router.push(`/?saved=${inspectionDate}`);
+        router.push(`/report/${encodeURIComponent(savedStem)}${savedPath ? `?path=${encodeURIComponent(savedPath)}` : ''}`);
       }, 1200);
     } catch (e) {
       setValidationError(String(e.message || e));
@@ -594,13 +601,12 @@ function ElectricalAnnualInner() {
             </button>
           )}
           <button
+            type="button"
             className="btn-preview-link"
-            onClick={() => {
-              if (editFilename) router.push(`/report/${encodeURIComponent(editFilename)}`);
-              else alert('สามารถดูตัวอย่างรายงานฉบับเต็มได้หลังจากบันทึกแล้ว หรือกดพิมพ์ในขั้นตอนสรุป');
-            }}
+            onClick={() => setShowPreviewModal(true)}
+            title="ดูตัวอย่างรายงานฉบับเต็ม"
           >
-            📄 รายงาน
+            📄 ดูตัวอย่างรายงาน
           </button>
         </div>
       </header>
@@ -1101,7 +1107,20 @@ function ElectricalAnnualInner() {
                   )}
                 </div>
 
-                <h3 className="group-sub-title">๒.๑.๑ สายอากาศ</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '14px 0 10px', flexWrap: 'wrap' }}>
+                  <h3 className="group-sub-title" style={{ margin: 0 }}>๒.๑.๑ สายอากาศ :</h3>
+                  <input
+                    type="text"
+                    placeholder="ระบุชื่อสายอากาศ / วงจร / ช่วงเสา..."
+                    style={{ flex: 1, minWidth: 200, padding: '6px 12px', borderRadius: 8, border: '1.5px solid var(--border-strong)', background: 'var(--bg-input)', color: 'var(--ink-primary)', fontSize: 13 }}
+                    value={hv.aerialName || ''}
+                    onChange={(e) => {
+                      const arr = [...data.highVoltageSystems];
+                      arr[idx].aerialName = e.target.value;
+                      setData(d => ({ ...d, highVoltageSystems: arr }));
+                    }}
+                  />
+                </div>
                 <ChecklistRow title="- สภาพเสา" item={hv.aerial.pole} onChange={(it) => {
                   const arr = [...data.highVoltageSystems]; arr[idx].aerial.pole = it; setData(d => ({ ...d, highVoltageSystems: arr }));
                 }} />
@@ -2040,6 +2059,13 @@ function ElectricalAnnualInner() {
           <div className="step-actions">
             <button className="btn-secondary" onClick={() => setStep(3)}>‹ ย้อนกลับไปตรวจอุปกรณ์</button>
             <button
+              type="button"
+              className="btn-preview-action"
+              onClick={() => setShowPreviewModal(true)}
+            >
+              👁 ดูตัวอย่างรายงาน (Preview)
+            </button>
+            <button
               className="btn-submit"
               disabled={submitting || !canWrite}
               onClick={handleSubmit}
@@ -2048,6 +2074,31 @@ function ElectricalAnnualInner() {
             </button>
           </div>
         </section>
+      )}
+
+      {/* ── Live Report Preview Modal ── */}
+      {showPreviewModal && (
+        <div className="preview-modal-overlay" onClick={() => setShowPreviewModal(false)}>
+          <div className="preview-modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="preview-modal-hdr">
+              <div>
+                <span style={{ fontWeight: 800, fontSize: 16 }}>📄 ตัวอย่างรายงาน ESPSIB001</span>
+                <span style={{ fontSize: 12, color: 'var(--ink-muted)', marginLeft: 8 }}>ตัวอย่างเอกสารฉบับเต็ม</span>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="button" className="btn-modal-print" onClick={() => window.print()}>
+                  🖨 พิมพ์ / ออก PDF
+                </button>
+                <button type="button" className="btn-modal-close" onClick={() => setShowPreviewModal(false)}>
+                  ✕ ปิด
+                </button>
+              </div>
+            </div>
+            <div className="preview-modal-body">
+              <ElecReport data={{ records: { formData: data }, date: data.workplace.inspectionDate }} />
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ── Page Styles ── */}
@@ -2585,6 +2636,71 @@ function ElectricalAnnualInner() {
           background: var(--status-pass-bg);
           color: var(--status-pass);
           border: 1px solid var(--status-pass);
+        }
+        .btn-preview-action {
+          padding: 11px 18px;
+          border-radius: 12px;
+          background: rgba(37,99,235,0.1);
+          border: 1.5px solid var(--accent);
+          color: var(--accent-strong);
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .preview-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.7);
+          z-index: 9999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+        }
+        .preview-modal-box {
+          background: #cbd5e1;
+          width: 100%;
+          max-width: 960px;
+          height: 90vh;
+          border-radius: 16px;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+        .preview-modal-hdr {
+          background: #fff;
+          padding: 14px 20px;
+          border-bottom: 1px solid #cbd5e1;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          color: #0f172a;
+        }
+        .btn-modal-print {
+          padding: 7px 14px;
+          border-radius: 8px;
+          background: var(--accent);
+          color: #fff;
+          border: none;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .btn-modal-close {
+          padding: 7px 12px;
+          border-radius: 8px;
+          background: #f1f5f9;
+          border: 1px solid #cbd5e1;
+          color: #475569;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .preview-modal-body {
+          flex: 1;
+          overflow-y: auto;
+          padding: 20px;
         }
         @media (max-width: 768px) {
           .step-nav {

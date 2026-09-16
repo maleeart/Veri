@@ -280,7 +280,9 @@ export default function ElecReport({ data }) {
                   <table className="inner-table">
                     <tbody>
                       <tr>
-                        <td style={{ width: '47.1%', fontWeight: 700 }} colSpan={5}>๒.๑.๑ สายอากาศ :</td>
+                        <td style={{ width: '47.1%', fontWeight: 700 }} colSpan={5}>
+                          ๒.๑.๑ สายอากาศ : {hv.aerialName ? <span className="fill-txt">{hv.aerialName}</span> : '................................................'}
+                        </td>
                       </tr>
                       {[
                         { key: 'pole', label: '- สภาพเสา' },

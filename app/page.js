@@ -429,7 +429,7 @@ function HomePageInner() {
         return row.type || 'other';
       };
 
-      await Promise.all(rows.filter(r => r.kind !== 'mgfn-year').map(async (row) => {
+      await Promise.all(rows.filter(r => r.kind !== 'mgfn-year' && r.type !== 'elec').map(async (row) => {
         try {
           const res = await fetch(getUrl(row));
           if (!res.ok) return;
@@ -463,10 +463,11 @@ function HomePageInner() {
     if (!isReport) return [];
     const yr = selectedYear || String(new Date().getFullYear());
     const rows = [];
-    const types = reportType ? [reportType] : ['fpg', 'emergency', 'smoke', 'exit'];
+    const allInspectionTypes = ['fpg', 'emergency', 'smoke', 'exit', 'elec'];
+    const types = reportType ? [reportType] : allInspectionTypes;
     if (!reportType || types.includes(reportType)) {
       for (const t of types) {
-        if (!['fpg','emergency','smoke','exit'].includes(t)) continue;
+        if (!allInspectionTypes.includes(t)) continue;
         for (const d of (filteredDates || [])) {
           if (d.type !== t) continue;
           rows.push({ kind: 'inspection', type: t, ...d });
@@ -863,7 +864,7 @@ function HomePageInner() {
                 {THAI_MONTHS.map((m,i) => <option key={i} value={String(i+1).padStart(2,'0')}>{m}</option>)}
               </select>
             </div>
-            {(reportType === '' || ['fpg','emergency','smoke','exit'].includes(reportType)) && (
+            {(reportType === '' || ['fpg','emergency','smoke','exit','elec'].includes(reportType)) && (
               <div className="filter-col">
                 <label className="filter-label">อาคาร</label>
                 <select className="filter-select" value={selectedBuilding} onChange={e => setSelectedBuilding(e.target.value)}>
@@ -903,9 +904,13 @@ function HomePageInner() {
                     </div>
                     <div className="hist-actions">
                       {row.type !== 'fpg' && (
-                        <button className="btn-dl btn-dl--preview" onClick={() => router.push(previewUrl)}>Preview</button>
+                        <button className="btn-dl btn-dl--preview" onClick={() => router.push(previewUrl)}>
+                          {row.type === 'elec' ? '📄 รายงาน PDF' : 'Preview'}
+                        </button>
                       )}
-                      <button className="btn-dl" onClick={() => handleDownload(row.date, row.type, row.filename, row.building, row.floor)}>⬇︎ Excel</button>
+                      {row.type !== 'elec' && (
+                        <button className="btn-dl" onClick={() => handleDownload(row.date, row.type, row.filename, row.building, row.floor)}>⬇︎ Excel</button>
+                      )}
                       {isAdmin ? (
                         <>
                           <button className="btn-edit" title="แก้ไข"
