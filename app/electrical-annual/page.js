@@ -2426,119 +2426,78 @@ function ElectricalAnnualInner() {
         </div>
       )}
 
-      {/* ── Modal: Duplicate Year Detected ── */}
+      {/* ── Modal: Duplicate Year Detected (Firepump style) ── */}
       {duplicateModalRecord && (
-        <div className="elec-modal-overlay" onClick={handleCancelDuplicateModal}>
-          <div className="elec-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="elec-modal-hdr elec-modal-hdr--amber">
-              <span className="elec-modal-icon">⚠️</span>
-              <div>
-                <h3 className="elec-modal-title">
-                  พบข้อมูลรายงานประจำปี พ.ศ. {duplicateModalRecord.year + 543} ({duplicateModalRecord.year})
-                </h3>
-                <p className="elec-modal-sub">มีบันทึกการตรวจสอบของปีนี้อยู่ในระบบแล้ว</p>
-              </div>
-            </div>
-
-            <div className="elec-modal-body">
-              <div className="elec-modal-info-box">
-                <div className="info-line">
-                  <span className="info-label">🏢 สถานประกอบกิจการ:</span>
-                  <span className="info-val">
-                    {duplicateModalRecord.record.building || duplicateModalRecord.record.label || 'บริภัณฑ์ไฟฟ้าประจำปี'}
-                  </span>
-                </div>
-                <div className="info-line">
-                  <span className="info-label">📅 วันที่ตรวจบันทึก:</span>
-                  <span className="info-val">{duplicateModalRecord.record.date}</span>
-                </div>
-                <div className="info-line">
-                  <span className="info-label">📁 ไฟล์ข้อมูล:</span>
-                  <span className="info-val" style={{ fontSize: 11, fontFamily: 'monospace' }}>
-                    {duplicateModalRecord.record.filename}
-                  </span>
-                </div>
-              </div>
-              <p className="elec-modal-question">
-                ปีนี้มีบันทึกการตรวจสอบอยู่แล้ว ท่านต้องการ <strong>ใช้ข้อมูลที่มีอยู่ (เข้าไปแก้ไข)</strong> หรือ <strong>สร้างใหม่</strong> สำหรับปี พ.ศ. {duplicateModalRecord.year + 543} ?
-              </p>
-            </div>
-
-            <div className="elec-modal-actions">
+        <div className="overlay" onClick={handleCancelDuplicateModal}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <span className="modal__icon">📅</span>
+            <h2 className="modal__title">พบข้อมูลรายงานประจำปี</h2>
+            <p className="modal__msg">
+              มีบันทึกการตรวจสอบปี พ.ศ. {duplicateModalRecord.year + 543} ({duplicateModalRecord.year}) อยู่ในระบบแล้ว
+              <br />
+              <span style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>
+                {duplicateModalRecord.record.building || duplicateModalRecord.record.label || 'บริภัณฑ์ไฟฟ้าประจำปี'} · {duplicateModalRecord.record.date}
+              </span>
+            </p>
+            <div className="template-list">
               <button
                 type="button"
-                className="btn-modal-action btn-modal-action--edit"
+                className="modal__close modal__btn--primary"
                 onClick={() => handleUseExisting(duplicateModalRecord)}
               >
-                ✏️ ใช้ข้อมูลที่มีอยู่ (เข้าไปแก้ไข)
+                ✏️ ใช้ข้อมูลเดิม (เข้าไปแก้ไข)
               </button>
               <button
                 type="button"
-                className="btn-modal-action btn-modal-action--fresh"
+                className="modal__close"
                 onClick={() => handleCreateFreshForDuplicateYear(duplicateModalRecord)}
               >
                 ➕ สร้างใหม่สำหรับปีนี้
               </button>
               <button
                 type="button"
-                className="btn-modal-action btn-modal-action--cancel"
+                className="modal__btn--cancel"
                 onClick={handleCancelDuplicateModal}
               >
-                ✕ ยกเลิก
+                ยกเลิก
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Modal: Offer Previous Year as Template ── */}
+      {/* ── Modal: Offer Previous Year as Template (Firepump style) ── */}
       {templateModalOffer && (
-        <div className="elec-modal-overlay" onClick={handleCancelTemplateModal}>
-          <div className="elec-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="elec-modal-hdr elec-modal-hdr--indigo">
-              <span className="elec-modal-icon">💡</span>
-              <div>
-                <h3 className="elec-modal-title">
-                  เริ่มต้นรายงานประจำปี พ.ศ. {templateModalOffer.targetYear + 543} ({templateModalOffer.targetYear})
-                </h3>
-                <p className="elec-modal-sub">
-                  ตรวจพบข้อมูลจากรายงานปี พ.ศ. {templateModalOffer.priorYear + 543} ({templateModalOffer.priorYear})
-                </p>
-              </div>
-            </div>
-
-            <div className="elec-modal-body">
-              <div className="elec-modal-template-preview">
-                <div className="tmpl-feat-title">✨ ต้องการใช้ข้อมูลเดิมเป็น template เริ่มต้นไหม?</div>
-                <ul className="tmpl-feat-list">
-                  <li>✓ <strong>คัดลอกข้อมูลทั่วไป:</strong> สถานประกอบการ, วิศวกร, โวลต์/เฟส, ข้อมูลเครื่องวัด</li>
-                  <li>✓ <strong>คัดลอกสเปกอุปกรณ์ครบถ้วน:</strong> พิกัดหม้อแปลง (kVA), ขนาด Breaker, ชนิดสายไฟ, จำนวนตู้ MDB และแผงย่อย</li>
-                  <li>✓ <strong>รีเซ็ตผลการตรวจสอบ & รูปถ่าย:</strong> ล้างเครื่องหมายตรวจและรูป เพื่อให้เริ่มตรวจใหม่ของปี {templateModalOffer.targetYear + 543} ได้ทันที</li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="elec-modal-actions">
+        <div className="overlay" onClick={handleCancelTemplateModal}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <span className="modal__icon">📋</span>
+            <h2 className="modal__title">พบข้อมูลรายงานปี {templateModalOffer.priorYear + 543}</h2>
+            <p className="modal__msg">
+              ต้องการดึงข้อมูลอุปกรณ์และสเปกเดิมมาเป็น template เริ่มต้นสำหรับปี พ.ศ. {templateModalOffer.targetYear + 543} หรือไม่?
+              <br />
+              <span style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>(ผลตรวจและรูปถ่ายจะถูกรีเซ็ตให้ตรวจใหม่)</span>
+            </p>
+            <div className="template-list">
               <button
                 type="button"
-                className="btn-modal-action btn-modal-action--apply-tmpl"
+                className="modal__close modal__btn--primary"
                 onClick={() => handleApplyTemplate(templateModalOffer)}
               >
-                📋 ใช้ข้อมูลเดิมเป็น template เริ่มต้น (แนะนำ)
+                📋 ใช้ข้อมูลเดิมเป็น template เริ่มต้น
               </button>
               <button
                 type="button"
-                className="btn-modal-action btn-modal-action--fresh"
+                className="modal__close"
                 onClick={() => handleDeclineTemplate(templateModalOffer)}
               >
-                📄 ไม่ใช้ (เริ่มกรอกใหม่ทั้งหมด)
+                เริ่มใหม่ (ไม่ใช้ template)
               </button>
               <button
                 type="button"
-                className="btn-modal-action btn-modal-action--cancel"
+                className="modal__btn--cancel"
                 onClick={handleCancelTemplateModal}
               >
-                ✕ ยกเลิก
+                ยกเลิก
               </button>
             </div>
           </div>
@@ -3241,169 +3200,98 @@ function ElectricalAnnualInner() {
           border: 1px solid #c7d2fe;
         }
 
-        /* ── Elec Custom Popups ── */
-        .elec-modal-overlay {
+        /* ── Modern Centered Modal (Firepump Style) ── */
+        .overlay {
           position: fixed;
           inset: 0;
-          background: rgba(15, 23, 42, 0.7);
-          backdrop-filter: blur(5px);
+          background: rgba(0, 0, 0, 0.55);
           display: flex;
           align-items: center;
           justify-content: center;
-          z-index: 1200;
-          padding: 16px;
+          z-index: 999;
+          padding: 24px;
+          animation: modalFadeIn 0.2s ease;
         }
-        .elec-modal-card {
-          background: var(--bg-surface-raised, #ffffff);
-          border: 1px solid var(--border-hairline, #e2e8f0);
-          border-radius: 18px;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+        @keyframes modalFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .modal {
+          background: var(--bg-surface, #ffffff);
+          border-radius: 24px;
+          padding: 28px 22px;
           width: 100%;
-          max-width: 520px;
-          overflow: hidden;
-          animation: modalPopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        @keyframes modalPopIn {
-          from { opacity: 0; transform: scale(0.95) translateY(10px); }
-          to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        .elec-modal-hdr {
+          max-width: 340px;
+          text-align: center;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
           display: flex;
-          align-items: flex-start;
-          gap: 12px;
-          padding: 18px 20px 14px;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          animation: modalZoomIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .elec-modal-hdr--amber {
-          background: linear-gradient(135deg, #fffbeb, #fef3c7);
-          border-bottom: 1px solid #fde68a;
+        @keyframes modalZoomIn {
+          from { opacity: 0; transform: scale(0.92); }
+          to { opacity: 1; transform: scale(1); }
         }
-        .elec-modal-hdr--indigo {
-          background: linear-gradient(135deg, #eff6ff, #e0e7ff);
-          border-bottom: 1px solid #c7d2fe;
-        }
-        .elec-modal-icon {
-          font-size: 28px;
+        .modal__icon {
+          font-size: 44px;
           line-height: 1;
         }
-        .elec-modal-title {
-          font-size: 16px;
+        .modal__title {
+          font-size: 18px;
           font-weight: 800;
-          color: #1e293b;
+          color: var(--ink-primary, #0f172a);
           margin: 0;
         }
-        .elec-modal-sub {
-          font-size: 12.5px;
-          color: #475569;
-          margin: 2px 0 0;
-        }
-        .elec-modal-body {
-          padding: 18px 20px;
-        }
-        .elec-modal-info-box {
-          background: var(--bg-surface, #f8fafc);
-          border: 1px solid var(--border-hairline, #e2e8f0);
-          border-radius: 10px;
-          padding: 10px 14px;
-          margin-bottom: 14px;
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-        .info-line {
-          display: flex;
-          align-items: baseline;
-          gap: 8px;
-          font-size: 12.5px;
-        }
-        .info-label {
-          color: var(--ink-muted);
-          min-width: 110px;
-        }
-        .info-val {
-          color: var(--ink-primary);
-          font-weight: 600;
-          word-break: break-all;
-        }
-        .elec-modal-question {
-          font-size: 13.5px;
-          color: var(--ink-primary);
-          line-height: 1.5;
-          margin: 0;
-        }
-        .elec-modal-template-preview {
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
-          padding: 14px 16px;
-        }
-        .tmpl-feat-title {
-          font-size: 13.5px;
-          font-weight: 800;
-          color: #1e293b;
-          margin-bottom: 10px;
-        }
-        .tmpl-feat-list {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          font-size: 12.5px;
-          color: #334155;
+        .modal__msg {
+          font-size: 13px;
+          color: var(--ink-secondary, #475569);
+          margin: 0 0 6px;
           line-height: 1.45;
         }
-        .elec-modal-actions {
-          padding: 14px 20px 18px;
-          background: var(--bg-surface, #f8fafc);
-          border-top: 1px solid var(--border-hairline, #e2e8f0);
+        .template-list {
+          width: 100%;
           display: flex;
           flex-direction: column;
-          gap: 9px;
+          gap: 8px;
         }
-        .btn-modal-action {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          padding: 11px 16px;
-          border-radius: 10px;
-          font-size: 13.5px;
-          font-weight: 700;
+        .modal__close {
+          width: 100%;
+          padding: 12px;
+          background: var(--bg-surface-raised, #f8fafc);
+          border: 1px solid var(--border-strong, #cbd5e1);
+          border-radius: 12px;
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--ink-primary, #0f172a);
           cursor: pointer;
           transition: all 0.15s ease;
-          border: 1px solid transparent;
         }
-        .btn-modal-action--edit {
-          background: #d97706;
-          color: #fff;
-        }
-        .btn-modal-action--edit:hover {
-          background: #b45309;
-        }
-        .btn-modal-action--apply-tmpl {
-          background: #4338ca;
-          color: #fff;
-        }
-        .btn-modal-action--apply-tmpl:hover {
-          background: #3730a3;
-        }
-        .btn-modal-action--fresh {
-          background: var(--bg-surface-raised, #fff);
-          border-color: var(--border-strong, #cbd5e1);
-          color: var(--ink-primary);
-        }
-        .btn-modal-action--fresh:hover {
+        .modal__close:hover {
           background: var(--bg-surface-hover, #f1f5f9);
         }
-        .btn-modal-action--cancel {
-          background: transparent;
-          color: var(--ink-muted);
-          padding: 7px 16px;
-          font-size: 12.5px;
+        .modal__btn--primary {
+          background: #2563eb !important;
+          color: #ffffff !important;
+          border-color: #1d4ed8 !important;
+          font-weight: 700;
         }
-        .btn-modal-action--cancel:hover {
-          color: var(--ink-primary);
+        .modal__btn--primary:hover {
+          background: #1d4ed8 !important;
+        }
+        .modal__btn--cancel {
+          width: 100%;
+          padding: 8px;
+          background: transparent;
+          border: none;
+          color: var(--ink-muted, #94a3b8);
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        .modal__btn--cancel:hover {
+          color: var(--ink-primary, #0f172a);
         }
 
         /* ── Media Print ── */
@@ -3416,7 +3304,7 @@ function ElectricalAnnualInner() {
           .btn-row,
           .preview-modal-hdr,
           .alert,
-          .elec-modal-overlay {
+          .overlay {
             display: none !important;
           }
           .elec-page {
