@@ -24,6 +24,7 @@ export default function Sidenav({ notifProps = null }) {
   const view = searchParams.get('view');
   const active = pathname === '/' && view === 'report' ? 'report'
     : pathname.startsWith('/form/') ? `form:${pathname.split('/')[2]}`
+    : pathname === '/electrical-annual' ? 'elec'
     : pathname === '/' ? 'dashboard'
     : pathname;
 
@@ -32,6 +33,7 @@ export default function Sidenav({ notifProps = null }) {
     { icon: '💡',   label: 'Emergency Light',        key: 'emer',   href: `/form/emergency?date=${today}` },
     { icon: '🚨',   label: 'Smoke Detector',         key: 'smoke',  href: `/form/smoke?date=${today}` },
     { icon: '🚪',   label: 'Exit Sign',              key: 'exit',   href: `/form/exit?date=${today}` },
+    { icon: '⚡📋', label: 'บริภัณฑ์ไฟฟ้าประจำปี',   key: 'elec',   href: '/electrical-annual' },
     { icon: '⚡',   label: 'Meter กฟน.',             key: 'meter',  href: '/meter' },
     { icon: '🏢',   label: 'Meter อาคาร',            key: 'bmeter', href: '/building-meter' },
     { icon: '🔧',   label: 'สถานะ PM',               key: 'pm',     href: '/pm' },

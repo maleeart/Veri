@@ -506,6 +506,7 @@ function HomePageInner() {
     exit:      { icon: '🚪',   label: 'Exit Sign' },
     'building-meter': { icon: '🏢', label: 'Meter อาคาร' },
     'meter-gfn':      { icon: '⚡', label: 'Meter กฟน.' },
+    elec:             { icon: '⚡📋', label: 'บริภัณฑ์ไฟฟ้าประจำปี' },
   };
 
   // ── รายการล่าสุด (timeline รวมทุกระบบ) — ภาพรวมต่อระบบย้ายไปหน้า /pm แล้ว ──
@@ -835,6 +836,7 @@ function HomePageInner() {
               { key: 'emergency',     icon: '💡',   label: 'Emergency Light' },
               { key: 'smoke',         icon: '🚨',   label: 'Smoke Detector' },
               { key: 'exit',          icon: '🚪',   label: 'Exit Sign' },
+              { key: 'elec',          icon: '⚡📋', label: 'บริภัณฑ์ไฟฟ้าประจำปี' },
               { key: 'meter-gfn',     icon: '⚡',   label: 'Meter กฟน.' },
               { key: 'building-meter',icon: '🏢',   label: 'Meter อาคาร' },
             ].map(({ key, icon, label }) => (
@@ -909,6 +911,8 @@ function HomePageInner() {
                           <button className="btn-edit" title="แก้ไข"
                             onClick={() => row.type === 'fpg'
                               ? router.push(`/session?date=${row.date}`)
+                              : row.type === 'elec'
+                              ? router.push(`/electrical-annual?filename=${encodeURIComponent(row.filename || '')}&edit=1`)
                               : router.push(`/form/${row.type}?date=${row.date}&filename=${encodeURIComponent(row.filename || '')}&edit=1`)}>
                             ✏️
                           </button>
@@ -923,6 +927,8 @@ function HomePageInner() {
                           <button className="btn-edit" title="แก้ไข"
                             onClick={() => row.type === 'fpg'
                               ? router.push(`/session?date=${row.date}`)
+                              : row.type === 'elec'
+                              ? router.push(`/electrical-annual?filename=${encodeURIComponent(row.filename || '')}&edit=1`)
                               : router.push(`/form/${row.type}?date=${row.date}&filename=${encodeURIComponent(row.filename || '')}&edit=1`)}>
                             ✏️
                           </button>
@@ -1038,6 +1044,18 @@ function HomePageInner() {
           <div className="card__body">
             <span className="card__title">Exit Sign</span>
             <span className="card__sub">ไฟทางออกฉุกเฉิน</span>
+          </div>
+          <span className="card__arrow">›</span>
+        </button>
+
+        {/* Card 3c — บริภัณฑ์ไฟฟ้าประจำปี */}
+        <button
+          className="card card--elec"
+          onClick={() => router.push('/electrical-annual')}>
+          <span className="card__icon">⚡📋</span>
+          <div className="card__body">
+            <span className="card__title">บริภัณฑ์ไฟฟ้าประจำปี</span>
+            <span className="card__sub">แบบฟอร์ม ESPSIB001</span>
           </div>
           <span className="card__arrow">›</span>
         </button>

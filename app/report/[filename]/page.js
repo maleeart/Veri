@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import ElecReport from '../../components/ElecReport';
 
 const v = (val, unit = '') => {
   if (val === undefined || val === null || val === '') return '–';
@@ -39,7 +40,8 @@ function ReportInner() {
 
   const isFpg  = data.type === 'fpg';
   const isExit = data.type === 'exit';
-  const typeLabel = isFpg ? 'Fire Pump & Generator' : isExit ? 'Exit Sign' : data.type === 'emergency' ? 'Emergency Light' : 'Smoke Detector';
+  const isElec = data.type === 'elec';
+  const typeLabel = isFpg ? 'Fire Pump & Generator' : isExit ? 'Exit Sign' : isElec ? 'บริภัณฑ์ไฟฟ้าประจำปี (ESPSIB001)' : data.type === 'emergency' ? 'Emergency Light' : 'Smoke Detector';
 
   return (
     <div className="rp-root">
@@ -55,7 +57,9 @@ function ReportInner() {
           ? <FpgReport data={data} fieldMap={fieldMap} />
           : isExit
             ? <ExitReport data={data} />
-            : <ListReport data={data} fieldMap={fieldMap} />
+            : isElec
+              ? <ElecReport data={data} />
+              : <ListReport data={data} fieldMap={fieldMap} />
         }
       </div>
 
