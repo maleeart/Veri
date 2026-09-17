@@ -405,7 +405,7 @@ export default function ElecReport({ data }) {
                   );
                 })}
                 <tr>
-                  <td>๒.๑.๓ อื่นๆ : {hv0.otherText || ''}</td>
+                  <td className="bold-cell">๒.๑.๓ อื่นๆ : <span style={{ fontWeight: 'normal' }}>{hv0.otherText || ''}</span></td>
                   <td className="c"><StatusMark status={hv0.other?.status} target="pass" /></td>
                   <td className="c"><StatusMark status={hv0.other?.status} target="improve" /></td>
                   <td className="c"><StatusMark status={hv0.other?.status} target="fix" /></td>
@@ -547,7 +547,7 @@ export default function ElecReport({ data }) {
                 );
               })}
               <tr>
-                <td>๒.๑.๓ อื่นๆ : {hv.otherText || ''}</td>
+                <td className="bold-cell">๒.๑.๓ อื่นๆ : <span style={{ fontWeight: 'normal' }}>{hv.otherText || ''}</span></td>
                 <td className="c"><StatusMark status={hv.other?.status} target="pass" /></td>
                 <td className="c"><StatusMark status={hv.other?.status} target="improve" /></td>
                 <td className="c"><StatusMark status={hv.other?.status} target="fix" /></td>
@@ -784,7 +784,7 @@ export default function ElecReport({ data }) {
                   <td className="note-cell"></td>
                 </tr>
                 <tr>
-                  <td>๒.๒.๑๒ อื่นๆ : {it.otherText || ''}</td>
+                  <td className="bold-cell">๒.๒.๑๒ อื่นๆ : <span style={{ fontWeight: 'normal' }}>{it.otherText || ''}</span></td>
                   <td className="c"><StatusMark status={it.other?.status} target="pass" /></td>
                   <td className="c"><StatusMark status={it.other?.status} target="improve" /></td>
                   <td className="c"><StatusMark status={it.other?.status} target="fix" /></td>
@@ -1016,7 +1016,7 @@ export default function ElecReport({ data }) {
                     <td className="note-cell"></td>
                   </tr>
                   <tr>
-                    <td>๒.๒.๑๒ อื่นๆ : {it.otherText || ''}</td>
+                    <td className="bold-cell">๒.๒.๑๒ อื่นๆ : <span style={{ fontWeight: 'normal' }}>{it.otherText || ''}</span></td>
                     <td className="c"><StatusMark status={it.other?.status} target="pass" /></td>
                     <td className="c"><StatusMark status={it.other?.status} target="improve" /></td>
                     <td className="c"><StatusMark status={it.other?.status} target="fix" /></td>
@@ -1170,7 +1170,7 @@ export default function ElecReport({ data }) {
                 {/* ๒.๓.๔ */}
                 <tr>
                   <td>
-                    ๒.๓.๔ อุณหภูมิของอุปกรณ์<br />
+                    <span className="bold-txt">๒.๓.๔ อุณหภูมิของอุปกรณ์</span><br />
                     &nbsp;&nbsp;<CircleOpt checked={msb.temperature === 'normal'} label="ปกติ" />
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <CircleOpt checked={msb.temperature === 'abnormal'} label="ผิดปกติ" />
@@ -1181,7 +1181,7 @@ export default function ElecReport({ data }) {
                   <td className="note-cell">{msb.temperatureNote || ''}</td>
                 </tr>
                 <tr>
-                  <td>๒.๓.๕ อื่นๆ : {msb.otherText || ''}</td>
+                  <td className="bold-cell">๒.๓.๕ อื่นๆ : <span style={{ fontWeight: 'normal' }}>{msb.otherText || ''}</span></td>
                   <td className="c"><StatusMark status={msb.other?.status} target="pass" /></td>
                   <td className="c"><StatusMark status={msb.other?.status} target="improve" /></td>
                   <td className="c"><StatusMark status={msb.other?.status} target="fix" /></td>
@@ -1279,7 +1279,7 @@ export default function ElecReport({ data }) {
               </tr>
               <tr>
                 <td>
-                  ๒.๔.๑.๖ อุณหภูมิของอุปกรณ์<br />
+                  <span className="bold-txt">๒.๔.๑.๖ อุณหภูมิของอุปกรณ์</span><br />
                   &nbsp;&nbsp;<CircleOpt checked={mc.temperature === 'normal'} label="ปกติ" />
                   &nbsp;&nbsp;&nbsp;&nbsp;
                   <CircleOpt checked={mc.temperature === 'abnormal'} label="ผิดปกติ" />
@@ -1290,7 +1290,7 @@ export default function ElecReport({ data }) {
                 <td className="note-cell">{mc.temperatureNote || ''}</td>
               </tr>
               <tr>
-                <td>๒.๔.๑.๗ อื่นๆ : {mc.otherText || ''}</td>
+                <td className="bold-cell">๒.๔.๑.๗ อื่นๆ : <span style={{ fontWeight: 'normal' }}>{mc.otherText || ''}</span></td>
                 <td className="c"><StatusMark status={mc.other?.status} target="pass" /></td>
                 <td className="c"><StatusMark status={mc.other?.status} target="improve" /></td>
                 <td className="c"><StatusMark status={mc.other?.status} target="fix" /></td>
@@ -1428,7 +1428,7 @@ export default function ElecReport({ data }) {
                 {/* ๒.๔.๒.๔ */}
                 <tr>
                   <td>
-                    ๒.๔.๒.๔ อุณหภูมิของอุปกรณ์<br />
+                    <span className="bold-txt">๒.๔.๒.๔ อุณหภูมิของอุปกรณ์</span><br />
                     &nbsp;&nbsp;<CircleOpt checked={sp.temperature === 'normal'} label="ปกติ" />
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <CircleOpt checked={sp.temperature === 'abnormal'} label="ผิดปกติ" />
@@ -1439,7 +1439,7 @@ export default function ElecReport({ data }) {
                   <td className="note-cell">{sp.temperatureNote || ''}</td>
                 </tr>
                 <tr>
-                  <td>๒.๔.๒.๕ อื่นๆ : {sp.otherText || ''}</td>
+                  <td className="bold-cell">๒.๔.๒.๕ อื่นๆ : <span style={{ fontWeight: 'normal' }}>{sp.otherText || ''}</span></td>
                   <td className="c"><StatusMark status={sp.other?.status} target="pass" /></td>
                   <td className="c"><StatusMark status={sp.other?.status} target="improve" /></td>
                   <td className="c"><StatusMark status={sp.other?.status} target="fix" /></td>
@@ -1484,21 +1484,21 @@ export default function ElecReport({ data }) {
                   </td>
                 </tr>
                 <tr>
-                  <td>๒.๕.๑ การติดตั้ง</td>
+                  <td className="bold-cell">๒.๕.๑ การติดตั้ง</td>
                   <td className="c"><StatusMark status={eq.installation?.status} target="pass" /></td>
                   <td className="c"><StatusMark status={eq.installation?.status} target="improve" /></td>
                   <td className="c"><StatusMark status={eq.installation?.status} target="fix" /></td>
                   <td className="note-cell">{eq.installation?.note || ''}</td>
                 </tr>
                 <tr>
-                  <td>๒.๕.๒ สภาพภายนอก</td>
+                  <td className="bold-cell">๒.๕.๒ สภาพภายนอก</td>
                   <td className="c"><StatusMark status={eq.external?.status} target="pass" /></td>
                   <td className="c"><StatusMark status={eq.external?.status} target="improve" /></td>
                   <td className="c"><StatusMark status={eq.external?.status} target="fix" /></td>
                   <td className="note-cell">{eq.external?.note || ''}</td>
                 </tr>
                 <tr>
-                  <td>๒.๕.๓ อื่นๆ : {eq.otherText || ''}</td>
+                  <td className="bold-cell">๒.๕.๓ อื่นๆ : <span style={{ fontWeight: 'normal' }}>{eq.otherText || ''}</span></td>
                   <td className="c"><StatusMark status={eq.other?.status} target="pass" /></td>
                   <td className="c"><StatusMark status={eq.other?.status} target="improve" /></td>
                   <td className="c"><StatusMark status={eq.other?.status} target="fix" /></td>
@@ -1594,6 +1594,8 @@ export default function ElecReport({ data }) {
           AUTHENTIC TEMPLATE STYLES
       ══════════════════════════════════════════════════════════════════ */}
       <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,700&display=swap');
+
         .espsib-report-root {
           width: 100%;
           display: flex;
@@ -1609,8 +1611,8 @@ export default function ElecReport({ data }) {
           box-sizing: border-box;
           background: #ffffff;
           color: #000000;
-          font-family: 'TH Sarabun New', 'Sarabun', 'Noto Sans Thai', serif;
-          font-size: 11pt;
+          font-family: 'TH Sarabun New', 'THSarabunNew', 'Sarabun', 'Noto Sans Thai', sans-serif;
+          font-size: 11.5pt;
           line-height: 1.45;
           margin: 0 auto 24px auto;
           box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
@@ -1636,13 +1638,13 @@ export default function ElecReport({ data }) {
         /* ── Typography & Lines ── */
         .paper-page-num {
           text-align: center;
-          font-size: 11pt;
+          font-size: 11.5pt;
           margin-bottom: 8pt;
         }
         .doc-line {
           margin: 3.5pt 0;
           line-height: 1.45;
-          font-size: 11pt;
+          font-size: 11.5pt;
         }
         .indent {
           text-indent: 32pt;
@@ -1651,7 +1653,7 @@ export default function ElecReport({ data }) {
           font-weight: 700;
         }
         .section-hdr-txt {
-          font-size: 12pt;
+          font-size: 13pt;
           font-weight: 800;
           margin: 8pt 0 4pt;
         }
@@ -1699,13 +1701,13 @@ export default function ElecReport({ data }) {
           color: #fff;
         }
         .tmpl-circle-lbl {
-          font-size: 11pt;
+          font-size: 11.5pt;
         }
 
         /* ── Gazette (Page 1) Header ── */
         .gazette-top-right {
           text-align: right;
-          font-size: 11pt;
+          font-size: 11.5pt;
           margin-bottom: 4pt;
         }
         .gazette-header-box {
@@ -1719,7 +1721,7 @@ export default function ElecReport({ data }) {
         }
         .gazette-meta {
           text-align: center;
-          font-size: 11pt;
+          font-size: 11.5pt;
           padding: 2pt 0;
         }
         .gazette-title {
@@ -1727,12 +1729,12 @@ export default function ElecReport({ data }) {
           margin: 14pt 0 10pt;
         }
         .gazette-title h2 {
-          font-size: 13pt;
+          font-size: 13.5pt;
           font-weight: 800;
           margin: 0 0 3pt;
         }
         .gazette-sub {
-          font-size: 11.5pt;
+          font-size: 12pt;
           font-weight: 700;
           line-height: 1.35;
           margin: 0;
@@ -1741,11 +1743,13 @@ export default function ElecReport({ data }) {
           margin: 5.5pt 0;
           text-align: justify;
           line-height: 1.48;
+          font-size: 11.5pt;
         }
         .gazette-sign-block {
           text-align: center;
           margin-top: 22pt;
           line-height: 1.5;
+          font-size: 11.5pt;
         }
         .gazette-sign-block .name {
           font-weight: 700;
@@ -1758,22 +1762,22 @@ export default function ElecReport({ data }) {
           margin-bottom: 8pt;
         }
         .form-h2 {
-          font-size: 12pt;
+          font-size: 13pt;
           font-weight: 800;
           margin: 0 0 2pt;
         }
         .form-h3 {
-          font-size: 11pt;
+          font-size: 12pt;
           font-weight: 700;
           margin: 0;
         }
         .espsib-paper--page2 .doc-line {
           margin: 2pt 0;
           line-height: 1.34;
-          font-size: 10.5pt;
+          font-size: 11pt;
         }
         .espsib-paper--page2 .tmpl-body {
-          font-size: 10.5pt;
+          font-size: 11pt;
         }
 
         /* ── Signatures ── */
@@ -1820,7 +1824,7 @@ export default function ElecReport({ data }) {
         }
 
         .form-footer-note {
-          font-size: 8.5pt;
+          font-size: 9pt;
           color: #333;
           margin-top: 8pt;
           line-height: 1.32;
@@ -1833,20 +1837,24 @@ export default function ElecReport({ data }) {
           table-layout: fixed;
           border-collapse: collapse;
           margin-top: 6pt;
-          font-size: 9.5pt;
+          font-size: 10.5pt;
           border: 1px solid #000;
         }
         .tmpl-table th, .tmpl-table td {
           border: 1px solid #000;
-          padding: 3pt 4pt;
+          padding: 3.5pt 4.5pt;
           vertical-align: middle;
           word-break: break-word;
           overflow-wrap: break-word;
         }
         .tmpl-table th {
           background: #ffffff;
+          font-size: 11pt;
           font-weight: 800;
           text-align: center;
+        }
+        .tmpl-table td {
+          font-size: 10.5pt;
         }
         .bold-cell {
           font-weight: 700;
@@ -1857,10 +1865,12 @@ export default function ElecReport({ data }) {
         .inner-spec-cell {
           padding: 5pt 7pt !important;
           line-height: 1.4;
+          font-size: 10.5pt;
         }
         .sub-cat-row {
           font-weight: 700;
           background: #fbfbfb;
+          font-size: 10.5pt;
         }
         .c {
           text-align: center;
@@ -1870,7 +1880,7 @@ export default function ElecReport({ data }) {
           font-weight: 800;
         }
         .note-cell {
-          font-size: 9pt;
+          font-size: 10pt;
           line-height: 1.25;
         }
 

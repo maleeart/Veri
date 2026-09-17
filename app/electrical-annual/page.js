@@ -284,6 +284,7 @@ const cloneAsTemplate = (sourceData, targetYear) => {
       temperature: 'normal',
       temperatureNote: '',
       temperaturePhoto: null,
+      otherText: msb.otherText || '',
       other: cleanCheck(msb.other),
     })),
     mainCircuits: (sourceData.mainCircuits || []).map((mc, idx) => ({
@@ -295,6 +296,7 @@ const cloneAsTemplate = (sourceData, targetYear) => {
       temperature: 'normal',
       temperatureNote: '',
       temperaturePhoto: null,
+      otherText: mc.otherText || '',
       other: cleanCheck(mc.other),
     })),
     subPanels: (sourceData.subPanels || []).map((sp, idx) => ({
@@ -307,6 +309,7 @@ const cloneAsTemplate = (sourceData, targetYear) => {
       temperature: 'normal',
       temperatureNote: '',
       temperaturePhoto: null,
+      otherText: sp.otherText || '',
       other: cleanCheck(sp.other),
     })),
     otherEquipments: (sourceData.otherEquipments || []).map((eq, idx) => ({
@@ -314,6 +317,7 @@ const cloneAsTemplate = (sourceData, targetYear) => {
       id: `eq_${Date.now()}_${idx + 1}`,
       installation: cleanCheck(eq.installation),
       external: cleanCheck(eq.external),
+      otherText: eq.otherText || '',
       other: cleanCheck(eq.other),
     })),
     conclusion: {
@@ -1711,6 +1715,7 @@ function ElectricalAnnualInner() {
                   const arr = [...data.transformers]; arr[idx].items.environment = it; setData(d => ({ ...d, transformers: arr }));
                 }} />
 
+                <h3 className="group-sub-title" style={{ marginTop: 16 }}>๒.๒.๑๒ อื่นๆ</h3>
                 <div className="field" style={{ marginTop: 8 }}>
                   <input
                     type="text"
@@ -1931,6 +1936,21 @@ function ElectricalAnnualInner() {
                     </label>
                   </div>
                 </div>
+
+                <h3 className="group-sub-title" style={{ marginTop: 16 }}>๒.๓.๕ อื่นๆ</h3>
+                <div className="field" style={{ marginBottom: 8 }}>
+                  <input
+                    type="text"
+                    placeholder="๒.๓.๕ อื่นๆ (ระบุ)..."
+                    value={msb.otherText || ''}
+                    onChange={(e) => {
+                      const arr = [...data.mainSwitchboards]; arr[idx].otherText = e.target.value; setData(d => ({ ...d, mainSwitchboards: arr }));
+                    }}
+                  />
+                </div>
+                <ChecklistRow title="- รายการตู้เมนสวิตช์อื่นๆ" item={msb.other} onChange={(it) => {
+                  const arr = [...data.mainSwitchboards]; arr[idx].other = it; setData(d => ({ ...d, mainSwitchboards: arr }));
+                }} />
               </div>
             ))}
           </div>
@@ -2062,6 +2082,21 @@ function ElectricalAnnualInner() {
                     </label>
                   </div>
                 </div>
+
+                <h3 className="group-sub-title" style={{ marginTop: 16 }}>๒.๔.๑.๗ อื่นๆ</h3>
+                <div className="field" style={{ marginBottom: 8 }}>
+                  <input
+                    type="text"
+                    placeholder="๒.๔.๑.๗ อื่นๆ (ระบุ)..."
+                    value={mc.otherText || ''}
+                    onChange={(e) => {
+                      const arr = [...data.mainCircuits]; arr[idx].otherText = e.target.value; setData(d => ({ ...d, mainCircuits: arr }));
+                    }}
+                  />
+                </div>
+                <ChecklistRow title="- รายการวงจรเมนอื่นๆ" item={mc.other} onChange={(it) => {
+                  const arr = [...data.mainCircuits]; arr[idx].other = it; setData(d => ({ ...d, mainCircuits: arr }));
+                }} />
               </div>
             ))}
           </div>
@@ -2276,6 +2311,21 @@ function ElectricalAnnualInner() {
                     </label>
                   </div>
                 </div>
+
+                <h3 className="group-sub-title" style={{ marginTop: 16 }}>๒.๔.๒.๕ อื่นๆ</h3>
+                <div className="field" style={{ marginBottom: 8 }}>
+                  <input
+                    type="text"
+                    placeholder="๒.๔.๒.๕ อื่นๆ (ระบุ)..."
+                    value={sp.otherText || ''}
+                    onChange={(e) => {
+                      const arr = [...data.subPanels]; arr[idx].otherText = e.target.value; setData(d => ({ ...d, subPanels: arr }));
+                    }}
+                  />
+                </div>
+                <ChecklistRow title="- รายการแผงย่อยอื่นๆ" item={sp.other} onChange={(it) => {
+                  const arr = [...data.subPanels]; arr[idx].other = it; setData(d => ({ ...d, subPanels: arr }));
+                }} />
               </div>
             ))}
           </div>
@@ -2322,6 +2372,7 @@ function ElectricalAnnualInner() {
                   const arr = [...data.otherEquipments]; arr[idx].external = it; setData(d => ({ ...d, otherEquipments: arr }));
                 }} />
 
+                <h3 className="group-sub-title" style={{ marginTop: 16 }}>๒.๕.๓ อื่นๆ</h3>
                 <div className="field" style={{ marginTop: 8 }}>
                   <input
                     type="text"
