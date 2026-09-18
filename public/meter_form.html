@@ -295,7 +295,7 @@
 
 <script>
 // ── CONFIG — เปลี่ยน URL นี้เป็น Apps Script Web App URL ──
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzWRgUu4aPjHVje21WOCS80elFhL6zjDT2WkJB7qA67_mRVTDVKOt6IANSP-4uq17-w/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx1edsVOD2Sr2lPM8FVvufNQikbvv71fd9O1IrXBwcuZ47arGlS4X_y8GZ_QUX_6BgZJQ/exec';
 
 // ── State ──────────────────────────────────────────────────
 let allRows    = [];
@@ -493,6 +493,22 @@ function setUnit(meterId, unit) {
   const mwh = document.getElementById(`umwh_${CSS.escape(meterId)}`);
   if (kwh) kwh.classList.toggle('active', unit === 'kWh');
   if (mwh) mwh.classList.toggle('active', unit === 'MWh');
+}
+
+// ── GitHub commit verifier ────────────────────────────────
+async function checkRecentGitHubCommit(w) {
+  try {
+    const url = `https://api.github.com/repos/maleeart/Energy-Dashboard/commits?path=forms/${encodeURIComponent(w)}.csv&per_page=1&_t=${Date.now()}`;
+    const r = await fetch(url, { cache: 'no-store' });
+    if (!r.ok) return false;
+    const commits = await r.json();
+    if (commits && commits.length > 0) {
+      const commitDate = new Date(commits[0].commit?.author?.date || commits[0].commit?.committer?.date);
+      const diffSec = (Date.now() - commitDate.getTime()) / 1000;
+      if (diffSec < 180) return true; // เพิ่ง push สำเร็จไปไม่เกิน 3 นาที
+    }
+  } catch(e) {}
+  return false;
 }
 
 // ── Save ───────────────────────────────────────────────────
