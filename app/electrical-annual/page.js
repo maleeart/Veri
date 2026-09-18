@@ -477,6 +477,7 @@ function ElectricalAnnualInner() {
   const [allElecRecords, setAllElecRecords] = useState([]);
   const [duplicateModalRecord, setDuplicateModalRecord] = useState(null);
   const [templateModalOffer, setTemplateModalOffer] = useState(null);
+  const [pageStep, setPageStep] = useState(() => (urlIsEdit || urlFilename ? 1 : 0));
 
   const DRAFT_KEY = 'draft:elec:annual';
   const [step, setStep] = useState(1); // 1: ผู้ตรวจ&สถานประกอบการ, 2: ข้อมูลทั่วไป, 3: ตรวจสอบอุปกรณ์, 4: สรุปผล
@@ -492,6 +493,9 @@ function ElectricalAnnualInner() {
   useEffect(() => {
     setIsEditMode(urlIsEdit);
     setEditFilename(urlFilename);
+    if (urlIsEdit || urlFilename) {
+      setPageStep(1);
+    }
   }, [urlIsEdit, urlFilename]);
 
   // Load all existing elec inspection dates
@@ -564,32 +568,36 @@ function ElectricalAnnualInner() {
   const recordYears = allElecRecords.map((r) => parseInt(r.date?.slice(0, 4))).filter(Boolean);
   const availableYears = Array.from(new Set([...baseYears, ...recordYears, selectedYear])).sort((a, b) => b - a);
 
-  // Year Change Handler with Duplicate Detection & Template Copying
-  const handleYearChange = (newYear) => {
-    if (newYear === selectedYear) return;
-
-    // 1. Duplicate check: does newYear have an existing saved report?
-    const match = allElecRecords.find((r) => r.date?.startsWith(String(newYear)));
+  // Year check & proceed logic (used by both Screen 0 proceed button and form year select)
+  const handleProceedFromYearSelect = (targetYear) => {
+    // 1. Duplicate check: does targetYear have an existing saved report?
+    const match = allElecRecords.find((r) => r.date?.startsWith(String(targetYear)));
     if (match) {
-      setDuplicateModalRecord({ year: newYear, record: match });
+      setDuplicateModalRecord({ year: targetYear, record: match });
       return;
     }
 
     // 2. Next/New year check: does any previous record exist?
     const priorRecords = allElecRecords
       .map((r) => ({ ...r, year: parseInt(r.date?.slice(0, 4)) }))
-      .filter((r) => !isNaN(r.year) && r.year < newYear)
+      .filter((r) => !isNaN(r.year) && r.year < targetYear)
       .sort((a, b) => b.year - a.year);
 
-    const latestPrior = priorRecords[0] || allElecRecords[0];
+    const latestPrior = priorRecords[0] || (allElecRecords.length > 0 ? allElecRecords[0] : null);
     if (latestPrior) {
       const priorYr = parseInt(latestPrior.date?.slice(0, 4)) || latestPrior.year;
-      setTemplateModalOffer({ targetYear: newYear, priorRecord: latestPrior, priorYear: priorYr });
+      setTemplateModalOffer({ targetYear, priorRecord: latestPrior, priorYear: priorYr });
       return;
     }
 
-    // 3. No existing records anywhere -> apply directly
-    applyYearDirectly(newYear);
+    // 3. No existing records anywhere -> apply directly and enter form
+    applyYearDirectly(targetYear);
+    setPageStep(1);
+  };
+
+  const handleYearChange = (newYear) => {
+    if (newYear === selectedYear) return;
+    handleProceedFromYearSelect(newYear);
   };
 
   const applyYearDirectly = (year) => {
@@ -626,6 +634,7 @@ function ElectricalAnnualInner() {
         setEditFilename(rec.filename);
         setSelectedYear(modalData.year);
         setPrefilledFrom('');
+        setPageStep(1);
         router.replace(`/electrical-annual?filename=${encodeURIComponent(rec.filename)}&edit=1`);
       }
     } catch (e) {
@@ -644,8 +653,9 @@ function ElectricalAnnualInner() {
     try {
       localStorage.removeItem(DRAFT_KEY);
     } catch {}
-    router.replace('/electrical-annual');
     setDuplicateModalRecord(null);
+    setPageStep(1);
+    router.replace('/electrical-annual');
   };
 
   const handleCancelDuplicateModal = () => {
@@ -667,17 +677,21 @@ function ElectricalAnnualInner() {
         setIsEditMode(false);
         setEditFilename(null);
         setPrefilledFrom(`พ.ศ. ${offerData.priorYear + 543} (${offerData.priorYear})`);
+        setPageStep(1);
         router.replace('/electrical-annual');
       }
     } catch (e) {
       setValidationError('ไม่สามารถโหลดข้อมูลเทมเพลตได้: ' + e.message);
       applyYearDirectly(offerData.targetYear);
+      setPageStep(1);
     }
     setTemplateModalOffer(null);
+    setDuplicateModalRecord(null);
   };
 
   const handleDeclineTemplate = (offerData) => {
     applyYearDirectly(offerData.targetYear);
+    setPageStep(1);
     setTemplateModalOffer(null);
   };
 
@@ -897,31 +911,290 @@ function ElectricalAnnualInner() {
 
   return (
     <div className="elec-page">
-      {/* Top Header */}
-      <header className="elec-hdr">
-        <div className="elec-hdr__left">
-          <button className="btn-back" onClick={() => router.push('/')}>‹ หน้าหลัก</button>
-          <div>
-            <h1 className="elec-hdr__title">⚡ ตรวจสอบบริภัณฑ์ไฟฟ้าประจำปี</h1>
-            <p className="elec-hdr__sub">แบบฟอร์ม ESPSIB001 · กรมสวัสดิการและคุ้มครองแรงงาน</p>
+      {/* ── Modal: Duplicate Year Detected (Firepump bubble style) ── */}
+      {duplicateModalRecord && (
+        <div className="elec-modal-overlay" onClick={handleCancelDuplicateModal}>
+          <div className="elec-modal-box" onClick={(e) => e.stopPropagation()}>
+            <span className="elec-modal-icon">📅</span>
+            <h2 className="elec-modal-title">พบข้อมูลรายงานประจำปี พ.ศ. {duplicateModalRecord.year + 543}</h2>
+            <p className="elec-modal-msg">
+              มีบันทึกการตรวจสอบของปีนี้อยู่ในระบบแล้ว กรุณาเลือกรูปแบบที่ต้องการดำเนินการ
+            </p>
+            <div className="elec-modal-badge">
+              {duplicateModalRecord.record.building || duplicateModalRecord.record.label || 'บริภัณฑ์ไฟฟ้าประจำปี'} · บันทึกเมื่อ {duplicateModalRecord.record.date}
+            </div>
+            <div className="elec-modal-actions">
+              <button
+                type="button"
+                className="elec-modal-btn elec-modal-btn--primary"
+                onClick={() => handleUseExisting(duplicateModalRecord)}
+              >
+                ✏️ ใช้ข้อมูลเดิม (เข้าไปแก้ไข)
+              </button>
+              <button
+                type="button"
+                className="elec-modal-btn elec-modal-btn--secondary"
+                onClick={() => handleCreateFreshForDuplicateYear(duplicateModalRecord)}
+              >
+                ➕ สร้างใหม่สำหรับปีนี้ (เริ่มใหม่ทั้งหมด)
+              </button>
+              {(() => {
+                const prior = allElecRecords
+                  .map((r) => ({ ...r, year: parseInt(r.date?.slice(0, 4)) }))
+                  .filter((r) => !isNaN(r.year) && r.year < duplicateModalRecord.year)
+                  .sort((a, b) => b.year - a.year)[0];
+                if (!prior) return null;
+                const priorYr = parseInt(prior.date?.slice(0, 4)) || prior.year;
+                return (
+                  <button
+                    type="button"
+                    className="elec-modal-btn elec-modal-btn--template"
+                    onClick={() => handleApplyTemplate({
+                      targetYear: duplicateModalRecord.year,
+                      priorRecord: prior,
+                      priorYear: priorYr,
+                    })}
+                  >
+                    📋 ใช้ข้อมูลปีก่อน ({priorYr + 543}) เป็นแม่แบบ
+                  </button>
+                );
+              })()}
+              <button
+                type="button"
+                className="elec-modal-btn elec-modal-btn--cancel"
+                onClick={handleCancelDuplicateModal}
+              >
+                ยกเลิก / เลือกปีอื่น
+              </button>
+            </div>
           </div>
         </div>
-        <div className="elec-hdr__right">
-          {hasDraft && !isEditMode && (
-            <button className="btn-draft-clear" onClick={clearDraft} title="ล้างข้อมูลร่าง">
-              🗑 ล้างร่าง
-            </button>
-          )}
-          <button
-            type="button"
-            className="btn-preview-link"
-            onClick={() => setShowPreviewModal(true)}
-            title="ดูตัวอย่างรายงานฉบับเต็ม"
-          >
-            📄 ดูตัวอย่างรายงาน
-          </button>
+      )}
+
+      {/* ── Modal: Offer Previous Year as Template (Firepump bubble style) ── */}
+      {templateModalOffer && (
+        <div className="elec-modal-overlay" onClick={handleCancelTemplateModal}>
+          <div className="elec-modal-box" onClick={(e) => e.stopPropagation()}>
+            <span className="elec-modal-icon">📋</span>
+            <h2 className="elec-modal-title">พบข้อมูลรายงานปี พ.ศ. {templateModalOffer.priorYear + 543}</h2>
+            <p className="elec-modal-msg">
+              ต้องการดึงข้อมูลอุปกรณ์และสเปกเดิมมาเป็นแม่แบบเริ่มต้นสำหรับปี พ.ศ. {templateModalOffer.targetYear + 543} หรือไม่?
+            </p>
+            <div className="elec-modal-badge">
+              (คัดลอกหม้อแปลง ตู้สวิตช์ วงจรเมน และแผงย่อย · รีเซ็ตผลตรวจและรูปภาพใหม่)
+            </div>
+            <div className="elec-modal-actions">
+              <button
+                type="button"
+                className="elec-modal-btn elec-modal-btn--primary"
+                onClick={() => handleApplyTemplate(templateModalOffer)}
+              >
+                📋 ใช้ข้อมูลเดิมเป็นแม่แบบเริ่มต้น
+              </button>
+              <button
+                type="button"
+                className="elec-modal-btn elec-modal-btn--secondary"
+                onClick={() => handleDeclineTemplate(templateModalOffer)}
+              >
+                ✨ เริ่มใหม่ (ไม่ใช้แม่แบบ)
+              </button>
+              <button
+                type="button"
+                className="elec-modal-btn elec-modal-btn--cancel"
+                onClick={handleCancelTemplateModal}
+              >
+                ยกเลิก / เลือกปีอื่น
+              </button>
+            </div>
+          </div>
         </div>
-      </header>
+      )}
+
+      {/* ── Live Report Preview Modal ── */}
+      {showPreviewModal && (
+        <div className="preview-modal-overlay" onClick={() => setShowPreviewModal(false)}>
+          <div className="preview-modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="preview-modal-hdr">
+              <div>
+                <span style={{ fontWeight: 800, fontSize: 16 }}>📄 ตัวอย่างรายงาน ESPSIB001</span>
+                <span style={{ fontSize: 12, color: 'var(--ink-muted)', marginLeft: 8 }}>ตัวอย่างเอกสารฉบับเต็ม</span>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="button" className="btn-modal-print" onClick={() => window.print()}>
+                  🖨 พิมพ์ / ออก PDF
+                </button>
+                <button type="button" className="btn-modal-close" onClick={() => setShowPreviewModal(false)}>
+                  ✕ ปิด
+                </button>
+              </div>
+            </div>
+            <div className="preview-modal-body">
+              <ElecReport data={{ records: { formData: data }, date: data.workplace.inspectionDate }} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pageStep === 0 ? (
+        /* ── Screen 0: เลือกปีประจำเล่มรายงาน ── */
+        <div className="year-select-container">
+          <header className="elec-hdr">
+            <div className="elec-hdr__left">
+              <button type="button" className="btn-back" onClick={() => router.push('/')}>‹ หน้าหลัก</button>
+              <div>
+                <h1 className="elec-hdr__title">⚡ ตรวจสอบบริภัณฑ์ไฟฟ้าประจำปี</h1>
+                <p className="elec-hdr__sub">แบบฟอร์ม ESPSIB001 · กรมสวัสดิการและคุ้มครองแรงงาน</p>
+              </div>
+            </div>
+          </header>
+
+          <div className="year-picker-card">
+            <div className="ypc-header">
+              <span className="ypc-icon">⚡📅</span>
+              <h2 className="ypc-title">เลือกปีประจำเล่มรายงาน</h2>
+              <p className="ypc-sub">เลือกปี พ.ศ. ที่ต้องการจัดทำเอกสารตรวจสอบความปลอดภัยระบบไฟฟ้า</p>
+            </div>
+
+            <div className="ypc-body">
+              <div className="field">
+                <label style={{ fontWeight: 700, fontSize: 14, color: 'var(--ink-primary)', display: 'block', marginBottom: 8 }}>
+                  ประจำปี พ.ศ. (ปี ค.ศ.)
+                </label>
+                <select
+                  className="ypc-select"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                >
+                  {availableYears.map((yr) => {
+                    const bYear = yr + 543;
+                    const hasRec = allElecRecords.some((r) => r.date?.startsWith(String(yr)));
+                    return (
+                      <option key={yr} value={yr}>
+                        พ.ศ. {bYear} ({yr}){hasRec ? ' · [มีข้อมูลแล้ว 📝]' : ''}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              {/* Dynamic Status Preview Box */}
+              {(() => {
+                const match = allElecRecords.find((r) => r.date?.startsWith(String(selectedYear)));
+                const prior = allElecRecords
+                  .map((r) => ({ ...r, year: parseInt(r.date?.slice(0, 4)) }))
+                  .filter((r) => !isNaN(r.year) && r.year < selectedYear)
+                  .sort((a, b) => b.year - a.year)[0];
+
+                if (match) {
+                  return (
+                    <div className="ypc-status ypc-status--has-data">
+                      <div className="ypc-status-tag ypc-status-tag--amber">📌 มีบันทึกในระบบแล้ว</div>
+                      <div className="ypc-status-txt">
+                        มีรายงานปี พ.ศ. {selectedYear + 543} อยู่แล้ว ({match.date})
+                        <br />
+                        เมื่อกดดำเนินการต่อ คุณสามารถเลือก <strong>เข้าไปแก้ไขข้อมูลเดิม</strong> หรือ <strong>สร้างใหม่</strong> หรือ <strong>ใช้ข้อมูลปีก่อนเป็นแม่แบบ</strong>
+                      </div>
+                    </div>
+                  );
+                }
+                if (prior) {
+                  const priorYr = parseInt(prior.date?.slice(0, 4)) || prior.year;
+                  return (
+                    <div className="ypc-status ypc-status--has-prior">
+                      <div className="ypc-status-tag ypc-status-tag--blue">💡 พบข้อมูลปีก่อนหน้า</div>
+                      <div className="ypc-status-txt">
+                        มีข้อมูลอุปกรณ์ปี พ.ศ. {priorYr + 543} สามารถดึงมาเป็นแม่แบบเริ่มต้นได้
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="ypc-status ypc-status--fresh">
+                    <div className="ypc-status-tag ypc-status-tag--green">✨ รายงานฉบับใหม่</div>
+                    <div className="ypc-status-txt">
+                      ยังไม่มีรายงานของปีนี้ จะเป็นการสร้างแบบฟอร์มเปล่าใหม่
+                    </div>
+                  </div>
+                );
+              })()}
+
+              <button
+                type="button"
+                className="ypc-btn-proceed"
+                onClick={() => handleProceedFromYearSelect(selectedYear)}
+              >
+                ดำเนินการต่อ ›
+              </button>
+            </div>
+          </div>
+
+          {/* List of Existing Reports in System */}
+          {allElecRecords.length > 0 && (
+            <div className="existing-reports-card">
+              <h3 className="erc-title">📋 รายการรายงานที่มีอยู่ในระบบ ({allElecRecords.length} ฉบับ)</h3>
+              <div className="erc-list">
+                {allElecRecords.map((rec, i) => {
+                  const yr = parseInt(rec.date?.slice(0, 4)) || 0;
+                  return (
+                    <div key={i} className="erc-item">
+                      <div className="erc-item-info">
+                        <span className="erc-year">พ.ศ. {yr + 543}</span>
+                        <span className="erc-date">ตรวจเมื่อ: {rec.date}</span>
+                        {rec.building && <span className="erc-bld">{rec.building}</span>}
+                      </div>
+                      <button
+                        type="button"
+                        className="erc-item-btn"
+                        onClick={() => handleUseExisting({ year: yr, record: rec })}
+                      >
+                        ✏️ เปิดแก้ไข
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* Top Header */}
+          <header className="elec-hdr">
+            <div className="elec-hdr__left">
+              <button
+                type="button"
+                className="btn-back"
+                onClick={() => {
+                  if (!urlIsEdit) {
+                    setPageStep(0);
+                  } else {
+                    router.push('/');
+                  }
+                }}
+              >
+                ‹ {!urlIsEdit ? 'เปลี่ยนปี' : 'หน้าหลัก'}
+              </button>
+              <div>
+                <h1 className="elec-hdr__title">⚡ ตรวจสอบบริภัณฑ์ไฟฟ้าประจำปี</h1>
+                <p className="elec-hdr__sub">แบบฟอร์ม ESPSIB001 · กรมสวัสดิการและคุ้มครองแรงงาน</p>
+              </div>
+            </div>
+            <div className="elec-hdr__right">
+              {hasDraft && !isEditMode && (
+                <button className="btn-draft-clear" onClick={clearDraft} title="ล้างข้อมูลร่าง">
+                  🗑 ล้างร่าง
+                </button>
+              )}
+              <button
+                type="button"
+                className="btn-preview-link"
+                onClick={() => setShowPreviewModal(true)}
+                title="ดูตัวอย่างรายงานฉบับเต็ม"
+              >
+                📄 ดูตัวอย่างรายงาน
+              </button>
+            </div>
+          </header>
 
       {/* ── Year Selector & Report Status Bar ── */}
       <div className="elec-year-bar">
@@ -2510,108 +2783,7 @@ function ElectricalAnnualInner() {
           </div>
         </section>
       )}
-
-      {/* ── Live Report Preview Modal ── */}
-      {showPreviewModal && (
-        <div className="preview-modal-overlay" onClick={() => setShowPreviewModal(false)}>
-          <div className="preview-modal-box" onClick={(e) => e.stopPropagation()}>
-            <div className="preview-modal-hdr">
-              <div>
-                <span style={{ fontWeight: 800, fontSize: 16 }}>📄 ตัวอย่างรายงาน ESPSIB001</span>
-                <span style={{ fontSize: 12, color: 'var(--ink-muted)', marginLeft: 8 }}>ตัวอย่างเอกสารฉบับเต็ม</span>
-              </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" className="btn-modal-print" onClick={() => window.print()}>
-                  🖨 พิมพ์ / ออก PDF
-                </button>
-                <button type="button" className="btn-modal-close" onClick={() => setShowPreviewModal(false)}>
-                  ✕ ปิด
-                </button>
-              </div>
-            </div>
-            <div className="preview-modal-body">
-              <ElecReport data={{ records: { formData: data }, date: data.workplace.inspectionDate }} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Modal: Duplicate Year Detected (Firepump style) ── */}
-      {duplicateModalRecord && (
-        <div className="overlay" onClick={handleCancelDuplicateModal}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <span className="modal__icon">📅</span>
-            <h2 className="modal__title">พบข้อมูลรายงานประจำปี</h2>
-            <p className="modal__msg">
-              มีบันทึกการตรวจสอบปี พ.ศ. {duplicateModalRecord.year + 543} ({duplicateModalRecord.year}) อยู่ในระบบแล้ว
-              <br />
-              <span style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>
-                {duplicateModalRecord.record.building || duplicateModalRecord.record.label || 'บริภัณฑ์ไฟฟ้าประจำปี'} · {duplicateModalRecord.record.date}
-              </span>
-            </p>
-            <div className="template-list">
-              <button
-                type="button"
-                className="modal__close modal__btn--primary"
-                onClick={() => handleUseExisting(duplicateModalRecord)}
-              >
-                ✏️ ใช้ข้อมูลเดิม (เข้าไปแก้ไข)
-              </button>
-              <button
-                type="button"
-                className="modal__close"
-                onClick={() => handleCreateFreshForDuplicateYear(duplicateModalRecord)}
-              >
-                ➕ สร้างใหม่สำหรับปีนี้
-              </button>
-              <button
-                type="button"
-                className="modal__btn--cancel"
-                onClick={handleCancelDuplicateModal}
-              >
-                ยกเลิก
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Modal: Offer Previous Year as Template (Firepump style) ── */}
-      {templateModalOffer && (
-        <div className="overlay" onClick={handleCancelTemplateModal}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <span className="modal__icon">📋</span>
-            <h2 className="modal__title">พบข้อมูลรายงานปี {templateModalOffer.priorYear + 543}</h2>
-            <p className="modal__msg">
-              ต้องการดึงข้อมูลอุปกรณ์และสเปกเดิมมาเป็น template เริ่มต้นสำหรับปี พ.ศ. {templateModalOffer.targetYear + 543} หรือไม่?
-              <br />
-              <span style={{ fontSize: 11.5, color: 'var(--ink-muted)' }}>(ผลตรวจและรูปถ่ายจะถูกรีเซ็ตให้ตรวจใหม่)</span>
-            </p>
-            <div className="template-list">
-              <button
-                type="button"
-                className="modal__close modal__btn--primary"
-                onClick={() => handleApplyTemplate(templateModalOffer)}
-              >
-                📋 ใช้ข้อมูลเดิมเป็น template เริ่มต้น
-              </button>
-              <button
-                type="button"
-                className="modal__close"
-                onClick={() => handleDeclineTemplate(templateModalOffer)}
-              >
-                เริ่มใหม่ (ไม่ใช้ template)
-              </button>
-              <button
-                type="button"
-                className="modal__btn--cancel"
-                onClick={handleCancelTemplateModal}
-              >
-                ยกเลิก
-              </button>
-            </div>
-          </div>
-        </div>
+        </>
       )}
 
       {/* ── Page Styles ── */}
@@ -3310,98 +3482,325 @@ function ElectricalAnnualInner() {
           border: 1px solid #c7d2fe;
         }
 
-        /* ── Modern Centered Modal (Firepump Style) ── */
-        .overlay {
-          position: fixed;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.55);
+        /* ── Screen 0: Year Selection Card ── */
+        .year-select-container {
+          max-width: 580px;
+          margin: 0 auto;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          padding-bottom: 60px;
+        }
+        .year-picker-card {
+          background: var(--bg-surface, #111d32);
+          border: 1px solid var(--border-hairline, #1e2e4a);
+          border-radius: 20px;
+          padding: 28px 24px;
+          box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+        }
+        .ypc-header {
+          text-align: center;
+          margin-bottom: 24px;
+        }
+        .ypc-icon {
+          font-size: 40px;
+          display: block;
+          margin-bottom: 8px;
+        }
+        .ypc-title {
+          font-size: 20px;
+          font-weight: 800;
+          color: var(--ink-primary, #eef2ff);
+          margin: 0 0 6px;
+        }
+        .ypc-sub {
+          font-size: 13.5px;
+          color: var(--ink-secondary, #94a3c4);
+          margin: 0;
+          line-height: 1.45;
+        }
+        .ypc-body {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .ypc-select {
+          width: 100%;
+          background: var(--bg-input, #080e1a);
+          border: 1px solid var(--border-strong, #2d3f5e);
+          border-radius: 12px;
+          color: var(--ink-primary, #eef2ff);
+          padding: 13px 14px;
+          font-size: 16px;
+          font-weight: 600;
+          font-family: inherit;
+          cursor: pointer;
+          outline: none;
+          transition: border-color 0.15s;
+        }
+        .ypc-select:focus {
+          border-color: var(--accent, #2563eb);
+        }
+        .ypc-status {
+          border-radius: 12px;
+          padding: 14px 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          font-size: 13px;
+          line-height: 1.45;
+        }
+        .ypc-status--has-data {
+          background: rgba(245, 158, 11, 0.1);
+          border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .ypc-status--has-prior {
+          background: rgba(59, 130, 246, 0.1);
+          border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .ypc-status--fresh {
+          background: rgba(34, 197, 94, 0.1);
+          border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        .ypc-status-tag {
+          display: inline-block;
+          font-size: 12px;
+          font-weight: 700;
+          border-radius: 6px;
+          padding: 2px 8px;
+          width: fit-content;
+        }
+        .ypc-status-tag--amber {
+          background: rgba(245, 158, 11, 0.2);
+          color: #fbbf24;
+        }
+        .ypc-status-tag--blue {
+          background: rgba(59, 130, 246, 0.2);
+          color: #60a5fa;
+        }
+        .ypc-status-tag--green {
+          background: rgba(34, 197, 94, 0.2);
+          color: #4ade80;
+        }
+        .ypc-status-txt {
+          color: var(--ink-secondary, #94a3c4);
+        }
+        .ypc-btn-proceed {
+          background: var(--accent, #2563eb);
+          color: #ffffff;
+          border: none;
+          border-radius: 12px;
+          padding: 14px 20px;
+          font-size: 16px;
+          font-weight: 700;
+          font-family: inherit;
+          cursor: pointer;
+          transition: background 0.15s, transform 0.1s;
           display: flex;
           align-items: center;
           justify-content: center;
-          z-index: 999;
-          padding: 24px;
-          animation: modalFadeIn 0.2s ease;
+          gap: 6px;
+          margin-top: 4px;
         }
-        @keyframes modalFadeIn {
+        .ypc-btn-proceed:hover {
+          background: var(--accent-strong, #3b82f6);
+          transform: translateY(-1px);
+        }
+
+        /* ── Existing reports card on pageStep 0 ── */
+        .existing-reports-card {
+          background: var(--bg-surface, #111d32);
+          border: 1px solid var(--border-hairline, #1e2e4a);
+          border-radius: 20px;
+          padding: 20px;
+        }
+        .erc-title {
+          font-size: 14px;
+          font-weight: 700;
+          color: var(--ink-primary, #eef2ff);
+          margin: 0 0 12px;
+        }
+        .erc-list {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .erc-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 10px 14px;
+          border-radius: 10px;
+          background: var(--bg-surface-raised, #172340);
+          border: 1px solid var(--border-hairline, #1e2e4a);
+        }
+        .erc-item-info {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .erc-year {
+          font-weight: 700;
+          font-size: 14px;
+          color: var(--ink-primary, #eef2ff);
+        }
+        .erc-date {
+          font-size: 12px;
+          color: var(--ink-muted, #5a6a8a);
+        }
+        .erc-bld {
+          font-size: 11px;
+          background: var(--bg-input, #080e1a);
+          padding: 2px 6px;
+          border-radius: 4px;
+          color: var(--ink-secondary, #94a3c4);
+        }
+        .erc-item-btn {
+          background: var(--bg-input, #080e1a);
+          border: 1px solid var(--border-strong, #2d3f5e);
+          color: var(--ink-primary, #eef2ff);
+          border-radius: 8px;
+          padding: 6px 12px;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: background 0.15s;
+        }
+        .erc-item-btn:hover {
+          background: var(--accent, #2563eb);
+          border-color: var(--accent, #2563eb);
+          color: #ffffff;
+        }
+
+        /* ── Modern Centered Modal (Firepump Bubble Style) ── */
+        .elec-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(8, 14, 26, 0.78);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          padding: 20px;
+          animation: elecFadeIn 0.2s ease;
+        }
+        @keyframes elecFadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
         }
-        .modal {
-          background: var(--bg-surface, #ffffff);
+        .elec-modal-box {
+          background: var(--bg-surface-raised, #172340);
+          border: 1px solid var(--border-strong, #2d3f5e);
           border-radius: 24px;
-          padding: 28px 22px;
+          padding: 30px 24px;
           width: 100%;
-          max-width: 340px;
+          max-width: 390px;
           text-align: center;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+          box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.08);
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 8px;
-          animation: modalZoomIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          gap: 12px;
+          animation: elecZoomIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        @keyframes modalZoomIn {
+        @keyframes elecZoomIn {
           from { opacity: 0; transform: scale(0.92); }
           to { opacity: 1; transform: scale(1); }
         }
-        .modal__icon {
-          font-size: 44px;
+        .elec-modal-icon {
+          font-size: 48px;
           line-height: 1;
+          margin-bottom: 2px;
         }
-        .modal__title {
-          font-size: 18px;
+        .elec-modal-title {
+          font-size: 19px;
           font-weight: 800;
-          color: var(--ink-primary, #0f172a);
+          color: var(--ink-primary, #eef2ff);
           margin: 0;
+          letter-spacing: -0.01em;
         }
-        .modal__msg {
-          font-size: 13px;
-          color: var(--ink-secondary, #475569);
-          margin: 0 0 6px;
-          line-height: 1.45;
+        .elec-modal-msg {
+          font-size: 14px;
+          color: var(--ink-secondary, #94a3c4);
+          margin: 0;
+          line-height: 1.5;
         }
-        .template-list {
+        .elec-modal-badge {
+          background: var(--bg-input, #080e1a);
+          border: 1px solid var(--border-hairline, #1e2e4a);
+          border-radius: 10px;
+          padding: 6px 12px;
+          font-size: 12.5px;
+          color: var(--ink-muted, #5a6a8a);
+          font-weight: 500;
+          margin: 2px 0 6px;
+        }
+        .elec-modal-actions {
           width: 100%;
           display: flex;
           flex-direction: column;
+          gap: 10px;
+          margin-top: 4px;
+        }
+        .elec-modal-btn {
+          width: 100%;
+          padding: 13px 16px;
+          border-radius: 14px;
+          border: 1px solid var(--border-strong, #2d3f5e);
+          font-size: 14.5px;
+          font-weight: 700;
+          font-family: inherit;
+          cursor: pointer;
+          transition: all 0.18s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           gap: 8px;
         }
-        .modal__close {
-          width: 100%;
-          padding: 12px;
-          background: var(--bg-surface-raised, #f8fafc);
-          border: 1px solid var(--border-strong, #cbd5e1);
-          border-radius: 12px;
-          font-size: 14px;
-          font-weight: 600;
-          color: var(--ink-primary, #0f172a);
-          cursor: pointer;
-          transition: all 0.15s ease;
+        .elec-modal-btn--primary {
+          background: var(--accent, #2563eb);
+          color: #ffffff;
+          border-color: #3b82f6;
+          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
         }
-        .modal__close:hover {
-          background: var(--bg-surface-hover, #f1f5f9);
+        .elec-modal-btn--primary:hover {
+          background: #1d4ed8;
+          transform: translateY(-1px);
         }
-        .modal__btn--primary {
-          background: #2563eb !important;
-          color: #ffffff !important;
-          border-color: #1d4ed8 !important;
-          font-weight: 700;
+        .elec-modal-btn--secondary {
+          background: var(--bg-surface, #111d32);
+          color: var(--ink-primary, #eef2ff);
+          border-color: var(--border-strong, #2d3f5e);
         }
-        .modal__btn--primary:hover {
-          background: #1d4ed8 !important;
+        .elec-modal-btn--secondary:hover {
+          background: var(--border-hairline, #1e2e4a);
+          color: #ffffff;
         }
-        .modal__btn--cancel {
-          width: 100%;
-          padding: 8px;
+        .elec-modal-btn--template {
+          background: #1e1b4b;
+          color: #c7d2fe;
+          border-color: #3730a3;
+        }
+        .elec-modal-btn--template:hover {
+          background: #2e1065;
+          color: #e0e7ff;
+        }
+        .elec-modal-btn--cancel {
           background: transparent;
           border: none;
-          color: var(--ink-muted, #94a3b8);
-          font-size: 13px;
+          color: var(--ink-muted, #5a6a8a);
+          font-size: 13.5px;
           font-weight: 600;
+          padding: 8px;
           cursor: pointer;
         }
-        .modal__btn--cancel:hover {
-          color: var(--ink-primary, #0f172a);
+        .elec-modal-btn--cancel:hover {
+          color: var(--ink-primary, #eef2ff);
         }
 
         /* ── Media Print ── */
@@ -3414,6 +3813,8 @@ function ElectricalAnnualInner() {
           .btn-row,
           .preview-modal-hdr,
           .alert,
+          .elec-modal-overlay,
+          .year-select-container,
           .overlay {
             display: none !important;
           }
