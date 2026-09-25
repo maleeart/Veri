@@ -915,29 +915,50 @@ function ElectricalAnnualInner() {
       {duplicateModalRecord && (
         <div className="elec-modal-overlay" onClick={handleCancelDuplicateModal}>
           <div className="elec-modal-box" onClick={(e) => e.stopPropagation()}>
-            <span className="elec-modal-icon">📅</span>
-            <h2 className="elec-modal-title">พบข้อมูลรายงานประจำปี พ.ศ. {duplicateModalRecord.year + 543}</h2>
+            <div className="elec-modal-icon-wrap elec-modal-icon-wrap--amber">
+              <span>📁</span>
+            </div>
+            <h2 className="elec-modal-title">
+              พบรายงานปี พ.ศ. {duplicateModalRecord.year + 543} ({duplicateModalRecord.year})
+            </h2>
             <p className="elec-modal-msg">
               มีบันทึกการตรวจสอบของปีนี้อยู่ในระบบแล้ว กรุณาเลือกรูปแบบที่ต้องการดำเนินการ
             </p>
             <div className="elec-modal-badge">
-              {duplicateModalRecord.record.building || duplicateModalRecord.record.label || 'บริภัณฑ์ไฟฟ้าประจำปี'} · บันทึกเมื่อ {duplicateModalRecord.record.date}
+              <span>🏢 {duplicateModalRecord.record.building || duplicateModalRecord.record.label || 'บริภัณฑ์ไฟฟ้าประจำปี'}</span>
+              <span>·</span>
+              <span>บันทึกเมื่อ {duplicateModalRecord.record.date}</span>
             </div>
+
             <div className="elec-modal-actions">
               <button
                 type="button"
-                className="elec-modal-btn elec-modal-btn--primary"
+                className="elec-modal-card-btn elec-modal-card-btn--primary"
                 onClick={() => handleUseExisting(duplicateModalRecord)}
               >
-                ✏️ ใช้ข้อมูลเดิม (เข้าไปแก้ไข)
+                <span className="elec-modal-card-icon">✏️</span>
+                <div className="elec-modal-card-text">
+                  <span className="elec-modal-card-title">เข้าไปแก้ไขข้อมูลเดิม</span>
+                  <span className="elec-modal-card-sub">
+                    เปิดไฟล์รายงานเดิม ({duplicateModalRecord.record.date}) เพื่อปรับปรุงหรือแก้ไข
+                  </span>
+                </div>
               </button>
+
               <button
                 type="button"
-                className="elec-modal-btn elec-modal-btn--secondary"
+                className="elec-modal-card-btn elec-modal-card-btn--secondary"
                 onClick={() => handleCreateFreshForDuplicateYear(duplicateModalRecord)}
               >
-                ➕ สร้างใหม่สำหรับปีนี้ (เริ่มใหม่ทั้งหมด)
+                <span className="elec-modal-card-icon">➕</span>
+                <div className="elec-modal-card-text">
+                  <span className="elec-modal-card-title">สร้างใหม่สำหรับปีนี้</span>
+                  <span className="elec-modal-card-sub">
+                    เริ่มกรอกแบบฟอร์มเปล่าใหม่ทั้งหมดสำหรับปีนี้ (ไม่ใช้ข้อมูลเดิม)
+                  </span>
+                </div>
               </button>
+
               {(() => {
                 const prior = allElecRecords
                   .map((r) => ({ ...r, year: parseInt(r.date?.slice(0, 4)) }))
@@ -948,23 +969,30 @@ function ElectricalAnnualInner() {
                 return (
                   <button
                     type="button"
-                    className="elec-modal-btn elec-modal-btn--template"
+                    className="elec-modal-card-btn elec-modal-card-btn--template"
                     onClick={() => handleApplyTemplate({
                       targetYear: duplicateModalRecord.year,
                       priorRecord: prior,
                       priorYear: priorYr,
                     })}
                   >
-                    📋 ใช้ข้อมูลปีก่อน ({priorYr + 543}) เป็นแม่แบบ
+                    <span className="elec-modal-card-icon">📋</span>
+                    <div className="elec-modal-card-text">
+                      <span className="elec-modal-card-title">ใช้ข้อมูลปีก่อน ({priorYr + 543}) เป็นแม่แบบ</span>
+                      <span className="elec-modal-card-sub">
+                        คัดลอกหม้อแปลง ตู้สวิตช์ วงจรเมน แผงย่อย และรีเซ็ตผลตรวจใหม่
+                      </span>
+                    </div>
                   </button>
                 );
               })()}
+
               <button
                 type="button"
-                className="elec-modal-btn elec-modal-btn--cancel"
+                className="elec-modal-btn--cancel"
                 onClick={handleCancelDuplicateModal}
               >
-                ยกเลิก / เลือกปีอื่น
+                ✕ ยกเลิก / เลือกปีอื่น
               </button>
             </div>
           </div>
@@ -975,35 +1003,54 @@ function ElectricalAnnualInner() {
       {templateModalOffer && (
         <div className="elec-modal-overlay" onClick={handleCancelTemplateModal}>
           <div className="elec-modal-box" onClick={(e) => e.stopPropagation()}>
-            <span className="elec-modal-icon">📋</span>
-            <h2 className="elec-modal-title">พบข้อมูลรายงานปี พ.ศ. {templateModalOffer.priorYear + 543}</h2>
+            <div className="elec-modal-icon-wrap elec-modal-icon-wrap--blue">
+              <span>📋</span>
+            </div>
+            <h2 className="elec-modal-title">
+              พบข้อมูลรายงานปี พ.ศ. {templateModalOffer.priorYear + 543}
+            </h2>
             <p className="elec-modal-msg">
-              ต้องการดึงข้อมูลอุปกรณ์และสเปกเดิมมาเป็นแม่แบบเริ่มต้นสำหรับปี พ.ศ. {templateModalOffer.targetYear + 543} หรือไม่?
+              ต้องการดึงข้อมูลอุปกรณ์เดิมมาเป็นแม่แบบเริ่มต้นสำหรับปี พ.ศ. {templateModalOffer.targetYear + 543} หรือไม่?
             </p>
             <div className="elec-modal-badge">
-              (คัดลอกหม้อแปลง ตู้สวิตช์ วงจรเมน และแผงย่อย · รีเซ็ตผลตรวจและรูปภาพใหม่)
+              คัดลอกหม้อแปลง ตู้สวิตช์ วงจรเมน และแผงย่อย · รีเซ็ตผลตรวจและรูปภาพใหม่
             </div>
+
             <div className="elec-modal-actions">
               <button
                 type="button"
-                className="elec-modal-btn elec-modal-btn--primary"
+                className="elec-modal-card-btn elec-modal-card-btn--template"
                 onClick={() => handleApplyTemplate(templateModalOffer)}
               >
-                📋 ใช้ข้อมูลเดิมเป็นแม่แบบเริ่มต้น
+                <span className="elec-modal-card-icon">📋</span>
+                <div className="elec-modal-card-text">
+                  <span className="elec-modal-card-title">ใช้ข้อมูลเดิมเป็นแม่แบบเริ่มต้น</span>
+                  <span className="elec-modal-card-sub">
+                    ดึงสเปกและรายการอุปกรณ์เดิมมาใช้ ช่วยประหยัดเวลาไม่ต้องกรอกใหม่
+                  </span>
+                </div>
               </button>
+
               <button
                 type="button"
-                className="elec-modal-btn elec-modal-btn--secondary"
+                className="elec-modal-card-btn elec-modal-card-btn--secondary"
                 onClick={() => handleDeclineTemplate(templateModalOffer)}
               >
-                ✨ เริ่มใหม่ (ไม่ใช้แม่แบบ)
+                <span className="elec-modal-card-icon">✨</span>
+                <div className="elec-modal-card-text">
+                  <span className="elec-modal-card-title">เริ่มจากแบบฟอร์มเปล่าใหม่</span>
+                  <span className="elec-modal-card-sub">
+                    ไม่ใช้แม่แบบ เริ่มกรอกข้อมูลอุปกรณ์และผลตรวจใหม่ทั้งหมด
+                  </span>
+                </div>
               </button>
+
               <button
                 type="button"
-                className="elec-modal-btn elec-modal-btn--cancel"
+                className="elec-modal-btn--cancel"
                 onClick={handleCancelTemplateModal}
               >
-                ยกเลิก / เลือกปีอื่น
+                ✕ ยกเลิก / เลือกปีอื่น
               </button>
             </div>
           </div>
@@ -1077,7 +1124,7 @@ function ElectricalAnnualInner() {
                 </select>
               </div>
 
-              {/* Dynamic Status Preview Box */}
+              {/* Compact Year Status Pill */}
               {(() => {
                 const match = allElecRecords.find((r) => r.date?.startsWith(String(selectedYear)));
                 const prior = allElecRecords
@@ -1087,33 +1134,25 @@ function ElectricalAnnualInner() {
 
                 if (match) {
                   return (
-                    <div className="ypc-status ypc-status--has-data">
-                      <div className="ypc-status-tag ypc-status-tag--amber">📌 มีบันทึกในระบบแล้ว</div>
-                      <div className="ypc-status-txt">
-                        มีรายงานปี พ.ศ. {selectedYear + 543} อยู่แล้ว ({match.date})
-                        <br />
-                        เมื่อกดดำเนินการต่อ คุณสามารถเลือก <strong>เข้าไปแก้ไขข้อมูลเดิม</strong> หรือ <strong>สร้างใหม่</strong> หรือ <strong>ใช้ข้อมูลปีก่อนเป็นแม่แบบ</strong>
-                      </div>
+                    <div className="ypc-badge-pill ypc-badge-pill--amber">
+                      <span className="ypc-badge-pill__icon">📌</span>
+                      <span>มีบันทึกรายงานปี พ.ศ. {selectedYear + 543} อยู่แล้ว ({match.date})</span>
                     </div>
                   );
                 }
                 if (prior) {
                   const priorYr = parseInt(prior.date?.slice(0, 4)) || prior.year;
                   return (
-                    <div className="ypc-status ypc-status--has-prior">
-                      <div className="ypc-status-tag ypc-status-tag--blue">💡 พบข้อมูลปีก่อนหน้า</div>
-                      <div className="ypc-status-txt">
-                        มีข้อมูลอุปกรณ์ปี พ.ศ. {priorYr + 543} สามารถดึงมาเป็นแม่แบบเริ่มต้นได้
-                      </div>
+                    <div className="ypc-badge-pill ypc-badge-pill--blue">
+                      <span className="ypc-badge-pill__icon">💡</span>
+                      <span>มีข้อมูลอุปกรณ์ปี พ.ศ. {priorYr + 543} (พร้อมใช้เป็นแม่แบบ)</span>
                     </div>
                   );
                 }
                 return (
-                  <div className="ypc-status ypc-status--fresh">
-                    <div className="ypc-status-tag ypc-status-tag--green">✨ รายงานฉบับใหม่</div>
-                    <div className="ypc-status-txt">
-                      ยังไม่มีรายงานของปีนี้ จะเป็นการสร้างแบบฟอร์มเปล่าใหม่
-                    </div>
+                  <div className="ypc-badge-pill ypc-badge-pill--green">
+                    <span className="ypc-badge-pill__icon">✨</span>
+                    <span>รายงานฉบับใหม่ (ยังไม่มีบันทึกของปีนี้)</span>
                   </div>
                 );
               })()}
@@ -3541,49 +3580,36 @@ function ElectricalAnnualInner() {
         .ypc-select:focus {
           border-color: var(--accent, #2563eb);
         }
-        .ypc-status {
-          border-radius: 12px;
-          padding: 14px 16px;
+        .ypc-badge-pill {
           display: flex;
-          flex-direction: column;
-          gap: 6px;
+          align-items: center;
+          gap: 8px;
+          padding: 9px 13px;
+          border-radius: 10px;
           font-size: 13px;
-          line-height: 1.45;
+          font-weight: 500;
+          width: 100%;
+          box-sizing: border-box;
+          line-height: 1.4;
         }
-        .ypc-status--has-data {
-          background: rgba(245, 158, 11, 0.1);
+        .ypc-badge-pill--amber {
+          background: rgba(245, 158, 11, 0.12);
           border: 1px solid rgba(245, 158, 11, 0.3);
-        }
-        .ypc-status--has-prior {
-          background: rgba(59, 130, 246, 0.1);
-          border: 1px solid rgba(59, 130, 246, 0.3);
-        }
-        .ypc-status--fresh {
-          background: rgba(34, 197, 94, 0.1);
-          border: 1px solid rgba(34, 197, 94, 0.3);
-        }
-        .ypc-status-tag {
-          display: inline-block;
-          font-size: 12px;
-          font-weight: 700;
-          border-radius: 6px;
-          padding: 2px 8px;
-          width: fit-content;
-        }
-        .ypc-status-tag--amber {
-          background: rgba(245, 158, 11, 0.2);
           color: #fbbf24;
         }
-        .ypc-status-tag--blue {
-          background: rgba(59, 130, 246, 0.2);
+        .ypc-badge-pill--blue {
+          background: rgba(59, 130, 246, 0.12);
+          border: 1px solid rgba(59, 130, 246, 0.3);
           color: #60a5fa;
         }
-        .ypc-status-tag--green {
-          background: rgba(34, 197, 94, 0.2);
+        .ypc-badge-pill--green {
+          background: rgba(34, 197, 94, 0.12);
+          border: 1px solid rgba(34, 197, 94, 0.3);
           color: #4ade80;
         }
-        .ypc-status-txt {
-          color: var(--ink-secondary, #94a3c4);
+        .ypc-badge-pill__icon {
+          font-size: 16px;
+          flex-shrink: 0;
         }
         .ypc-btn-proceed {
           background: var(--accent, #2563eb);
@@ -3697,9 +3723,9 @@ function ElectricalAnnualInner() {
           background: var(--bg-surface-raised, #172340);
           border: 1px solid var(--border-strong, #2d3f5e);
           border-radius: 24px;
-          padding: 30px 24px;
+          padding: 28px 24px 22px;
           width: 100%;
-          max-width: 390px;
+          max-width: 410px;
           text-align: center;
           box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.08);
           display: flex;
@@ -3712,20 +3738,34 @@ function ElectricalAnnualInner() {
           from { opacity: 0; transform: scale(0.92); }
           to { opacity: 1; transform: scale(1); }
         }
-        .elec-modal-icon {
-          font-size: 48px;
-          line-height: 1;
+        .elec-modal-icon-wrap {
+          width: 58px;
+          height: 58px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 28px;
           margin-bottom: 2px;
         }
+        .elec-modal-icon-wrap--amber {
+          background: rgba(245, 158, 11, 0.14);
+          border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .elec-modal-icon-wrap--blue {
+          background: rgba(59, 130, 246, 0.14);
+          border: 1px solid rgba(59, 130, 246, 0.3);
+        }
         .elec-modal-title {
-          font-size: 19px;
+          font-size: 18px;
           font-weight: 800;
           color: var(--ink-primary, #eef2ff);
           margin: 0;
           letter-spacing: -0.01em;
+          line-height: 1.35;
         }
         .elec-modal-msg {
-          font-size: 14px;
+          font-size: 13.5px;
           color: var(--ink-secondary, #94a3c4);
           margin: 0;
           line-height: 1.5;
@@ -3735,10 +3775,15 @@ function ElectricalAnnualInner() {
           border: 1px solid var(--border-hairline, #1e2e4a);
           border-radius: 10px;
           padding: 6px 12px;
-          font-size: 12.5px;
-          color: var(--ink-muted, #5a6a8a);
+          font-size: 12px;
+          color: var(--ink-muted, #7c8ba1);
           font-weight: 500;
-          margin: 2px 0 6px;
+          margin: 0 0 4px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-wrap: wrap;
+          justify-content: center;
         }
         .elec-modal-actions {
           width: 100%;
@@ -3747,57 +3792,88 @@ function ElectricalAnnualInner() {
           gap: 10px;
           margin-top: 4px;
         }
-        .elec-modal-btn {
+        .elec-modal-card-btn {
           width: 100%;
-          padding: 13px 16px;
-          border-radius: 14px;
-          border: 1px solid var(--border-strong, #2d3f5e);
-          font-size: 14.5px;
-          font-weight: 700;
-          font-family: inherit;
-          cursor: pointer;
-          transition: all 0.18s ease;
           display: flex;
           align-items: center;
-          justify-content: center;
-          gap: 8px;
+          gap: 14px;
+          padding: 13px 16px;
+          border-radius: 16px;
+          cursor: pointer;
+          text-align: left;
+          font-family: inherit;
+          transition: all 0.18s ease;
+          box-sizing: border-box;
         }
-        .elec-modal-btn--primary {
-          background: var(--accent, #2563eb);
-          color: #ffffff;
-          border-color: #3b82f6;
-          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+        .elec-modal-card-btn--primary {
+          border: 1.5px solid #3b82f6;
+          background: rgba(59, 130, 246, 0.09);
         }
-        .elec-modal-btn--primary:hover {
-          background: #1d4ed8;
+        .elec-modal-card-btn--primary:hover {
+          background: rgba(59, 130, 246, 0.18);
+          border-color: #60a5fa;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 18px rgba(59, 130, 246, 0.28);
+        }
+        .elec-modal-card-btn--primary .elec-modal-card-title {
+          color: #60a5fa;
+        }
+        .elec-modal-card-btn--secondary {
+          border: 1.5px solid var(--border-strong, #2d3f5e);
+          background: var(--bg-surface, #111d32);
+        }
+        .elec-modal-card-btn--secondary:hover {
+          background: var(--border-hairline, #1e2e4a);
+          border-color: #475569;
           transform: translateY(-1px);
         }
-        .elec-modal-btn--secondary {
-          background: var(--bg-surface, #111d32);
+        .elec-modal-card-btn--secondary .elec-modal-card-title {
           color: var(--ink-primary, #eef2ff);
-          border-color: var(--border-strong, #2d3f5e);
         }
-        .elec-modal-btn--secondary:hover {
-          background: var(--border-hairline, #1e2e4a);
-          color: #ffffff;
+        .elec-modal-card-btn--template {
+          border: 1.5px solid #6366f1;
+          background: rgba(99, 102, 241, 0.09);
         }
-        .elec-modal-btn--template {
-          background: #1e1b4b;
-          color: #c7d2fe;
-          border-color: #3730a3;
+        .elec-modal-card-btn--template:hover {
+          background: rgba(99, 102, 241, 0.18);
+          border-color: #818cf8;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 18px rgba(99, 102, 241, 0.28);
         }
-        .elec-modal-btn--template:hover {
-          background: #2e1065;
-          color: #e0e7ff;
+        .elec-modal-card-btn--template .elec-modal-card-title {
+          color: #a5b4fc;
+        }
+        .elec-modal-card-icon {
+          font-size: 26px;
+          flex-shrink: 0;
+          line-height: 1;
+        }
+        .elec-modal-card-text {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+        .elec-modal-card-title {
+          font-size: 14.5px;
+          font-weight: 700;
+          line-height: 1.3;
+        }
+        .elec-modal-card-sub {
+          font-size: 12px;
+          color: var(--ink-secondary, #94a3c4);
+          line-height: 1.4;
         }
         .elec-modal-btn--cancel {
           background: transparent;
           border: none;
-          color: var(--ink-muted, #5a6a8a);
-          font-size: 13.5px;
+          color: var(--ink-muted, #64748b);
+          font-size: 13px;
           font-weight: 600;
           padding: 8px;
           cursor: pointer;
+          font-family: inherit;
+          transition: color 0.15s;
+          margin-top: 2px;
         }
         .elec-modal-btn--cancel:hover {
           color: var(--ink-primary, #eef2ff);
