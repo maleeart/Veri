@@ -8,7 +8,7 @@
       "generalData": {
         "fuelBefore": "550",
         "runningHoursBefore": "137.3",
-        "runDurationMins": ""
+        "runDurationMins": "0"
       },
       "preVisual": [
         {
@@ -111,7 +111,8 @@
         },
         {
           "result": "abnormal",
-          "note": ""
+          "note": "",
+          "remark": "น้ำมันมีการรั่วซึมบริเวณจุดเดรนน้ำมัน"
         },
         {
           "result": "normal",
@@ -119,16 +120,16 @@
         }
       ],
       "readings": {
-        "waterPressure": "",
+        "waterPressure": "120",
         "battery1Voltage": "13.02",
         "battery2Voltage": "13.06",
         "jockeyPump": {
-          "voltageL1L2": "",
-          "voltageL2L3": "",
-          "voltageL1L3": "",
-          "currentL1": "",
-          "currentL2": "",
-          "currentL3": ""
+          "voltageL1L2": "393.5",
+          "voltageL2L3": "393",
+          "voltageL1L3": "395.3",
+          "currentL1": "4.09",
+          "currentL2": "3.94",
+          "currentL3": "4.1"
         }
       },
       "testRun": {
@@ -142,7 +143,7 @@
       "afterRun": {
         "fuelAfter": "550",
         "runningHoursAfter": "137.3",
-        "comment": "",
+        "comment": "ไม่มีการทดสอบเดินเครื่อง เนื่องจากอยู่ในระหว่างรอดำเนินการซ่อมแซมส่วนที่ชำรุด",
         "conclusionText": "",
         "inspectedBy": "Varodom",
         "approvedBy": "",
@@ -306,7 +307,7 @@
       "generalData": {
         "fuelBefore": "650",
         "runningHoursBefore": "65.6",
-        "runDurationMins": ""
+        "runDurationMins": "0"
       },
       "preVisual": [
         {
@@ -388,8 +389,9 @@
           "note": ""
         },
         {
-          "result": "normal",
-          "note": ""
+          "result": "abnormal",
+          "note": "",
+          "remark": "ประเก็นท่อไอเสียชำรุดมีควันไอเสียจำนวนมากออกขณะเดินเครื่อง (อยู่ในระหว่างรอดำเนินการ)"
         },
         {
           "result": "normal",
@@ -421,12 +423,12 @@
         "battery1Voltage": "13.84",
         "battery2Voltage": "13.84",
         "jockeyPump": {
-          "voltageL1L2": "",
-          "voltageL2L3": "",
-          "voltageL1L3": "",
-          "currentL1": "",
-          "currentL2": "",
-          "currentL3": ""
+          "voltageL1L2": "394.3",
+          "voltageL2L3": "394.1",
+          "voltageL1L3": "397",
+          "currentL1": "7.19",
+          "currentL2": "6.59",
+          "currentL3": "6.45"
         }
       },
       "testRun": {
@@ -440,8 +442,8 @@
       "afterRun": {
         "fuelAfter": "650",
         "runningHoursAfter": "65.6",
-        "comment": "",
-        "conclusionText": "",
+        "comment": "ไม่ได้ทำการทดสอบเดินเครื่องเนื่องจากอยู่ในระหว่างดำเนินการแก้ไขส่วนที่ชำรุด",
+        "conclusionText": "- ตรวจสอบสภาพ ทำความสะอาด \n- อุปกรณ์ไม่สามารถทำงานได้ณ วันที่ตรวจสอบ",
         "inspectedBy": "Varodom",
         "approvedBy": "",
         "approvedDate": "",
