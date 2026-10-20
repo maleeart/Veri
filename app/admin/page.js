@@ -239,8 +239,6 @@ export default function AdminPage() {
     return { thisWeekDone, prevWeekDone, thisWeek, prevWeek, isFriday, missingLastWeek, shouldAlert };
   }, [bmWeeks]);
 
-  const userCount    = dashUsers ? Object.keys(dashUsers).filter(e => dashUsers[e] === 'user').length : 0;
-  const visitorCount = dashUsers ? Object.keys(dashUsers).filter(e => dashUsers[e] !== 'user').length : 0;
   const totalOverdue = pmData ? PM_TYPES.reduce((s, { type }) => s + pmData[type].overdue, 0) : 0;
 
   if (status === 'loading') return <main className="msg">กำลังโหลด...</main>;
@@ -351,16 +349,6 @@ export default function AdminPage() {
 
             {/* Stat cards */}
             <div className="stat-row">
-              <div className="stat-card sc--blue">
-                <div className="sc-num">{dashUsers ? userCount : '…'}</div>
-                <div className="sc-lbl">ผู้ใช้งาน</div>
-                <div className="sc-icon">👥</div>
-              </div>
-              <div className="stat-card sc--purple">
-                <div className="sc-num">{dashUsers ? visitorCount : '…'}</div>
-                <div className="sc-lbl">ผู้เยี่ยมชม</div>
-                <div className="sc-icon">👁</div>
-              </div>
               <div className="stat-card sc--orange">
                 <div className="sc-num">{dates ? pendingCount : '…'}</div>
                 <div className="sc-lbl">งานที่ยังไม่เสร็จ</div>
@@ -594,11 +582,13 @@ export default function AdminPage() {
         /* ── Header ── */
         .adm-hdr {
           display: flex; align-items: center; justify-content: space-between;
-          padding: 22px 28px 18px;
+          padding: 20px 32px 18px;
           border-bottom: 1px solid var(--border-hairline);
           background: var(--bg-surface);
           position: sticky; top: 0; z-index: 10;
           box-shadow: 0 1px 3px rgba(0,0,0,.06);
+          width: 100%;
+          box-sizing: border-box;
         }
         .adm-hdr-left { display: flex; align-items: center; gap: 12px; }
         .adm-back  { background: none; border: none; font-size: 28px; color: var(--ink-muted); cursor: pointer; padding: 0 6px 0 0; line-height: 1; }
@@ -622,26 +612,33 @@ export default function AdminPage() {
         .adm-refresh:disabled { opacity: .5; cursor: default; }
 
         /* ── Dashboard ── */
-        .dash { padding: 24px 28px; display: flex; flex-direction: column; gap: 28px; max-width: 1100px; }
+        .dash {
+          padding: 24px 32px 48px;
+          display: flex;
+          flex-direction: column;
+          gap: 28px;
+          width: 100%;
+          max-width: none;
+          box-sizing: border-box;
+        }
         .dash-err { color: var(--status-fail); background: var(--status-fail-bg); border-radius: 10px; padding: 10px 14px; font-size: 13px; }
 
-        /* Stat cards — dark theme harmonious with glowing borders and clear text */
-        .stat-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
-        .stat-card {
-          position: relative; overflow: hidden; border-radius: 16px; padding: 20px 20px 16px;
-          display: flex; flex-direction: column; gap: 4px; box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        /* Stat cards — 2 columns across full width */
+        .stat-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        @media (max-width: 640px) {
+          .stat-row { grid-template-columns: 1fr; }
         }
-        .sc--blue   { background: linear-gradient(135deg, rgba(37,99,235,0.18), rgba(30,58,138,0.35)); border: 1px solid rgba(59,130,246,0.4); }
-        .sc--purple { background: linear-gradient(135deg, rgba(124,58,237,0.18), rgba(76,29,149,0.35)); border: 1px solid rgba(167,139,250,0.4); }
+        .stat-card {
+          position: relative; overflow: hidden; border-radius: 16px; padding: 22px 24px 18px;
+          display: flex; flex-direction: column; gap: 6px; box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        }
         .sc--orange { background: linear-gradient(135deg, rgba(217,119,6,0.18), rgba(120,53,15,0.35)); border: 1px solid rgba(245,158,11,0.4); }
         .sc--red    { background: linear-gradient(135deg, rgba(220,38,38,0.18), rgba(127,29,29,0.35)); border: 1px solid rgba(239,68,68,0.4); }
-        .sc-num  { font-size: 32px; font-weight: 900; line-height: 1; }
-        .sc--blue .sc-num { color: #60a5fa; }
-        .sc--purple .sc-num { color: #c084fc; }
+        .sc-num  { font-size: 36px; font-weight: 900; line-height: 1; }
         .sc--orange .sc-num { color: #fbbf24; }
         .sc--red .sc-num { color: #f87171; }
-        .sc-lbl  { font-size: 12px; font-weight: 600; color: var(--ink-secondary); }
-        .sc-icon { position: absolute; right: 14px; top: 14px; font-size: 28px; opacity: .25; }
+        .sc-lbl  { font-size: 13px; font-weight: 600; color: var(--ink-secondary); }
+        .sc-icon { position: absolute; right: 18px; top: 18px; font-size: 32px; opacity: .25; }
 
         /* Section label */
         .dash-sec { display: flex; flex-direction: column; gap: 12px; }
@@ -750,7 +747,11 @@ export default function AdminPage() {
         .rb--reject:hover:not(:disabled)  { background: rgba(239, 68, 68, 0.3); }
 
         /* Quick links */
-        .quick-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+        .quick-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+          gap: 12px;
+        }
         .quick-card {
           display: flex; flex-direction: column; align-items: center; gap: 8px;
           padding: 18px 12px; background: var(--bg-surface); border: 1px solid var(--border-hairline); border-radius: 14px;
@@ -759,6 +760,12 @@ export default function AdminPage() {
         .quick-card:hover { background: var(--bg-surface-raised); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
         .qc-icon  { font-size: 26px; }
         .qc-label { font-size: 12px; font-weight: 600; color: var(--ink-secondary); text-align: center; line-height: 1.3; }
+
+        @media (max-width: 640px) {
+          .adm-hdr { padding: 16px 16px 14px; }
+          .dash { padding: 16px 14px 36px; gap: 20px; }
+          .quick-grid { grid-template-columns: repeat(2, 1fr); }
+        }
 
         /* User management */
         .users-wrap { padding: 24px 28px; max-width: 640px; }
