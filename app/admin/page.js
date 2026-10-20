@@ -256,10 +256,12 @@ export default function AdminPage() {
   const visitorEmails = users ? Object.keys(users).filter(e => users[e] !== 'user').sort() : [];
 
   const QUICK = [
-    { icon: '🚒⚡', label: 'Fire Pump & Generator', href: '/session' },
+    { icon: '🏠',   label: 'หน้าแรก (เมนูลัด)',       href: '/' },
+    { icon: '🚒',   label: 'Fire Pump & Generator', href: '/session' },
     { icon: '💡',   label: 'Emergency Light',        href: `/form/emergency?date=${today}` },
     { icon: '🚨',   label: 'Smoke Detector',         href: `/form/smoke?date=${today}` },
     { icon: '🚪',   label: 'Exit Sign',              href: `/form/exit?date=${today}` },
+    { icon: '📑',   label: 'บริภัณฑ์ไฟฟ้าประจำปี',   href: '/electrical-annual' },
     { icon: '⚡',   label: 'Meter กฟน.',             href: '/meter' },
     { icon: '🏢',   label: 'Meter อาคาร',            href: '/building-meter' },
     { icon: '🔧',   label: 'สถานะ PM',               href: '/pm' },
@@ -279,7 +281,7 @@ export default function AdminPage() {
   // action rows — FPG / Meter กฟน. / Meter อาคาร
   const SIMPLE_ROWS = [
     {
-      icon: '🚒⚡', label: 'Fire Pump & Generator', schedule: 'ทุกวันเสาร์',
+      icon: '🚒', label: 'Fire Pump & Generator', schedule: 'ทุกวันเสาร์',
       done: fpgStatus?.done ?? null,
       detail: !fpgStatus ? '…'
         : fpgStatus.done
@@ -331,11 +333,16 @@ export default function AdminPage() {
               </p>
             </div>
           </div>
-          {view === 'dashboard' && (
-            <button className="adm-refresh" onClick={loadDashboard} disabled={dashLoading} title="รีเฟรชข้อมูล">
-              <span style={{ display:'inline-block', animation: dashLoading ? 'spin 1s linear infinite' : 'none' }}>🔄</span>
+          <div className="adm-hdr-actions">
+            <button className="adm-btn-home" onClick={() => router.push('/')} title="ไปหน้าแรก (เมนูลัด)">
+              <span>🏠</span> หน้าแรก (เมนูลัด)
             </button>
-          )}
+            {view === 'dashboard' && (
+              <button className="adm-refresh" onClick={loadDashboard} disabled={dashLoading} title="รีเฟรชข้อมูล">
+                <span style={{ display:'inline-block', animation: dashLoading ? 'spin 1s linear infinite' : 'none' }}>🔄</span>
+              </button>
+            )}
+          </div>
         </header>
 
         {view === 'dashboard' && (
@@ -597,6 +604,15 @@ export default function AdminPage() {
         .adm-back  { background: none; border: none; font-size: 28px; color: var(--ink-muted); cursor: pointer; padding: 0 6px 0 0; line-height: 1; }
         .adm-title { font-size: 20px; font-weight: 800; color: var(--ink-primary); margin: 0; }
         .adm-sub   { font-size: 12px; color: var(--ink-muted); margin: 2px 0 0; }
+        .adm-hdr-actions { display: flex; align-items: center; gap: 8px; }
+        .adm-btn-home {
+          display: flex; align-items: center; gap: 6px;
+          background: rgba(37,99,235,0.14); border: 1px solid rgba(59,130,246,0.35);
+          color: #60a5fa; border-radius: 10px; padding: 7px 12px;
+          font-size: 13px; font-weight: 700; cursor: pointer;
+          transition: all .15s; font-family: inherit;
+        }
+        .adm-btn-home:hover { background: rgba(37,99,235,0.25); color: #93c5fd; border-color: #60a5fa; }
         .adm-refresh {
           background: var(--bg-surface-raised); border: 1px solid var(--border-hairline);
           border-radius: 10px; width: 38px; height: 38px; cursor: pointer; font-size: 18px;
@@ -609,19 +625,23 @@ export default function AdminPage() {
         .dash { padding: 24px 28px; display: flex; flex-direction: column; gap: 28px; max-width: 1100px; }
         .dash-err { color: var(--status-fail); background: var(--status-fail-bg); border-radius: 10px; padding: 10px 14px; font-size: 13px; }
 
-        /* Stat cards — gradient backgrounds are always light, so text must be hardcoded dark */
+        /* Stat cards — dark theme harmonious with glowing borders and clear text */
         .stat-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
         .stat-card {
           position: relative; overflow: hidden; border-radius: 16px; padding: 20px 20px 16px;
-          display: flex; flex-direction: column; gap: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.07);
+          display: flex; flex-direction: column; gap: 4px; box-shadow: 0 4px 14px rgba(0,0,0,0.25);
         }
-        .sc--blue   { background: linear-gradient(135deg,#dbeafe,#eff6ff); border: 1px solid #93c5fd; }
-        .sc--purple { background: linear-gradient(135deg,#ede9fe,#f5f3ff); border: 1px solid #c4b5fd; }
-        .sc--orange { background: linear-gradient(135deg,#fef3c7,#fffbeb); border: 1px solid #fcd34d; }
-        .sc--red    { background: linear-gradient(135deg,#fee2e2,#fff5f5); border: 1px solid #fca5a5; }
-        .sc-num  { font-size: 32px; font-weight: 900; color: #0f172a; line-height: 1; }
-        .sc-lbl  { font-size: 12px; font-weight: 600; color: #475569; }
-        .sc-icon { position: absolute; right: 14px; top: 14px; font-size: 28px; opacity: .18; }
+        .sc--blue   { background: linear-gradient(135deg, rgba(37,99,235,0.18), rgba(30,58,138,0.35)); border: 1px solid rgba(59,130,246,0.4); }
+        .sc--purple { background: linear-gradient(135deg, rgba(124,58,237,0.18), rgba(76,29,149,0.35)); border: 1px solid rgba(167,139,250,0.4); }
+        .sc--orange { background: linear-gradient(135deg, rgba(217,119,6,0.18), rgba(120,53,15,0.35)); border: 1px solid rgba(245,158,11,0.4); }
+        .sc--red    { background: linear-gradient(135deg, rgba(220,38,38,0.18), rgba(127,29,29,0.35)); border: 1px solid rgba(239,68,68,0.4); }
+        .sc-num  { font-size: 32px; font-weight: 900; line-height: 1; }
+        .sc--blue .sc-num { color: #60a5fa; }
+        .sc--purple .sc-num { color: #c084fc; }
+        .sc--orange .sc-num { color: #fbbf24; }
+        .sc--red .sc-num { color: #f87171; }
+        .sc-lbl  { font-size: 12px; font-weight: 600; color: var(--ink-secondary); }
+        .sc-icon { position: absolute; right: 14px; top: 14px; font-size: 28px; opacity: .25; }
 
         /* Section label */
         .dash-sec { display: flex; flex-direction: column; gap: 12px; }
@@ -646,11 +666,11 @@ export default function AdminPage() {
         }
         .action-row:first-child { border-top: none; }
         .action-row:hover { background: var(--bg-surface-raised); }
-        /* alert rows have coloured backgrounds → text must be hardcoded */
-        .action-row--alert { background: #fffbeb !important; }
-        .action-row--alert:hover { background: #fef9e4 !important; }
-        .action-row--alert .ar-name     { color: #92400e; }
-        .action-row--alert .ar-schedule { color: #b45309; }
+        /* alert rows in dark theme */
+        .action-row--alert { background: rgba(245, 158, 11, 0.08) !important; }
+        .action-row--alert:hover { background: rgba(245, 158, 11, 0.14) !important; }
+        .action-row--alert .ar-name     { color: #fbbf24; }
+        .action-row--alert .ar-schedule { color: #f59e0b; }
 
         .ar-icon     { font-size: 22px; text-align: center; flex-shrink: 0; }
         .ar-info     { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -660,25 +680,25 @@ export default function AdminPage() {
         .ar-expand {
           background: var(--bg-surface-raised); border: 1px solid var(--border-strong);
           border-radius: 8px; padding: 4px 10px; font-size: 11px; font-weight: 600;
-          color: var(--accent); cursor: pointer; white-space: nowrap; transition: background .1s;
+          color: var(--accent-strong); cursor: pointer; white-space: nowrap; transition: background .1s;
         }
         .ar-expand:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
         .ar-btn {
           background: var(--bg-surface-raised); border: 1px solid var(--border-strong);
           border-radius: 8px; padding: 5px 12px; font-size: 12px; font-weight: 600;
-          color: var(--accent); cursor: pointer; white-space: nowrap; transition: background .12s;
+          color: var(--accent-strong); cursor: pointer; white-space: nowrap; transition: background .12s;
           flex-shrink: 0;
         }
         .ar-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-        /* Chips — coloured backgrounds, text must be hardcoded */
+        /* Chips — dark theme tinted pills */
         .chip {
           font-size: 12px; font-weight: 600; border-radius: 8px; padding: 4px 10px;
           white-space: nowrap; border: 1px solid transparent;
         }
-        .chip--ok      { background: #dcfce7; color: #14532d; border-color: #86efac; }
-        .chip--overdue { background: #fee2e2; color: #7f1d1d; border-color: #fca5a5; }
-        .chip--due     { background: #fef3c7; color: #78350f; border-color: #fcd34d; }
+        .chip--ok      { background: rgba(34, 197, 94, 0.15); color: #4ade80; border-color: rgba(34, 197, 94, 0.35); }
+        .chip--overdue { background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.35); }
+        .chip--due     { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.35); }
         .chip--never   { background: var(--bg-surface-raised); color: var(--ink-secondary); border-color: var(--border-strong); }
         .chip--loading { background: var(--bg-surface-raised); color: var(--ink-muted); font-style: italic; border-color: var(--border-hairline); }
 
@@ -690,8 +710,8 @@ export default function AdminPage() {
         }
         .pm-group { display: flex; flex-direction: column; gap: 6px; }
         .pm-group-lbl { font-size: 11px; font-weight: 700; }
-        .pm-gl--overdue { color: #991b1b; }
-        .pm-gl--due     { color: #92400e; }
+        .pm-gl--overdue { color: #f87171; }
+        .pm-gl--due     { color: #fbbf24; }
         .pm-gl--never   { color: var(--ink-muted); }
         .pm-tags { display: flex; flex-wrap: wrap; gap: 6px; }
         .pm-tag {
@@ -700,8 +720,8 @@ export default function AdminPage() {
           padding: 4px 10px; cursor: default; border: 1px solid transparent;
         }
         .pm-tag em { font-style: normal; font-size: 10px; opacity: .8; }
-        .pm-tag--overdue { background: #fee2e2; color: #7f1d1d; border-color: #fca5a5; }
-        .pm-tag--due     { background: #fef3c7; color: #78350f; border-color: #fcd34d; }
+        .pm-tag--overdue { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border-color: rgba(239, 68, 68, 0.3); }
+        .pm-tag--due     { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border-color: rgba(245, 158, 11, 0.3); }
         .pm-tag--never   { background: var(--bg-surface-raised); color: var(--ink-secondary); border-color: var(--border-strong); }
 
         /* Delete requests */
@@ -713,9 +733,9 @@ export default function AdminPage() {
         }
         .req-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .req-type-tag { font-size: 11px; font-weight: 700; border-radius: 8px; padding: 3px 8px; background: var(--bg-surface-raised); color: var(--ink-secondary); border: 1px solid var(--border-strong); }
-        .rt--emergency { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
-        .rt--smoke     { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
-        .rt--exit      { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
+        .rt--emergency { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); }
+        .rt--smoke     { background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
+        .rt--exit      { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border-color: rgba(59, 130, 246, 0.3); }
         .req-date   { font-size: 12px; font-weight: 600; color: var(--ink-secondary); }
         .req-bldg   { font-size: 12px; color: var(--ink-muted); }
         .req-reason { font-size: 13px; color: var(--ink-secondary); font-style: italic; }
@@ -724,10 +744,10 @@ export default function AdminPage() {
         .req-btns   { display: flex; gap: 6px; }
         .req-btn    { border: none; border-radius: 9px; padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: pointer; transition: opacity .12s; }
         .req-btn:disabled { opacity: .5; cursor: default; }
-        .rb--approve { background: #dcfce7; color: #14532d; }
-        .rb--approve:hover:not(:disabled) { background: #bbf7d0; }
-        .rb--reject  { background: #fee2e2; color: #7f1d1d; }
-        .rb--reject:hover:not(:disabled)  { background: #fecaca; }
+        .rb--approve { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
+        .rb--approve:hover:not(:disabled) { background: rgba(34, 197, 94, 0.3); }
+        .rb--reject  { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .rb--reject:hover:not(:disabled)  { background: rgba(239, 68, 68, 0.3); }
 
         /* Quick links */
         .quick-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
@@ -757,11 +777,11 @@ export default function AdminPage() {
         .row { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--border-hairline); }
         .email { flex: 1; font-size: 13px; color: var(--ink-primary); word-break: break-all; }
         .tag { font-size: 11px; font-weight: 700; border-radius: 8px; padding: 3px 8px; white-space: nowrap; border: 1px solid transparent; }
-        .tag--admin   { background: #fee2e2; color: #7f1d1d; border-color: #fca5a5; }
-        .tag--user    { background: #dcfce7; color: #14532d; border-color: #86efac; }
+        .tag--admin   { background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
+        .tag--user    { background: rgba(34, 197, 94, 0.15); color: #4ade80; border-color: rgba(34, 197, 94, 0.3); }
         .tag--visitor { background: var(--bg-surface-raised); color: var(--ink-muted); border-color: var(--border-strong); }
         .btn-sm { background: var(--bg-surface-raised); border: 1px solid var(--border-strong); color: var(--ink-secondary); border-radius: 8px; padding: 5px 10px; font-size: 12px; cursor: pointer; white-space: nowrap; }
-        .btn-sm--promote { background: #dcfce7; border-color: #86efac; color: #14532d; }
+        .btn-sm--promote { background: rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.4); color: #4ade80; }
         .btn-sm:disabled { opacity: .5; }
       `}</style>
     </div>

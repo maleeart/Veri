@@ -23,45 +23,52 @@ export default function Sidenav({ notifProps = null }) {
   // Determine active section
   const view = searchParams.get('view');
   const active = pathname === '/' && view === 'report' ? 'report'
+    : pathname === '/' ? 'home'
+    : pathname === '/admin' ? 'admin'
     : pathname.startsWith('/form/') ? `form:${pathname.split('/')[2]}`
     : pathname === '/electrical-annual' ? 'elec'
-    : pathname === '/' ? 'dashboard'
     : pathname;
 
   const navItems = [
-    { icon: '🚒⚡', label: 'Fire Pump & Generator', key: 'fpg',    href: '/session', badge: hasDraft ? 'draft' : null },
-    { icon: '💡',   label: 'Emergency Light',        key: 'emer',   href: `/form/emergency?date=${today}` },
-    { icon: '🚨',   label: 'Smoke Detector',         key: 'smoke',  href: `/form/smoke?date=${today}` },
-    { icon: '🚪',   label: 'Exit Sign',              key: 'exit',   href: `/form/exit?date=${today}` },
-    { icon: '⚡📋', label: 'บริภัณฑ์ไฟฟ้าประจำปี',   key: 'elec',   href: '/electrical-annual' },
-    { icon: '⚡',   label: 'Meter กฟน.',             key: 'meter',  href: '/meter' },
-    { icon: '🏢',   label: 'Meter อาคาร',            key: 'bmeter', href: '/building-meter' },
-    { icon: '🔧',   label: 'สถานะ PM',               key: 'pm',     href: '/pm' },
+    { icon: '🚒', label: 'Fire Pump & Generator', key: 'fpg',    href: '/session', badge: hasDraft ? 'draft' : null },
+    { icon: '💡', label: 'Emergency Light',        key: 'emer',   href: `/form/emergency?date=${today}` },
+    { icon: '🚨', label: 'Smoke Detector',         key: 'smoke',  href: `/form/smoke?date=${today}` },
+    { icon: '🚪', label: 'Exit Sign',              key: 'exit',   href: `/form/exit?date=${today}` },
+    { icon: '📑', label: 'บริภัณฑ์ไฟฟ้าประจำปี',   key: 'elec',   href: '/electrical-annual' },
+    { icon: '⚡', label: 'Meter กฟน.',             key: 'meter',  href: '/meter' },
+    { icon: '🏢', label: 'Meter อาคาร',            key: 'bmeter', href: '/building-meter' },
+    { icon: '🔧', label: 'สถานะ PM',               key: 'pm',     href: '/pm' },
   ];
 
   return (
     <nav className="sidenav">
       {/* Logo */}
-      <div className="sn-logo">
+      <div className="sn-logo" onClick={() => router.push('/')} style={{ cursor: 'pointer' }} title="กลับหน้าแรก">
         <Image src="/logo.png" alt="Veri" width={36} height={36} style={{ borderRadius: 8 }} priority />
-        <div>
+        <div style={{ minWidth: 0, overflow: 'hidden' }}>
           <div className="sn-logo-title">Facility Inspection</div>
           <div className="sn-logo-sub">ระบบบันทึกตรวจสอบ</div>
         </div>
       </div>
 
-      {/* Admin home */}
+      {/* Main navigation */}
+      <div className="sn-section-label">เมนูหลัก</div>
+      <button className={`sn-item${active === 'home' ? ' sn-item--active' : ''}`}
+        onClick={() => router.push('/')}>
+        <span className="sn-item-icon">🏠</span>
+        <span className="sn-item-label">หน้าแรก (เมนูลัด)</span>
+      </button>
+
+      {/* Admin overview */}
       {isAdmin && (
-        <>
-          <div className="sn-section-label">แอดมิน</div>
-          <button className={`sn-item${pathname === '/admin' ? ' sn-item--active' : ''}`}
-            onClick={() => router.push('/admin')}>
-            <span className="sn-item-icon">🏠</span>
-            <span className="sn-item-label">หน้าหลัก</span>
-          </button>
-          <div className="sn-divider" />
-        </>
+        <button className={`sn-item${pathname === '/admin' ? ' sn-item--active' : ''}`}
+          onClick={() => router.push('/admin')}>
+          <span className="sn-item-icon">📈</span>
+          <span className="sn-item-label">ภาพรวมระบบ</span>
+        </button>
       )}
+
+      <div className="sn-divider" />
 
       {/* Nav items */}
       <div className="sn-section-label">บันทึกข้อมูล</div>
@@ -131,7 +138,7 @@ export default function Sidenav({ notifProps = null }) {
           .sidenav {
             display: flex;
             flex-direction: column;
-            width: 240px;
+            width: 248px;
             flex-shrink: 0;
             background: var(--bg-surface);
             border-right: 1px solid var(--border-hairline);
@@ -174,12 +181,17 @@ export default function Sidenav({ notifProps = null }) {
         }
         .sn-item:hover { background: var(--bg-surface-raised); }
         .sn-item--active { background: rgba(37,99,235,0.18) !important; }
-        .sn-item--active .sn-item-label { color: var(--accent-strong); }
+        .sn-item--active .sn-item-label { color: var(--accent-strong); font-weight: 700; }
         .sn-item-icon  { font-size: 18px; flex-shrink: 0; width: 24px; text-align: center; }
-        .sn-item-label { font-size: 13px; font-weight: 600; color: var(--ink-primary); flex: 1; }
+        .sn-item-label {
+          font-size: 13px; font-weight: 600; color: var(--ink-primary);
+          flex: 1; min-width: 0;
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
         .sn-item-badge {
           font-size: 10px; font-weight: 700; padding: 2px 6px;
-          background: #fef3c7; color: #92400e;
+          background: rgba(245, 158, 11, 0.2); color: #fbbf24;
+          border: 1px solid rgba(245, 158, 11, 0.4);
           border-radius: 6px; flex-shrink: 0;
         }
         .sn-divider { height: 1px; background: var(--border-hairline); margin: 8px 0; flex-shrink: 0; }

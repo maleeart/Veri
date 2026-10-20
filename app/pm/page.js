@@ -113,7 +113,7 @@ function PmPageInner() {
     const lastSat = lastSaturdayISO();
     const lastFpg = lastOf('fpg');
     const fpgDone = !!(lastFpg && lastFpg >= lastSat);
-    rows.push({ icon: '🚒⚡', name: 'Fire Pump & Generator', last: lastFpg,
+    rows.push({ icon: '🚒', name: 'Fire Pump & Generator', last: lastFpg,
       chip: fpgDone ? { cls: 'st--ok', txt: '✅ ทำแล้ว' } : { cls: 'st--overdue', txt: '⚠️ ยังไม่ทำ' } });
 
     // Emergency / Smoke / Exit — รายอาคาร ทุก 3 เดือน
@@ -245,10 +245,10 @@ function PmPageInner() {
 
         .chip { font-size: 12px; font-weight: 600; border-radius: 8px; padding: 4px 10px;
           white-space: nowrap; border: 1px solid transparent; }
-        :global(.st--ok)      { background: #dcfce7; color: #14532d; border-color: #86efac; }
-        :global(.st--overdue) { background: #fee2e2; color: #7f1d1d; border-color: #fca5a5; }
-        :global(.st--due)     { background: #fef3c7; color: #78350f; border-color: #fcd34d; }
-        :global(.st--never)   { background: var(--bg-surface-raised); color: var(--ink-secondary); border-color: var(--border-strong); }
+        :global(.st--ok)      { background: rgba(34, 197, 94, 0.15); color: #4ade80; border-color: rgba(34, 197, 94, 0.35); }
+        :global(.st--overdue) { background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.35); }
+        :global(.st--due)     { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.35); }
+        :global(.st--never)   { background: rgba(148, 163, 184, 0.12); color: #94a3b8; border-color: rgba(148, 163, 184, 0.25); }
       `}</style>
     </div>
   );
@@ -407,12 +407,12 @@ function ItemRow({ machineId, item, last, canWrite, onPost }) {
       <style jsx>{`
         .ir { display: flex; align-items: center; gap: 10px; padding: 10px 16px;
           border-top: 1px solid var(--border-hairline); flex-wrap: wrap; }
-        .ir--alert { background: #fffbeb; }
+        .ir--alert { background: rgba(245, 158, 11, 0.08); }
         .ir-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 160px; }
         .ir-lbl { font-size: 13px; font-weight: 600; color: var(--ink-primary); }
-        .ir--alert .ir-lbl { color: #92400e; }
+        .ir--alert .ir-lbl { color: #fbbf24; }
         .ir-detail { font-size: 11px; color: var(--ink-muted); }
-        .ir--alert .ir-detail { color: #b45309; }
+        .ir--alert .ir-detail { color: #f59e0b; }
         .chip { font-size: 12px; font-weight: 600; border-radius: 8px; padding: 4px 10px;
           white-space: nowrap; border: 1px solid transparent; }
         .ir-act { display: flex; align-items: center; gap: 6px; }

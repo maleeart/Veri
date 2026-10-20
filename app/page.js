@@ -501,26 +501,50 @@ function HomePageInner() {
   }, [isReport, reportType, filteredDates, filteredWeeks, meterMonths, selectedYear, selectedMonth]);
 
   const TYPE_META = {
-    fpg:       { icon: '🚒⚡', label: 'Fire Pump & Generator' },
-    emergency: { icon: '💡',   label: 'Emergency Light' },
-    smoke:     { icon: '🚨',   label: 'Smoke Detector' },
-    exit:      { icon: '🚪',   label: 'Exit Sign' },
+    fpg:       { icon: '🚒', label: 'Fire Pump & Generator' },
+    emergency: { icon: '💡', label: 'Emergency Light' },
+    smoke:     { icon: '🚨', label: 'Smoke Detector' },
+    exit:      { icon: '🚪', label: 'Exit Sign' },
     'building-meter': { icon: '🏢', label: 'Meter อาคาร' },
     'meter-gfn':      { icon: '⚡', label: 'Meter กฟน.' },
-    elec:             { icon: '⚡📋', label: 'บริภัณฑ์ไฟฟ้าประจำปี' },
+    elec:             { icon: '📑', label: 'บริภัณฑ์ไฟฟ้าประจำปี' },
   };
 
-  // ── รายการล่าสุด (timeline รวมทุกระบบ) — ภาพรวมต่อระบบย้ายไปหน้า /pm แล้ว ──
+  // ── รายการล่าสุด (5 รายการล่าสุด พร้อมดู/ดาวน์โหลด) — ภาพรวมต่อระบบย้ายไปหน้า /pm แล้ว ──
   const timeline = useMemo(() => {
     const items = [];
     for (const d of (dates || [])) {
       const meta = TYPE_META[d.type] || {};
-      items.push({ sort: d.date, when: fmtDate(d.date), icon: meta.icon || '📄', label: meta.label || d.type, detail: d.building || '' });
+      const stem = d.filename || `${d.type}_${d.date}`;
+      const previewUrl = d.type === 'fpg'
+        ? `/session?date=${d.date}`
+        : `/report/${encodeURIComponent(stem)}${d._path ? `?path=${encodeURIComponent(d._path)}` : ''}`;
+      const loc = [d.building, d.floor].filter(Boolean).join(' · ');
+      items.push({
+        kind: 'inspection',
+        sort: d.date,
+        when: fmtDate(d.date),
+        icon: meta.icon || '📄',
+        label: meta.label || d.type,
+        detail: loc,
+        previewUrl,
+        raw: d,
+      });
     }
     for (const w of weekRows) {
-      items.push({ sort: `${w.y}-${w.m}-15`, when: w.label, icon: '🏢', label: 'Meter อาคาร', detail: w.week });
+      items.push({
+        kind: 'bm',
+        sort: `${w.y}-${w.m}-15`,
+        when: w.label,
+        icon: '🏢',
+        label: 'Meter อาคาร',
+        detail: w.week,
+        previewUrl: `/report/building-meter?week=${encodeURIComponent(w.week)}`,
+        excelUrl: `/api/export-building-meter?week=${w.week}`,
+        raw: w,
+      });
     }
-    return items.sort((a, b) => b.sort.localeCompare(a.sort)).slice(0, 12);
+    return items.sort((a, b) => b.sort.localeCompare(a.sort)).slice(0, 5);
   }, [dates, weekRows]);
 
   return (
@@ -1007,7 +1031,7 @@ function HomePageInner() {
         <button
           className="card card--fpg"
           onClick={() => router.push(`/session`)}>
-          <span className="card__icon">🚒⚡</span>
+          <span className="card__icon">🚒</span>
           <div className="card__body">
             <span className="card__title">Fire Pump &amp; Generator</span>
             <span className="card__sub">
@@ -1057,7 +1081,7 @@ function HomePageInner() {
         <button
           className="card card--elec"
           onClick={() => router.push('/electrical-annual')}>
-          <span className="card__icon">⚡📋</span>
+          <span className="card__icon">📑</span>
           <div className="card__body">
             <span className="card__title">บริภัณฑ์ไฟฟ้าประจำปี</span>
             <span className="card__sub">ส่งกรมสวัสดิ์</span>
@@ -1091,7 +1115,7 @@ function HomePageInner() {
 
       </main>
 
-      {/* ── แถบสรุป: สถานะ PM · รายการล่าสุด (ยุบได้) · รายงาน — แสดงทั้ง mobile/desktop ── */}
+      {/* ── แถบสรุป: สถานะ PM · รายการล่าสุด (แสดง 5 รายการล่าสุดทันที) · รายงาน — แสดงทั้ง mobile/desktop ── */}
       <section className="home-foot">
         <button className="foot-bar foot-bar--pm" onClick={() => router.push('/pm')}>
           <span className="foot-ico">🔧</span>
@@ -1102,30 +1126,63 @@ function HomePageInner() {
           <span className="foot-arrow">›</span>
         </button>
 
-        <button className="foot-bar" onClick={() => setShowTimeline(v => !v)}>
-          <span className="foot-ico">🕑</span>
-          <div className="foot-body">
-            <span className="foot-title">รายการล่าสุด</span>
-            <span className="foot-sub">{dates === null ? 'กำลังโหลด...' : `${timeline.length} รายการล่าสุด`}</span>
+        <div className="recent-section">
+          <div className="recent-header">
+            <span className="foot-ico">🕑</span>
+            <div className="foot-body">
+              <span className="foot-title">รายการล่าสุด</span>
+              <span className="foot-sub">{dates === null ? 'กำลังโหลด...' : `${timeline.length} รายการล่าสุด`}</span>
+            </div>
           </div>
-          <span className="foot-arrow">{showTimeline ? '⌄' : '›'}</span>
-        </button>
-        {showTimeline && (
           <div className="dash-tl">
-            {dates === null ? <p className="dash-empty">กำลังโหลด...</p>
-              : timeline.length === 0 ? <p className="dash-empty">ยังไม่มีรายการ</p>
-              : timeline.map((t, i) => (
+            {dates === null ? (
+              <p className="dash-empty">กำลังโหลด...</p>
+            ) : timeline.length === 0 ? (
+              <p className="dash-empty">ยังไม่มีรายการ</p>
+            ) : (
+              timeline.map((t, i) => (
                 <div key={i} className="tl-row">
                   <span className="tl-icon">{t.icon}</span>
                   <div className="tl-info">
-                    <span className="tl-label">{t.label}</span>
+                    <div className="tl-hdr">
+                      <span className="tl-label">{t.label}</span>
+                      <span className="tl-when">{t.when}</span>
+                    </div>
                     {t.detail && <span className="tl-detail">{t.detail}</span>}
                   </div>
-                  <span className="tl-when">{t.when}</span>
+                  <div className="tl-actions">
+                    {t.previewUrl && (
+                      <button
+                        type="button"
+                        className="btn-tl btn-tl--preview"
+                        onClick={() => router.push(t.previewUrl)}
+                        title="ดูตัวอย่างรายงาน"
+                      >
+                        {t.raw?.type === 'elec' ? 'PDF' : 'Preview'}
+                      </button>
+                    )}
+                    {((t.kind === 'bm') || (t.kind === 'inspection' && t.raw?.type !== 'elec')) && (
+                      <button
+                        type="button"
+                        className="btn-tl btn-tl--dl"
+                        onClick={() => {
+                          if (t.kind === 'bm') {
+                            window.location.href = t.excelUrl;
+                          } else {
+                            handleDownload(t.raw.date, t.raw.type, t.raw.filename, t.raw.building, t.raw.floor);
+                          }
+                        }}
+                        title="ดาวน์โหลด Excel"
+                      >
+                        ⬇︎ Excel
+                      </button>
+                    )}
+                  </div>
                 </div>
-              ))}
+              ))
+            )}
           </div>
-        )}
+        </div>
 
         <button className="foot-bar foot-bar--report" onClick={() => router.push('/?view=report')}>
           <span className="foot-ico">📊</span>
@@ -1389,13 +1446,23 @@ function HomePageInner() {
             height: 100dvh;
           }
           .header { display: none; }
-          .grid { display: none; }
+          .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            max-width: 860px;
+            padding: 24px 32px 0;
+            gap: 14px;
+          }
           .layout { display: block; padding: 0; }
           .left-col { display: none; }
           .right-col { padding: 24px 32px; }
           .status-panel { margin: 0 0 20px; }
           .history-panel { margin: 0; gap: 8px; }
           .report-view { padding: 28px 32px; }
+          .home-foot {
+            padding: 16px 32px 32px;
+            max-width: 860px;
+          }
         }
 
         /* ─── Header ─── */
@@ -1444,24 +1511,27 @@ function HomePageInner() {
         .grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 14px;
-          padding: 20px 16px 0;
+          gap: 12px;
+          padding: 18px 16px 0;
         }
 
         /* ─── Cards ─── */
         .card {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 10px;
           border: none;
-          border-radius: 20px;
-          padding: 18px 16px;
+          border-radius: 18px;
+          padding: 14px 14px;
           cursor: pointer;
           text-align: left;
           transition: transform 0.12s, box-shadow 0.12s;
           -webkit-tap-highlight-color: transparent;
           position: relative;
           overflow: hidden;
+          box-sizing: border-box;
+          min-height: 78px;
+          height: 100%;
         }
         .card:active { transform: scale(0.97); }
 
@@ -1470,84 +1540,80 @@ function HomePageInner() {
           grid-column: 1 / -1;
           background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
           box-shadow: 0 8px 24px rgba(37,99,235,0.40);
-          min-height: 88px;
+          min-height: 84px;
+          padding: 16px 18px;
+          gap: 14px;
         }
-        .card--fpg .card__title { color: #fff; font-size: 17px; }
-        .card--fpg .card__sub   { color: rgba(255,255,255,0.8); }
-        .card--fpg .card__icon  { font-size: 30px; }
+        .card--fpg .card__title { color: #fff; font-size: 16px; font-weight: 800; }
+        .card--fpg .card__sub   { color: rgba(255,255,255,0.8); font-size: 12px; }
+        .card--fpg .card__icon  { font-size: 28px; width: 32px; text-align: center; }
         .card--fpg .card__arrow { color: rgba(255,255,255,0.7); }
 
-        /* Emergency Light — green (Veri accent) */
+        /* All other cards: uniform sizing */
+        .card:not(.card--fpg) {
+          min-height: 78px;
+          padding: 13px 12px;
+          gap: 10px;
+        }
+        .card:not(.card--fpg) .card__icon {
+          font-size: 24px;
+          width: 30px;
+          text-align: center;
+          flex-shrink: 0;
+        }
+        .card:not(.card--fpg) .card__title {
+          font-size: 13.5px;
+          font-weight: 700;
+          line-height: 1.25;
+          color: #fff;
+        }
+        .card:not(.card--fpg) .card__sub {
+          font-size: 11px;
+          line-height: 1.2;
+          color: rgba(255,255,255,0.78);
+        }
+        .card:not(.card--fpg) .card__arrow {
+          font-size: 20px;
+          color: rgba(255,255,255,0.7);
+          margin-left: auto;
+          flex-shrink: 0;
+        }
+
+        /* Emergency Light — green */
         .card--emergency {
           background: linear-gradient(135deg, #14532d 0%, #16a34a 100%);
           box-shadow: 0 6px 18px rgba(22,163,74,0.35);
-          min-height: 72px;
-          gap: 12px;
         }
-        .card--emergency .card__icon  { font-size: 26px; }
-        .card--emergency .card__title { color: #fff; font-size: 15px; }
-        .card--emergency .card__sub   { color: rgba(255,255,255,0.75); }
-        .card--emergency .card__arrow { color: rgba(255,255,255,0.7); margin-left: auto; }
 
         /* Smoke Detector — teal */
         .card--smoke {
           background: linear-gradient(135deg, #164e63 0%, #0e7490 100%);
           box-shadow: 0 6px 18px rgba(14,116,144,0.35);
-          min-height: 72px;
-          gap: 12px;
         }
-        .card--smoke .card__icon  { font-size: 26px; }
-        .card--smoke .card__title { color: #fff; font-size: 15px; }
-        .card--smoke .card__sub   { color: rgba(255,255,255,0.75); }
-        .card--smoke .card__arrow { color: rgba(255,255,255,0.7); margin-left: auto; }
 
         /* Exit Sign — violet */
         .card--exit {
           background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
           box-shadow: 0 6px 18px rgba(124,58,237,0.35);
-          min-height: 72px;
-          gap: 12px;
         }
-        .card--exit .card__icon  { font-size: 26px; }
-        .card--exit .card__title { color: #fff; font-size: 15px; }
-        .card--exit .card__sub   { color: rgba(255,255,255,0.75); }
-        .card--exit .card__arrow { color: rgba(255,255,255,0.7); margin-left: auto; }
 
         /* บริภัณฑ์ไฟฟ้าประจำปี (ส่งกรมสวัสดิ์) — ruby / crimson */
         .card--elec {
           background: linear-gradient(135deg, #991b1b 0%, #e11d48 100%);
           box-shadow: 0 6px 18px rgba(225,29,72,0.35);
-          min-height: 72px;
-          gap: 12px;
         }
-        .card--elec .card__icon  { font-size: 26px; }
-        .card--elec .card__title { color: #fff; font-size: 15px; }
-        .card--elec .card__sub   { color: rgba(255,255,255,0.75); }
-        .card--elec .card__arrow { color: rgba(255,255,255,0.7); margin-left: auto; }
 
         /* Meter กฟน. — amber */
         .card--meter {
           background: linear-gradient(135deg, #78350f 0%, #d97706 100%);
           box-shadow: 0 6px 18px rgba(217,119,6,0.35);
-          min-height: 72px;
-          gap: 12px;
         }
-        .card--meter .card__icon  { font-size: 26px; }
-        .card--meter .card__title { color: #fff; font-size: 15px; }
-        .card--meter .card__sub   { color: rgba(255,255,255,0.75); }
-        .card--meter .card__arrow { color: rgba(255,255,255,0.7); margin-left: auto; }
 
         /* Meter อาคาร — indigo */
         .card--bmeter {
           background: linear-gradient(135deg, #3730a3 0%, #6366f1 100%);
           box-shadow: 0 6px 18px rgba(99,102,241,0.35);
-          min-height: 72px;
-          gap: 12px;
         }
-        .card--bmeter .card__icon  { font-size: 26px; }
-        .card--bmeter .card__title { color: #fff; font-size: 15px; }
-        .card--bmeter .card__sub   { color: rgba(255,255,255,0.75); }
-        .card--bmeter .card__arrow { color: rgba(255,255,255,0.7); margin-left: auto; }
 
         .card--pm {
           grid-column: 1 / -1;
@@ -1821,16 +1887,88 @@ function HomePageInner() {
         .dash-card-title { font-size: 12px; font-weight: 700; color: var(--ink-primary);
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .dash-card-l1 { font-size: 11px; color: var(--ink-secondary); }
-        .dash-card-l2 { font-size: 11px; color: var(--ink-muted); }
-        .dash-tl { display: flex; flex-direction: column; background: var(--bg-surface);
-          border: 1px solid var(--border-hairline); border-radius: 14px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .tl-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--border-hairline); }
+        .recent-section {
+          display: flex;
+          flex-direction: column;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-hairline);
+          border-radius: 14px;
+          overflow: hidden;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .recent-header {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 16px;
+          background: var(--bg-surface-raised);
+          border-bottom: 1px solid var(--border-hairline);
+        }
+        .dash-tl { display: flex; flex-direction: column; background: var(--bg-surface); }
+        .tl-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 14px;
+          border-top: 1px solid var(--border-hairline);
+          min-width: 0;
+        }
         .tl-row:first-child { border-top: none; }
         .tl-icon { font-size: 18px; flex-shrink: 0; width: 24px; text-align: center; }
-        .tl-info { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
-        .tl-label { font-size: 13px; font-weight: 600; color: var(--ink-primary); }
-        .tl-detail { font-size: 11px; color: var(--ink-muted); }
-        .tl-when { font-size: 11px; color: var(--ink-muted); white-space: nowrap; flex-shrink: 0; }
+        .tl-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+        .tl-hdr { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+        .tl-label {
+          font-size: 13px;
+          font-weight: 700;
+          color: var(--ink-primary);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .tl-when { font-size: 11px; color: var(--ink-muted); white-space: nowrap; }
+        .tl-detail {
+          font-size: 11px;
+          color: var(--ink-muted);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .tl-actions {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-shrink: 0;
+        }
+        .btn-tl {
+          padding: 5px 9px;
+          border-radius: 8px;
+          font-size: 11px;
+          font-weight: 700;
+          cursor: pointer;
+          white-space: nowrap;
+          border: none;
+          font-family: inherit;
+          line-height: 1.2;
+          transition: opacity 0.12s, transform 0.1s;
+        }
+        .btn-tl:active { transform: scale(0.96); }
+        .btn-tl--preview {
+          background: rgba(56, 189, 248, 0.15);
+          color: #38bdf8;
+          border: 1px solid rgba(56, 189, 248, 0.35);
+        }
+        .btn-tl--preview:hover {
+          background: #38bdf8;
+          color: #0b1329;
+        }
+        .btn-tl--dl {
+          background: #217346;
+          color: #ffffff;
+          border: 1px solid #2e8b57;
+        }
+        .btn-tl--dl:hover {
+          background: #1e6b40;
+        }
         .dash-empty { padding: 16px; font-size: 13px; color: var(--ink-muted); text-align: center; margin: 0; }
         @media (min-width: 900px) {
           .dash { padding: 24px 32px 8px; max-width: 960px; }
@@ -1854,10 +1992,6 @@ function HomePageInner() {
         .foot-bar--pm .foot-title { color: #fff; }
         .foot-bar--pm .foot-sub { color: rgba(255,255,255,0.8); }
         .foot-bar--pm .foot-arrow { color: rgba(255,255,255,0.8); }
-        .home-foot .dash-tl { margin-top: -2px; }
-        @media (min-width: 900px) {
-          .home-foot { padding: 20px 32px; max-width: 720px; }
-        }
 
         /* ─── Report View ─── */
         .report-view { padding: 16px; }
