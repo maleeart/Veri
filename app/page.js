@@ -1024,8 +1024,29 @@ function HomePageInner() {
       )}
 
       {!isReport && (<>
-      {/* ── Card launcher (mobile) ── */}
-      <main className="grid">
+        {/* ── Header (desktop) ── */}
+        <header className="desktop-hdr">
+          <div className="dh-left">
+            <h1 className="dh-title">🏠 หน้าแรก (เมนูลัด)</h1>
+            <p className="dh-sub">Facility Inspection · ระบบบันทึกและตรวจสอบอุปกรณ์ประจำอาคาร</p>
+          </div>
+          <div className="dh-actions">
+            <button className="dh-btn-dash" onClick={() => router.push('/admin')} title="ไปหน้าภาพรวมระบบ">
+              <span>📈</span> ภาพรวมระบบ
+            </button>
+            <button className="dh-btn-report" onClick={() => router.push('/?view=report')} title="ดูรายงานทั้งหมด">
+              <span>📊</span> รายงาน
+            </button>
+          </div>
+        </header>
+
+        <div className="home-dashboard">
+          <div className="home-dash-col home-dash-col--left">
+            <div className="dash-sec-hd">
+              <span>⚡ เมนูลัดตรวจสอบ</span>
+            </div>
+            {/* ── Card launcher ── */}
+            <main className="grid">
 
         {/* Card 1 — Fire Pump & Generator (ใหญ่ full-width) */}
         <button
@@ -1114,9 +1135,14 @@ function HomePageInner() {
         </button>
 
       </main>
+          </div>
 
-      {/* ── แถบสรุป: สถานะ PM · รายการล่าสุด (แสดง 5 รายการล่าสุดทันที) · รายงาน — แสดงทั้ง mobile/desktop ── */}
-      <section className="home-foot">
+          <div className="home-dash-col home-dash-col--right">
+            <div className="dash-sec-hd">
+              <span>📋 สรุปสถานะ &amp; รายการล่าสุด</span>
+            </div>
+            {/* ── แถบสรุป: สถานะ PM · รายการล่าสุด (แสดง 5 รายการล่าสุดทันที) · รายงาน ── */}
+            <section className="home-foot">
         <button className="foot-bar foot-bar--pm" onClick={() => router.push('/pm')}>
           <span className="foot-ico">🔧</span>
           <div className="foot-body">
@@ -1193,6 +1219,8 @@ function HomePageInner() {
           <span className="foot-arrow">›</span>
         </button>
       </section>
+          </div>
+        </div>
 
       {/* History panel เดิม — ปิดไว้ (รวมเข้าเมนูรายงาน /?view=report แล้ว) */}
       {false && (
@@ -1444,24 +1472,141 @@ function HomePageInner() {
             min-width: 0;
             overflow-y: auto;
             height: 100dvh;
+            background: var(--bg-base);
           }
           .header { display: none; }
+          .report-view { padding: 28px 32px; width: 100%; box-sizing: border-box; }
+        }
+
+        /* ─── Desktop Header ─── */
+        .desktop-hdr {
+          display: none;
+        }
+        @media (min-width: 900px) {
+          .desktop-hdr {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 32px 18px;
+            border-bottom: 1px solid var(--border-hairline);
+            background: var(--bg-surface);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            width: 100%;
+            box-sizing: border-box;
+            box-shadow: 0 1px 3px rgba(0,0,0,.06);
+          }
+          .dh-left { display: flex; flex-direction: column; gap: 2px; }
+          .dh-title { font-size: 20px; font-weight: 800; color: var(--ink-primary); margin: 0; }
+          .dh-sub   { font-size: 12px; color: var(--ink-muted); margin: 0; }
+          .dh-actions { display: flex; align-items: center; gap: 10px; }
+          .dh-btn-dash, .dh-btn-report {
+            display: flex; align-items: center; gap: 6px;
+            background: rgba(37,99,235,0.14); border: 1px solid rgba(59,130,246,0.35);
+            color: #60a5fa; border-radius: 10px; padding: 7px 14px;
+            font-size: 13px; font-weight: 700; cursor: pointer;
+            transition: all .15s; font-family: inherit;
+          }
+          .dh-btn-dash:hover {
+            background: rgba(37,99,235,0.25); color: #93c5fd; border-color: #60a5fa;
+          }
+          .dh-btn-report {
+            background: rgba(34, 197, 94, 0.14);
+            border-color: rgba(34, 197, 94, 0.35);
+            color: #4ade80;
+          }
+          .dh-btn-report:hover {
+            background: rgba(34, 197, 94, 0.25);
+            color: #86efac;
+            border-color: #4ade80;
+          }
+        }
+
+        /* ─── Dashboard Section Header ─── */
+        .dash-sec-hd {
+          display: none;
+        }
+        @media (min-width: 900px) {
+          .dash-sec-hd {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--ink-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 12px;
+          }
+        }
+
+        /* ─── Home Dashboard Container ─── */
+        .home-dashboard {
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          box-sizing: border-box;
+        }
+        .home-dash-col {
+          display: contents;
+        }
+
+        /* Medium desktop (900px - 1079px): 3 columns of cards on top, full width status below */
+        @media (min-width: 900px) and (max-width: 1079px) {
+          .home-dashboard {
+            padding: 22px 28px 40px;
+            gap: 24px;
+          }
+          .home-dash-col {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+          }
           .grid {
+            padding: 0;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            max-width: 860px;
-            padding: 24px 32px 0;
-            gap: 14px;
+            gap: 12px;
+            width: 100%;
+            max-width: none;
           }
-          .layout { display: block; padding: 0; }
-          .left-col { display: none; }
-          .right-col { padding: 24px 32px; }
-          .status-panel { margin: 0 0 20px; }
-          .history-panel { margin: 0; gap: 8px; }
-          .report-view { padding: 28px 32px; }
           .home-foot {
-            padding: 16px 32px 32px;
-            max-width: 860px;
+            padding: 0;
+            width: 100%;
+            max-width: none;
+          }
+        }
+
+        /* Large desktop (≥1080px): 2 columns side-by-side filling the full screen */
+        @media (min-width: 1080px) {
+          .home-dashboard {
+            display: grid;
+            grid-template-columns: 1.15fr 1fr;
+            gap: 28px;
+            padding: 24px 32px 48px;
+            width: 100%;
+            box-sizing: border-box;
+            align-items: start;
+          }
+          .home-dash-col {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            width: 100%;
+          }
+          .grid {
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            width: 100%;
+            max-width: none;
+          }
+          .home-foot {
+            padding: 0;
+            width: 100%;
+            max-width: none;
+            gap: 12px;
           }
         }
 
@@ -1970,10 +2115,6 @@ function HomePageInner() {
           background: #1e6b40;
         }
         .dash-empty { padding: 16px; font-size: 13px; color: var(--ink-muted); text-align: center; margin: 0; }
-        @media (min-width: 900px) {
-          .dash { padding: 24px 32px 8px; max-width: 960px; }
-          .dash-grid { grid-template-columns: repeat(3, 1fr); }
-        }
 
         /* ── Home foot bars (สถานะ PM · รายการล่าสุด · รายงาน) ── */
         .home-foot { display: flex; flex-direction: column; gap: 10px; padding: 4px 16px 8px; }
