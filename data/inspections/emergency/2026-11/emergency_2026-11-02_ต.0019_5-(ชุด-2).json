@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-02",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-11-02",
+      "building": "ต.0019",
+      "floor": "5 (ชุด 2)",
+      "inspector": "",
+      "model": "",
+      "serial": "",
+      "mfg": "",
+      "lotYear": ""
+    },
+    "devices": [
+      {
+        "id": "5/65",
+        "location": "ห้องประชุม",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "5/66",
+        "location": "ห้องประชุม",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "5/67",
+        "location": "ห้องประชุม",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-02",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-11-02",
+      "building": "ท.0007",
+      "floor": "2",
+      "inspector": "",
+      "model": "",
+      "serial": "",
+      "mfg": "",
+      "lotYear": ""
+    },
+    "devices": [
+      {
+        "id": "2/11",
+        "location": "สำนักงาน",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/12",
+        "location": "สำนักงาน",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/13",
+        "location": "สำนักงาน",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      }
+    ]
+  }
+}

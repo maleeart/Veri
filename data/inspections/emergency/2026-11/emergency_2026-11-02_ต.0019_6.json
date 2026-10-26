@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-02",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-11-02",
+      "building": "ต.0019",
+      "floor": "6",
+      "inspector": "",
+      "model": "",
+      "serial": "",
+      "mfg": "",
+      "lotYear": ""
+    },
+    "devices": [
+      {
+        "id": "6/68",
+        "location": "บรรไดทางขึ้นลง",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      }
+    ]
+  }
+}

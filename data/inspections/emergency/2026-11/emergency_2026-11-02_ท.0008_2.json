@@ -1,0 +1,50 @@
+{
+  "date": "2026-11-02",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-11-02",
+      "building": "ท.0008",
+      "floor": "2",
+      "inspector": "",
+      "model": "",
+      "serial": "",
+      "mfg": "",
+      "lotYear": ""
+    },
+    "devices": [
+      {
+        "id": "2/16",
+        "location": "หน้าห้องประชุม ชั้น2",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/17",
+        "location": "หน้าห้องประชุม ชั้น2",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/18",
+        "location": "สำนักงาน ชั้น2",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/19",
+        "location": "สำนักงาน ชั้น2",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      }
+    ]
+  }
+}

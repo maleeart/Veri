@@ -1,0 +1,234 @@
+{
+  "date": "2026-11-02",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-11-02",
+      "building": "ท.0012",
+      "floor": "2",
+      "inspector": "",
+      "model": "",
+      "serial": "",
+      "mfg": "",
+      "lotYear": ""
+    },
+    "devices": [
+      {
+        "id": "2/27",
+        "location": "บันได ขึ้นชั้น2",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/28",
+        "location": "ทางเดินไปห้องน้ำ ชั้น2",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/29",
+        "location": "ห้องน้ำหญิง ชั้น 2",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/30",
+        "location": "ห้องน้ำชาย ชั้น 2",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/31",
+        "location": "ห้องอาหาร ชั้น 2",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/32",
+        "location": "ห้องระบบไฟฟ้า ชั้น2",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/33",
+        "location": "ทางเดิน ชั้น 2",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/34",
+        "location": "ที่พักช่าง หม้อน้ำ",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/35",
+        "location": "กองหม้อน้ำ",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/36",
+        "location": "ห้องประชุมกองหม้อน้ำ",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/37",
+        "location": "กองหม้อน้ำ",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/38",
+        "location": "กองหม้อน้ำ",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/39",
+        "location": "กองหม้อน้ำ",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/40",
+        "location": "กองหม้อน้ำ",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/41",
+        "location": "ที่พักช่าง หม้อน้ำ",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/42",
+        "location": "กองหม้อน้ำ",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/43",
+        "location": "กองพลังน้ำ",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/44",
+        "location": "กองพลังน้ำ",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/45",
+        "location": "กองพลังน้ำ",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/46",
+        "location": "กองพลังน้ำ",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/47",
+        "location": "กองพลังน้ำ",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/48",
+        "location": "กองพลังน้ำ",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/49",
+        "location": "กองพลังน้ำ",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/50",
+        "location": "กองพลังน้ำ",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/51",
+        "location": "กองพลังน้ำ",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/52",
+        "location": "กองพลังน้ำ",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "2/53",
+        "location": "ทางเดิน ชั้น 2",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      }
+    ]
+  }
+}

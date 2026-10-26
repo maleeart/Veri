@@ -1,0 +1,258 @@
+{
+  "date": "2026-11-02",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-11-02",
+      "building": "ท.0015",
+      "floor": "3 (ชุด 1)",
+      "inspector": "",
+      "model": "",
+      "serial": "",
+      "mfg": "",
+      "lotYear": ""
+    },
+    "devices": [
+      {
+        "id": "3/84",
+        "location": "บันไดหนีไฟ หลัก",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/85",
+        "location": "โถงพักคอย หน้า",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/86",
+        "location": "ห้องประชุม 2 ชั้น3",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/87",
+        "location": "ห้องประชุม 2 ชั้น3",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/88",
+        "location": "ห้องน้ำชาย",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/89",
+        "location": "ห้องน้ำหญิง",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/90",
+        "location": "ห้องเตรียมอาหาร",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/91",
+        "location": "ห้องระบบสื่อสาร",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/92",
+        "location": "ห้องระบบไฟฟ้า",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/93",
+        "location": "Air Lock",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/94",
+        "location": "ห้องเครื่อง Xerox",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/95",
+        "location": "301",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/96",
+        "location": "301",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/97",
+        "location": "โถงกลาง",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/98",
+        "location": "โถงกลาง",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/99",
+        "location": "302",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/100",
+        "location": "302",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/101",
+        "location": "302",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/102",
+        "location": "312",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/103",
+        "location": "311",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/104",
+        "location": "311",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/105",
+        "location": "311/1",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/106",
+        "location": "โถงกลาง",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/107",
+        "location": "303",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/108",
+        "location": "304",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/109",
+        "location": "305",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/110",
+        "location": "306",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/111",
+        "location": "309",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/112",
+        "location": "309",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      },
+      {
+        "id": "3/113",
+        "location": "308",
+        "lightCondition": "",
+        "statusLight": "",
+        "testResult": "",
+        "remarks": ""
+      }
+    ]
+  }
+}
