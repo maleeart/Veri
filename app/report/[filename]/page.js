@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import ElecReport from '../../components/ElecReport';
+import { getBuildingLabel } from '../../lib/buildings';
 
 const v = (val, unit = '') => {
   if (val === undefined || val === null || val === '') return '–';
@@ -524,7 +525,7 @@ function ListReport({ data, fieldMap }) {
         <tbody>
           <tr>
             <td className="lbl">ผู้ตรวจสอบ</td><td>{general.inspector || '–'}</td>
-            <td className="lbl">อาคาร</td><td>{general.building || '–'}</td>
+            <td className="lbl">อาคาร</td><td>{getBuildingLabel(general.building) || '–'}</td>
             <td className="lbl">ชั้น / โซน</td><td>{general.floor || '–'}</td>
           </tr>
           <tr>
@@ -631,7 +632,7 @@ function ExitReport({ data }) {
         <tbody>
           <tr>
             <td className="lbl">ผู้ตรวจสอบ</td><td>{general.inspector || '–'}</td>
-            <td className="lbl">อาคาร</td><td>{general.building || '–'}</td>
+            <td className="lbl">อาคาร</td><td>{getBuildingLabel(general.building) || '–'}</td>
             <td className="lbl">ชั้น / โซน</td><td>{general.floor || '–'}</td>
           </tr>
           <tr>

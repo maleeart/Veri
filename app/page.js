@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import Image from 'next/image';
 import Sidenav from './components/Sidenav';
-import { fmtDate } from './lib/systemStatus';
+import { fmtDate, getBuildingLabel } from './lib/systemStatus';
 
 const THAI_MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
@@ -893,7 +893,7 @@ function HomePageInner() {
                 <label className="filter-label">อาคาร</label>
                 <select className="filter-select" value={selectedBuilding} onChange={e => setSelectedBuilding(e.target.value)}>
                   <option value="">ทั้งหมด</option>
-                  {availableBuildings.map(b => <option key={b} value={b}>{b}</option>)}
+                  {availableBuildings.map(b => <option key={b} value={b}>{getBuildingLabel(b)}</option>)}
                 </select>
               </div>
             )}

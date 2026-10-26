@@ -4,14 +4,7 @@ import { useEffect, useRef, useState, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useCanWrite } from '../../lib/useCanWrite';
 import Sidenav from '../../components/Sidenav';
-
-const BUILDINGS = [
-  'ท.0006','ท.0007','ท.0008','ท.0009','ท.0010',
-  'ท.0011','ท.0012','ท.0014','ท.0015','ท.0016',
-  'ท.0017','ท.0018','ท.0019','ท.0020','ท.0021','ท.0022',
-  'ท.0023','ท.0026','ท.0027','ท.0028','ท.0029',
-  'ต.0017','ต.0019','ต.0025','ต.0026','ต.0031','ต.0033',
-];
+import { BUILDINGS, getBuildingLabel } from '../../lib/buildings';
 
 // ─── Config per type ──────────────────────────────────────────────────────────
 const FORM_CONFIG = {
@@ -301,7 +294,7 @@ function FormPageInner() {
           <h1 className="title">{cfg.icon} {cfg.title}</h1>
           <p className="subtitle">
             {general.inspectionDate || date}
-            {step > 0 && general.building ? ` · ${general.building}` : ''}
+            {step > 0 && general.building ? ` · ${getBuildingLabel(general.building)}` : ''}
             {' · '}{step === 0 ? 'เลือกอาคาร' : step === 1 ? 'ข้อมูลทั่วไป' : step === 2 ? `อุปกรณ์ ${devices.length} รายการ` : 'ยืนยัน'}
           </p>
         </div>
@@ -313,6 +306,9 @@ function FormPageInner() {
           <div className="modal" onClick={e => e.stopPropagation()}>
             <span className="modal__icon">📋</span>
             <h2 className="modal__title">พบข้อมูลเก่าของอาคารนี้</h2>
+            <p className="modal__msg" style={{ fontWeight: 600, color: 'var(--ink-primary)' }}>
+              🏢 {getBuildingLabel(general.building)}
+            </p>
             <p className="modal__msg">เลือกชั้นที่ต้องการดึงรายการอุปกรณ์มาเติมให้ (สถานะจะรีเซ็ตให้ตรวจใหม่)</p>
             <div className="template-list">
               {floorTemplates.map(t => (
@@ -337,7 +333,11 @@ function FormPageInner() {
               value={BUILDINGS.includes(general.building) ? general.building : (general.building ? 'อื่นๆ' : '')}
               onChange={e => { setGeneral(g => ({ ...g, building: e.target.value })); setValidationError(null); }}>
               <option value="">-- เลือกอาคาร --</option>
-              {BUILDINGS.map(b => <option key={b} value={b}>{b}</option>)}
+              {BUILDINGS.map(b => (
+                <option key={b} value={b}>
+                  {getBuildingLabel(b)}
+                </option>
+              ))}
               <option value="อื่นๆ">อื่นๆ</option>
             </select>
           </div>
@@ -364,6 +364,10 @@ function FormPageInner() {
       {/* Step 1 — ข้อมูลทั่วไป (ข้ามถ้าใช้ template) */}
       {step === 1 && (
         <section className="section">
+          <div className="current-building-card">
+            <span className="cbc-badge">อาคารที่กำลังบันทึก</span>
+            <span className="cbc-title">🏢 {getBuildingLabel(general.building)}</span>
+          </div>
           <Field label="ชั้น" value={general.floor}
             onChange={v => setGeneral(g => ({ ...g, floor: v }))} placeholder="ชั้น / โซน" />
           <Field label="Model" value={general.model}
@@ -390,6 +394,10 @@ function FormPageInner() {
       {/* Step 2 — Device List */}
       {step === 2 && (
         <section className="section">
+          <div className="current-building-card">
+            <span className="cbc-badge">กำลังบันทึกข้อมูลอุปกรณ์</span>
+            <span className="cbc-title">🏢 {getBuildingLabel(general.building)}{general.floor ? ` · ชั้น ${general.floor}` : ''}</span>
+          </div>
           {prefilledFrom && (
             <p className="prefill-note">📋 ดึงรายการอุปกรณ์จากรอบล่าสุด ({prefilledFrom}) มาเติมให้ — ตรวจสอบและปรับผลใหม่</p>
           )}
@@ -453,7 +461,7 @@ function FormPageInner() {
 
             {/* info summary */}
             <div className="confirm-info">
-              <div className="ci-row"><span className="ci-key">อาคาร / ชั้น</span><span className="ci-val">{[general.building, general.floor].filter(Boolean).join(' / ') || '–'}</span></div>
+              <div className="ci-row"><span className="ci-key">อาคาร / ชั้น</span><span className="ci-val">{[getBuildingLabel(general.building), general.floor ? `ชั้น ${general.floor}` : ''].filter(Boolean).join(' · ') || '–'}</span></div>
             </div>
 
             <div className="confirm-stats">
@@ -523,6 +531,10 @@ function FormPageInner() {
         .subtitle { font-size: 12px; color: var(--ink-muted); margin: 2px 0 0; }
 
         .section { padding: 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+
+        .current-building-card { display: flex; flex-direction: column; gap: 3px; background: var(--bg-surface-raised); border: 1px solid var(--border-hairline); border-left: 4px solid ${accentColor}; border-radius: 12px; padding: 10px 14px; margin-bottom: 2px; }
+        .cbc-badge { font-size: 11px; font-weight: 700; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+        .cbc-title { font-size: 14px; font-weight: 700; color: var(--ink-primary); line-height: 1.35; word-break: break-word; }
 
         .field-row { display: flex; flex-direction: column; gap: 4px; }
         .field-label { font-size: 12px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }

@@ -4,13 +4,7 @@
  * ponytail: admin/page.js และ page.js ยังมี copy เดิมอยู่ — ควรรวมมาใช้ที่นี่ทีหลัง
  */
 
-export const BUILDINGS = [
-  'ท.0006','ท.0007','ท.0008','ท.0009','ท.0010',
-  'ท.0011','ท.0012','ท.0014','ท.0015','ท.0016',
-  'ท.0017','ท.0018','ท.0019','ท.0020','ท.0022',
-  'ท.0023','ท.0026','ท.0027','ท.0028','ท.0029',
-  'ต.0017','ต.0019','ต.0025','ต.0026','ต.0031','ต.0033',
-];
+export { BUILDINGS, BUILDING_NAMES, getBuildingName, getBuildingLabel } from './buildings';
 
 export const FREQ_MONTHS = 3;            // smoke/emergency/exit: ทุก 3 เดือน
 export const FREQ_DAYS = FREQ_MONTHS * 30;
