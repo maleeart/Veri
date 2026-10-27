@@ -4,7 +4,8 @@
  * ponytail: admin/page.js และ page.js ยังมี copy เดิมอยู่ — ควรรวมมาใช้ที่นี่ทีหลัง
  */
 
-export { BUILDINGS, BUILDING_NAMES, getBuildingName, getBuildingLabel } from './buildings';
+import { BUILDINGS, BUILDING_NAMES, getBuildingName, getBuildingLabel } from './buildings';
+export { BUILDINGS, BUILDING_NAMES, getBuildingName, getBuildingLabel };
 
 export const FREQ_MONTHS = 3;            // smoke/emergency/exit: ทุก 3 เดือน
 export const FREQ_DAYS = FREQ_MONTHS * 30;

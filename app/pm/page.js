@@ -100,7 +100,7 @@ function PmPageInner() {
     return true;
   };
 
-  const loading = dates === null || machines === null;
+  const loading = dates === null || machines === null || pmState === null;
 
   // ── ภาพรวมระบบ (สถานะ + วันที่บันทึกล่าสุด) ──
   const overview = (() => {
@@ -183,10 +183,13 @@ function PmPageInner() {
                     </div>
                     {exp && (
                       <div className="ov-blds">
-                        {buildingBubbles(dates, row.type).map(({ b, st, date }) => (
-                          <span key={b} className={`bld ${STATUS_META[st].cls}`}
-                            title={`${STATUS_META[st].label}${date ? ' · ' + fmtDate(date) : ''}`}>{b}</span>
-                        ))}
+                        {buildingBubbles(dates, row.type).map(({ b, st, date }) => {
+                          const meta = STATUS_META[st] || STATUS_META.never;
+                          return (
+                            <span key={b} className={`bld ${meta.cls}`}
+                              title={`${meta.label}${date ? ' · ' + fmtDate(date) : ''}`}>{b}</span>
+                          );
+                        })}
                         <span className="bld-legend">🟢 ปกติ · 🟡 ใกล้ครบ · 🔴 เกินกำหนด · ⚫ ยังไม่บันทึก</span>
                       </div>
                     )}
@@ -199,12 +202,12 @@ function PmPageInner() {
             <div className="pm-sec-hd">รอบเปลี่ยน / ตรวจใหญ่</div>
             {machines.map(m => (
               <MachineBlock key={m.id} machine={m}
-                entry={pmState[m.id]} canWrite={canWrite} onPost={post} />
+                entry={pmState?.[m.id]} canWrite={canWrite} onPost={post} />
             ))}
             {LIGHT_SYSTEMS.map(ls => (
               <MachineBlock key={ls.id}
                 machine={{ id: ls.id, label: ls.label, type: 'light', location_default: '', icon: ls.icon }}
-                items={ls.items} entry={pmState[ls.id]} canWrite={canWrite} onPost={post} />
+                items={ls.items} entry={pmState?.[ls.id]} canWrite={canWrite} onPost={post} />
             ))}
           </>
         )}
@@ -262,7 +265,13 @@ function MachineBlock({ machine, items: itemsProp, entry, canWrite, onPost }) {
 
   // สรุปสถานะทั้งเครื่อง
   const counts = { overdue: 0, due: 0, never: 0, ok: 0 };
-  if (configured) for (const it of items) counts[pmStatus(entry[it.key], it.intervalDays, it.dueAheadDays)]++;
+  if (configured && entry) {
+    for (const it of items) {
+      const st = pmStatus(entry[it.key], it.intervalDays, it.dueAheadDays);
+      if (counts[st] !== undefined) counts[st]++;
+      else counts.overdue++;
+    }
+  }
   const chip = configured ? summaryChip(counts) : { cls: 'st--never', txt: '⚫ ยังไม่ตั้งค่า' };
 
   return (
@@ -382,7 +391,7 @@ function ItemRow({ machineId, item, last, canWrite, onPost }) {
   const [date, setDate] = useState(TODAY());
   const [busy, setBusy] = useState(false);
   const st = pmStatus(last, item.intervalDays, item.dueAheadDays);
-  const meta = STATUS_META[st];
+  const meta = STATUS_META[st] || STATUS_META.never;
   const due = nextDue(last, item.intervalDays);
 
   const detail = last
