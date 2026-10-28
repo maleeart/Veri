@@ -86,7 +86,7 @@ function LoginInner() {
         </button>
 
         <p className="note">ผู้ใช้ใหม่จะได้สิทธิ์ &ldquo;ผู้เยี่ยมชม&rdquo; จนกว่าผู้ดูแลจะกำหนดสิทธิ์</p>
-        <p className="admin-line">ผู้ดูแลระบบ : นายตวงเพชร ชัยยานนท์ &middot; วศ.4 หบอว-ธ. กบห-ธ. ชธธ.</p>
+        <p className="admin-line">ผู้ดูแลระบบ : นายตวงเพชร ชัยยานนท์ &middot; วศ.4 หบท-ธ. กบห-ธ. ชธธ.</p>
       </div>
 
       <style jsx>{`
