@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-10",
+  "type": "smoke",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-09-10",
+      "building": "ต.0033",
+      "floor": "1",
+      "inspector": "แสนคม",
+      "model": "SD-651",
+      "serial": "",
+      "mfg": "Notifier",
+      "lotYear": ""
+    },
+    "devices": [
+      {
+        "location": "อาคารปฏิบัติการ",
+        "remarks": "",
+        "zone": "7",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      }
+    ]
+  }
+}
