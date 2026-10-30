@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Sidenav from '../components/Sidenav';
+import SystemTrends from '../components/SystemTrends';
 
 const BUILDINGS = [
   'ท.0006','ท.0007','ท.0008','ท.0009','ท.0010',
@@ -466,6 +467,9 @@ export default function AdminPage() {
                 })}
               </div>
             </section>
+
+            {/* System Trends & Condition Analytics */}
+            <SystemTrends />
 
             {/* Delete requests */}
             {pendingReqs !== null && pendingReqs.length > 0 && (

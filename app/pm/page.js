@@ -231,6 +231,9 @@ function PmPageInner() {
               <button className="pm-btn-home" onClick={() => router.push('/')}>
                 🏠 หน้าแรก
               </button>
+              <button className="pm-btn-home" onClick={() => router.push('/admin')} title="ดูภาพรวมและแนวโน้มแต่ละระบบ">
+                📈 ภาพรวมระบบ
+              </button>
               <button className="pm-refresh" title="รีเฟรชข้อมูล" onClick={load} disabled={loading}>
                 🔄 รีเฟรช
               </button>
