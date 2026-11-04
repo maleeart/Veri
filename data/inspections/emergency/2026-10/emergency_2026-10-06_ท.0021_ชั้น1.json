@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-06",
+  "type": "emergency",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-10-06",
+      "building": "ท.0021",
+      "floor": "ชั้น1",
+      "inspector": "ธนวิชญ์",
+      "model": "sg209cd3",
+      "serial": "67107704",
+      "mfg": "sunny ",
+      "lotYear": ""
+    },
+    "devices": [
+      {
+        "location": "ห้องสำนักงาน รปภ. ป้อมใหญ่",
+        "remarks": "",
+        "id": "1",
+        "lightCondition": "pass",
+        "statusLight": "normal",
+        "testResult": "on"
+      }
+    ]
+  }
+}
