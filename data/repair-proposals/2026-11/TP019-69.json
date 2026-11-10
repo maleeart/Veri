@@ -1,0 +1,50 @@
+{
+  "refNo": "TP019-69",
+  "jobTitle": "งานเปลี่ยน meter Main MDB ของหน่วยงาน",
+  "docDate": "10 พฤศจิกายน 2569",
+  "docDateISO": "2026-11-10",
+  "priority": "high",
+  "status": "pending_approval",
+  "inspector": {
+    "name": "นายวิศวกร ช่างสำรวจ (วิศวกรไฟฟ้า)",
+    "role": "วิศวกรระบบไฟฟ้าและบำรุงรักษา",
+    "department": "ฝ่ายวิศวกรรมอาคารและระบบไฟฟ้า",
+    "company": "บริษัทผู้ตรวจสอบและบำรุงรักษาระบบวิศวกรรม"
+  },
+  "surveyPoints": [
+    { "id": 1, "building": "ท.0006", "location": "Main MDB", "symptom": "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", "qty": 1, "action": "เปลี่ยนทดแทน", "photo": null },
+    { "id": 2, "building": "ท.0009", "location": "Main MDB", "symptom": "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", "qty": 1, "action": "เปลี่ยนทดแทน", "photo": null },
+    { "id": 3, "building": "ท.0011", "location": "Main MDB", "symptom": "Digital Meter ชำรุด / ระบบ Error ข้อมูลไม่ตรง", "qty": 1, "action": "เปลี่ยนทดแทน", "photo": "/images/repair/survey_T0011.jpeg" },
+    { "id": 4, "building": "ท.0012", "location": "Main MDB", "symptom": "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", "qty": 1, "action": "เปลี่ยนทดแทน", "photo": "/images/repair/survey_T0012.jpeg" },
+    { "id": 5, "building": "ท.0017", "location": "Main MDB", "symptom": "Digital Meter ชำรุด / ระบบสื่อสารขัดข้อง (ไม่ขึ้นระบบ)", "qty": 1, "action": "เปลี่ยนทดแทน", "photo": "/images/repair/survey_T0017.jpeg" },
+    { "id": 6, "building": "ต.0017", "location": "Main MDB", "symptom": "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", "qty": 1, "action": "เปลี่ยนทดแทน", "photo": "/images/repair/survey_TO0017.jpeg" },
+    { "id": 7, "building": "ต.0019", "location": "Main MDB", "symptom": "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", "qty": 1, "action": "เปลี่ยนทดแทน", "photo": "/images/repair/survey_TO0019.jpeg" },
+    { "id": 8, "building": "ท.0020", "location": "Main MDB", "symptom": "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", "qty": 1, "action": "เปลี่ยนทดแทน", "photo": null },
+    { "id": 9, "building": "ต.0026", "location": "Main MDB", "symptom": "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", "qty": 1, "action": "เปลี่ยนทดแทน", "photo": null }
+  ],
+  "itemsRequested": [
+    {
+      "id": 1,
+      "name": "Digital Power Meter (เครื่องวัดค่าไฟฟ้าดิจิทัลชนิดมัลติฟังก์ชันติดหน้าตู้ 96x96 มม.)",
+      "modelPart": "Schneider Electric EasyLogic PM2230 (Part No. METSEPM2230) หรือเทียบเท่า",
+      "qty": 9,
+      "unit": "ตัว",
+      "purpose": "ติดตั้งเปลี่ยนทดแทน Digital Meter เดิมที่ชำรุดในตู้ Main MDB ของอาคารทั้ง 9 จุด (ท.0006, ท.0009, ท.0011, ท.0012, ท.0017, ต.0017, ต.0019, ท.0020, ต.0026)"
+    }
+  ],
+  "substitutionCriteria": [
+    { "category": "1. ขนาดและการติดตั้ง (Dimensions & Mounting)", "requirement": "ชนิดติดหน้าตู้สวิตช์บอร์ด (Panel Mount) ขนาด 96 x 96 มม. เจาะช่องตู้ 92 x 92 มม. จอ LCD มีไฟ Backlit ปุ่มกดหน้าเครื่อง ≥ 4 ปุ่ม สามารถติดตั้งแทนช่องเจาะเดิมได้โดยไม่ต้องดัดแปลงโครงสร้างตู้" },
+    { "category": "2. ระบบไฟฟ้าและพิกัดการวัด (Electrical System)", "requirement": "รองรับระบบไฟฟ้า 3 เฟส 4 สาย (3P4W) และ 3 เฟส 3 สาย (3P3W) ความถี่ 50/60 Hz ย่านวัดแรงดัน Phase-Phase 35–480 VAC, Phase-Neutral 20–277 VAC, Input CT 1A หรือ 5A" },
+    { "category": "3. ฟังก์ชันและการวัดค่า (Measurement & THD)", "requirement": "ตรวจวัดค่าทางไฟฟ้าครบถ้วน: V, I, kW, kVAR, kVA, PF, Hz, Demand และวัดค่าฮาร์มอนิกรวม (THD ทั้งแรงดันและกระแส) รายเฟสได้ถึงอันดับที่ 31" },
+    { "category": "4. ระดับความแม่นยำ (Measurement Accuracy)", "requirement": "ค่าพลังงานไฟฟ้าจริง (Active Energy - kWh) ได้มาตรฐานความแม่นยำไม่ต่ำกว่า Class 0.5S ตามมาตรฐานสากล IEC 62053-22" },
+    { "category": "5. การสื่อสารและการเชื่อมต่อ (Communication)", "requirement": "มีพอร์ตสื่อสาร RS-485 อย่างน้อย 1 พอร์ต รองรับโปรโตคอล Modbus RTU สำหรับเชื่อมต่อส่งข้อมูลเข้าสู่ระบบ SCADA / Energy Management เดิมได้ทันที" },
+    { "category": "6. ความปลอดภัยและการรับประกัน (Safety & Warranty)", "requirement": "Universal AC/DC Auxiliary Supply 44-277 VAC/DC, หน้าตู้กันน้ำและฝุ่นไม่น้อยกว่า IP54, ได้มาตรฐานความปลอดภัย IEC 61010-1 และรับประกันคุณภาพไม่น้อยกว่า 1 ปี" }
+  ],
+  "additionalSpecs": "• รับประกันคุณภาพสินค้าไม่น้อยกว่า 1 ปี นับจากวันส่งมอบงาน\n• มีคู่มือการติดตั้งและการตั้งค่าพารามิเตอร์ระบบสื่อสาร Modbus\n• สามารถตั้งค่าอัตราทดหม้อแปลงกระแส (CT Ratio) และแรงดัน (PT Ratio) หน้าเครื่องได้โดยตรง",
+  "justification": "เนื่องจากตู้ควบคุมไฟฟ้าหลัก (Main MDB) ประจำอาคารดังกล่าว มี Digital Meter ชำรุดเสียหาย หน้าจอดับ ข้อมูลคลาดเคลื่อน และระบบสื่อสารขัดข้อง ส่งผลกระทบโดยตรงทำให้ไม่สามารถอ่านค่าปริมาณการใช้ไฟฟ้า ตรวจวัดคุณภาพไฟฟ้า และเชื่อมโยงข้อมูลเข้าสู่ระบบบริหารจัดการพลังงาน (Energy Management System / SCADA) ได้อย่างถูกต้องแม่นยำ จึงมีความจำเป็นอย่างยิ่งที่จะต้องจัดซื้ออุปกรณ์ Digital Power Meter เพื่อเปลี่ยนทดแทนอุปกรณ์เดิมที่ชำรุดทั้ง 9 จุด ให้ระบบตรวจวัดและบริหารจัดการพลังงานสามารถกลับมาทำงานได้อย่างต่อเนื่อง มีประสิทธิภาพ และปลอดภัยตามมาตรฐานวิศวกรรม",
+  "signatures": {
+    "surveyor": { "name": "นายวิศวกร ช่างสำรวจ", "role": "วิศวกรผู้ตรวจสอบหน้างาน", "signed": true },
+    "manager": { "name": "นายสมศักดิ์ มั่นคง", "role": "ผู้จัดการฝ่ายวิศวกรรมอาคาร", "signed": true, "decision": "recommend_procurement" },
+    "approver": { "name": "นายธีรศักดิ์ บูรณวิวัฒน์", "role": "ผู้อำนวยการส่วนบริหารจัดการ", "signed": true, "decision": "approved" }
+  }
+}
