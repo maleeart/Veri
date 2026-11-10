@@ -276,6 +276,123 @@ async function saveJsonFile(filePath, data, message) {
   return { path: filePath };
 }
 
+// ==========================================
+// REPAIR PROPOSALS (ใบเสนอแจ้งซ่อม / เปลี่ยนทดแทน)
+// Path: data/repair-proposals/<YYYY-MM>/<refNo>.json
+// ==========================================
+
+const fs = require('fs');
+const path = require('path');
+
+async function saveRepairProposal(proposal) {
+  const refNo = String(proposal.refNo || 'REP-TEMP').trim();
+  const safeRef = refNo.replace(/[/\\:*?"<>|]/g, '-');
+  const dateStr = proposal.docDateISO || (new Date().toISOString().slice(0, 10));
+  const yearMonth = dateStr.slice(0, 7);
+  const relPath = `data/repair-proposals/${yearMonth}/${safeRef}.json`;
+
+  // 1. Always write to local data cache on disk
+  try {
+    const localDir = path.join(process.cwd(), 'data', 'repair-proposals', yearMonth);
+    if (!fs.existsSync(localDir)) fs.mkdirSync(localDir, { recursive: true });
+    fs.writeFileSync(path.join(localDir, `${safeRef}.json`), JSON.stringify(proposal, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('Local proposal cache write error:', err.message);
+  }
+
+  // 2. Commit to GitHub data branch if ENV configured
+  try {
+    await saveJsonFile(relPath, proposal, `บันทึกใบเสนอแจ้งซ่อม [${refNo}] ${proposal.jobTitle || ''}`);
+  } catch (err) {
+    console.warn('GitHub saveRepairProposal warning:', err.message);
+  }
+
+  return { ok: true, path: relPath, refNo };
+}
+
+async function listRepairProposals() {
+  const map = new Map();
+
+  // 1. Read from local directory cache if exists
+  try {
+    const baseDir = path.join(process.cwd(), 'data', 'repair-proposals');
+    if (fs.existsSync(baseDir)) {
+      const ymDirs = fs.readdirSync(baseDir);
+      for (const ym of ymDirs) {
+        const ymPath = path.join(baseDir, ym);
+        if (fs.statSync(ymPath).isDirectory()) {
+          const files = fs.readdirSync(ymPath);
+          for (const f of files) {
+            if (f.endsWith('.json')) {
+              try {
+                const raw = JSON.parse(fs.readFileSync(path.join(ymPath, f), 'utf-8'));
+                if (raw && raw.refNo) map.set(raw.refNo, { ...raw, _source: 'local' });
+              } catch {}
+            }
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Local proposal read warning:', e.message);
+  }
+
+  // 2. Read from GitHub data branch if configured
+  try {
+    const { owner, repo, branch } = cfg();
+    const refRes = await ghReq(`/repos/${owner}/${repo}/git/ref/heads/${branch}`);
+    if (refRes.status === 200) {
+      const { object: { sha: treeSha } } = await refRes.json();
+      const treeRes = await ghReq(`/repos/${owner}/${repo}/git/trees/${treeSha}?recursive=1`);
+      if (treeRes.ok) {
+        const { tree } = await treeRes.json();
+        const items = tree.filter(item =>
+          item.type === 'blob' &&
+          item.path.startsWith('data/repair-proposals/') &&
+          item.path.endsWith('.json')
+        );
+        for (const item of items) {
+          try {
+            const data = await loadJsonFile(item.path);
+            if (data && data.refNo) {
+              map.set(data.refNo, { ...data, _path: item.path, _sha: item.sha, _source: 'github' });
+            }
+          } catch {}
+        }
+      }
+    }
+  } catch (err) {
+    // GitHub optional fallback
+  }
+
+  const list = Array.from(map.values());
+  return list.sort((a, b) => {
+    const da = a.docDateISO || a.docDate || '';
+    const db = b.docDateISO || b.docDate || '';
+    return db.localeCompare(da);
+  });
+}
+
+async function loadRepairProposalByRef(refNo) {
+  const list = await listRepairProposals();
+  return list.find(p => p.refNo === refNo) || null;
+}
+
+async function deleteRepairProposal(refNo) {
+  const safeRef = String(refNo || '').replace(/[/\\:*?"<>|]/g, '-');
+  // Remove local
+  try {
+    const baseDir = path.join(process.cwd(), 'data', 'repair-proposals');
+    if (fs.existsSync(baseDir)) {
+      for (const ym of fs.readdirSync(baseDir)) {
+        const p = path.join(baseDir, ym, `${safeRef}.json`);
+        if (fs.existsSync(p)) fs.unlinkSync(p);
+      }
+    }
+  } catch {}
+  return { ok: true };
+}
+
 module.exports = {
   saveInspectionRecord,
   saveSessionByDate,
@@ -286,4 +403,8 @@ module.exports = {
   listInspectionDates,
   loadJsonFile,
   saveJsonFile,
+  saveRepairProposal,
+  listRepairProposals,
+  loadRepairProposalByRef,
+  deleteRepairProposal,
 };

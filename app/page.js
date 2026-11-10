@@ -1134,6 +1134,18 @@ function HomePageInner() {
           <span className="card__arrow">›</span>
         </button>
 
+        {/* Card 5 — ใบเสนอแจ้งซ่อม */}
+        <button
+          className="card card--repair"
+          onClick={() => router.push('/repair-proposal')}>
+          <span className="card__icon">📝</span>
+          <div className="card__body">
+            <span className="card__title">ใบเสนอแจ้งซ่อม</span>
+            <span className="card__sub">ขอซื้อ/เปลี่ยนทดแทน</span>
+          </div>
+          <span className="card__arrow">›</span>
+        </button>
+
       </main>
           </div>
 
@@ -1771,6 +1783,19 @@ function HomePageInner() {
         .card--pm .card__title { color: #fff; font-size: 15px; }
         .card--pm .card__sub   { color: rgba(255,255,255,0.75); }
         .card--pm .card__arrow { color: rgba(255,255,255,0.7); margin-left: auto; }
+
+        /* ใบเสนอแจ้งซ่อม — ocean sky */
+        .card--repair {
+          grid-column: 1 / -1;
+          background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+          box-shadow: 0 6px 18px rgba(2,132,199,0.35);
+          min-height: 72px;
+          gap: 12px;
+        }
+        .card--repair .card__icon  { font-size: 26px; }
+        .card--repair .card__title { color: #fff; font-size: 15px; }
+        .card--repair .card__sub   { color: rgba(255,255,255,0.85); }
+        .card--repair .card__arrow { color: rgba(255,255,255,0.7); margin-left: auto; }
 
         /* History — dark */
         .card--history {
