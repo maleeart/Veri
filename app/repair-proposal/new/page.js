@@ -783,6 +783,8 @@ function RepairProposalFormInner() {
     return null;
   }, [adminSettings.header]);
 
+  const hasAnnex = useMemo(() => surveyPoints.some(p => Boolean(p.photo)), [surveyPoints]);
+
   const steps = [
     { title: 'ข้อมูลงาน', icon: '1' },
     { title: `จุดที่ชำรุด (${surveyPoints.length})`, icon: '2' },
@@ -798,7 +800,7 @@ function RepairProposalFormInner() {
 
       <main className="sn-shell-main" style={{ flex: 1, padding: '20px 24px', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
         
-        {/* Style block for placeholders, dark wizard theme, and print media */}
+        {/* Style block for placeholders, dark wizard theme, and clean white A4 print media */}
         <style dangerouslySetInnerHTML={{ __html: `
           ::placeholder {
             color: #5a6a8a !important;
@@ -817,43 +819,118 @@ function RepairProposalFormInner() {
             border-color: #3b82f6 !important;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25) !important;
           }
+          @media screen {
+            .screen-hidden {
+              display: none !important;
+            }
+          }
           @media print {
             @page {
               size: A4 portrait;
-              margin: 0;
+              margin: 0mm;
+            }
+            *, *:before, *:after {
+              box-shadow: none !important;
+              text-shadow: none !important;
+            }
+            html {
+              background: #ffffff !important;
+              background-color: #ffffff !important;
+              color: #0f172a !important;
+              color-scheme: light !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              width: 100% !important;
+              min-width: 100% !important;
             }
             body {
               background: #ffffff !important;
+              background-color: #ffffff !important;
               color: #0f172a !important;
+              color-scheme: light !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              width: 100% !important;
+              min-width: 100% !important;
+              font-size: 10pt !important;
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
             }
-            .no-print, nav, header, button, .sidenav {
+            .sn-shell {
+              background: #ffffff !important;
+              background-color: #ffffff !important;
+              color: #0f172a !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              min-height: auto !important;
+              height: auto !important;
+              width: 100% !important;
+              display: block !important;
+            }
+            .sn-shell-main {
+              background: #ffffff !important;
+              background-color: #ffffff !important;
+              color: #0f172a !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              max-width: 100% !important;
+              width: 100% !important;
+              display: block !important;
+            }
+            .doc-print-wrapper {
+              display: block !important;
+              background: #ffffff !important;
+              background-color: #ffffff !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              max-width: 100% !important;
+              width: 100% !important;
+              border: none !important;
+              box-shadow: none !important;
+            }
+            .no-print,
+            nav,
+            header,
+            button,
+            .sidenav,
+            .sn-shell > aside,
+            .wizard-flow-view,
+            #adminPinModal,
+            #adminSettingsModal {
               display: none !important;
             }
             .a4-print-page {
+              display: block !important;
               page-break-after: always !important;
               break-after: page !important;
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
               border: none !important;
+              border-radius: 0 !important;
               box-shadow: none !important;
-              padding: 10mm 14mm 10mm 14mm !important;
+              padding: 12mm 15mm 12mm 15mm !important;
               margin: 0 !important;
               width: 100% !important;
               box-sizing: border-box !important;
               background: #ffffff !important;
+              background-color: #ffffff !important;
               color: #0f172a !important;
+              min-height: 297mm !important;
+              position: relative !important;
             }
             .a4-print-page:last-child {
               page-break-after: auto !important;
               break-after: auto !important;
+              min-height: auto !important;
             }
             .doc-banner-bleed {
-              margin: -10mm -14mm 12px -14mm !important;
-              width: calc(100% + 28mm) !important;
+              margin: -12mm -15mm 14px -15mm !important;
+              width: calc(100% + 30mm) !important;
+              border-radius: 0 !important;
             }
             .doc-banner-contained {
               width: 100% !important;
-              margin: 0 0 12px 0 !important;
+              margin: 0 0 14px 0 !important;
             }
             .doc-banner-bleed img, .doc-banner-contained img {
               width: 100% !important;
@@ -864,6 +941,14 @@ function RepairProposalFormInner() {
             table, th, td, div, span, strong, p {
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
+            }
+            table {
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+            }
+            tr {
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
             }
           }
         `}} />
@@ -940,7 +1025,8 @@ function RepairProposalFormInner() {
           </button>
         </div>
 
-        {activeView === 'wizard' ? (
+        {/* WIZARD FLOW VIEW (Hidden on screen when activeView !== 'wizard'; never printed) */}
+        <div className={`wizard-flow-view no-print ${activeView !== 'wizard' ? 'screen-hidden' : ''}`}>
           <div>
             {/* Steps Progress Pills */}
             <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 10, marginBottom: 16 }}>
@@ -1564,6 +1650,25 @@ function RepairProposalFormInner() {
                   </button>
 
                   <button 
+                    onClick={() => {
+                      setActiveView('document');
+                      setTimeout(() => window.print(), 100);
+                    }}
+                    style={{
+                      background: '#16a34a',
+                      color: 'white',
+                      fontWeight: 700,
+                      fontSize: 13.5,
+                      padding: '11px 20px',
+                      borderRadius: 8,
+                      border: 'none',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(22,163,74,0.35)'
+                    }}>
+                    🖨️ สั่งพิมพ์ / ส่งออก PDF (A4 สำหรับแนบ)
+                  </button>
+
+                  <button 
                     onClick={() => setActiveView('document')}
                     style={{
                       background: 'var(--bg-surface-raised, #172340)',
@@ -1648,9 +1753,10 @@ function RepairProposalFormInner() {
               )}
             </div>
           </div>
-        ) : (
-          /* DOCUMENT FULL VIEW (A4 Printable Layout with Official Letterhead) */
-          <div style={{ maxWidth: 880, margin: '0 auto' }}>
+        </div>
+
+        {/* DOCUMENT FULL VIEW (A4 Printable Layout with Official Letterhead - always rendered in DOM for 100% reliable print/PDF) */}
+        <div className={`doc-print-wrapper ${activeView !== 'document' ? 'screen-hidden' : ''}`} style={{ maxWidth: 880, margin: '0 auto' }}>
             <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 16 }}>
               <div style={{ fontSize: 13, color: 'var(--ink-secondary, #94a3c4)' }}>
                 📄 มุมมองตัวอย่างพิมพ์ A4 เสมือนจริง (ปรับสไตล์ให้คมชัด สีเข้ม ไม่ซีดจางเมื่อพิมพ์หรือ Export PDF)
@@ -1734,6 +1840,7 @@ function RepairProposalFormInner() {
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', fontSize: 11.5 }}>
+                  <div style={{ fontSize: 10.5, fontWeight: 800, color: '#0369a1', marginBottom: 3 }}>เอกสารแนบ - หน้า 1 / {hasAnnex ? 3 : 2}</div>
                   <div><strong style={{ color: '#0f172a' }}>เลขที่ใบแจ้งซ่อม:</strong> <strong style={{ color: '#b91c1c' }}>{refNo || '-'}</strong></div>
                   <div><strong style={{ color: '#0f172a' }}>วันที่เสนอ:</strong> <strong style={{ color: '#0f172a' }}>{docDate || '-'}</strong></div>
                   <div><strong style={{ color: '#0f172a' }}>ระดับความเร่งด่วน:</strong> <strong style={{ color: priority === 'high' ? '#b91c1c' : '#047857' }}>{priority === 'high' ? 'เร่งด่วนสูง' : 'ปกติ'}</strong></div>
@@ -1828,6 +1935,12 @@ function RepairProposalFormInner() {
 
             {/* PAGE 2: Specs, Justification, 2 Signatures */}
             <div className="a4-print-page" style={{ background: '#ffffff', borderRadius: 8, padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.4)', marginBottom: 20, color: '#0f172a' }}>
+              {/* Official Page 2 Header for Attachment Document */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid #cbd5e1', paddingBottom: 4, marginBottom: 12, fontSize: 11, color: '#475569', fontWeight: 700 }}>
+                <span>เอกสารแนบใบเสนอแจ้งซ่อมเลขที่: <strong style={{ color: '#0f2e5a' }}>{refNo || '-'}</strong></span>
+                <span>หน้า 2 / {hasAnnex ? 3 : 2}</span>
+              </div>
+
               {/* Section 3: Technical Specifications & Substitution Criteria */}
               <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a', borderBottom: '2.5px solid #0f2e5a', paddingBottom: 4, marginBottom: 8 }}>
                 3. ข้อกำหนดคุณลักษณะเฉพาะและเงื่อนไขสำคัญที่ต้องใช้แทนได้ (กรณีใช้ยี่ห้อ/รุ่นอื่นทดแทน)
@@ -1887,8 +2000,14 @@ function RepairProposalFormInner() {
             </div>
 
             {/* PAGE 3: Annex Photos (Only if photos exist) */}
-            {surveyPoints.some(p => p.photo) && (
+            {hasAnnex && (
               <div className="a4-print-page" style={{ background: '#ffffff', borderRadius: 8, padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.4)', color: '#0f172a' }}>
+                {/* Official Page 3 Header for Attachment Document */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid #cbd5e1', paddingBottom: 4, marginBottom: 12, fontSize: 11, color: '#475569', fontWeight: 700 }}>
+                  <span>เอกสารแนบใบเสนอแจ้งซ่อมเลขที่: <strong style={{ color: '#0f2e5a' }}>{refNo || '-'}</strong> (ภาคผนวกภาพถ่ายสภาพหน้างาน)</span>
+                  <span>หน้า 3 / 3</span>
+                </div>
+
                 <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a', borderBottom: '2.5px solid #0f2e5a', paddingBottom: 4, marginBottom: 8 }}>
                   ภาคผนวก: ภาพถ่ายประกอบผลการตรวจสอบและสำรวจสภาพอุปกรณ์หน้างาน
                 </div>
@@ -1916,7 +2035,6 @@ function RepairProposalFormInner() {
             )}
 
           </div>
-        )}
 
         {/* PIN Verification Modal */}
         {showPinModal && (
