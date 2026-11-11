@@ -74,8 +74,7 @@ const defaultAdminSettings = {
   },
   defaults: {
     department: 'หบท-ธ. ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร',
-    inspectorRole: 'วิศวกรระบบไฟฟ้าและบำรุงรักษา',
-    priority: 'high'
+    inspectorRole: 'วิศวกรระบบไฟฟ้าและบำรุงรักษา'
   },
   isCustomized: false
 };
@@ -1843,7 +1842,6 @@ function RepairProposalFormInner() {
                   <div style={{ fontSize: 10.5, fontWeight: 800, color: '#0369a1', marginBottom: 3 }}>เอกสารแนบ - หน้า 1 / {hasAnnex ? 3 : 2}</div>
                   <div><strong style={{ color: '#0f172a' }}>เลขที่ใบแจ้งซ่อม:</strong> <strong style={{ color: '#b91c1c' }}>{refNo || '-'}</strong></div>
                   <div><strong style={{ color: '#0f172a' }}>วันที่เสนอ:</strong> <strong style={{ color: '#0f172a' }}>{docDate || '-'}</strong></div>
-                  <div><strong style={{ color: '#0f172a' }}>ระดับความเร่งด่วน:</strong> <strong style={{ color: priority === 'high' ? '#b91c1c' : '#047857' }}>{priority === 'high' ? 'เร่งด่วนสูง' : 'ปกติ'}</strong></div>
                 </div>
               </div>
 
@@ -2588,20 +2586,6 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                   className="wizard-dark-input"
                   style={{ width: '100%', padding: '8px 10px', fontSize: 13 }} 
                 />
-              </div>
-
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
-                  ระดับความเร่งด่วนเริ่มต้น:
-                </label>
-                <select 
-                  value={form.defaults?.priority} 
-                  onChange={e => handleDefaultsChange('priority', e.target.value)} 
-                  className="wizard-dark-input"
-                  style={{ width: '100%', padding: '8px 10px', fontSize: 13 }}>
-                  <option value="high">เร่งด่วนสูง (High)</option>
-                  <option value="normal">ปกติ (Normal)</option>
-                </select>
               </div>
             </div>
           )}
