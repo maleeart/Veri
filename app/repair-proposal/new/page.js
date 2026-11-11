@@ -1884,7 +1884,6 @@ function RepairProposalFormInner() {
                       <td style={{ padding: 6, textAlign: 'center', fontWeight: 600, color: '#0f172a', border: '1.5px solid #475569' }}>{sp.location || '-'}</td>
                       <td style={{ padding: 6, border: '1.5px solid #475569', color: '#0f172a', fontWeight: 600 }}>
                         {sp.symptom || '-'}
-                        {sp.photo && <span style={{ fontSize: 10, color: '#0284c7', fontWeight: 700, marginLeft: 6 }}>📷 [มีรูปแนบ]</span>}
                       </td>
                       <td style={{ padding: 6, textAlign: 'center', fontWeight: 700, color: '#0f172a', border: '1.5px solid #475569' }}>{sp.qty || 1} ตัว</td>
                       <td style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#b91c1c', border: '1.5px solid #475569' }}>{sp.action || 'เปลี่ยนทดแทน'}</td>
