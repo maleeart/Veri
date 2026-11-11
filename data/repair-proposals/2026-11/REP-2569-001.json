@@ -105,7 +105,7 @@
   "itemsRequested": [
     {
       "id": 1,
-      "name": "Digital Power Meter (เครื่องวัดค่าไฟฟ้าดิจิทัลชนิดมัลติฟังก์ชันติดหน้าตู้ 96x96 มม.)",
+      "name": "Digital Power Meter ",
       "modelPart": "Schneider Electric EasyLogic PM2230 (Part No. METSEPM2230) หรือเทียบเท่า",
       "qty": 10,
       "unit": "ตัว",
