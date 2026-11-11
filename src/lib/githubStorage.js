@@ -397,6 +397,7 @@ async function loadRepairSettings() {
   const defaultSettings = {
     header: {
       bannerImageUrl: '',
+      bannerLayout: 'bleed', // 'bleed' (เต็มแผ่นกระดาษ A4) | 'contained' (เต็มขอบเนื้อหาเอกสาร)
       companyTitle: 'การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย (กฟผ.)',
       companySubtitle: 'ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร (หบท-ธ.)',
       companyAddress: 'โทรศัพท์ 02-436-0000 | อาคาร ท.102 สำนักงานกลาง กฟผ.',
@@ -427,7 +428,14 @@ async function loadRepairSettings() {
   try {
     if (fs.existsSync(localFile)) {
       const data = JSON.parse(fs.readFileSync(localFile, 'utf-8'));
-      return { ...defaultSettings, ...data };
+      return {
+        ...defaultSettings,
+        ...data,
+        header: { ...defaultSettings.header, ...(data.header || {}) },
+        approver: { ...defaultSettings.approver, ...(data.approver || {}) },
+        runningNumber: { ...defaultSettings.runningNumber, ...(data.runningNumber || {}) },
+        defaults: { ...defaultSettings.defaults, ...(data.defaults || {}) }
+      };
     }
   } catch (err) {
     console.warn('loadRepairSettings local error:', err.message);
@@ -435,7 +443,16 @@ async function loadRepairSettings() {
 
   try {
     const data = await loadJsonFile('data/repair-proposals/settings.json');
-    if (data) return { ...defaultSettings, ...data };
+    if (data) {
+      return {
+        ...defaultSettings,
+        ...data,
+        header: { ...defaultSettings.header, ...(data.header || {}) },
+        approver: { ...defaultSettings.approver, ...(data.approver || {}) },
+        runningNumber: { ...defaultSettings.runningNumber, ...(data.runningNumber || {}) },
+        defaults: { ...defaultSettings.defaults, ...(data.defaults || {}) }
+      };
+    }
   } catch {}
 
   return defaultSettings;

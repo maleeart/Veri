@@ -48,6 +48,7 @@ const compressImageFile = (file, maxWidth = 1600, maxHeight = 500, quality = 0.9
 const defaultAdminSettings = {
   header: {
     bannerImageUrl: '', // Data URL หรือ URL ของรูปภาพหัวกระดาษแบบเต็ม A4
+    bannerLayout: 'bleed', // 'bleed' (ชิดขอบกระดาษ A4 ทุกด้าน) | 'contained' (เต็มขอบเนื้อหาเอกสาร)
     companyTitle: 'การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย (กฟผ.)',
     companySubtitle: 'ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร (หบท-ธ.)',
     companyAddress: 'โทรศัพท์ 02-436-0000 | อาคาร ท.102 สำนักงานกลาง กฟผ.',
@@ -684,7 +685,17 @@ function RepairProposalFormInner() {
   // Save Admin Settings
   const handleSaveAdminSettings = async (newSettings) => {
     setAdminSettings(newSettings);
-    localStorage.setItem('repair_proposal_admin_settings', JSON.stringify(newSettings));
+
+    // Safely save to LocalStorage with QuotaExceeded fallback
+    try {
+      localStorage.setItem('repair_proposal_admin_settings', JSON.stringify(newSettings));
+    } catch (e) {
+      console.warn('LocalStorage save warning:', e);
+      try {
+        const light = { ...newSettings, header: { ...newSettings.header, bannerImageUrl: '' } };
+        localStorage.setItem('repair_proposal_admin_settings_light', JSON.stringify(light));
+      } catch (e2) {}
+    }
     
     // 1. Update approver & signature immediately in active form
     if (newSettings.approver?.name) setApproverName(newSettings.approver.name);
@@ -709,17 +720,22 @@ function RepairProposalFormInner() {
       }
     }
 
+    // 4. Save to Server Database (data/repair-proposals/settings.json + GitHub storage)
     try {
-      await fetch('/api/repair-proposals/settings', {
+      const res = await fetch('/api/repair-proposals/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pin: '8888', settings: newSettings })
       });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        console.warn('Server settings sync issue:', data.error);
+      }
     } catch (e) {
       console.warn('Settings API sync warning:', e);
     }
 
-    alert('บันทึกการตั้งค่าระบบเรียบร้อยแล้ว!');
+    alert('บันทึกการตั้งค่าระบบเรียบร้อยแล้ว!\n(รูปภาพหัวกระดาษและค่าเริ่มต้นทั้งหมดถูกบันทึกเป็นค่าเริ่มต้นหลักของระบบแล้ว)');
     setShowSettingsModal(false);
   };
 
@@ -757,7 +773,7 @@ function RepairProposalFormInner() {
           @media print {
             @page {
               size: A4 portrait;
-              margin: 10mm 14mm 10mm 14mm;
+              margin: 0;
             }
             body {
               background: #ffffff !important;
@@ -773,12 +789,28 @@ function RepairProposalFormInner() {
               break-after: page !important;
               border: none !important;
               box-shadow: none !important;
-              padding: 0 !important;
-              margin: 0 0 20px 0 !important;
+              padding: 10mm 14mm 10mm 14mm !important;
+              margin: 0 !important;
+              width: 100% !important;
+              box-sizing: border-box !important;
             }
             .a4-print-page:last-child {
               page-break-after: auto !important;
               break-after: auto !important;
+            }
+            .doc-banner-bleed {
+              margin: -10mm -14mm 12px -14mm !important;
+              width: calc(100% + 28mm) !important;
+            }
+            .doc-banner-contained {
+              width: 100% !important;
+              margin: 0 0 12px 0 !important;
+            }
+            .doc-banner-bleed img, .doc-banner-contained img {
+              width: 100% !important;
+              height: auto !important;
+              max-height: none !important;
+              display: block !important;
             }
           }
         `}} />
@@ -1556,11 +1588,25 @@ function RepairProposalFormInner() {
               {adminSettings.header?.showLetterhead && (
                 adminSettings.header?.bannerImageUrl ? (
                   /* MODE A: รูปภาพหัวกระดาษแบบเต็ม A4 (Full Banner Image - No text overlay) */
-                  <div style={{ width: '100%', borderBottom: '2px solid #0f2e5a', paddingBottom: 8, marginBottom: 14 }}>
+                  <div 
+                    className={adminSettings.header?.bannerLayout === 'contained' ? 'doc-banner-contained' : 'doc-banner-bleed'}
+                    style={adminSettings.header?.bannerLayout === 'contained' ? {
+                      width: '100%',
+                      borderBottom: '2.5px solid #0f2e5a',
+                      paddingBottom: 6,
+                      marginBottom: 14
+                    } : {
+                      width: 'calc(100% + 64px)',
+                      margin: '-32px -32px 14px -32px',
+                      borderTopLeftRadius: 8,
+                      borderTopRightRadius: 8,
+                      overflow: 'hidden',
+                      borderBottom: '2.5px solid #0f2e5a'
+                    }}>
                     <img 
                       src={adminSettings.header.bannerImageUrl} 
                       alt="Official Letterhead Banner" 
-                      style={{ width: '100%', maxHeight: 135, objectFit: 'contain', display: 'block', margin: '0 auto' }} 
+                      style={{ width: '100%', height: 'auto', display: 'block' }} 
                     />
                   </div>
                 ) : (
@@ -1990,24 +2036,26 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                     </p>
 
                     {form.header?.bannerImageUrl ? (
-                      <div style={{ border: '1.5px dashed #0284c7', borderRadius: 6, padding: 10, background: '#ffffff', textAlign: 'center', marginBottom: 10 }}>
-                        <img 
-                          src={form.header.bannerImageUrl} 
-                          alt="Banner Preview" 
-                          style={{ width: '100%', maxHeight: 110, objectFit: 'contain', display: 'block', margin: '0 auto' }} 
-                        />
+                      <div style={{ border: '1.5px dashed #0284c7', borderRadius: 6, padding: 10, background: '#ffffff', textAlign: 'center', marginBottom: 12 }}>
+                        <div style={{ maxHeight: 150, overflow: 'hidden', borderRadius: 4, background: '#f8fafc' }}>
+                          <img 
+                            src={form.header.bannerImageUrl} 
+                            alt="Banner Preview" 
+                            style={{ width: '100%', height: 'auto', display: 'block', margin: '0 auto' }} 
+                          />
+                        </div>
                         <div style={{ fontSize: 11, color: '#15803d', fontWeight: 700, marginTop: 6 }}>
-                          ✓ รูปภาพหัวกระดาษแบบเต็ม A4 พร้อมใช้งาน
+                          ✓ รูปภาพหัวกระดาษแบบเต็ม A4 พร้อมใช้งาน (จะถูกใช้เป็นค่าเริ่มต้นทันทีเมื่อบันทึก)
                         </div>
                       </div>
                     ) : (
-                      <div style={{ border: '1.5px dashed #cbd5e1', borderRadius: 6, padding: 16, background: '#ffffff', textAlign: 'center', marginBottom: 10, color: '#94a3b8', fontSize: 12 }}>
+                      <div style={{ border: '1.5px dashed #cbd5e1', borderRadius: 6, padding: 16, background: '#ffffff', textAlign: 'center', marginBottom: 12, color: '#94a3b8', fontSize: 12 }}>
                         ยังไม่มีการอัปโหลดรูปหัวกระดาษแบบเต็ม (ระบบจะใช้ข้อความด้านล่างแทน)
                       </div>
                     )}
 
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <label style={{ background: '#0284c7', color: 'white', padding: '6px 14px', borderRadius: 6, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+                      <label style={{ background: '#0284c7', color: 'white', padding: '7px 16px', borderRadius: 6, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                         📁 {form.header?.bannerImageUrl ? 'เปลี่ยนรูปหัวกระดาษใหม่' : 'อัปโหลดรูปหัวกระดาษแบบเต็ม A4'}
                         <input 
                           type="file" 
@@ -2016,7 +2064,7 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                             const f = e.target.files[0];
                             if (!f) return;
                             try {
-                              const compressed = await compressImageFile(f, 1600, 500, 0.9);
+                              const compressed = await compressImageFile(f, 2000, 800, 0.92);
                               handleHeaderChange('bannerImageUrl', compressed);
                             } catch (err) {
                               alert('ไม่สามารถโหลดรูปภาพได้: ' + err.message);
@@ -2031,6 +2079,35 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                         </span>
                       )}
                     </div>
+
+                    {/* Layout Selector for Banner Width */}
+                    {form.header?.bannerImageUrl && (
+                      <div style={{ background: '#ffffff', border: '1px solid #bae6fd', borderRadius: 6, padding: '10px 12px' }}>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 6 }}>
+                          📐 รูปแบบความกว้างการแสดงผลบนกระดาษ A4:
+                        </label>
+                        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontWeight: form.header?.bannerLayout !== 'contained' ? 700 : 500, color: '#0f2e5a' }}>
+                            <input 
+                              type="radio" 
+                              name="bannerLayout" 
+                              checked={form.header?.bannerLayout !== 'contained'} 
+                              onChange={() => handleHeaderChange('bannerLayout', 'bleed')} 
+                            />
+                            เต็มแผ่นกระดาษ A4 (ชิดขอบกระดาษทุกด้าน) ⭐ แนะนำ
+                          </label>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontWeight: form.header?.bannerLayout === 'contained' ? 700 : 500, color: '#334155' }}>
+                            <input 
+                              type="radio" 
+                              name="bannerLayout" 
+                              checked={form.header?.bannerLayout === 'contained'} 
+                              onChange={() => handleHeaderChange('bannerLayout', 'contained')} 
+                            />
+                            เต็มขอบเนื้อหาเอกสาร (เสมอเท่าขอบตารางและกรอบฟอร์ม)
+                          </label>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Section B: Text Header Fallback */}
