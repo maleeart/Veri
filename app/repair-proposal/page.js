@@ -39,10 +39,11 @@ function RepairProposalListInner() {
       const res = await fetch(`/api/repair-proposals?refNo=${encodeURIComponent(refNo)}`, {
         method: 'DELETE'
       });
-      if (res.ok) {
+      const data = await res.json();
+      if (res.ok && data.ok) {
         setProposals(prev => prev.filter(p => p.refNo !== refNo));
       } else {
-        alert('ลบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+        alert('ลบไม่สำเร็จ: ' + (data?.error || 'กรุณาลองใหม่อีกครั้ง'));
       }
     } catch (err) {
       alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');

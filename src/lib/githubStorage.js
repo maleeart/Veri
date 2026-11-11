@@ -276,6 +276,144 @@ async function saveJsonFile(filePath, data, message) {
   return { path: filePath };
 }
 
+/**
+ * บันทึกไฟล์ขนาดใหญ่ผ่าน Git Blobs & Trees API — ไม่มีข้อจำกัด 1MB ของ Contents API
+ */
+async function saveFileViaGitTrees(owner, repo, branch, filePath, data, message) {
+  await ensureDataBranch();
+
+  // 1. สร้าง blob
+  const contentStr = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+  const blobRes = await ghReq(`/repos/${owner}/${repo}/git/blobs`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      content: Buffer.from(contentStr, 'utf-8').toString('base64'),
+      encoding: 'base64',
+    }),
+  });
+  if (!blobRes.ok) {
+    const txt = await blobRes.text();
+    throw new Error(`Create blob failed ${blobRes.status}: ${txt}`);
+  }
+  const { sha: blobSha } = await blobRes.json();
+
+  // 2. HEAD commit SHA
+  const refRes = await ghReq(`/repos/${owner}/${repo}/git/ref/heads/${branch}`);
+  if (!refRes.ok) throw new Error(`Get ref failed ${refRes.status}`);
+  const { object: { sha: commitSha } } = await refRes.json();
+
+  // 3. Tree SHA จาก commit
+  const commitRes = await ghReq(`/repos/${owner}/${repo}/git/commits/${commitSha}`);
+  if (!commitRes.ok) throw new Error(`Get commit failed ${commitRes.status}`);
+  const { tree: { sha: treeSha } } = await commitRes.json();
+
+  // 4. สร้าง tree ใหม่พร้อม blobSha
+  const newTreeRes = await ghReq(`/repos/${owner}/${repo}/git/trees`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      base_tree: treeSha,
+      tree: [{ path: filePath, mode: '100644', type: 'blob', sha: blobSha }],
+    }),
+  });
+  if (!newTreeRes.ok) {
+    const txt = await newTreeRes.text();
+    throw new Error(`Create tree failed ${newTreeRes.status}: ${txt}`);
+  }
+  const { sha: newTreeSha } = await newTreeRes.json();
+
+  // 5. Commit ใหม่
+  const newCommitRes = await ghReq(`/repos/${owner}/${repo}/git/commits`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message: message || `Update ${filePath}`,
+      tree: newTreeSha,
+      parents: [commitSha],
+    }),
+  });
+  if (!newCommitRes.ok) throw new Error(`Create commit failed ${newCommitRes.status}`);
+  const { sha: newCommitSha } = await newCommitRes.json();
+
+  // 6. อัพเดท branch ref
+  const updateRes = await ghReq(`/repos/${owner}/${repo}/git/refs/heads/${branch}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sha: newCommitSha, force: false }),
+  });
+  if (!updateRes.ok) {
+    const txt = await updateRes.text();
+    throw new Error(`Update ref failed ${updateRes.status}: ${txt}`);
+  }
+
+  return { path: filePath, sha: blobSha };
+}
+
+/**
+ * ลบหลายไฟล์ผ่าน Git Trees API — path อยู่ใน body (sha: null)
+ */
+async function deleteFilesViaGitTrees(owner, repo, branch, filePaths, message) {
+  if (!filePaths || filePaths.length === 0) return;
+
+  // 1. HEAD commit SHA
+  const refRes = await ghReq(`/repos/${owner}/${repo}/git/ref/heads/${branch}`);
+  if (!refRes.ok) throw new Error(`Get ref failed ${refRes.status}`);
+  const { object: { sha: commitSha } } = await refRes.json();
+
+  // 2. Tree SHA จาก commit
+  const commitRes = await ghReq(`/repos/${owner}/${repo}/git/commits/${commitSha}`);
+  if (!commitRes.ok) throw new Error(`Get commit failed ${commitRes.status}`);
+  const { tree: { sha: treeSha } } = await commitRes.json();
+
+  // 3. Tree items สำหรับลบ (sha: null)
+  const treeItems = filePaths.map(filePath => ({
+    path: filePath,
+    mode: '100644',
+    type: 'blob',
+    sha: null,
+  }));
+
+  const newTreeRes = await ghReq(`/repos/${owner}/${repo}/git/trees`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      base_tree: treeSha,
+      tree: treeItems,
+    }),
+  });
+  if (newTreeRes.status === 422) return; // ไฟล์ไม่อยู่ใน tree แล้ว
+  if (!newTreeRes.ok) {
+    const txt = await newTreeRes.text();
+    throw new Error(`Create tree failed ${newTreeRes.status}: ${txt}`);
+  }
+  const { sha: newTreeSha } = await newTreeRes.json();
+
+  // 4. Commit ใหม่
+  const newCommitRes = await ghReq(`/repos/${owner}/${repo}/git/commits`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message: message || `Delete ${filePaths.join(', ')}`,
+      tree: newTreeSha,
+      parents: [commitSha],
+    }),
+  });
+  if (!newCommitRes.ok) throw new Error(`Create commit failed ${newCommitRes.status}`);
+  const { sha: newCommitSha } = await newCommitRes.json();
+
+  // 5. Update branch ref
+  const updateRes = await ghReq(`/repos/${owner}/${repo}/git/refs/heads/${branch}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sha: newCommitSha, force: false }),
+  });
+  if (!updateRes.ok) {
+    const txt = await updateRes.text();
+    throw new Error(`Update ref failed ${updateRes.status}: ${txt}`);
+  }
+}
+
 // ==========================================
 // REPAIR PROPOSALS (ใบเสนอแจ้งซ่อม / เปลี่ยนทดแทน)
 // Path: data/repair-proposals/<YYYY-MM>/<refNo>.json
@@ -300,11 +438,15 @@ async function saveRepairProposal(proposal) {
     console.warn('Local proposal cache write error:', err.message);
   }
 
-  // 2. Commit to GitHub data branch if ENV configured
+  // 2. Commit to GitHub data branch if ENV configured using Git Trees (bypasses 1MB Contents API limit)
   try {
-    await saveJsonFile(relPath, proposal, `บันทึกใบเสนอแจ้งซ่อม [${refNo}] ${proposal.jobTitle || ''}`);
+    const { owner, repo, branch } = cfg();
+    await saveFileViaGitTrees(owner, repo, branch, relPath, proposal, `บันทึกใบเสนอแจ้งซ่อม [${refNo}] ${proposal.jobTitle || ''}`);
   } catch (err) {
     console.warn('GitHub saveRepairProposal warning:', err.message);
+    try {
+      await saveJsonFile(relPath, proposal, `บันทึกใบเสนอแจ้งซ่อม [${refNo}] ${proposal.jobTitle || ''}`);
+    } catch (e2) {}
   }
 
   return { ok: true, path: relPath, refNo };
@@ -349,7 +491,8 @@ async function listRepairProposals() {
         const items = tree.filter(item =>
           item.type === 'blob' &&
           item.path.startsWith('data/repair-proposals/') &&
-          item.path.endsWith('.json')
+          item.path.endsWith('.json') &&
+          !item.path.endsWith('settings.json')
         );
         for (const item of items) {
           try {
@@ -380,17 +523,66 @@ async function loadRepairProposalByRef(refNo) {
 
 async function deleteRepairProposal(refNo) {
   const safeRef = String(refNo || '').replace(/[/\\:*?"<>|]/g, '-');
-  // Remove local
+  const deletedPaths = [];
+
+  // 1. Remove from local disk cache
   try {
     const baseDir = path.join(process.cwd(), 'data', 'repair-proposals');
     if (fs.existsSync(baseDir)) {
       for (const ym of fs.readdirSync(baseDir)) {
-        const p = path.join(baseDir, ym, `${safeRef}.json`);
-        if (fs.existsSync(p)) fs.unlinkSync(p);
+        const ymPath = path.join(baseDir, ym);
+        if (fs.existsSync(ymPath) && fs.statSync(ymPath).isDirectory()) {
+          const p = path.join(ymPath, `${safeRef}.json`);
+          if (fs.existsSync(p)) {
+            fs.unlinkSync(p);
+            deletedPaths.push(`data/repair-proposals/${ym}/${safeRef}.json`);
+          }
+        }
       }
     }
-  } catch {}
-  return { ok: true };
+  } catch (err) {
+    console.warn('Local delete proposal warning:', err.message);
+  }
+
+  // 2. Remove from GitHub data branch via Git Trees API
+  try {
+    const { owner, repo, branch } = cfg();
+    const ghPathsToDelete = new Set(deletedPaths);
+
+    // Query trees API to find matching path(s) on GitHub
+    const refRes = await ghReq(`/repos/${owner}/${repo}/git/ref/heads/${branch}`);
+    if (refRes.status === 200) {
+      const { object: { sha: treeSha } } = await refRes.json();
+      const treeRes = await ghReq(`/repos/${owner}/${repo}/git/trees/${treeSha}?recursive=1`);
+      if (treeRes.ok) {
+        const { tree } = await treeRes.json();
+        for (const item of tree) {
+          if (
+            item.type === 'blob' &&
+            item.path.startsWith('data/repair-proposals/') &&
+            item.path.endsWith('.json') &&
+            !item.path.endsWith('settings.json')
+          ) {
+            if (item.path.endsWith(`/${safeRef}.json`) || item.path.includes(`/${safeRef}.`)) {
+              ghPathsToDelete.add(item.path);
+            }
+          }
+        }
+      }
+    }
+
+    if (ghPathsToDelete.size > 0) {
+      const pathsArr = Array.from(ghPathsToDelete);
+      await deleteFilesViaGitTrees(owner, repo, branch, pathsArr, `ลบใบเสนอแจ้งซ่อม [${refNo}]`);
+      for (const p of pathsArr) {
+        if (!deletedPaths.includes(p)) deletedPaths.push(p);
+      }
+    }
+  } catch (err) {
+    console.warn('GitHub deleteRepairProposal warning:', err.message);
+  }
+
+  return { ok: true, refNo, deletedPaths };
 }
 
 async function loadRepairSettings() {
@@ -421,21 +613,17 @@ async function loadRepairSettings() {
       department: 'หบท-ธ. ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร',
       inspectorRole: 'วิศวกรระบบไฟฟ้าและบำรุงรักษา',
       priority: 'high'
-    }
+    },
+    isCustomized: false
   };
+
+  let loaded = null;
 
   const localFile = path.join(process.cwd(), 'data', 'repair-proposals', 'settings.json');
   try {
     if (fs.existsSync(localFile)) {
       const data = JSON.parse(fs.readFileSync(localFile, 'utf-8'));
-      return {
-        ...defaultSettings,
-        ...data,
-        header: { ...defaultSettings.header, ...(data.header || {}) },
-        approver: { ...defaultSettings.approver, ...(data.approver || {}) },
-        runningNumber: { ...defaultSettings.runningNumber, ...(data.runningNumber || {}) },
-        defaults: { ...defaultSettings.defaults, ...(data.defaults || {}) }
-      };
+      if (data) loaded = data;
     }
   } catch (err) {
     console.warn('loadRepairSettings local error:', err.message);
@@ -444,33 +632,50 @@ async function loadRepairSettings() {
   try {
     const data = await loadJsonFile('data/repair-proposals/settings.json');
     if (data) {
-      return {
-        ...defaultSettings,
-        ...data,
-        header: { ...defaultSettings.header, ...(data.header || {}) },
-        approver: { ...defaultSettings.approver, ...(data.approver || {}) },
-        runningNumber: { ...defaultSettings.runningNumber, ...(data.runningNumber || {}) },
-        defaults: { ...defaultSettings.defaults, ...(data.defaults || {}) }
-      };
+      if (!loaded || (data.updatedAt && data.updatedAt > (loaded.updatedAt || ''))) {
+        loaded = data;
+      }
     }
   } catch {}
+
+  if (loaded) {
+    return {
+      ...defaultSettings,
+      ...loaded,
+      header: { ...defaultSettings.header, ...(loaded.header || {}) },
+      approver: { ...defaultSettings.approver, ...(loaded.approver || {}) },
+      runningNumber: { ...defaultSettings.runningNumber, ...(loaded.runningNumber || {}) },
+      defaults: { ...defaultSettings.defaults, ...(loaded.defaults || {}) },
+      isCustomized: loaded.isCustomized === true || Boolean(loaded.header?.bannerImageUrl || loaded.approver?.name)
+    };
+  }
 
   return defaultSettings;
 }
 
 async function saveRepairSettings(settings) {
+  const toSave = {
+    ...settings,
+    isCustomized: true,
+    updatedAt: new Date().toISOString()
+  };
+
   const localDir = path.join(process.cwd(), 'data', 'repair-proposals');
   if (!fs.existsSync(localDir)) fs.mkdirSync(localDir, { recursive: true });
   const localFile = path.join(localDir, 'settings.json');
-  fs.writeFileSync(localFile, JSON.stringify(settings, null, 2), 'utf-8');
+  fs.writeFileSync(localFile, JSON.stringify(toSave, null, 2), 'utf-8');
 
   try {
-    await saveJsonFile('data/repair-proposals/settings.json', settings, 'Update repair proposals admin settings');
+    const { owner, repo, branch } = cfg();
+    await saveFileViaGitTrees(owner, repo, branch, 'data/repair-proposals/settings.json', toSave, 'Update repair proposals admin settings');
   } catch (err) {
     console.warn('saveRepairSettings github warning:', err.message);
+    try {
+      await saveJsonFile('data/repair-proposals/settings.json', toSave, 'Update repair proposals admin settings');
+    } catch (e2) {}
   }
 
-  return { ok: true, settings };
+  return { ok: true, settings: toSave };
 }
 
 module.exports = {

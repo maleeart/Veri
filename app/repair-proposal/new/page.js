@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Sidenav from '../../components/Sidenav';
 
 // Compress and downscale uploaded images client-side before storing
-const compressImageFile = (file, maxWidth = 1600, maxHeight = 500, quality = 0.9) => {
+const compressImageFile = (file, maxWidth = 1400, maxHeight = 450, quality = 0.85, forceJpeg = false) => {
   return new Promise((resolve, reject) => {
     if (!file || !file.type.startsWith('image/')) {
       return reject(new Error('ไฟล์ไม่ใช่รูปภาพ'));
@@ -30,9 +30,13 @@ const compressImageFile = (file, maxWidth = 1600, maxHeight = 500, quality = 0.9
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
+        if (forceJpeg) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, width, height);
+        }
         ctx.drawImage(img, 0, 0, width, height);
 
-        const format = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        const format = forceJpeg ? 'image/jpeg' : (file.type === 'image/png' ? 'image/png' : 'image/jpeg');
         const dataUrl = canvas.toDataURL(format, quality);
         resolve(dataUrl);
       };
@@ -72,7 +76,8 @@ const defaultAdminSettings = {
     department: 'หบท-ธ. ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร',
     inspectorRole: 'วิศวกรระบบไฟฟ้าและบำรุงรักษา',
     priority: 'high'
-  }
+  },
+  isCustomized: false
 };
 
 // Preset sample data (TP019-69 Digital Meter)
@@ -368,18 +373,24 @@ function RepairProposalFormInner() {
   useEffect(() => {
     const loadSettings = async () => {
       let loaded = defaultAdminSettings;
+      let hasLocalCustom = false;
+
       // 1. Try LocalStorage
       try {
         const local = localStorage.getItem('repair_proposal_admin_settings');
         if (local) {
           const parsed = JSON.parse(local);
+          if (parsed && (parsed.isCustomized || parsed.header?.bannerImageUrl || parsed.approver?.name)) {
+            hasLocalCustom = true;
+          }
           loaded = { 
             ...defaultAdminSettings, 
             ...parsed,
             header: { ...defaultAdminSettings.header, ...(parsed.header || {}) },
             approver: { ...defaultAdminSettings.approver, ...(parsed.approver || {}) },
             runningNumber: { ...defaultAdminSettings.runningNumber, ...(parsed.runningNumber || {}) },
-            defaults: { ...defaultAdminSettings.defaults, ...(parsed.defaults || {}) }
+            defaults: { ...defaultAdminSettings.defaults, ...(parsed.defaults || {}) },
+            isCustomized: Boolean(parsed.isCustomized || hasLocalCustom)
           };
         }
       } catch (e) {}
@@ -389,18 +400,37 @@ function RepairProposalFormInner() {
         const res = await fetch('/api/repair-proposals/settings', { cache: 'no-store' });
         const data = await res.json();
         if (data && data.ok && data.settings) {
-          loaded = { 
-            ...loaded, 
-            ...data.settings,
-            header: { ...loaded.header, ...(data.settings.header || {}) },
-            approver: { ...loaded.approver, ...(data.settings.approver || {}) },
-            runningNumber: { ...loaded.runningNumber, ...(data.settings.runningNumber || {}) },
-            defaults: { ...loaded.defaults, ...(data.settings.defaults || {}) }
-          };
+          const s = data.settings;
+          const isServerCustomized = s.isCustomized === true || Boolean(s.header?.bannerImageUrl || (s.approver?.name && s.approver.name !== defaultAdminSettings.approver.name));
+
+          if (isServerCustomized || !hasLocalCustom) {
+            loaded = { 
+              ...loaded, 
+              ...s,
+              header: { 
+                ...loaded.header, 
+                ...(s.header || {}),
+                bannerImageUrl: s.header?.bannerImageUrl !== undefined
+                  ? (isServerCustomized ? s.header.bannerImageUrl : (loaded.header?.bannerImageUrl || ''))
+                  : (loaded.header?.bannerImageUrl || '')
+              },
+              approver: { ...loaded.approver, ...(s.approver || {}) },
+              runningNumber: { ...loaded.runningNumber, ...(s.runningNumber || {}) },
+              defaults: { ...loaded.defaults, ...(s.defaults || {}) },
+              isCustomized: isServerCustomized || hasLocalCustom
+            };
+          }
         }
       } catch (e) {}
 
       setAdminSettings(loaded);
+
+      // Re-save to local storage if customized
+      try {
+        if (loaded.isCustomized) {
+          localStorage.setItem('repair_proposal_admin_settings', JSON.stringify(loaded));
+        }
+      } catch (e) {}
 
       // If not editing, apply defaults & auto running refNo
       if (!editRefNo) {
@@ -408,7 +438,7 @@ function RepairProposalFormInner() {
         setApproverName(loaded.approver?.name || 'นายตวงเพชร ชัยยานนท์');
         setApproverRole(loaded.approver?.role || 'วศ.4 หบท-ธ.');
         setSig2Image(loaded.approver?.signatureUrl || '/assets/shared/signature-approver.png');
-        setDepartment(loaded.defaults?.department || 'ฝ่ายวิศวกรรมอาคารและระบบไฟฟ้า');
+        setDepartment(loaded.defaults?.department || 'หบท-ธ. ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร');
         setInspectorRole(loaded.defaults?.inspectorRole || 'วิศวกรระบบไฟฟ้าและบำรุงรักษา');
         setPriority(loaded.defaults?.priority || 'high');
 
@@ -462,7 +492,7 @@ function RepairProposalFormInner() {
     setPriority(adminSettings.defaults?.priority || 'high');
     setInspectorName('');
     setInspectorRole(adminSettings.defaults?.inspectorRole || 'วิศวกรระบบไฟฟ้าและบำรุงรักษา');
-    setDepartment(adminSettings.defaults?.department || 'ฝ่ายวิศวกรรมอาคารและระบบไฟฟ้า');
+    setDepartment(adminSettings.defaults?.department || 'หบท-ธ. ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร');
     setSurveyPoints([
       { id: 1, building: '', location: '', symptom: '', qty: 1, action: 'เปลี่ยนทดแทน', photo: null }
     ]);
@@ -684,36 +714,41 @@ function RepairProposalFormInner() {
 
   // Save Admin Settings
   const handleSaveAdminSettings = async (newSettings) => {
-    setAdminSettings(newSettings);
+    const customized = {
+      ...newSettings,
+      isCustomized: true,
+      updatedAt: new Date().toISOString()
+    };
+    setAdminSettings(customized);
 
     // Safely save to LocalStorage with QuotaExceeded fallback
     try {
-      localStorage.setItem('repair_proposal_admin_settings', JSON.stringify(newSettings));
+      localStorage.setItem('repair_proposal_admin_settings', JSON.stringify(customized));
     } catch (e) {
       console.warn('LocalStorage save warning:', e);
       try {
-        const light = { ...newSettings, header: { ...newSettings.header, bannerImageUrl: '' } };
+        const light = { ...customized, header: { ...customized.header, bannerImageUrl: '' } };
         localStorage.setItem('repair_proposal_admin_settings_light', JSON.stringify(light));
       } catch (e2) {}
     }
     
     // 1. Update approver & signature immediately in active form
-    if (newSettings.approver?.name) setApproverName(newSettings.approver.name);
-    if (newSettings.approver?.role) setApproverRole(newSettings.approver.role);
-    if (newSettings.approver?.signatureUrl) {
-      setSig2Image(newSettings.approver.signatureUrl);
+    if (customized.approver?.name) setApproverName(customized.approver.name);
+    if (customized.approver?.role) setApproverRole(customized.approver.role);
+    if (customized.approver?.signatureUrl) {
+      setSig2Image(customized.approver.signatureUrl);
       setApproverSigMode('image');
     }
 
     // 2. Update default department, inspector role, priority immediately
-    if (newSettings.defaults?.department) setDepartment(newSettings.defaults.department);
-    if (newSettings.defaults?.inspectorRole) setInspectorRole(newSettings.defaults.inspectorRole);
-    if (newSettings.defaults?.priority) setPriority(newSettings.defaults.priority);
+    if (customized.defaults?.department) setDepartment(customized.defaults.department);
+    if (customized.defaults?.inspectorRole) setInspectorRole(customized.defaults.inspectorRole);
+    if (customized.defaults?.priority) setPriority(customized.defaults.priority);
 
     // 3. Re-calculate running refNo with new prefix/next number if creating new proposal
     if (!editRefNo) {
       try {
-        const newRef = await generateAutoRefNo(newSettings);
+        const newRef = await generateAutoRefNo(customized);
         if (newRef) setRefNo(newRef);
       } catch (e) {
         console.warn('Failed to regenerate refNo:', e);
@@ -725,7 +760,7 @@ function RepairProposalFormInner() {
       const res = await fetch('/api/repair-proposals/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin: '8888', settings: newSettings })
+        body: JSON.stringify({ pin: '8888', settings: customized })
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
@@ -2064,7 +2099,7 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                             const f = e.target.files[0];
                             if (!f) return;
                             try {
-                              const compressed = await compressImageFile(f, 2000, 800, 0.92);
+                              const compressed = await compressImageFile(f, 1400, 420, 0.82, true);
                               handleHeaderChange('bannerImageUrl', compressed);
                             } catch (err) {
                               alert('ไม่สามารถโหลดรูปภาพได้: ' + err.message);
