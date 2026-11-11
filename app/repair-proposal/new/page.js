@@ -793,17 +793,29 @@ function RepairProposalFormInner() {
   ];
 
   return (
-    <div className="app-container" style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
+    <div className="sn-shell" style={{ minHeight: '100vh', background: 'var(--bg-base, #0c1220)', color: 'var(--ink-primary, #eef2ff)' }}>
       <Sidenav />
 
-      <main style={{ flex: 1, padding: '16px 20px', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
+      <main className="sn-shell-main" style={{ flex: 1, padding: '20px 24px', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
         
-        {/* Style block for pale placeholders and print media */}
+        {/* Style block for placeholders, dark wizard theme, and print media */}
         <style dangerouslySetInnerHTML={{ __html: `
           ::placeholder {
-            color: #94a3b8 !important;
-            opacity: 0.65 !important;
+            color: #5a6a8a !important;
+            opacity: 0.8 !important;
             font-style: italic;
+          }
+          .wizard-dark-input {
+            background: var(--bg-input, #080e1a) !important;
+            border: 1px solid var(--border-strong, #2d3f5e) !important;
+            color: var(--ink-primary, #eef2ff) !important;
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+          }
+          .wizard-dark-input:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25) !important;
           }
           @media print {
             @page {
@@ -828,6 +840,8 @@ function RepairProposalFormInner() {
               margin: 0 !important;
               width: 100% !important;
               box-sizing: border-box !important;
+              background: #ffffff !important;
+              color: #0f172a !important;
             }
             .a4-print-page:last-child {
               page-break-after: auto !important;
@@ -847,18 +861,22 @@ function RepairProposalFormInner() {
               max-height: none !important;
               display: block !important;
             }
+            table, th, td, div, span, strong, p {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
           }
         `}} />
 
         {/* Top Header Bar */}
-        <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+        <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <button 
               onClick={() => router.push('/repair-proposal')}
-              style={{ background: '#e2e8f0', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              style={{ background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', cursor: 'pointer' }}>
               ◀ กลับหน้ารายการ
             </button>
-            <h1 style={{ fontSize: 20, fontWeight: 800, color: '#0f2e5a', margin: 0 }}>
+            <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink-primary, #eef2ff)', margin: 0 }}>
               {editRefNo ? `แก้ไขใบเสนอแจ้งซ่อม: ${refNo}` : 'จัดทำใบเสนอแจ้งซ่อม / เปลี่ยนทดแทนอุปกรณ์'}
             </h1>
           </div>
@@ -866,57 +884,57 @@ function RepairProposalFormInner() {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
             <button 
               onClick={openAdminPanel}
-              style={{ background: '#f8fafc', border: '1px solid #94a3b8', borderRadius: 6, padding: '6px 12px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', color: '#0f2e5a' }}>
+              style={{ background: 'rgba(245, 158, 11, 0.18)', border: '1px solid rgba(245, 158, 11, 0.35)', borderRadius: 8, padding: '7px 12px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', color: '#fbbf24' }}>
               ⚙️ ตั้งค่าระบบ (Admin)
             </button>
             <button 
               onClick={resetToBlankForm}
-              style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 6, padding: '6px 12px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', color: '#475569' }}>
+              style={{ background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 8, padding: '7px 12px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', color: 'var(--ink-primary, #eef2ff)' }}>
               ➕ ฟอร์มเปล่า
             </button>
             <button 
               onClick={loadSample}
-              style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 6, padding: '6px 12px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', color: '#0369a1' }}>
+              style={{ background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 8, padding: '7px 12px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', color: '#60a5fa' }}>
               📋 ตัวอย่าง TP019-69
             </button>
             <button 
               onClick={handleSaveOnline}
               disabled={saving}
-              style={{ background: '#0284c7', border: 'none', borderRadius: 6, padding: '6px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: 'white' }}>
+              style={{ background: 'var(--accent, #2563eb)', border: 'none', borderRadius: 8, padding: '7px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: 'white', boxShadow: '0 2px 8px rgba(37,99,235,0.3)' }}>
               {saving ? '⏳ กำลังบันทึก...' : '💾 บันทึกออนไลน์ (GitHub)'}
             </button>
           </div>
         </div>
 
         {/* View Switcher: Wizard vs Document View */}
-        <div className="no-print" style={{ display: 'flex', background: '#e2e8f0', padding: 4, borderRadius: 8, marginBottom: 16, width: 'fit-content' }}>
+        <div className="no-print" style={{ display: 'flex', background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-hairline, #1e2e4a)', padding: 4, borderRadius: 10, marginBottom: 18, width: 'fit-content' }}>
           <button 
             onClick={() => setActiveView('wizard')}
             style={{
-              padding: '6px 16px',
+              padding: '7px 16px',
               border: 'none',
-              borderRadius: 6,
+              borderRadius: 8,
               fontSize: 13,
               fontWeight: 700,
               cursor: 'pointer',
-              background: activeView === 'wizard' ? 'white' : 'transparent',
-              color: activeView === 'wizard' ? '#0284c7' : '#64748b',
-              boxShadow: activeView === 'wizard' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+              background: activeView === 'wizard' ? 'var(--accent, #2563eb)' : 'transparent',
+              color: activeView === 'wizard' ? '#ffffff' : 'var(--ink-secondary, #94a3c4)',
+              transition: 'background 0.15s, color 0.15s'
             }}>
             📱 โหมดกรอกทีละส่วน (Wizard)
           </button>
           <button 
             onClick={() => setActiveView('document')}
             style={{
-              padding: '6px 16px',
+              padding: '7px 16px',
               border: 'none',
-              borderRadius: 6,
+              borderRadius: 8,
               fontSize: 13,
               fontWeight: 700,
               cursor: 'pointer',
-              background: activeView === 'document' ? 'white' : 'transparent',
-              color: activeView === 'document' ? '#0284c7' : '#64748b',
-              boxShadow: activeView === 'document' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+              background: activeView === 'document' ? 'var(--accent, #2563eb)' : 'transparent',
+              color: activeView === 'document' ? '#ffffff' : 'var(--ink-secondary, #94a3c4)',
+              transition: 'background 0.15s, color 0.15s'
             }}>
             📄 โหมดเอกสารเต็มใบ (Full A4 View)
           </button>
@@ -925,7 +943,7 @@ function RepairProposalFormInner() {
         {activeView === 'wizard' ? (
           <div>
             {/* Steps Progress Pills */}
-            <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 10, marginBottom: 16 }}>
+            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 10, marginBottom: 16 }}>
               {steps.map((st, i) => (
                 <button
                   key={i}
@@ -933,27 +951,30 @@ function RepairProposalFormInner() {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 6,
+                    gap: 7,
                     padding: '8px 14px',
                     borderRadius: 20,
-                    border: 'none',
+                    border: currentStep === i ? '1.5px solid #3b82f6' : '1px solid var(--border-hairline, #1e2e4a)',
                     fontSize: 12.5,
                     fontWeight: 700,
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
-                    background: currentStep === i ? '#0284c7' : '#ffffff',
-                    color: currentStep === i ? 'white' : '#64748b',
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                    background: currentStep === i ? 'rgba(37,99,235,0.25)' : 'var(--bg-surface, #111d32)',
+                    color: currentStep === i ? '#93c5fd' : 'var(--ink-secondary, #94a3c4)',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                    transition: 'all 0.15s'
                   }}>
                   <span style={{ 
-                    width: 20, 
-                    height: 20, 
+                    width: 22, 
+                    height: 22, 
                     borderRadius: '50%', 
-                    background: currentStep === i ? 'rgba(255,255,255,0.3)' : '#f1f5f9', 
+                    background: currentStep === i ? 'var(--accent, #2563eb)' : 'var(--bg-surface-raised, #172340)', 
+                    color: currentStep === i ? '#ffffff' : 'var(--ink-primary, #eef2ff)',
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center', 
-                    fontSize: 11 
+                    fontSize: 11,
+                    fontWeight: 800
                   }}>
                     {st.icon}
                   </span>
@@ -964,13 +985,13 @@ function RepairProposalFormInner() {
 
             {/* STEP 1: General Info (NO company input as requested!) */}
             {currentStep === 0 && (
-              <div style={{ background: 'white', borderRadius: 12, padding: 20, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f2e5a', marginBottom: 16 }}>
+              <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 12, padding: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', marginBottom: 16 }}>
                   📋 ข้อมูลงานและเอกสารอ้างอิง
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
                   <div>
-                    <label style={{ fontSize: 12.5, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                    <label style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                       เลขที่ใบเสนอแจ้งซ่อม (Ref. No. รันอัตโนมัติ) *
                     </label>
                     <div style={{ display: 'flex', gap: 6 }}>
@@ -979,7 +1000,8 @@ function RepairProposalFormInner() {
                         value={refNo} 
                         placeholder="เช่น REP-2569-001" 
                         onChange={e => setRefNo(e.target.value)} 
-                        style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, fontWeight: 700, color: '#b91c1c' }} 
+                        className="wizard-dark-input"
+                        style={{ width: '100%', padding: '8px 12px', fontSize: 13, fontWeight: 700, color: '#f87171' }} 
                       />
                       <button
                         type="button"
@@ -988,13 +1010,13 @@ function RepairProposalFormInner() {
                           setRefNo(next);
                         }}
                         title="สร้างเลขรันอัตโนมัติใหม่"
-                        style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: 6, padding: '0 10px', fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                        style={{ background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 6, padding: '0 10px', fontSize: 12, fontWeight: 600, color: 'var(--ink-primary, #eef2ff)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                         🔄 รันใหม่
                       </button>
                     </div>
                   </div>
                   <div>
-                    <label style={{ fontSize: 12.5, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                    <label style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                       วันที่จัดทำเอกสาร *
                     </label>
                     <input 
@@ -1002,13 +1024,14 @@ function RepairProposalFormInner() {
                       value={docDate} 
                       placeholder="เช่น 11 พฤศจิกายน 2569" 
                       onChange={e => setDocDate(e.target.value)} 
-                      style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                      className="wizard-dark-input"
+                      style={{ width: '100%', padding: '8px 12px', fontSize: 13 }} 
                     />
                   </div>
                 </div>
 
                 <div style={{ marginTop: 14 }}>
-                  <label style={{ fontSize: 12.5, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                  <label style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                     ชื่องาน / โครงการขอเสนอซ่อม *
                   </label>
                   <input 
@@ -1016,13 +1039,14 @@ function RepairProposalFormInner() {
                     value={jobTitle} 
                     placeholder="พิมพ์ชื่องาน เช่น งานเปลี่ยน meter Main MDB ของหน่วยงาน หรือ งานเปลี่ยนเบรกเกอร์อาคาร" 
                     onChange={e => setJobTitle(e.target.value)} 
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13.5, fontWeight: 700 }} 
+                    className="wizard-dark-input"
+                    style={{ width: '100%', padding: '8px 12px', fontSize: 13.5, fontWeight: 700 }} 
                   />
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14, marginTop: 14 }}>
                   <div>
-                    <label style={{ fontSize: 12.5, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                    <label style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                       ชื่อผู้แจ้งซ่อม / ผู้ตรวจสอบ
                     </label>
                     <input 
@@ -1030,11 +1054,12 @@ function RepairProposalFormInner() {
                       value={inspectorName} 
                       placeholder="ระบุชื่อ-นามสกุล ผู้ตรวจสอบ / สำรวจ" 
                       onChange={e => setInspectorName(e.target.value)} 
-                      style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                      className="wizard-dark-input"
+                      style={{ width: '100%', padding: '8px 12px', fontSize: 13 }} 
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: 12.5, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                    <label style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                       ตำแหน่ง / สายงาน
                     </label>
                     <input 
@@ -1042,11 +1067,12 @@ function RepairProposalFormInner() {
                       value={inspectorRole} 
                       placeholder="เช่น วิศวกรระบบไฟฟ้าและบำรุงรักษา" 
                       onChange={e => setInspectorRole(e.target.value)} 
-                      style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                      className="wizard-dark-input"
+                      style={{ width: '100%', padding: '8px 12px', fontSize: 13 }} 
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: 12.5, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                    <label style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                       หน่วยงาน / อาคารที่รับผิดชอบ
                     </label>
                     <input 
@@ -1054,47 +1080,48 @@ function RepairProposalFormInner() {
                       value={department} 
                       placeholder="เช่น ฝ่ายวิศวกรรมอาคารและระบบไฟฟ้า (หบท-ธ.)" 
                       onChange={e => setDepartment(e.target.value)} 
-                      style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                      className="wizard-dark-input"
+                      style={{ width: '100%', padding: '8px 12px', fontSize: 13 }} 
                     />
                   </div>
                 </div>
 
-                <div style={{ marginTop: 14, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 12, fontSize: 12, color: '#475569' }}>
-                  ℹ️ <strong>รายละเอียดหัวกระดาษเอกสาร:</strong> ชื่อองค์กร/บริษัท ({adminSettings.header?.companyTitle}) และโลโก้จะแสดงผลอัตโนมัติบนหัวกระดาษเอกสารทางการ โดยสามารถปรับเปลี่ยนได้ที่เมนู <strong>"⚙️ ตั้งค่าระบบ (Admin)"</strong> ด้านบน
+                <div style={{ marginTop: 14, background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: 12, fontSize: 12, color: 'var(--ink-secondary, #94a3c4)' }}>
+                  ℹ️ <strong style={{ color: 'var(--ink-primary, #eef2ff)' }}>รายละเอียดหัวกระดาษเอกสาร:</strong> ชื่อองค์กร/บริษัท ({adminSettings.header?.companyTitle}) และโลโก้จะแสดงผลอัตโนมัติบนหัวกระดาษเอกสารทางการ โดยสามารถปรับเปลี่ยนได้ที่เมนู <strong style={{ color: '#fbbf24' }}>"⚙️ ตั้งค่าระบบ (Admin)"</strong> ด้านบน
                 </div>
               </div>
             )}
 
             {/* STEP 2: Defect Points (User enters freely, pale placeholders) */}
             {currentStep === 1 && (
-              <div style={{ background: 'white', borderRadius: 12, padding: 20, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 12, padding: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                   <div>
-                    <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f2e5a', margin: 0 }}>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', margin: 0 }}>
                       📍 รายการจุดติดตั้งและอาการชำรุดที่พบ ({surveyPoints.length} จุด)
                     </h3>
-                    <p style={{ fontSize: 12, color: '#64748b', margin: '2px 0 0' }}>
+                    <p style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)', margin: '2px 0 0' }}>
                       ระบุชื่อจุดและพิมพ์อาการชำรุดเอง พร้อมแนบรูปถ่ายประกอบ
                     </p>
                   </div>
                   <button 
                     onClick={addPoint}
-                    style={{ background: '#0284c7', color: 'white', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
+                    style={{ background: 'var(--accent, #2563eb)', color: 'white', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
                     + เพิ่มจุดสำรวจ
                   </button>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {surveyPoints.map((item, idx) => (
-                    <div key={item.id || idx} style={{ border: '1.5px solid #e2e8f0', borderRadius: 8, padding: 14, background: '#ffffff' }}>
+                    <div key={item.id || idx} style={{ border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: 14, background: 'var(--bg-surface-raised, #172340)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                        <span style={{ fontSize: 13, fontWeight: 800, color: '#0369a1', background: '#e0f2fe', padding: '2px 8px', borderRadius: 4 }}>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: '#93c5fd', background: 'rgba(37, 99, 235, 0.25)', border: '1px solid rgba(59, 130, 246, 0.35)', padding: '2px 8px', borderRadius: 4 }}>
                           จุดที่ {idx + 1} : {item.building || 'ยังไม่ระบุชื่อจุด'}
                         </span>
                         {surveyPoints.length > 1 && (
                           <button 
                             onClick={() => removePoint(idx)}
-                            style={{ background: '#fee2e2', color: '#b91c1c', border: 'none', borderRadius: 4, padding: '2px 8px', fontSize: 12, cursor: 'pointer' }}>
+                            style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 4, padding: '2px 8px', fontSize: 12, cursor: 'pointer' }}>
                             ลบจุดนี้
                           </button>
                         )}
@@ -1102,42 +1129,45 @@ function RepairProposalFormInner() {
 
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
                         <div>
-                          <label style={{ fontSize: 11.5, fontWeight: 700, color: '#64748b' }}>รหัสอาคาร / พื้นที่สำรวจ *</label>
+                          <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)' }}>รหัสอาคาร / พื้นที่สำรวจ *</label>
                           <input 
                             type="text" 
                             value={item.building || ''} 
                             placeholder="เช่น ท.0006 หรือ อาคาร 1 ชั้น 2" 
                             onChange={e => handlePointChange(idx, 'building', e.target.value)} 
-                            style={{ width: '100%', padding: '6px 10px', borderRadius: 4, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                            className="wizard-dark-input"
+                            style={{ width: '100%', padding: '6px 10px', fontSize: 13 }} 
                           />
                         </div>
                         <div>
-                          <label style={{ fontSize: 11.5, fontWeight: 700, color: '#64748b' }}>จุดติดตั้ง / ตู้ไฟฟ้า</label>
+                          <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)' }}>จุดติดตั้ง / ตู้ไฟฟ้า</label>
                           <input 
                             type="text" 
                             value={item.location || ''} 
                             placeholder="เช่น Main MDB, ห้องควบคุมไฟฟ้า" 
                             onChange={e => handlePointChange(idx, 'location', e.target.value)} 
-                            style={{ width: '100%', padding: '6px 10px', borderRadius: 4, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                            className="wizard-dark-input"
+                            style={{ width: '100%', padding: '6px 10px', fontSize: 13 }} 
                           />
                         </div>
                       </div>
 
                       <div style={{ marginTop: 10 }}>
-                        <label style={{ fontSize: 11.5, fontWeight: 700, color: '#64748b' }}>อาการชำรุด / ข้อบกพร่องที่ตรวจพบ *</label>
+                        <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)' }}>อาการชำรุด / ข้อบกพร่องที่ตรวจพบ *</label>
                         <input 
                           type="text" 
                           value={item.symptom || ''} 
                           placeholder="พิมพ์ระบุอาการชำรุด เช่น หน้าจอดับ ไม่แสดงผล, คอยล์ไหม้, สื่อสารขัดข้อง" 
                           onChange={e => handlePointChange(idx, 'symptom', e.target.value)} 
-                          style={{ width: '100%', padding: '6px 10px', borderRadius: 4, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                          className="wizard-dark-input"
+                          style={{ width: '100%', padding: '6px 10px', fontSize: 13 }} 
                         />
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 5 }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 6 }}>
                           {['Digital Meter ชำรุด / หน้าจอดับ', 'ระบบ Error / ค่าคลาดเคลื่อน', 'ระบบสื่อสารขัดข้อง', 'คอยล์ไหม้ / ไม่สั่งการ', 'ทริปบ่อย / ไม่ตัดวงจร', 'เสื่อมสภาพตามอายุ'].map((sym, sidx) => (
                             <span 
                               key={sidx}
                               onClick={() => handlePointChange(idx, 'symptom', sym)}
-                              style={{ background: '#f1f5f9', color: '#475569', fontSize: 11, padding: '2px 7px', borderRadius: 3, border: '1px solid #e2e8f0', cursor: 'pointer' }}>
+                              style={{ background: 'var(--bg-input, #080e1a)', color: 'var(--ink-secondary, #94a3c4)', fontSize: 11, padding: '2px 8px', borderRadius: 4, border: '1px solid var(--border-strong, #2d3f5e)', cursor: 'pointer' }}>
                               {sym}
                             </span>
                           ))}
@@ -1145,21 +1175,21 @@ function RepairProposalFormInner() {
                       </div>
 
                       {/* Photo Attachment Section */}
-                      <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, background: '#f8fafc', padding: '8px 10px', borderRadius: 6, border: '1px dashed #cbd5e1' }}>
+                      <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-input, #080e1a)', padding: '8px 10px', borderRadius: 6, border: '1px dashed var(--border-strong, #2d3f5e)' }}>
                         {item.photo ? (
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <img src={item.photo} alt="Defect" style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4, border: '1px solid #cbd5e1' }} />
+                            <img src={item.photo} alt="Defect" style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4, border: '1px solid var(--border-strong, #2d3f5e)' }} />
                             <div>
-                              <div style={{ fontSize: 11.5, fontWeight: 700, color: '#0369a1' }}>✓ มีรูปถ่ายแนบแล้ว</div>
+                              <div style={{ fontSize: 11.5, fontWeight: 700, color: '#60a5fa' }}>✓ มีรูปถ่ายแนบแล้ว</div>
                               <button 
                                 onClick={() => handlePointChange(idx, 'photo', null)}
-                                style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: 11, cursor: 'pointer', padding: 0 }}>
+                                style={{ background: 'none', border: 'none', color: '#f87171', fontSize: 11, cursor: 'pointer', padding: 0 }}>
                                 ลบรูปถ่าย
                               </button>
                             </div>
                           </div>
                         ) : (
-                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#0284c7', cursor: 'pointer', fontWeight: 600 }}>
+                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#60a5fa', cursor: 'pointer', fontWeight: 600 }}>
                             📷 แนบรูปภาพหน้างาน
                             <input type="file" accept="image/*" onChange={(e) => handlePhotoUpload(idx, e)} style={{ display: 'none' }} />
                           </label>
@@ -1173,56 +1203,56 @@ function RepairProposalFormInner() {
 
             {/* STEP 3: Requested Items (Extensible List) */}
             {currentStep === 2 && (
-              <div style={{ background: 'white', borderRadius: 12, padding: 20, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 12, padding: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                   <div>
-                    <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f2e5a', margin: 0 }}>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', margin: 0 }}>
                       📦 รายการและรุ่นของอุปกรณ์ที่ต้องการ (ขอเสนอซื้อสำหรับแก้ไขงาน)
                     </h3>
-                    <p style={{ fontSize: 12, color: '#64748b', margin: '2px 0 0' }}>
+                    <p style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)', margin: '2px 0 0' }}>
                       สามารถเพิ่มรายการอุปกรณ์ได้หลายรายการตามต้องการ
                     </p>
                   </div>
                   <button 
                     onClick={addItemRequested}
-                    style={{ background: '#0284c7', color: 'white', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
+                    style={{ background: 'var(--accent, #2563eb)', color: 'white', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
                     + เพิ่มรายการอุปกรณ์
                   </button>
                 </div>
 
                 {/* Electrical Equipment Presets */}
-                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '10px 14px', marginBottom: 16 }}>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 6 }}>
+                <div style={{ background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: '10px 14px', marginBottom: 16 }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: '#93c5fd', display: 'block', marginBottom: 6 }}>
                     ⚡ เลือกแม่แบบอุปกรณ์ไฟฟ้าสำหรับรายการที่ 1:
                   </label>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    <button type="button" onClick={() => applyEquipPreset('meter')} style={{ background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', padding: '4px 10px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Digital Power Meter</button>
-                    <button type="button" onClick={() => applyEquipPreset('breaker')} style={{ background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', padding: '4px 10px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>ACB / MCCB เบรกเกอร์</button>
-                    <button type="button" onClick={() => applyEquipPreset('contactor')} style={{ background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', padding: '4px 10px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Magnetic Contactor</button>
-                    <button type="button" onClick={() => applyEquipPreset('inverter')} style={{ background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', padding: '4px 10px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Inverter / VFD</button>
-                    <button type="button" onClick={() => applyEquipPreset('capacitor')} style={{ background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', padding: '4px 10px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Capacitor Bank / SPD</button>
+                    <button type="button" onClick={() => applyEquipPreset('meter')} style={{ background: 'var(--bg-input, #080e1a)', color: '#93c5fd', border: '1px solid var(--border-strong, #2d3f5e)', padding: '5px 12px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Digital Power Meter</button>
+                    <button type="button" onClick={() => applyEquipPreset('breaker')} style={{ background: 'var(--bg-input, #080e1a)', color: '#93c5fd', border: '1px solid var(--border-strong, #2d3f5e)', padding: '5px 12px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>ACB / MCCB เบรกเกอร์</button>
+                    <button type="button" onClick={() => applyEquipPreset('contactor')} style={{ background: 'var(--bg-input, #080e1a)', color: '#93c5fd', border: '1px solid var(--border-strong, #2d3f5e)', padding: '5px 12px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Magnetic Contactor</button>
+                    <button type="button" onClick={() => applyEquipPreset('inverter')} style={{ background: 'var(--bg-input, #080e1a)', color: '#93c5fd', border: '1px solid var(--border-strong, #2d3f5e)', padding: '5px 12px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Inverter / VFD</button>
+                    <button type="button" onClick={() => applyEquipPreset('capacitor')} style={{ background: 'var(--bg-input, #080e1a)', color: '#93c5fd', border: '1px solid var(--border-strong, #2d3f5e)', padding: '5px 12px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Capacitor Bank / SPD</button>
                   </div>
                 </div>
 
                 {/* List of items */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {itemsRequested.map((item, idx) => (
-                    <div key={item.id || idx} style={{ border: '1.5px solid #e2e8f0', borderRadius: 8, padding: 14, background: '#ffffff' }}>
+                    <div key={item.id || idx} style={{ border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: 14, background: 'var(--bg-surface-raised, #172340)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                        <span style={{ fontSize: 13, fontWeight: 800, color: '#0369a1', background: '#e0f2fe', padding: '2px 8px', borderRadius: 4 }}>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: '#93c5fd', background: 'rgba(37, 99, 235, 0.25)', border: '1px solid rgba(59, 130, 246, 0.35)', padding: '2px 8px', borderRadius: 4 }}>
                           รายการที่ {idx + 1} : {item.name ? item.name.slice(0, 35) + '...' : 'ระบุชื่ออุปกรณ์'}
                         </span>
                         {itemsRequested.length > 1 && (
                           <button 
                             onClick={() => removeItemRequested(idx)}
-                            style={{ background: '#fee2e2', color: '#b91c1c', border: 'none', borderRadius: 4, padding: '2px 8px', fontSize: 12, cursor: 'pointer' }}>
+                            style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 4, padding: '2px 8px', fontSize: 12, cursor: 'pointer' }}>
                             ลบรายการนี้
                           </button>
                         )}
                       </div>
 
                       <div style={{ marginBottom: 10 }}>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                           รายการอุปกรณ์ / ชิ้นส่วนอะไหล่ที่ต้องการ *
                         </label>
                         <input 
@@ -1230,12 +1260,13 @@ function RepairProposalFormInner() {
                           value={item.name || ''} 
                           placeholder="เช่น Digital Power Meter, Magnetic Contactor, เซอร์กิตเบรกเกอร์ MCCB" 
                           onChange={e => handleItemChange(idx, 'name', e.target.value)} 
-                          style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, fontWeight: 700 }} 
+                          className="wizard-dark-input"
+                          style={{ width: '100%', padding: '7px 10px', fontSize: 13, fontWeight: 700 }} 
                         />
                       </div>
 
                       <div style={{ marginBottom: 10 }}>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                           ยี่ห้อ / รุ่น / รหัสอะไหล่อ้างอิงที่ต้องการ (หรือเทียบเท่า) *
                         </label>
                         <input 
@@ -1243,35 +1274,38 @@ function RepairProposalFormInner() {
                           value={item.modelPart || ''} 
                           placeholder="เช่น Schneider Electric EasyLogic PM2230 (Part No. METSEPM2230) หรือเทียบเท่า" 
                           onChange={e => handleItemChange(idx, 'modelPart', e.target.value)} 
-                          style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, fontWeight: 700 }} 
+                          className="wizard-dark-input"
+                          style={{ width: '100%', padding: '7px 10px', fontSize: 13, fontWeight: 700 }} 
                         />
                       </div>
 
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10, marginBottom: 10 }}>
                         <div>
-                          <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>จำนวนที่ขอเสนอซื้อ *</label>
+                          <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>จำนวนที่ขอเสนอซื้อ *</label>
                           <input 
                             type="number" 
                             value={item.qty || 1} 
                             min="1" 
                             onChange={e => handleItemChange(idx, 'qty', parseInt(e.target.value, 10) || 1)} 
-                            style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, fontWeight: 700 }} 
+                            className="wizard-dark-input"
+                            style={{ width: '100%', padding: '7px 10px', fontSize: 13, fontWeight: 700 }} 
                           />
                         </div>
                         <div>
-                          <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>หน่วยนับ</label>
+                          <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>หน่วยนับ</label>
                           <input 
                             type="text" 
                             value={item.unit || 'ตัว'} 
                             placeholder="ตัว / ชุด / เครื่อง / ชิ้น" 
                             onChange={e => handleItemChange(idx, 'unit', e.target.value)} 
-                            style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                            className="wizard-dark-input"
+                            style={{ width: '100%', padding: '7px 10px', fontSize: 13 }} 
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                           วัตถุประสงค์ / ตำแหน่งติดตั้งทดแทนสำหรับแก้ไขงาน *
                         </label>
                         <textarea 
@@ -1279,38 +1313,39 @@ function RepairProposalFormInner() {
                           value={item.purpose || ''} 
                           placeholder="ระบุตำแหน่งและหน้าที่ที่นำไปติดตั้งทดแทนของเดิม เช่น ติดตั้งในตู้ Main MDB อาคาร" 
                           onChange={e => handleItemChange(idx, 'purpose', e.target.value)} 
-                          style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 12.5 }} 
+                          className="wizard-dark-input"
+                          style={{ width: '100%', padding: '7px 10px', fontSize: 12.5 }} 
                         />
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderLeft: '4px solid #3b82f6', padding: '10px 14px', borderRadius: 6, fontSize: 12, color: '#1e40af', marginTop: 14 }}>
-                  <strong>💡 หมายเหตุการจัดหา:</strong> กรณีไม่มีของตรงรุ่นที่ระบุ ให้พิจารณาจัดหายี่ห้อหรือรุ่นอื่นตาม <strong>"สเปกเบื้องต้นและเงื่อนไขสำคัญที่ต้องใช้แทนได้"</strong> ในขั้นตอนถัดไป
+                <div style={{ background: 'rgba(37, 99, 235, 0.12)', border: '1px solid rgba(59, 130, 246, 0.35)', borderLeft: '4px solid #3b82f6', padding: '10px 14px', borderRadius: 6, fontSize: 12, color: '#93c5fd', marginTop: 14 }}>
+                  <strong style={{ color: '#ffffff' }}>💡 หมายเหตุการจัดหา:</strong> กรณีไม่มีของตรงรุ่นที่ระบุ ให้พิจารณาจัดหายี่ห้อหรือรุ่นอื่นตาม <strong>"สเปกเบื้องต้นและเงื่อนไขสำคัญที่ต้องใช้แทนได้"</strong> ในขั้นตอนถัดไป
                 </div>
               </div>
             )}
 
             {/* STEP 4: Technical Specs / Substitution Criteria (Textarea only) */}
             {currentStep === 3 && (
-              <div style={{ background: 'white', borderRadius: 12, padding: 20, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f2e5a', marginBottom: 8 }}>
+              <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 12, padding: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', marginBottom: 8 }}>
                   ⚙️ สเปกเบื้องต้นและเงื่อนไขสำคัญที่ต้องใช้แทนได้ (กรณีใช้ยี่ห้อ/รุ่นอื่นทดแทน)
                 </h3>
 
-                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderLeft: '4px solid #3b82f6', padding: '10px 14px', borderRadius: 6, fontSize: 12.5, color: '#1e40af', marginBottom: 14, lineHeight: 1.5 }}>
-                  <strong>📌 หลักเกณฑ์ทางวิศวกรรมในการจัดหาอุปกรณ์ทดแทน:</strong><br />
+                <div style={{ background: 'rgba(37, 99, 235, 0.12)', border: '1px solid rgba(59, 130, 246, 0.35)', borderLeft: '4px solid #3b82f6', padding: '10px 14px', borderRadius: 6, fontSize: 12.5, color: '#93c5fd', marginBottom: 14, lineHeight: 1.5 }}>
+                  <strong style={{ color: '#ffffff' }}>📌 หลักเกณฑ์ทางวิศวกรรมในการจัดหาอุปกรณ์ทดแทน:</strong><br />
                   ในกรณีที่ฝ่ายจัดซื้อไม่สามารถจัดหาอุปกรณ์ได้ตรงตามรุ่นที่ระบุ หรือใช้ยี่ห้ออื่นทดแทน อุปกรณ์ทดแทนจะต้องมีคุณสมบัติและสเปกขั้นต่ำสอดคล้องตามเงื่อนไขที่ระบุ เพื่อให้นำมาใช้งานแทนของเดิมได้อย่างสมบูรณ์และปลอดภัย
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <label style={{ fontSize: 12.5, fontWeight: 700, color: '#334155' }}>
+                  <label style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)' }}>
                     ข้อกำหนดและเงื่อนไขทางเทคนิคสำคัญที่ต้องใช้แทนได้:
                   </label>
                   <div style={{ display: 'flex', gap: 6 }}>
-                    <button type="button" onClick={() => setSubstitutionSpecs(sampleMeterSpecs)} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '3px 8px', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>+ แม่แบบมิเตอร์</button>
-                    <button type="button" onClick={() => setSubstitutionSpecs('')} style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#b91c1c', padding: '3px 8px', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>ล้างข้อความ</button>
+                    <button type="button" onClick={() => setSubstitutionSpecs(sampleMeterSpecs)} style={{ background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-strong, #2d3f5e)', color: 'var(--ink-primary, #eef2ff)', padding: '4px 10px', borderRadius: 4, fontSize: 11.5, fontWeight: 600, cursor: 'pointer' }}>+ แม่แบบมิเตอร์</button>
+                    <button type="button" onClick={() => setSubstitutionSpecs('')} style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', padding: '4px 10px', borderRadius: 4, fontSize: 11.5, fontWeight: 600, cursor: 'pointer' }}>ล้างข้อความ</button>
                   </div>
                 </div>
 
@@ -1324,20 +1359,21 @@ function RepairProposalFormInner() {
 • ฟังก์ชันการทำงานและการวัดค่า: ตรวจวัดค่า V, I, kW, kVAR, kVA, PF, Hz, Demand และค่าฮาร์มอนิก THD ถึงอันดับที่ 31
 • ความแม่นยำและการสื่อสาร: ค่าพลังงาน Class 0.5S (IEC 62053-22) มีพอร์ต RS-485 Modbus RTU สำหรับส่งข้อมูลเข้า SCADA/BEMS
 • ความปลอดภัยและการรับประกัน: หน้าตู้กันน้ำฝุ่น IP54 ผ่าน IEC 61010-1 และรับประกันคุณภาพไม่น้อยกว่า 1 ปี"
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, lineHeight: 1.5 }} 
+                  className="wizard-dark-input"
+                  style={{ width: '100%', padding: '10px 12px', fontSize: 13, lineHeight: 1.5 }} 
                 />
               </div>
             )}
 
             {/* STEP 5: Justification & 2 Signatories */}
             {currentStep === 4 && (
-              <div style={{ background: 'white', borderRadius: 12, padding: 20, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f2e5a', marginBottom: 14 }}>
+              <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 12, padding: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', marginBottom: 14 }}>
                   ✍️ เหตุผลความจำเป็นและการลงลายมือชื่อ (2 ท่าน)
                 </h3>
 
                 <div style={{ marginBottom: 18 }}>
-                  <label style={{ fontSize: 12.5, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                  <label style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                     เหตุผลความจำเป็นในการจัดซื้อเปลี่ยนทดแทน:
                   </label>
                   <textarea 
@@ -1345,14 +1381,15 @@ function RepairProposalFormInner() {
                     value={justification} 
                     placeholder="พิมพ์เหตุผลความจำเป็น เช่น เนื่องจากอุปกรณ์เดิมชำรุดเสียหาย หน้าจอดับ ส่งผลทำให้ไม่สามารถอ่านค่าปริมาณการใช้ไฟฟ้าได้ จึงจำเป็นต้องจัดซื้ออุปกรณ์เพื่อเปลี่ยนทดแทน..."
                     onChange={e => setJustification(e.target.value)} 
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, lineHeight: 1.45 }} 
+                    className="wizard-dark-input"
+                    style={{ width: '100%', padding: '10px 12px', fontSize: 13, lineHeight: 1.45 }} 
                   />
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
                   {/* Sign 1: Surveyor / Inspector */}
-                  <div style={{ border: '1.5px solid #cbd5e1', borderRadius: 8, padding: 14, textAlign: 'center', background: '#f8fafc' }}>
-                    <div style={{ fontWeight: 700, fontSize: 13, color: '#0f2e5a', marginBottom: 8 }}>
+                  <div style={{ border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: 14, textAlign: 'center', background: 'var(--bg-surface-raised, #172340)' }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink-primary, #eef2ff)', marginBottom: 8 }}>
                       1. ผู้ตรวจสอบ / ผู้สำรวจหน้างาน
                     </div>
                     
@@ -1363,44 +1400,46 @@ function RepairProposalFormInner() {
                     />
 
                     <div style={{ textAlign: 'left', marginTop: 10, marginBottom: 6 }}>
-                      <label style={{ fontSize: 11, fontWeight: 700, color: '#64748b' }}>ชื่อ-นามสกุล:</label>
+                      <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)' }}>ชื่อ-นามสกุล:</label>
                       <input 
                         type="text" 
                         value={inspectorName} 
                         placeholder="พิมพ์ชื่อ-นามสกุลผู้ตรวจสอบ"
                         onChange={e => setInspectorName(e.target.value)} 
-                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #cbd5e1', fontSize: 12.5 }} 
+                        className="wizard-dark-input"
+                        style={{ width: '100%', padding: '6px 8px', fontSize: 12.5 }} 
                       />
                     </div>
 
                     <div style={{ textAlign: 'left' }}>
-                      <label style={{ fontSize: 11, fontWeight: 700, color: '#64748b' }}>ตำแหน่ง:</label>
+                      <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)' }}>ตำแหน่ง:</label>
                       <input 
                         type="text" 
                         value={inspectorRole} 
                         onChange={e => setInspectorRole(e.target.value)} 
-                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #cbd5e1', fontSize: 12.5 }} 
+                        className="wizard-dark-input"
+                        style={{ width: '100%', padding: '6px 8px', fontSize: 12.5 }} 
                       />
                     </div>
                   </div>
 
                   {/* Sign 2: Approver (Default: นายตวงเพชร ชัยยานนท์) */}
-                  <div style={{ border: '1.5px solid #cbd5e1', borderRadius: 8, padding: 14, textAlign: 'center', background: '#f8fafc' }}>
-                    <div style={{ fontWeight: 700, fontSize: 13, color: '#0f2e5a', marginBottom: 6 }}>
+                  <div style={{ border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: 14, textAlign: 'center', background: 'var(--bg-surface-raised, #172340)' }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink-primary, #eef2ff)', marginBottom: 6 }}>
                       2. ผู้อนุมัติ / ผู้มีอำนาจสั่งการ
                     </div>
                     
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginBottom: 8, fontSize: 12 }}>
-                      <label style={{ fontWeight: 700, color: '#15803d', cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: 14, marginBottom: 8, fontSize: 12 }}>
+                      <label style={{ fontWeight: 700, color: '#4ade80', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                         <input type="radio" name="apprDecision" checked={approvalDecision === 'approved'} onChange={() => setApprovalDecision('approved')} /> อนุมัติ
                       </label>
-                      <label style={{ color: '#64748b', cursor: 'pointer' }}>
+                      <label style={{ color: 'var(--ink-secondary, #94a3c4)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                         <input type="radio" name="apprDecision" checked={approvalDecision === 'rejected'} onChange={() => setApprovalDecision('rejected')} /> ไม้อนุมัติ
                       </label>
                     </div>
 
                     {approverSigMode === 'image' ? (
-                      <div style={{ border: '1px dashed #cbd5e1', borderRadius: 6, padding: '8px 10px', background: 'white', minHeight: 95, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ border: '1px dashed var(--border-strong, #2d3f5e)', borderRadius: 6, padding: '8px 10px', background: '#ffffff', minHeight: 95, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                         {sig2Image ? (
                           <div>
                             <img src={sig2Image} alt="Approver Signature" style={{ maxHeight: 60, maxWidth: 220, objectFit: 'contain' }} />
@@ -1415,16 +1454,16 @@ function RepairProposalFormInner() {
                           <button
                             type="button"
                             onClick={() => setSig2Image(adminSettings.approver?.signatureUrl || '/assets/shared/signature-approver.png')}
-                            style={{ background: '#e0f2fe', border: '1px solid #bae6fd', color: '#0369a1', padding: '2px 8px', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>
+                            style={{ background: '#e0f2fe', border: '1px solid #bae6fd', color: '#0369a1', padding: '3px 8px', borderRadius: 4, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
                             ใช้ลายเซ็นต์ตวงเพชร
                           </button>
                           <button
                             type="button"
                             onClick={() => setApproverSigMode('draw')}
-                            style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#475569', padding: '2px 8px', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>
+                            style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#475569', padding: '3px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
                             วาดเซ็นต์สด
                           </button>
-                          <label style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#475569', padding: '2px 8px', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>
+                          <label style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#475569', padding: '3px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
                             อัปโหลดรูป
                             <input
                               type="file"
@@ -1454,29 +1493,31 @@ function RepairProposalFormInner() {
                         <button
                           type="button"
                           onClick={() => setApproverSigMode('image')}
-                          style={{ marginTop: 4, background: 'none', border: 'none', color: '#0369a1', fontSize: 11, cursor: 'pointer', textDecoration: 'underline' }}>
+                          style={{ marginTop: 6, background: 'none', border: 'none', color: '#60a5fa', fontSize: 11.5, cursor: 'pointer', textDecoration: 'underline' }}>
                           สลับไปใช้รูปลายเซ็นต์เดิม
                         </button>
                       </div>
                     )}
 
                     <div style={{ textAlign: 'left', marginTop: 10, marginBottom: 6 }}>
-                      <label style={{ fontSize: 11, fontWeight: 700, color: '#64748b' }}>ชื่อ-นามสกุล ผู้อนุมัติ:</label>
+                      <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)' }}>ชื่อ-นามสกุล ผู้อนุมัติ:</label>
                       <input 
                         type="text" 
                         value={approverName} 
                         onChange={e => setApproverName(e.target.value)} 
-                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #cbd5e1', fontSize: 12.5 }} 
+                        className="wizard-dark-input"
+                        style={{ width: '100%', padding: '6px 8px', fontSize: 12.5 }} 
                       />
                     </div>
 
                     <div style={{ textAlign: 'left' }}>
-                      <label style={{ fontSize: 11, fontWeight: 700, color: '#64748b' }}>ตำแหน่ง:</label>
+                      <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)' }}>ตำแหน่ง:</label>
                       <input 
                         type="text" 
                         value={approverRole} 
                         onChange={e => setApproverRole(e.target.value)} 
-                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid #cbd5e1', fontSize: 12.5 }} 
+                        className="wizard-dark-input"
+                        style={{ width: '100%', padding: '6px 8px', fontSize: 12.5 }} 
                       />
                     </div>
                   </div>
@@ -1486,21 +1527,21 @@ function RepairProposalFormInner() {
 
             {/* STEP 6: Summary & Export */}
             {currentStep === 5 && (
-              <div style={{ background: 'white', borderRadius: 12, padding: 24, textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 12, padding: 24, textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}>
                 <div style={{ fontSize: 40, marginBottom: 8 }}>✅</div>
-                <h2 style={{ fontSize: 18, color: '#0f2e5a', margin: '0 0 6px' }}>ตรวจสอบข้อมูลและพร้อมบันทึกหรือส่งออกเอกสาร</h2>
-                <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 20px' }}>
-                  ท่านได้กรอกข้อมูลใบเสนอแจ้งซ่อมเลขที่ <strong>{refNo || '(ยังไม่ระบุ)'}</strong> ครบถ้วนเรียบร้อยแล้ว
+                <h2 style={{ fontSize: 18, color: 'var(--ink-primary, #eef2ff)', margin: '0 0 6px', fontWeight: 800 }}>ตรวจสอบข้อมูลและพร้อมบันทึกหรือส่งออกเอกสาร</h2>
+                <p style={{ fontSize: 13, color: 'var(--ink-secondary, #94a3c4)', margin: '0 0 20px' }}>
+                  ท่านได้กรอกข้อมูลใบเสนอแจ้งซ่อมเลขที่ <strong style={{ color: '#f87171' }}>{refNo || '(ยังไม่ระบุ)'}</strong> ครบถ้วนเรียบร้อยแล้ว
                 </p>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, maxWidth: 600, margin: '0 auto 24px', textAlign: 'left' }}>
-                  <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 12 }}>
-                    <div style={{ fontSize: 12, color: '#64748b' }}>จุดติดตั้งที่พบปัญหา</div>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: '#0f2e5a', marginTop: 2 }}>{surveyPoints.length} จุด</div>
+                  <div style={{ background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: 14 }}>
+                    <div style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)' }}>จุดติดตั้งที่พบปัญหา</div>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink-primary, #eef2ff)', marginTop: 2 }}>{surveyPoints.length} จุด</div>
                   </div>
-                  <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 12 }}>
-                    <div style={{ fontSize: 12, color: '#64748b' }}>รายการอุปกรณ์ที่ขอซื้อ</div>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: '#0369a1', marginTop: 2 }}>{itemsRequested.length} รายการ</div>
+                  <div style={{ background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: 14 }}>
+                    <div style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)' }}>รายการอุปกรณ์ที่ขอซื้อ</div>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: '#60a5fa', marginTop: 2 }}>{itemsRequested.length} รายการ</div>
                   </div>
                 </div>
 
@@ -1509,14 +1550,15 @@ function RepairProposalFormInner() {
                     onClick={handleSaveOnline}
                     disabled={saving}
                     style={{
-                      background: '#0284c7',
+                      background: 'var(--accent, #2563eb)',
                       color: 'white',
                       fontWeight: 700,
                       fontSize: 14,
                       padding: '12px 20px',
                       borderRadius: 8,
                       border: 'none',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 14px rgba(37,99,235,0.35)'
                     }}>
                     {saving ? '⏳ กำลังบันทึก...' : '💾 บันทึกลงระบบออนไลน์ (GitHub)'}
                   </button>
@@ -1524,13 +1566,13 @@ function RepairProposalFormInner() {
                   <button 
                     onClick={() => setActiveView('document')}
                     style={{
-                      background: '#f1f5f9',
-                      color: '#334155',
+                      background: 'var(--bg-surface-raised, #172340)',
+                      color: 'var(--ink-primary, #eef2ff)',
                       fontWeight: 700,
                       fontSize: 13.5,
-                      padding: '10px 20px',
+                      padding: '11px 20px',
                       borderRadius: 8,
-                      border: '1px solid #cbd5e1',
+                      border: '1px solid var(--border-strong, #2d3f5e)',
                       cursor: 'pointer'
                     }}>
                     📄 ดูตัวอย่างเอกสารฉบับทางการ (Full A4 View)
@@ -1544,30 +1586,31 @@ function RepairProposalFormInner() {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              background: 'white',
-              borderTop: '1px solid #e2e8f0',
+              background: 'var(--bg-surface, #111d32)',
+              border: '1px solid var(--border-hairline, #1e2e4a)',
               padding: '12px 20px',
               borderRadius: 10,
               marginTop: 18,
-              boxShadow: '0 2px 6px rgba(0,0,0,0.05)'
+              boxShadow: '0 4px 16px rgba(0,0,0,0.2)'
             }}>
               <button 
                 onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
                 disabled={currentStep === 0}
                 style={{
-                  background: currentStep === 0 ? '#f1f5f9' : '#e2e8f0',
-                  color: currentStep === 0 ? '#94a3b8' : '#334155',
-                  border: 'none',
+                  background: currentStep === 0 ? 'var(--bg-surface-raised, #172340)' : 'var(--bg-surface-raised, #172340)',
+                  color: currentStep === 0 ? 'var(--ink-muted, #5a6a8a)' : 'var(--ink-primary, #eef2ff)',
+                  border: '1px solid var(--border-strong, #2d3f5e)',
                   borderRadius: 6,
                   padding: '8px 16px',
                   fontWeight: 700,
                   fontSize: 13,
-                  cursor: currentStep === 0 ? 'not-allowed' : 'pointer'
+                  cursor: currentStep === 0 ? 'not-allowed' : 'pointer',
+                  opacity: currentStep === 0 ? 0.6 : 1
                 }}>
                 ◀ ย้อนกลับ
               </button>
 
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#0369a1' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#60a5fa' }}>
                 ขั้นตอนที่ {currentStep + 1} / {steps.length} : {steps[currentStep].title}
               </div>
 
@@ -1575,7 +1618,7 @@ function RepairProposalFormInner() {
                 <button 
                   onClick={() => setCurrentStep(prev => Math.min(steps.length - 1, prev + 1))}
                   style={{
-                    background: '#0284c7',
+                    background: 'var(--accent, #2563eb)',
                     color: 'white',
                     border: 'none',
                     borderRadius: 6,
@@ -1607,17 +1650,27 @@ function RepairProposalFormInner() {
           </div>
         ) : (
           /* DOCUMENT FULL VIEW (A4 Printable Layout with Official Letterhead) */
-          <div style={{ maxWidth: 860, margin: '0 auto' }}>
-            <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 16 }}>
-              <button 
-                onClick={() => window.print()}
-                style={{ background: '#0284c7', color: 'white', border: 'none', borderRadius: 6, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                🖨️ สั่งพิมพ์ / Export PDF
-              </button>
+          <div style={{ maxWidth: 880, margin: '0 auto' }}>
+            <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <div style={{ fontSize: 13, color: 'var(--ink-secondary, #94a3c4)' }}>
+                📄 มุมมองตัวอย่างพิมพ์ A4 เสมือนจริง (ปรับสไตล์ให้คมชัด สีเข้ม ไม่ซีดจางเมื่อพิมพ์หรือ Export PDF)
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button 
+                  onClick={() => setActiveView('wizard')}
+                  style={{ background: 'var(--bg-surface-raised, #172340)', color: 'var(--ink-primary, #eef2ff)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                  ✏️ กลับไปโหมดแก้ไข
+                </button>
+                <button 
+                  onClick={() => window.print()}
+                  style={{ background: 'var(--accent, #2563eb)', color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(37,99,235,0.35)' }}>
+                  🖨️ สั่งพิมพ์ / Export PDF
+                </button>
+              </div>
             </div>
 
             {/* PAGE 1: Header, Letterhead, Info, Survey Table, Requested Items */}
-            <div className="a4-print-page" style={{ background: 'white', borderRadius: 8, padding: 32, boxShadow: '0 2px 8px rgba(0,0,0,0.08)', marginBottom: 20 }}>
+            <div className="a4-print-page" style={{ background: '#ffffff', borderRadius: 8, padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.4)', marginBottom: 20, color: '#0f172a' }}>
               
               {/* Official Letterhead Banner (Configured in Admin Settings) */}
               {adminSettings.header?.showLetterhead && (
@@ -1658,11 +1711,11 @@ function RepairProposalFormInner() {
                       <div style={{ fontSize: 17, fontWeight: 800, color: '#0f2e5a', lineHeight: 1.25 }}>
                         {adminSettings.header?.companyTitle}
                       </div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#334155', marginTop: 2 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', marginTop: 2 }}>
                         {adminSettings.header?.companySubtitle}
                       </div>
                       {adminSettings.header?.companyAddress && (
-                        <div style={{ fontSize: 10.5, color: '#64748b', marginTop: 2 }}>
+                        <div style={{ fontSize: 11, color: '#334155', fontWeight: 600, marginTop: 2 }}>
                           {adminSettings.header?.companyAddress}
                         </div>
                       )}
@@ -1672,189 +1725,189 @@ function RepairProposalFormInner() {
               )}
 
               {/* Official Form Header Box */}
-              <div style={{ border: '2px solid #0f2e5a', borderRadius: 4, padding: '10px 14px', display: 'flex', justifyContent: 'space-between', marginBottom: 12, background: '#f8fafc' }}>
+              <div style={{ border: '2.5px solid #0f2e5a', borderRadius: 6, padding: '10px 14px', display: 'flex', justifyContent: 'space-between', marginBottom: 12, background: '#f8fafc' }}>
                 <div>
                   <div style={{ fontSize: 17, fontWeight: 800, color: '#0f2e5a' }}>ใบเสนอแจ้งซ่อม / เปลี่ยนทดแทนอุปกรณ์</div>
-                  <div style={{ fontSize: 10.5, fontWeight: 700, color: '#64748b' }}>EQUIPMENT REPAIR & REPLACEMENT PROPOSAL FORM</div>
-                  <div style={{ marginTop: 4, fontSize: 13, fontWeight: 700, color: '#0369a1' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#1e293b', letterSpacing: 0.3 }}>EQUIPMENT REPAIR & REPLACEMENT PROPOSAL FORM</div>
+                  <div style={{ marginTop: 4, fontSize: 13.5, fontWeight: 800, color: '#0f2e5a' }}>
                     ชื่องาน: {jobTitle || '(ยังไม่ระบุชื่องาน)'}
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', fontSize: 11.5 }}>
-                  <div><span style={{ color: '#64748b' }}>เลขที่ใบแจ้งซ่อม:</span> <strong style={{ color: '#b91c1c' }}>{refNo || '-'}</strong></div>
-                  <div><span style={{ color: '#64748b' }}>วันที่เสนอ:</span> <strong>{docDate || '-'}</strong></div>
-                  <div><span style={{ color: '#64748b' }}>ระดับความเร่งด่วน:</span> <strong style={{ color: '#b45309' }}>{priority === 'high' ? 'เร่งด่วนสูง' : 'ปกติ'}</strong></div>
+                  <div><strong style={{ color: '#0f172a' }}>เลขที่ใบแจ้งซ่อม:</strong> <strong style={{ color: '#b91c1c' }}>{refNo || '-'}</strong></div>
+                  <div><strong style={{ color: '#0f172a' }}>วันที่เสนอ:</strong> <strong style={{ color: '#0f172a' }}>{docDate || '-'}</strong></div>
+                  <div><strong style={{ color: '#0f172a' }}>ระดับความเร่งด่วน:</strong> <strong style={{ color: priority === 'high' ? '#b91c1c' : '#047857' }}>{priority === 'high' ? 'เร่งด่วนสูง' : 'ปกติ'}</strong></div>
                 </div>
               </div>
 
               {/* Info Table (No company row, since it is in letterhead!) */}
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5, marginBottom: 12, border: '1px solid #cbd5e1' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5, marginBottom: 12, border: '1.5px solid #475569' }}>
                 <tbody>
                   <tr>
-                    <td style={{ width: '20%', background: '#f1f5f9', fontWeight: 700, color: '#0f2e5a', padding: '6px 8px', border: '1px solid #cbd5e1' }}>ผู้แจ้งซ่อม / ตรวจสอบ</td>
-                    <td style={{ width: '30%', padding: '6px 8px', border: '1px solid #cbd5e1' }}>{inspectorName || '-'}</td>
-                    <td style={{ width: '20%', background: '#f1f5f9', fontWeight: 700, color: '#0f2e5a', padding: '6px 8px', border: '1px solid #cbd5e1' }}>ตำแหน่ง / สายงาน</td>
-                    <td style={{ width: '30%', padding: '6px 8px', border: '1px solid #cbd5e1' }}>{inspectorRole || '-'}</td>
+                    <td style={{ width: '20%', background: '#e2e8f0', fontWeight: 800, color: '#0f2e5a', padding: '6px 10px', border: '1.5px solid #475569' }}>ผู้แจ้งซ่อม / ตรวจสอบ</td>
+                    <td style={{ width: '30%', padding: '6px 10px', border: '1.5px solid #475569', color: '#0f172a', fontWeight: 600 }}>{inspectorName || '-'}</td>
+                    <td style={{ width: '20%', background: '#e2e8f0', fontWeight: 800, color: '#0f2e5a', padding: '6px 10px', border: '1.5px solid #475569' }}>ตำแหน่ง / สายงาน</td>
+                    <td style={{ width: '30%', padding: '6px 10px', border: '1.5px solid #475569', color: '#0f172a', fontWeight: 600 }}>{inspectorRole || '-'}</td>
                   </tr>
                   <tr>
-                    <td style={{ background: '#f1f5f9', fontWeight: 700, color: '#0f2e5a', padding: '6px 8px', border: '1px solid #cbd5e1' }}>หน่วยงานที่รับผิดชอบ</td>
-                    <td colSpan={3} style={{ padding: '6px 8px', border: '1px solid #cbd5e1' }}>{department || '-'}</td>
+                    <td style={{ background: '#e2e8f0', fontWeight: 800, color: '#0f2e5a', padding: '6px 10px', border: '1.5px solid #475569' }}>หน่วยงานที่รับผิดชอบ</td>
+                    <td colSpan={3} style={{ padding: '6px 10px', border: '1.5px solid #475569', color: '#0f172a', fontWeight: 600 }}>{department || '-'}</td>
                   </tr>
                 </tbody>
               </table>
 
               {/* Section 1: Survey Table */}
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#0f2e5a', borderBottom: '1.5px solid #cbd5e1', paddingBottom: 3, marginBottom: 6 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a', borderBottom: '2.5px solid #0f2e5a', paddingBottom: 4, marginBottom: 8 }}>
                 1. ผลการสำรวจและตารางรายการอาคาร/จุดติดตั้งที่พบปัญหา
               </div>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, marginBottom: 12, border: '1px solid #cbd5e1' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, marginBottom: 12, border: '1.5px solid #475569' }}>
                 <thead>
-                  <tr style={{ background: '#0f2e5a', color: 'white' }}>
-                    <th style={{ padding: 5, width: 35, textAlign: 'center' }}>ลำดับ</th>
-                    <th style={{ padding: 5, width: 85, textAlign: 'center' }}>รหัสอาคาร</th>
-                    <th style={{ padding: 5, width: 90, textAlign: 'center' }}>จุดติดตั้ง</th>
-                    <th style={{ padding: 5, textAlign: 'left' }}>อาการชำรุด / ผลการสำรวจทางเทคนิค</th>
-                    <th style={{ padding: 5, width: 60, textAlign: 'center' }}>จำนวน</th>
-                    <th style={{ padding: 5, width: 90, textAlign: 'center' }}>ข้อเสนอแนะ</th>
+                  <tr style={{ background: '#0f2e5a', color: '#ffffff' }}>
+                    <th style={{ padding: '6px 4px', width: 35, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>ลำดับ</th>
+                    <th style={{ padding: '6px 6px', width: 85, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>รหัสอาคาร</th>
+                    <th style={{ padding: '6px 6px', width: 90, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>จุดติดตั้ง</th>
+                    <th style={{ padding: '6px 8px', textAlign: 'left', border: '1.5px solid #0f2e5a' }}>อาการชำรุด / ผลการสำรวจทางเทคนิค</th>
+                    <th style={{ padding: '6px 6px', width: 60, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>จำนวน</th>
+                    <th style={{ padding: '6px 6px', width: 90, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>ข้อเสนอแนะ</th>
                   </tr>
                 </thead>
                 <tbody>
                   {surveyPoints.map((sp, idx) => (
-                    <tr key={idx} style={{ background: idx % 2 === 1 ? '#f8fafc' : 'white' }}>
-                      <td style={{ padding: 5, textAlign: 'center', border: '1px solid #cbd5e1' }}>{idx + 1}</td>
-                      <td style={{ padding: 5, textAlign: 'center', fontWeight: 700, color: '#0369a1', border: '1px solid #cbd5e1' }}>{sp.building || '-'}</td>
-                      <td style={{ padding: 5, textAlign: 'center', border: '1px solid #cbd5e1' }}>{sp.location || '-'}</td>
-                      <td style={{ padding: 5, border: '1px solid #cbd5e1' }}>
+                    <tr key={idx} style={{ background: idx % 2 === 1 ? '#f8fafc' : '#ffffff' }}>
+                      <td style={{ padding: 6, textAlign: 'center', fontWeight: 700, border: '1.5px solid #475569' }}>{idx + 1}</td>
+                      <td style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#0369a1', border: '1.5px solid #475569' }}>{sp.building || '-'}</td>
+                      <td style={{ padding: 6, textAlign: 'center', fontWeight: 600, color: '#0f172a', border: '1.5px solid #475569' }}>{sp.location || '-'}</td>
+                      <td style={{ padding: 6, border: '1.5px solid #475569', color: '#0f172a', fontWeight: 600 }}>
                         {sp.symptom || '-'}
-                        {sp.photo && <span style={{ fontSize: 9.5, color: '#0284c7', fontWeight: 700, marginLeft: 6 }}>📷 [มีรูปแนบ]</span>}
+                        {sp.photo && <span style={{ fontSize: 10, color: '#0284c7', fontWeight: 700, marginLeft: 6 }}>📷 [มีรูปแนบ]</span>}
                       </td>
-                      <td style={{ padding: 5, textAlign: 'center', border: '1px solid #cbd5e1' }}>{sp.qty || 1} ตัว</td>
-                      <td style={{ padding: 5, textAlign: 'center', fontWeight: 600, color: '#b91c1c', border: '1px solid #cbd5e1' }}>{sp.action || 'เปลี่ยนทดแทน'}</td>
+                      <td style={{ padding: 6, textAlign: 'center', fontWeight: 700, color: '#0f172a', border: '1.5px solid #475569' }}>{sp.qty || 1} ตัว</td>
+                      <td style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#b91c1c', border: '1.5px solid #475569' }}>{sp.action || 'เปลี่ยนทดแทน'}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
 
               {/* Section 2: Items Requested Table (Extensible) */}
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#0f2e5a', borderBottom: '1.5px solid #cbd5e1', paddingBottom: 3, marginBottom: 6 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a', borderBottom: '2.5px solid #0f2e5a', paddingBottom: 4, marginBottom: 8 }}>
                 2. สรุปรายการและรุ่นอุปกรณ์ที่ขอเสนอซื้อเพื่อแก้ไขงาน
               </div>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, marginBottom: 8, border: '1px solid #cbd5e1' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, marginBottom: 10, border: '1.5px solid #475569' }}>
                 <thead>
-                  <tr style={{ background: '#0f2e5a', color: 'white' }}>
-                    <th style={{ padding: 5, width: 35, textAlign: 'center' }}>ลำดับ</th>
-                    <th style={{ padding: 5, width: 170, textAlign: 'left' }}>รายการอุปกรณ์ / อะไหล่</th>
-                    <th style={{ padding: 5, textAlign: 'left' }}>ยี่ห้อ / รุ่น / รหัสอะไหล่ที่ต้องการ (หรือเทียบเท่า)</th>
-                    <th style={{ padding: 5, width: 55, textAlign: 'center' }}>จำนวน</th>
-                    <th style={{ padding: 5, width: 50, textAlign: 'center' }}>หน่วย</th>
-                    <th style={{ padding: 5, width: 160, textAlign: 'left' }}>วัตถุประสงค์ / ตำแหน่งติดตั้งทดแทน</th>
+                  <tr style={{ background: '#0f2e5a', color: '#ffffff' }}>
+                    <th style={{ padding: '6px 4px', width: 35, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>ลำดับ</th>
+                    <th style={{ padding: '6px 8px', width: 170, textAlign: 'left', border: '1.5px solid #0f2e5a' }}>รายการอุปกรณ์ / อะไหล่</th>
+                    <th style={{ padding: '6px 8px', textAlign: 'left', border: '1.5px solid #0f2e5a' }}>ยี่ห้อ / รุ่น / รหัสอะไหล่ที่ต้องการ (หรือเทียบเท่า)</th>
+                    <th style={{ padding: '6px 6px', width: 55, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>จำนวน</th>
+                    <th style={{ padding: '6px 6px', width: 50, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>หน่วย</th>
+                    <th style={{ padding: '6px 8px', width: 160, textAlign: 'left', border: '1.5px solid #0f2e5a' }}>วัตถุประสงค์ / ตำแหน่งติดตั้งทดแทน</th>
                   </tr>
                 </thead>
                 <tbody>
                   {itemsRequested.map((it, idx) => (
-                    <tr key={idx} style={{ background: idx % 2 === 1 ? '#f8fafc' : 'white' }}>
-                      <td style={{ padding: 5, textAlign: 'center', fontWeight: 700, border: '1px solid #cbd5e1' }}>{idx + 1}</td>
-                      <td style={{ padding: 5, fontWeight: 700, color: '#0f2e5a', border: '1px solid #cbd5e1' }}>{it.name || '-'}</td>
-                      <td style={{ padding: 5, border: '1px solid #cbd5e1' }}>
-                        <div style={{ fontWeight: 700, color: '#0f172a' }}>{it.modelPart || '-'}</div>
-                        <div style={{ fontSize: 10, color: '#0369a1', marginTop: 1 }}>(คุณสมบัติตามเงื่อนไขข้อ 3)</div>
+                    <tr key={idx} style={{ background: idx % 2 === 1 ? '#f8fafc' : '#ffffff' }}>
+                      <td style={{ padding: 6, textAlign: 'center', fontWeight: 700, border: '1.5px solid #475569' }}>{idx + 1}</td>
+                      <td style={{ padding: 6, fontWeight: 800, color: '#0f2e5a', border: '1.5px solid #475569' }}>{it.name || '-'}</td>
+                      <td style={{ padding: 6, border: '1.5px solid #475569' }}>
+                        <div style={{ fontWeight: 800, color: '#0f172a' }}>{it.modelPart || '-'}</div>
+                        <div style={{ fontSize: 10, color: '#0369a1', fontWeight: 700, marginTop: 1 }}>(คุณสมบัติตามเงื่อนไขข้อ 3)</div>
                       </td>
-                      <td style={{ padding: 5, textAlign: 'center', fontWeight: 700, color: '#0f2e5a', border: '1px solid #cbd5e1' }}>{it.qty || 1}</td>
-                      <td style={{ padding: 5, textAlign: 'center', border: '1px solid #cbd5e1' }}>{it.unit || 'ตัว'}</td>
-                      <td style={{ padding: 5, fontSize: 10.5, border: '1px solid #cbd5e1' }}>{it.purpose || '-'}</td>
+                      <td style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#0f172a', border: '1.5px solid #475569' }}>{it.qty || 1}</td>
+                      <td style={{ padding: 6, textAlign: 'center', fontWeight: 700, color: '#0f172a', border: '1.5px solid #475569' }}>{it.unit || 'ตัว'}</td>
+                      <td style={{ padding: 6, fontSize: 10.5, fontWeight: 600, color: '#0f172a', border: '1.5px solid #475569' }}>{it.purpose || '-'}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
 
               {/* Engineering Note */}
-              <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderLeft: '3px solid #f59e0b', padding: '6px 10px', borderRadius: 4, fontSize: 10.5, color: '#92400e' }}>
+              <div style={{ background: '#fffbeb', border: '1.5px solid #d97706', borderLeft: '4.5px solid #b45309', padding: '8px 12px', borderRadius: 4, fontSize: 11, color: '#78350f', fontWeight: 600 }}>
                 <strong>** หมายเหตุทางวิศวกรรม:</strong> รายการอุปกรณ์และรุ่นที่ระบุข้างต้นเป็นเกณฑ์อ้างอิงความต้องการทางเทคนิคสำหรับการแก้ไขงาน ทั้งนี้ ฝ่ายจัดซื้อสามารถจัดหายี่ห้อหรือรุ่นอื่นที่มีคุณสมบัติทางเทคนิคเทียบเท่าหรือดีกว่าได้ตามความเหมาะสมและความพร้อมในการจัดหา
               </div>
             </div>
 
             {/* PAGE 2: Specs, Justification, 2 Signatures */}
-            <div className="a4-print-page" style={{ background: 'white', borderRadius: 8, padding: 32, boxShadow: '0 2px 8px rgba(0,0,0,0.08)', marginBottom: 20 }}>
+            <div className="a4-print-page" style={{ background: '#ffffff', borderRadius: 8, padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.4)', marginBottom: 20, color: '#0f172a' }}>
               {/* Section 3: Technical Specifications & Substitution Criteria */}
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#0f2e5a', borderBottom: '1.5px solid #cbd5e1', paddingBottom: 3, marginBottom: 6 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a', borderBottom: '2.5px solid #0f2e5a', paddingBottom: 4, marginBottom: 8 }}>
                 3. ข้อกำหนดคุณลักษณะเฉพาะและเงื่อนไขสำคัญที่ต้องใช้แทนได้ (กรณีใช้ยี่ห้อ/รุ่นอื่นทดแทน)
               </div>
-              <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: 4, padding: '8px 12px', fontSize: 11, marginBottom: 12, lineHeight: 1.55, whiteSpace: 'pre-line', color: '#0f172a' }}>
+              <div style={{ background: '#f8fafc', border: '1.5px solid #475569', borderRadius: 4, padding: '10px 14px', fontSize: 11, marginBottom: 14, lineHeight: 1.6, whiteSpace: 'pre-line', color: '#0f172a', fontWeight: 500 }}>
                 {substitutionSpecs || 'ไม่มีข้อกำหนดเพิ่มเติม (จัดหาตามรุ่นที่ระบุหรือเทียบเท่า)'}
               </div>
 
               {/* Section 4: Justification */}
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#0f2e5a', borderBottom: '1.5px solid #cbd5e1', paddingBottom: 3, marginBottom: 6 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a', borderBottom: '2.5px solid #0f2e5a', paddingBottom: 4, marginBottom: 8 }}>
                 4. เหตุผลความจำเป็นในการจัดซื้อจัดจ้างเพื่อเปลี่ยนทดแทน
               </div>
-              <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: 4, padding: '8px 12px', fontSize: 11, marginBottom: 16, lineHeight: 1.5, textAlign: 'justify' }}>
+              <div style={{ background: '#f8fafc', border: '1.5px solid #475569', borderRadius: 4, padding: '10px 14px', fontSize: 11, marginBottom: 18, lineHeight: 1.6, textAlign: 'justify', color: '#0f172a', fontWeight: 500 }}>
                 {justification || '(ยังไม่ระบุเหตุผลความจำเป็น)'}
               </div>
 
               {/* Section 5: Signatures (2 Signatories Only: Inspector & Tuangpetch) */}
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#0f2e5a', borderBottom: '1.5px solid #cbd5e1', paddingBottom: 3, marginBottom: 8 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a', borderBottom: '2.5px solid #0f2e5a', paddingBottom: 4, marginBottom: 10 }}>
                 5. ส่วนลงนามการตรวจสอบและพิจารณาอนุมัติ
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 {/* Sig 1: Inspector */}
-                <div style={{ border: '1.5px solid #94a3b8', borderRadius: 4, padding: '8px 12px', textAlign: 'center', minHeight: 140, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div style={{ fontWeight: 700, color: '#0f2e5a', marginBottom: 4, fontSize: 12 }}>ผู้ตรวจสอบ / สำรวจหน้างาน</div>
+                <div style={{ border: '2px solid #334155', borderRadius: 6, padding: '12px 14px', textAlign: 'center', minHeight: 145, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#ffffff' }}>
+                  <div style={{ fontWeight: 800, color: '#0f2e5a', marginBottom: 4, fontSize: 12.5 }}>ผู้ตรวจสอบ / สำรวจหน้างาน</div>
                   <div style={{ height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {sig1Image ? (
                       <img src={sig1Image} alt="Signature 1" style={{ maxHeight: 48, maxWidth: '90%', objectFit: 'contain' }} />
                     ) : (
-                      <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: 12 }}>....................................................</span>
+                      <span style={{ color: '#475569', fontWeight: 700, fontSize: 12 }}>....................................................</span>
                     )}
                   </div>
-                  <div style={{ borderTop: '1px dotted #94a3b8', paddingTop: 4, fontSize: 11, fontWeight: 600 }}>
+                  <div style={{ borderTop: '1.5px solid #334155', paddingTop: 6, fontSize: 11.5, fontWeight: 700, color: '#0f172a' }}>
                     ({inspectorName || '....................................................'})
                   </div>
-                  <div style={{ fontSize: 10.5, color: '#64748b' }}>{inspectorRole || 'วิศวกรผู้ตรวจสอบหน้างาน'}</div>
+                  <div style={{ fontSize: 11, color: '#1e293b', fontWeight: 600 }}>{inspectorRole || 'วิศวกรผู้ตรวจสอบหน้างาน'}</div>
                 </div>
 
                 {/* Sig 2: Approver (Tuangpetch) */}
-                <div style={{ border: '1.5px solid #94a3b8', borderRadius: 4, padding: '8px 12px', textAlign: 'center', minHeight: 140, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div style={{ fontWeight: 700, color: '#0f2e5a', marginBottom: 2, fontSize: 12 }}>ผู้อนุมัติ / ผู้มีอำนาจสั่งการ</div>
-                  <div style={{ fontSize: 10.5, color: approvalDecision === 'approved' ? '#15803d' : '#b91c1c', fontWeight: 700 }}>
+                <div style={{ border: '2px solid #334155', borderRadius: 6, padding: '12px 14px', textAlign: 'center', minHeight: 145, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#ffffff' }}>
+                  <div style={{ fontWeight: 800, color: '#0f2e5a', marginBottom: 2, fontSize: 12.5 }}>ผู้อนุมัติ / ผู้มีอำนาจสั่งการ</div>
+                  <div style={{ fontSize: 11, color: approvalDecision === 'approved' ? '#15803d' : '#b91c1c', fontWeight: 800 }}>
                     {approvalDecision === 'approved' ? '⦿ อนุมัติการจัดซื้อจัดจ้าง' : '⭘ ไม้อนุมัติ'}
                   </div>
                   <div style={{ height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {sig2Image ? (
                       <img src={sig2Image} alt="Approver Signature" style={{ maxHeight: 48, maxWidth: '90%', objectFit: 'contain' }} />
                     ) : (
-                      <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: 12 }}>....................................................</span>
+                      <span style={{ color: '#475569', fontWeight: 700, fontSize: 12 }}>....................................................</span>
                     )}
                   </div>
-                  <div style={{ borderTop: '1px dotted #94a3b8', paddingTop: 4, fontSize: 11, fontWeight: 600 }}>
+                  <div style={{ borderTop: '1.5px solid #334155', paddingTop: 6, fontSize: 11.5, fontWeight: 700, color: '#0f172a' }}>
                     ({approverName || 'ผู้อนุมัติ'})
                   </div>
-                  <div style={{ fontSize: 10.5, color: '#64748b' }}>{approverRole || 'ผู้อำนวยการส่วนบริหารจัดการ'}</div>
+                  <div style={{ fontSize: 11, color: '#1e293b', fontWeight: 600 }}>{approverRole || 'วศ.4 หบท-ธ.'}</div>
                 </div>
               </div>
             </div>
 
             {/* PAGE 3: Annex Photos (Only if photos exist) */}
             {surveyPoints.some(p => p.photo) && (
-              <div className="a4-print-page" style={{ background: 'white', borderRadius: 8, padding: 32, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: '#0f2e5a', borderBottom: '1.5px solid #cbd5e1', paddingBottom: 3, marginBottom: 6 }}>
+              <div className="a4-print-page" style={{ background: '#ffffff', borderRadius: 8, padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.4)', color: '#0f172a' }}>
+                <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a', borderBottom: '2.5px solid #0f2e5a', paddingBottom: 4, marginBottom: 8 }}>
                   ภาคผนวก: ภาพถ่ายประกอบผลการตรวจสอบและสำรวจสภาพอุปกรณ์หน้างาน
                 </div>
-                <p style={{ fontSize: 11.5, color: '#334155', marginBottom: 12, lineHeight: 1.4 }}>
+                <p style={{ fontSize: 11.5, color: '#0f172a', fontWeight: 600, marginBottom: 12, lineHeight: 1.4 }}>
                   หลักฐานภาพถ่ายสภาพตู้สวิตช์บอร์ด Main MDB และอุปกรณ์เดิม ณ จุดติดตั้งที่ตรวจพบความชำรุดเสียหาย:
                 </p>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
                   {surveyPoints.filter(p => p.photo).map((p, idx) => (
-                    <div key={idx} style={{ border: '1.5px solid #cbd5e1', borderRadius: 6, overflow: 'hidden', background: 'white' }}>
+                    <div key={idx} style={{ border: '1.5px solid #475569', borderRadius: 6, overflow: 'hidden', background: '#ffffff' }}>
                       <div style={{ width: '100%', height: 140, background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <img src={p.photo} alt={p.building} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
-                      <div style={{ padding: '6px 8px', fontSize: 10.5 }}>
-                        <span style={{ fontWeight: 700, color: '#0369a1', background: '#e0f2fe', padding: '1px 5px', borderRadius: 3 }}>
+                      <div style={{ padding: '8px 10px', fontSize: 11 }}>
+                        <span style={{ fontWeight: 800, color: '#ffffff', background: '#0284c7', padding: '2px 7px', borderRadius: 4, fontSize: 10.5 }}>
                           {p.building || `จุดที่ ${idx + 1}`}
                         </span>
-                        <div style={{ color: '#0f172a', fontWeight: 600, marginTop: 2 }}>{p.symptom}</div>
-                        <div style={{ color: '#64748b', fontSize: 9.5 }}>ตำแหน่ง: {p.location || 'Main MDB'}</div>
+                        <div style={{ color: '#0f172a', fontWeight: 700, marginTop: 4 }}>{p.symptom}</div>
+                        <div style={{ color: '#334155', fontSize: 10, fontWeight: 600, marginTop: 2 }}>ตำแหน่ง: {p.location || 'Main MDB'}</div>
                       </div>
                     </div>
                   ))}
@@ -1867,12 +1920,12 @@ function RepairProposalFormInner() {
 
         {/* PIN Verification Modal */}
         {showPinModal && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-            <div style={{ background: 'white', borderRadius: 12, padding: 24, maxWidth: 360, width: '100%', boxShadow: '0 8px 30px rgba(0,0,0,0.2)' }}>
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 14, padding: 24, maxWidth: 360, width: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.5)' }}>
               <div style={{ textAlign: 'center', marginBottom: 16 }}>
                 <div style={{ fontSize: 36, marginBottom: 6 }}>🔒</div>
-                <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0f2e5a', margin: 0 }}>ยืนยันสิทธิ์ผู้ดูแลระบบ (Admin)</h3>
-                <p style={{ fontSize: 12.5, color: '#64748b', margin: '4px 0 0' }}>กรุณากรอกรหัส PIN เพื่อเข้าสู่เมนูตั้งค่า</p>
+                <h3 style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink-primary, #eef2ff)', margin: 0 }}>ยืนยันสิทธิ์ผู้ดูแลระบบ (Admin)</h3>
+                <p style={{ fontSize: 12.5, color: 'var(--ink-secondary, #94a3c4)', margin: '4px 0 0' }}>กรุณากรอกรหัส PIN เพื่อเข้าสู่เมนูตั้งค่า</p>
               </div>
 
               <form onSubmit={handlePinSubmit}>
@@ -1883,22 +1936,22 @@ function RepairProposalFormInner() {
                   value={pinInput} 
                   onChange={e => { setPinInput(e.target.value); setPinError(''); }}
                   placeholder="••••"
+                  className="wizard-dark-input"
                   style={{
                     width: '100%',
                     padding: '10px 14px',
-                    fontSize: 18,
+                    fontSize: 20,
                     textAlign: 'center',
-                    letterSpacing: 6,
+                    letterSpacing: 8,
                     borderRadius: 8,
-                    border: pinError ? '2px solid #ef4444' : '1.5px solid #cbd5e1',
+                    border: pinError ? '2px solid #ef4444' : '1.5px solid var(--border-strong, #2d3f5e)',
                     fontWeight: 700,
-                    outline: 'none',
                     marginBottom: 10
                   }}
                 />
 
                 {pinError && (
-                  <div style={{ color: '#ef4444', fontSize: 12, textAlign: 'center', marginBottom: 10, fontWeight: 600 }}>
+                  <div style={{ color: '#f87171', fontSize: 12, textAlign: 'center', marginBottom: 10, fontWeight: 600 }}>
                     {pinError}
                   </div>
                 )}
@@ -1907,12 +1960,12 @@ function RepairProposalFormInner() {
                   <button
                     type="button"
                     onClick={() => { setShowPinModal(false); setPinError(''); }}
-                    style={{ flex: 1, padding: '9px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: 6, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                    style={{ flex: 1, padding: '9px 12px', background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 6, fontWeight: 700, fontSize: 13, color: 'var(--ink-primary, #eef2ff)', cursor: 'pointer' }}>
                     ยกเลิก
                   </button>
                   <button
                     type="submit"
-                    style={{ flex: 1, padding: '9px 12px', background: '#0284c7', color: 'white', border: 'none', borderRadius: 6, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                    style={{ flex: 1, padding: '9px 12px', background: 'var(--accent, #2563eb)', color: 'white', border: 'none', borderRadius: 6, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
                     ยืนยัน
                   </button>
                 </div>
@@ -1989,23 +2042,23 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
   }, [form.runningNumber]);
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ background: 'white', borderRadius: 14, maxWidth: 650, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 10px 35px rgba(0,0,0,0.25)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 14, maxWidth: 660, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 16px 50px rgba(0,0,0,0.6)', display: 'flex', flexDirection: 'column' }}>
         
         {/* Modal Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid var(--border-hairline, #1e2e4a)', background: 'var(--bg-surface-raised, #172340)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 20 }}>⚙️</span>
             <div>
-              <h2 style={{ fontSize: 17, fontWeight: 800, color: '#0f2e5a', margin: 0 }}>ตั้งค่าระบบแอดมิน (Admin Settings)</h2>
-              <div style={{ fontSize: 11.5, color: '#64748b' }}>ปรับแต่งหัวกระดาษ, ลายเซ็นต์ผู้อนุมัติ, และการรันเลขที่ใบเสนอซ่อม</div>
+              <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink-primary, #eef2ff)', margin: 0 }}>ตั้งค่าระบบแอดมิน (Admin Settings)</h2>
+              <div style={{ fontSize: 11.5, color: 'var(--ink-secondary, #94a3c4)' }}>ปรับแต่งหัวกระดาษ, ลายเซ็นต์ผู้อนุมัติ, และการรันเลขที่ใบเสนอซ่อม</div>
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#64748b' }}>✕</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--ink-secondary, #94a3c4)' }}>✕</button>
         </div>
 
         {/* Tab Switcher */}
-        <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', background: '#ffffff', overflowX: 'auto' }}>
+        <div style={{ display: 'flex', borderBottom: '1px solid var(--border-hairline, #1e2e4a)', background: 'var(--bg-surface, #111d32)', overflowX: 'auto' }}>
           {[
             { id: 'header', label: '🏢 หัวกระดาษ & โลโก้' },
             { id: 'approver', label: '✍️ ผู้อนุมัติ & ลายเซ็นต์' },
@@ -2019,11 +2072,11 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                 flex: 1,
                 padding: '11px 12px',
                 border: 'none',
-                borderBottom: activeTab === tab.id ? '2.5px solid #0284c7' : '2.5px solid transparent',
+                borderBottom: activeTab === tab.id ? '2.5px solid #2563eb' : '2.5px solid transparent',
                 background: 'transparent',
                 fontWeight: 700,
                 fontSize: 12.5,
-                color: activeTab === tab.id ? '#0284c7' : '#64748b',
+                color: activeTab === tab.id ? '#60a5fa' : 'var(--ink-secondary, #94a3c4)',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap'
               }}>
@@ -2038,7 +2091,7 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
           {/* TAB 1: Header & Letterhead */}
           {activeTab === 'header' && (
             <div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, fontWeight: 700, fontSize: 13, color: '#0f2e5a', cursor: 'pointer' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, fontWeight: 700, fontSize: 13, color: 'var(--ink-primary, #eef2ff)', cursor: 'pointer' }}>
                 <input 
                   type="checkbox" 
                   checked={form.header?.showLetterhead} 
@@ -2051,46 +2104,46 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   
                   {/* Section A: Full-width A4 Banner Image */}
-                  <div style={{ border: '1.5px solid #0284c7', borderRadius: 8, padding: 14, background: '#f0f9ff' }}>
+                  <div style={{ border: '1px solid rgba(59, 130, 246, 0.35)', borderRadius: 8, padding: 14, background: 'var(--bg-surface-raised, #172340)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                      <div style={{ fontWeight: 800, fontSize: 13.5, color: '#0369a1', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ fontWeight: 800, fontSize: 13.5, color: '#93c5fd', display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span>🖼️</span> รูปภาพหัวกระดาษแบบเต็ม A4 (Full Banner Image)
                       </div>
                       {form.header?.bannerImageUrl && (
                         <button
                           type="button"
                           onClick={() => handleHeaderChange('bannerImageUrl', '')}
-                          style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#b91c1c', padding: '3px 8px', borderRadius: 4, fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
+                          style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', padding: '3px 8px', borderRadius: 4, fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
                           ✕ นำรูปออก (กลับไปใช้ข้อความ)
                         </button>
                       )}
                     </div>
 
-                    <p style={{ fontSize: 11.5, color: '#475569', margin: '0 0 10px 0', lineHeight: 1.45 }}>
-                      เมื่ออัปโหลดรูปภาพหัวกระดาษแบบเต็ม ระบบจะแสดงภาพเต็มความกว้าง A4 ในเอกสารทันที และ <strong>ไม่แสดงข้อความชื่อองค์กร/ที่อยู่ซ้ำซ้อน</strong> (เหมาะสำหรับหน่วยงานที่มีภาพหัวกระดาษสำเร็จรูป)
+                    <p style={{ fontSize: 11.5, color: 'var(--ink-secondary, #94a3c4)', margin: '0 0 10px 0', lineHeight: 1.45 }}>
+                      เมื่ออัปโหลดรูปภาพหัวกระดาษแบบเต็ม ระบบจะแสดงภาพเต็มความกว้าง A4 ในเอกสารทันที และ <strong style={{ color: 'var(--ink-primary, #eef2ff)' }}>ไม่แสดงข้อความชื่อองค์กร/ที่อยู่ซ้ำซ้อน</strong> (เหมาะสำหรับหน่วยงานที่มีภาพหัวกระดาษสำเร็จรูป)
                     </p>
 
                     {form.header?.bannerImageUrl ? (
-                      <div style={{ border: '1.5px dashed #0284c7', borderRadius: 6, padding: 10, background: '#ffffff', textAlign: 'center', marginBottom: 12 }}>
-                        <div style={{ maxHeight: 150, overflow: 'hidden', borderRadius: 4, background: '#f8fafc' }}>
+                      <div style={{ border: '1px dashed var(--border-strong, #2d3f5e)', borderRadius: 6, padding: 10, background: 'var(--bg-input, #080e1a)', textAlign: 'center', marginBottom: 12 }}>
+                        <div style={{ maxHeight: 150, overflow: 'hidden', borderRadius: 4, background: '#ffffff' }}>
                           <img 
                             src={form.header.bannerImageUrl} 
                             alt="Banner Preview" 
                             style={{ width: '100%', height: 'auto', display: 'block', margin: '0 auto' }} 
                           />
                         </div>
-                        <div style={{ fontSize: 11, color: '#15803d', fontWeight: 700, marginTop: 6 }}>
+                        <div style={{ fontSize: 11.5, color: '#4ade80', fontWeight: 700, marginTop: 6 }}>
                           ✓ รูปภาพหัวกระดาษแบบเต็ม A4 พร้อมใช้งาน (จะถูกใช้เป็นค่าเริ่มต้นทันทีเมื่อบันทึก)
                         </div>
                       </div>
                     ) : (
-                      <div style={{ border: '1.5px dashed #cbd5e1', borderRadius: 6, padding: 16, background: '#ffffff', textAlign: 'center', marginBottom: 12, color: '#94a3b8', fontSize: 12 }}>
+                      <div style={{ border: '1px dashed var(--border-strong, #2d3f5e)', borderRadius: 6, padding: 16, background: 'var(--bg-input, #080e1a)', textAlign: 'center', marginBottom: 12, color: 'var(--ink-muted, #5a6a8a)', fontSize: 12 }}>
                         ยังไม่มีการอัปโหลดรูปหัวกระดาษแบบเต็ม (ระบบจะใช้ข้อความด้านล่างแทน)
                       </div>
                     )}
 
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
-                      <label style={{ background: '#0284c7', color: 'white', padding: '7px 16px', borderRadius: 6, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <label style={{ background: 'var(--accent, #2563eb)', color: 'white', padding: '7px 16px', borderRadius: 6, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                         📁 {form.header?.bannerImageUrl ? 'เปลี่ยนรูปหัวกระดาษใหม่' : 'อัปโหลดรูปหัวกระดาษแบบเต็ม A4'}
                         <input 
                           type="file" 
@@ -2109,7 +2162,7 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                         />
                       </label>
                       {form.header?.bannerImageUrl && (
-                        <span style={{ fontSize: 11.5, color: '#0369a1', fontWeight: 600 }}>
+                        <span style={{ fontSize: 11.5, color: '#60a5fa', fontWeight: 600 }}>
                           ✓ อัปเดตรูปเรียบร้อย
                         </span>
                       )}
@@ -2117,12 +2170,12 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
 
                     {/* Layout Selector for Banner Width */}
                     {form.header?.bannerImageUrl && (
-                      <div style={{ background: '#ffffff', border: '1px solid #bae6fd', borderRadius: 6, padding: '10px 12px' }}>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 6 }}>
+                      <div style={{ background: 'var(--bg-input, #080e1a)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 6, padding: '10px 12px' }}>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: '#93c5fd', display: 'block', marginBottom: 6 }}>
                           📐 รูปแบบความกว้างการแสดงผลบนกระดาษ A4:
                         </label>
                         <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontWeight: form.header?.bannerLayout !== 'contained' ? 700 : 500, color: '#0f2e5a' }}>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontWeight: form.header?.bannerLayout !== 'contained' ? 700 : 500, color: 'var(--ink-primary, #eef2ff)' }}>
                             <input 
                               type="radio" 
                               name="bannerLayout" 
@@ -2131,7 +2184,7 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                             />
                             เต็มแผ่นกระดาษ A4 (ชิดขอบกระดาษทุกด้าน) ⭐ แนะนำ
                           </label>
-                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontWeight: form.header?.bannerLayout === 'contained' ? 700 : 500, color: '#334155' }}>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontWeight: form.header?.bannerLayout === 'contained' ? 700 : 500, color: 'var(--ink-secondary, #94a3c4)' }}>
                             <input 
                               type="radio" 
                               name="bannerLayout" 
@@ -2146,13 +2199,13 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                   </div>
 
                   {/* Section B: Text Header Fallback */}
-                  <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: 14, background: form.header?.bannerImageUrl ? '#f8fafc' : '#ffffff', opacity: form.header?.bannerImageUrl ? 0.65 : 1 }}>
+                  <div style={{ border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: 14, background: form.header?.bannerImageUrl ? 'rgba(15, 23, 42, 0.4)' : 'var(--bg-surface-raised, #172340)', opacity: form.header?.bannerImageUrl ? 0.65 : 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <div style={{ fontWeight: 700, fontSize: 13, color: '#334155' }}>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink-primary, #eef2ff)' }}>
                         📝 ข้อมูลข้อความหัวกระดาษ (ไว้ใช้ตอนที่ไม่มีรูปหัวกระดาษเท่านั้น)
                       </div>
                       {form.header?.bannerImageUrl && (
-                        <span style={{ fontSize: 11, background: '#e2e8f0', color: '#64748b', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>
+                        <span style={{ fontSize: 11, background: 'var(--bg-input, #080e1a)', color: 'var(--ink-secondary, #94a3c4)', border: '1px solid var(--border-strong, #2d3f5e)', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>
                           ซ่อนในเอกสารอัตโนมัติ (เนื่องจากใช้รูปภาพหัวกระดาษแล้ว)
                         </span>
                       )}
@@ -2160,47 +2213,50 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                       <div>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 3 }}>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 3 }}>
                           ชื่อองค์กร / บริษัทหลัก:
                         </label>
                         <input 
                           type="text" 
                           value={form.header?.companyTitle} 
                           onChange={e => handleHeaderChange('companyTitle', e.target.value)} 
-                          style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                          className="wizard-dark-input"
+                          style={{ width: '100%', padding: '7px 10px', fontSize: 13 }} 
                         />
                       </div>
 
                       <div>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 3 }}>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 3 }}>
                           หน่วยงานย่อย / ฝ่าย / แผนก:
                         </label>
                         <input 
                           type="text" 
                           value={form.header?.companySubtitle} 
                           onChange={e => handleHeaderChange('companySubtitle', e.target.value)} 
-                          style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                          className="wizard-dark-input"
+                          style={{ width: '100%', padding: '7px 10px', fontSize: 13 }} 
                         />
                       </div>
 
                       <div>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 3 }}>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 3 }}>
                           ข้อมูลติดต่อ / ที่อยู่:
                         </label>
                         <input 
                           type="text" 
                           value={form.header?.companyAddress} 
                           onChange={e => handleHeaderChange('companyAddress', e.target.value)} 
-                          style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                          className="wizard-dark-input"
+                          style={{ width: '100%', padding: '7px 10px', fontSize: 13 }} 
                         />
                       </div>
 
                       <div>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                           โลโก้ประกอบข้อความ (ขนาดเล็ก):
                         </label>
                         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: 'var(--ink-primary, #eef2ff)' }}>
                             <input 
                               type="radio" 
                               name="logoType" 
@@ -2209,7 +2265,7 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                             />
                             โลโก้ กฟผ. (EGAT)
                           </label>
-                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: 'var(--ink-primary, #eef2ff)' }}>
                             <input 
                               type="radio" 
                               name="logoType" 
@@ -2218,7 +2274,7 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                             />
                             โลโก้ Veri
                           </label>
-                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: 'var(--ink-secondary, #94a3c4)' }}>
                             <input 
                               type="radio" 
                               name="logoType" 
@@ -2242,34 +2298,36 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
           {activeTab === 'approver' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                   ชื่อ-นามสกุล ผู้อนุมัติเริ่มต้น:
                 </label>
                 <input 
                   type="text" 
                   value={form.approver?.name} 
                   onChange={e => handleApproverChange('name', e.target.value)} 
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                  className="wizard-dark-input"
+                  style={{ width: '100%', padding: '8px 10px', fontSize: 13 }} 
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                   ตำแหน่งผู้อนุมัติ:
                 </label>
                 <input 
                   type="text" 
                   value={form.approver?.role} 
                   onChange={e => handleApproverChange('role', e.target.value)} 
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                  className="wizard-dark-input"
+                  style={{ width: '100%', padding: '8px 10px', fontSize: 13 }} 
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 6 }}>
                   รูปลายเซ็นต์ผู้อนุมัติ:
                 </label>
-                <div style={{ border: '1px dashed #cbd5e1', borderRadius: 6, padding: 12, textAlign: 'center', background: '#f8fafc', marginBottom: 8 }}>
+                <div style={{ border: '1px dashed var(--border-strong, #2d3f5e)', borderRadius: 6, padding: 12, textAlign: 'center', background: '#ffffff', marginBottom: 8 }}>
                   {form.approver?.signatureUrl ? (
                     <div>
                       <img 
@@ -2290,10 +2348,10 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                   <button
                     type="button"
                     onClick={() => handleApproverChange('signatureUrl', '/assets/shared/signature-approver.png')}
-                    style={{ background: '#e0f2fe', border: '1px solid #bae6fd', color: '#0369a1', padding: '5px 12px', borderRadius: 5, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                    style={{ background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-strong, #2d3f5e)', color: '#60a5fa', padding: '6px 14px', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                     ใช้ลายเซ็นต์ตวงเพชร (Firepump)
                   </button>
-                  <label style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#334155', padding: '5px 12px', borderRadius: 5, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                  <label style={{ background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-strong, #2d3f5e)', color: 'var(--ink-primary, #eef2ff)', padding: '6px 14px', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                     อัปโหลดรูปภาพใหม่
                     <input 
                       type="file" 
@@ -2320,7 +2378,7 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
           {activeTab === 'ref' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                   คำนำหน้า (Prefix):
                 </label>
                 <input 
@@ -2328,18 +2386,20 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                   value={form.runningNumber?.prefix} 
                   placeholder="เช่น REP-" 
                   onChange={e => handleRunningNumberChange('prefix', e.target.value)} 
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                  className="wizard-dark-input"
+                  style={{ width: '100%', padding: '8px 10px', fontSize: 13 }} 
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                   รูปแบบปี:
                 </label>
                 <select 
                   value={form.runningNumber?.yearType} 
                   onChange={e => handleRunningNumberChange('yearType', e.target.value)} 
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}>
+                  className="wizard-dark-input"
+                  style={{ width: '100%', padding: '8px 10px', fontSize: 13 }}>
                   <option value="buddhist">ปี พ.ศ. 4 หลัก (เช่น 2569)</option>
                   <option value="christian">ปี ค.ศ. 4 หลัก (เช่น 2026)</option>
                   <option value="none">ไม่ใส่ปี</option>
@@ -2348,7 +2408,7 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                     ลำดับถัดไป (Next Number):
                   </label>
                   <input 
@@ -2356,11 +2416,12 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                     min="1" 
                     value={form.runningNumber?.nextNumber} 
                     onChange={e => handleRunningNumberChange('nextNumber', parseInt(e.target.value, 10) || 1)} 
-                    style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                    className="wizard-dark-input"
+                    style={{ width: '100%', padding: '8px 10px', fontSize: 13 }} 
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                     จำนวนหลักตัวเลข (Padding Digits):
                   </label>
                   <input 
@@ -2369,14 +2430,15 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                     max="6" 
                     value={form.runningNumber?.digits} 
                     onChange={e => handleRunningNumberChange('digits', parseInt(e.target.value, 10) || 3)} 
-                    style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                    className="wizard-dark-input"
+                    style={{ width: '100%', padding: '8px 10px', fontSize: 13 }} 
                   />
                 </div>
               </div>
 
-              <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 8, padding: '12px 16px', marginTop: 6 }}>
-                <div style={{ fontSize: 11.5, color: '#64748b' }}>ตัวอย่างเลขที่จะถูกรันในฟอร์มถัดไป:</div>
-                <div style={{ fontSize: 20, fontWeight: 800, color: '#b91c1c', marginTop: 2 }}>{previewRef}</div>
+              <div style={{ background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: '12px 16px', marginTop: 6 }}>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-secondary, #94a3c4)' }}>ตัวอย่างเลขที่จะถูกรันในฟอร์มถัดไป:</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: '#f87171', marginTop: 2 }}>{previewRef}</div>
               </div>
             </div>
           )}
@@ -2385,37 +2447,40 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
           {activeTab === 'defaults' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                   หน่วยงานที่รับผิดชอบเริ่มต้น:
                 </label>
                 <input 
                   type="text" 
                   value={form.defaults?.department} 
                   onChange={e => handleDefaultsChange('department', e.target.value)} 
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                  className="wizard-dark-input"
+                  style={{ width: '100%', padding: '8px 10px', fontSize: 13 }} 
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                   ตำแหน่งผู้ตรวจสอบเริ่มต้น:
                 </label>
                 <input 
                   type="text" 
                   value={form.defaults?.inspectorRole} 
                   onChange={e => handleDefaultsChange('inspectorRole', e.target.value)} 
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                  className="wizard-dark-input"
+                  style={{ width: '100%', padding: '8px 10px', fontSize: 13 }} 
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                   ระดับความเร่งด่วนเริ่มต้น:
                 </label>
                 <select 
                   value={form.defaults?.priority} 
                   onChange={e => handleDefaultsChange('priority', e.target.value)} 
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}>
+                  className="wizard-dark-input"
+                  style={{ width: '100%', padding: '8px 10px', fontSize: 13 }}>
                   <option value="high">เร่งด่วนสูง (High)</option>
                   <option value="normal">ปกติ (Normal)</option>
                 </select>
@@ -2426,7 +2491,7 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
         </div>
 
         {/* Modal Footer */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '14px 20px', borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '14px 20px', borderTop: '1px solid var(--border-hairline, #1e2e4a)', background: 'var(--bg-surface-raised, #172340)' }}>
           <button
             type="button"
             onClick={() => {
@@ -2434,20 +2499,20 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                 setForm(JSON.parse(JSON.stringify(defaultAdminSettings)));
               }
             }}
-            style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#b91c1c', padding: '7px 14px', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+            style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.35)', color: '#f87171', padding: '7px 14px', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
             คืนค่าเริ่มต้นระบบ
           </button>
           <div style={{ display: 'flex', gap: 8 }}>
             <button
               type="button"
               onClick={onClose}
-              style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#475569', padding: '7px 16px', borderRadius: 6, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-strong, #2d3f5e)', color: 'var(--ink-primary, #eef2ff)', padding: '7px 16px', borderRadius: 6, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
               ยกเลิก
             </button>
             <button
               type="button"
               onClick={() => onSave(form)}
-              style={{ background: '#0284c7', color: 'white', border: 'none', padding: '7px 20px', borderRadius: 6, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              style={{ background: 'var(--accent, #2563eb)', color: 'white', border: 'none', padding: '7px 20px', borderRadius: 6, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
               💾 บันทึกการตั้งค่า
             </button>
           </div>

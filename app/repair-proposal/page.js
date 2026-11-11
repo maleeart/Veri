@@ -74,20 +74,20 @@ function RepairProposalListInner() {
   const totalDefectPoints = proposals.reduce((acc, p) => acc + (p.surveyPoints?.length || 0), 0);
 
   return (
-    <div className="app-container" style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
+    <div className="sn-shell" style={{ minHeight: '100vh', background: 'var(--bg-base, #0c1220)', color: 'var(--ink-primary, #eef2ff)' }}>
       <Sidenav />
       
-      <main style={{ flex: 1, padding: '24px 28px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+      <main className="sn-shell-main" style={{ flex: 1, padding: '24px 28px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 32 }}>📝</span>
               <div>
-                <h1 style={{ fontSize: 24, fontWeight: 800, color: '#0f2e5a', margin: 0 }}>
+                <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--ink-primary, #eef2ff)', margin: 0 }}>
                   ใบเสนอแจ้งซ่อม / เปลี่ยนทดแทนอุปกรณ์
                 </h1>
-                <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0' }}>
+                <p style={{ fontSize: 13, color: 'var(--ink-secondary, #94a3c4)', margin: '4px 0 0' }}>
                   ระบบจัดทำ จัดเก็บ และตรวจสอบประวัติใบเสนอจัดซื้อเปลี่ยนอุปกรณ์/อะไหล่สำหรับแก้ไขงาน
                 </p>
               </div>
@@ -101,7 +101,7 @@ function RepairProposalListInner() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 8,
-                background: '#0284c7',
+                background: 'var(--accent, #2563eb)',
                 color: 'white',
                 fontWeight: 700,
                 fontSize: 14,
@@ -109,7 +109,8 @@ function RepairProposalListInner() {
                 borderRadius: 8,
                 border: 'none',
                 cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(2, 132, 199, 0.3)'
+                boxShadow: '0 2px 10px rgba(37, 99, 235, 0.35)',
+                transition: 'background 0.15s'
               }}>
               <span>➕ สร้างใบเสนอซ่อมใหม่</span>
             </button>
@@ -118,26 +119,26 @@ function RepairProposalListInner() {
 
         {/* KPI Cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 24 }}>
-          <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 10, padding: '16px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>ใบเสนอทั้งหมด</div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: '#0f2e5a', marginTop: 4 }}>{totalCount} <span style={{ fontSize: 14, fontWeight: 500 }}>ฉบับ</span></div>
+          <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 12, padding: '16px 20px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+            <div style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)', fontWeight: 600 }}>ใบเสนอทั้งหมด</div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--ink-primary, #eef2ff)', marginTop: 4 }}>{totalCount} <span style={{ fontSize: 14, fontWeight: 500 }}>ฉบับ</span></div>
           </div>
-          <div style={{ background: 'white', border: '1px solid #fef08a', borderRadius: 10, padding: '16px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', borderLeft: '4px solid #eab308' }}>
-            <div style={{ fontSize: 12, color: '#854d0e', fontWeight: 600 }}>รอพิจารณาอนุมัติ</div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: '#a16207', marginTop: 4 }}>{pendingCount} <span style={{ fontSize: 14, fontWeight: 500 }}>ฉบับ</span></div>
+          <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: 12, padding: '16px 20px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)', borderLeft: '4px solid #f59e0b' }}>
+            <div style={{ fontSize: 12, color: '#fcd34d', fontWeight: 600 }}>รอพิจารณาอนุมัติ</div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: '#fbbf24', marginTop: 4 }}>{pendingCount} <span style={{ fontSize: 14, fontWeight: 500 }}>ฉบับ</span></div>
           </div>
-          <div style={{ background: 'white', border: '1px solid #bbf7d0', borderRadius: 10, padding: '16px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', borderLeft: '4px solid #22c55e' }}>
-            <div style={{ fontSize: 12, color: '#166534', fontWeight: 600 }}>อนุมัติเรียบร้อย</div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: '#15803d', marginTop: 4 }}>{approvedCount} <span style={{ fontSize: 14, fontWeight: 500 }}>ฉบับ</span></div>
+          <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: 12, padding: '16px 20px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)', borderLeft: '4px solid #22c55e' }}>
+            <div style={{ fontSize: 12, color: '#86efac', fontWeight: 600 }}>อนุมัติเรียบร้อย</div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: '#4ade80', marginTop: 4 }}>{approvedCount} <span style={{ fontSize: 14, fontWeight: 500 }}>ฉบับ</span></div>
           </div>
-          <div style={{ background: 'white', border: '1px solid #bfdbfe', borderRadius: 10, padding: '16px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', borderLeft: '4px solid #3b82f6' }}>
-            <div style={{ fontSize: 12, color: '#1e40af', fontWeight: 600 }}>รวมจุดสำรวจชำรุด</div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: '#1d4ed8', marginTop: 4 }}>{totalDefectPoints} <span style={{ fontSize: 14, fontWeight: 500 }}>จุด</span></div>
+          <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: 12, padding: '16px 20px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)', borderLeft: '4px solid #3b82f6' }}>
+            <div style={{ fontSize: 12, color: '#93c5fd', fontWeight: 600 }}>รวมจุดสำรวจชำรุด</div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: '#60a5fa', marginTop: 4 }}>{totalDefectPoints} <span style={{ fontSize: 14, fontWeight: 500 }}>จุด</span></div>
           </div>
         </div>
 
         {/* Filter and Search Bar */}
-        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 10, padding: '14px 18px', marginBottom: 20, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 12, padding: '14px 18px', marginBottom: 20, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
           <div style={{ display: 'flex', gap: 10, flex: 1, minWidth: 260 }}>
             <input 
               type="text" 
@@ -146,9 +147,11 @@ function RepairProposalListInner() {
               onChange={(e) => setSearch(e.target.value)}
               style={{
                 width: '100%',
-                padding: '8px 14px',
-                borderRadius: 6,
-                border: '1px solid #cbd5e1',
+                padding: '9px 14px',
+                borderRadius: 8,
+                border: '1px solid var(--border-strong, #2d3f5e)',
+                background: 'var(--bg-input, #080e1a)',
+                color: 'var(--ink-primary, #eef2ff)',
                 fontSize: 13,
                 outline: 'none'
               }}
@@ -156,30 +159,33 @@ function RepairProposalListInner() {
           </div>
 
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>สถานะ:</span>
+            <span style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)', fontWeight: 600 }}>สถานะ:</span>
             <select 
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               style={{
                 padding: '8px 12px',
-                borderRadius: 6,
-                border: '1px solid #cbd5e1',
+                borderRadius: 8,
+                border: '1px solid var(--border-strong, #2d3f5e)',
+                background: 'var(--bg-input, #080e1a)',
+                color: 'var(--ink-primary, #eef2ff)',
                 fontSize: 13,
-                background: 'white',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                outline: 'none'
               }}>
-              <option value="all">ทั้งหมด ({totalCount})</option>
-              <option value="pending_approval">รออนุมัติ ({pendingCount})</option>
-              <option value="approved">อนุมัติแล้ว ({approvedCount})</option>
+              <option value="all" style={{ background: '#0c1220', color: '#eef2ff' }}>ทั้งหมด ({totalCount})</option>
+              <option value="pending_approval" style={{ background: '#0c1220', color: '#eef2ff' }}>รออนุมัติ ({pendingCount})</option>
+              <option value="approved" style={{ background: '#0c1220', color: '#eef2ff' }}>อนุมัติแล้ว ({approvedCount})</option>
             </select>
             <button 
               onClick={fetchProposals}
               title="รีเฟรชข้อมูล"
               style={{
                 padding: '8px 12px',
-                background: '#f1f5f9',
-                border: '1px solid #cbd5e1',
-                borderRadius: 6,
+                background: 'var(--bg-surface-raised, #172340)',
+                border: '1px solid var(--border-strong, #2d3f5e)',
+                borderRadius: 8,
+                color: 'var(--ink-primary, #eef2ff)',
                 cursor: 'pointer',
                 fontSize: 13
               }}>
@@ -190,28 +196,29 @@ function RepairProposalListInner() {
 
         {/* Proposals List */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b' }}>
-            <div style={{ fontSize: 24, marginBottom: 8 }}>⏳</div>
+          <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--ink-secondary, #94a3c4)' }}>
+            <div style={{ fontSize: 28, marginBottom: 8 }}>⏳</div>
             <div>กำลังโหลดข้อมูลประวัติใบเสนอแจ้งซ่อม...</div>
           </div>
         ) : filteredProposals.length === 0 ? (
-          <div style={{ background: 'white', border: '1px dashed #cbd5e1', borderRadius: 12, padding: '60px 20px', textAlign: 'center' }}>
+          <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px dashed var(--border-strong, #2d3f5e)', borderRadius: 12, padding: '60px 20px', textAlign: 'center' }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
-            <h3 style={{ fontSize: 18, color: '#334155', margin: '0 0 6px' }}>ยังไม่มีรายการใบเสนอแจ้งซ่อม</h3>
-            <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 16px' }}>
+            <h3 style={{ fontSize: 18, color: 'var(--ink-primary, #eef2ff)', margin: '0 0 6px' }}>ยังไม่มีรายการใบเสนอแจ้งซ่อม</h3>
+            <p style={{ fontSize: 13, color: 'var(--ink-secondary, #94a3c4)', margin: '0 0 16px' }}>
               สามารถเริ่มต้นสร้างใบเสนอแจ้งซ่อมฉบับแรก หรือเปิดตัวอย่างได้ทันที
             </p>
             <button 
               onClick={() => router.push('/repair-proposal/new')}
               style={{
-                background: '#0284c7',
+                background: 'var(--accent, #2563eb)',
                 color: 'white',
                 fontWeight: 600,
                 fontSize: 14,
                 padding: '10px 20px',
                 borderRadius: 8,
                 border: 'none',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)'
               }}>
               ➕ สร้างใบเสนอซ่อมฉบับใหม่
             </button>
@@ -234,36 +241,37 @@ function RepairProposalListInner() {
                 <div 
                   key={item.refNo}
                   style={{
-                    background: 'white',
-                    border: '1px solid #e2e8f0',
+                    background: 'var(--bg-surface, #111d32)',
+                    border: '1px solid var(--border-hairline, #1e2e4a)',
                     borderRadius: 12,
                     padding: '18px 22px',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.03)',
-                    transition: 'transform 0.15s, box-shadow 0.15s'
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                    transition: 'border-color 0.15s, transform 0.15s'
                   }}>
                   
                   {/* Card Top */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10, borderBottom: '1px solid #f1f5f9', paddingBottom: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10, borderBottom: '1px solid var(--border-hairline, #1e2e4a)', paddingBottom: 12 }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                         <span style={{ 
-                          background: '#e0f2fe', 
-                          color: '#0369a1', 
+                          background: 'rgba(37, 99, 235, 0.22)', 
+                          color: '#60a5fa', 
                           fontWeight: 800, 
                           fontSize: 13, 
-                          padding: '2px 8px', 
-                          borderRadius: 4 
+                          padding: '3px 9px', 
+                          borderRadius: 6,
+                          border: '1px solid rgba(59, 130, 246, 0.4)'
                         }}>
                           {item.refNo}
                         </span>
-                        <span style={{ fontSize: 13, color: '#64748b' }}>• วันที่ {item.docDate || item.docDateISO}</span>
+                        <span style={{ fontSize: 13, color: 'var(--ink-secondary, #94a3c4)' }}>• วันที่ {item.docDate || item.docDateISO}</span>
                         {item.priority === 'high' && (
-                          <span style={{ background: '#fef3c7', color: '#b45309', fontSize: 11, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>
+                          <span style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 4, border: '1px solid rgba(245, 158, 11, 0.4)' }}>
                             เร่งด่วนสูง
                           </span>
                         )}
                       </div>
-                      <h2 style={{ fontSize: 17, fontWeight: 700, color: '#0f2e5a', margin: '4px 0' }}>
+                      <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', margin: '4px 0' }}>
                         {item.jobTitle}
                       </h2>
                     </div>
@@ -275,11 +283,11 @@ function RepairProposalListInner() {
                         gap: 5,
                         fontSize: 12,
                         fontWeight: 700,
-                        padding: '4px 10px',
+                        padding: '4px 11px',
                         borderRadius: 20,
-                        background: isApproved ? '#dcfce7' : '#fef9c3',
-                        color: isApproved ? '#15803d' : '#854d0e',
-                        border: `1px solid ${isApproved ? '#86efac' : '#fde047'}`
+                        background: isApproved ? 'rgba(34, 197, 94, 0.18)' : 'rgba(245, 158, 11, 0.18)',
+                        color: isApproved ? '#4ade80' : '#fbbf24',
+                        border: `1px solid ${isApproved ? 'rgba(34, 197, 94, 0.4)' : 'rgba(245, 158, 11, 0.4)'}`
                       }}>
                         {isApproved ? '✅ อนุมัติแล้ว' : '⏳ รอพิจารณาอนุมัติ'}
                       </span>
@@ -288,52 +296,52 @@ function RepairProposalListInner() {
 
                   {/* Card Body */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14, margin: '14px 0' }}>
-                    <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: 8, border: '1px solid #f1f5f9' }}>
-                      <div style={{ fontSize: 11.5, color: '#64748b', fontWeight: 600 }}>📦 อุปกรณ์/อะไหล่ที่ขอจัดซื้อทดแทน:</div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginTop: 2 }}>
+                    <div style={{ background: 'var(--bg-surface-raised, #172340)', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border-hairline, #1e2e4a)' }}>
+                      <div style={{ fontSize: 11.5, color: 'var(--ink-secondary, #94a3c4)', fontWeight: 600 }}>📦 อุปกรณ์/อะไหล่ที่ขอจัดซื้อทดแทน:</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', marginTop: 2 }}>
                         {equipName}
                       </div>
-                      <div style={{ fontSize: 12, color: '#0284c7', fontWeight: 600, marginTop: 2 }}>
+                      <div style={{ fontSize: 12, color: '#60a5fa', fontWeight: 600, marginTop: 2 }}>
                         {equipModel}
                       </div>
-                      <div style={{ fontSize: 12, color: '#334155', marginTop: 2 }}>
-                        จำนวน: <strong>{equipQty} {equipUnit}</strong>
+                      <div style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)', marginTop: 2 }}>
+                        จำนวน: <strong style={{ color: 'var(--ink-primary, #eef2ff)' }}>{equipQty} {equipUnit}</strong>
                       </div>
                     </div>
 
-                    <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: 8, border: '1px solid #f1f5f9' }}>
-                      <div style={{ fontSize: 11.5, color: '#64748b', fontWeight: 600 }}>📍 จุดติดตั้งที่พบปัญหา ({pointCount} จุด):</div>
-                      <div style={{ fontSize: 13, color: '#334155', marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                    <div style={{ background: 'var(--bg-surface-raised, #172340)', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border-hairline, #1e2e4a)' }}>
+                      <div style={{ fontSize: 11.5, color: 'var(--ink-secondary, #94a3c4)', fontWeight: 600 }}>📍 จุดติดตั้งที่พบปัญหา ({pointCount} จุด):</div>
+                      <div style={{ fontSize: 13, color: 'var(--ink-primary, #eef2ff)', marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                         {item.surveyPoints?.slice(0, 6).map((p, idx) => (
-                          <span key={idx} style={{ background: '#e2e8f0', padding: '2px 6px', borderRadius: 3, fontSize: 11.5, fontWeight: 600 }}>
+                          <span key={idx} style={{ background: 'var(--bg-input, #080e1a)', color: '#eef2ff', border: '1px solid var(--border-strong, #2d3f5e)', padding: '2px 7px', borderRadius: 4, fontSize: 11.5, fontWeight: 600 }}>
                             {p.building}
                           </span>
                         ))}
                         {pointCount > 6 && (
-                          <span style={{ fontSize: 11.5, color: '#64748b', alignSelf: 'center' }}>+{pointCount - 6} จุด...</span>
+                          <span style={{ fontSize: 11.5, color: 'var(--ink-secondary, #94a3c4)', alignSelf: 'center' }}>+{pointCount - 6} จุด...</span>
                         )}
                       </div>
-                      <div style={{ fontSize: 12, color: '#64748b', marginTop: 6 }}>
+                      <div style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)', marginTop: 6 }}>
                         ผู้ตรวจสอบ: {item.inspector?.name || 'ช่างสำรวจหน้างาน'}
                       </div>
                     </div>
                   </div>
 
                   {/* Card Footer Actions */}
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, borderTop: '1px solid #f1f5f9', paddingTop: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, borderTop: '1px solid var(--border-hairline, #1e2e4a)', paddingTop: 12 }}>
                     <button 
                       onClick={() => router.push(`/repair-proposal/new?refNo=${encodeURIComponent(item.refNo)}`)}
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: 6,
-                        background: '#f1f5f9',
-                        color: '#334155',
+                        background: 'var(--bg-surface-raised, #172340)',
+                        color: 'var(--ink-primary, #eef2ff)',
                         fontWeight: 600,
                         fontSize: 13,
-                        padding: '6px 14px',
-                        borderRadius: 6,
-                        border: '1px solid #cbd5e1',
+                        padding: '7px 14px',
+                        borderRadius: 8,
+                        border: '1px solid var(--border-strong, #2d3f5e)',
                         cursor: 'pointer'
                       }}>
                       <span>👁️ เปิดดู / พิมพ์ A4</span>
@@ -345,13 +353,13 @@ function RepairProposalListInner() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: 6,
-                        background: '#f0fdf4',
-                        color: '#15803d',
+                        background: 'rgba(37, 99, 235, 0.18)',
+                        color: '#60a5fa',
                         fontWeight: 600,
                         fontSize: 13,
-                        padding: '6px 14px',
-                        borderRadius: 6,
-                        border: '1px solid #bbf7d0',
+                        padding: '7px 14px',
+                        borderRadius: 8,
+                        border: '1px solid rgba(59, 130, 246, 0.35)',
                         cursor: 'pointer'
                       }}>
                       <span>✏️ แก้ไข</span>
@@ -364,13 +372,13 @@ function RepairProposalListInner() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: 6,
-                        background: '#fef2f2',
-                        color: '#b91c1c',
+                        background: 'rgba(239, 68, 68, 0.15)',
+                        color: '#f87171',
                         fontWeight: 600,
                         fontSize: 13,
-                        padding: '6px 12px',
-                        borderRadius: 6,
-                        border: '1px solid #fecaca',
+                        padding: '7px 12px',
+                        borderRadius: 8,
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
                         cursor: 'pointer'
                       }}>
                       <span>{deletingRef === item.refNo ? 'กำลังลบ...' : '🗑️ ลบ'}</span>
