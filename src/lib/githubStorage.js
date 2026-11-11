@@ -396,6 +396,7 @@ async function deleteRepairProposal(refNo) {
 async function loadRepairSettings() {
   const defaultSettings = {
     header: {
+      bannerImageUrl: '',
       companyTitle: 'การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย (กฟผ.)',
       companySubtitle: 'ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร (หบท-ธ.)',
       companyAddress: 'โทรศัพท์ 02-436-0000 | อาคาร ท.102 สำนักงานกลาง กฟผ.',

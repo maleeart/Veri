@@ -4,13 +4,54 @@ import { useState, useEffect, useRef, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Sidenav from '../../components/Sidenav';
 
+// Compress and downscale uploaded images client-side before storing
+const compressImageFile = (file, maxWidth = 1600, maxHeight = 500, quality = 0.9) => {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type.startsWith('image/')) {
+      return reject(new Error('ไฟล์ไม่ใช่รูปภาพ'));
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const format = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        const dataUrl = canvas.toDataURL(format, quality);
+        resolve(dataUrl);
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
 // Default Admin Settings
 const defaultAdminSettings = {
   header: {
+    bannerImageUrl: '', // Data URL หรือ URL ของรูปภาพหัวกระดาษแบบเต็ม A4
     companyTitle: 'การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย (กฟผ.)',
     companySubtitle: 'ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร (หบท-ธ.)',
     companyAddress: 'โทรศัพท์ 02-436-0000 | อาคาร ท.102 สำนักงานกลาง กฟผ.',
-    logoType: 'egat', // 'egat' | 'veri' | 'custom' | 'none'
+    logoType: 'egat', // 'egat' | 'veri' | 'none'
     customLogoUrl: '',
     showLetterhead: true
   },
@@ -330,7 +371,15 @@ function RepairProposalFormInner() {
       try {
         const local = localStorage.getItem('repair_proposal_admin_settings');
         if (local) {
-          loaded = { ...defaultAdminSettings, ...JSON.parse(local) };
+          const parsed = JSON.parse(local);
+          loaded = { 
+            ...defaultAdminSettings, 
+            ...parsed,
+            header: { ...defaultAdminSettings.header, ...(parsed.header || {}) },
+            approver: { ...defaultAdminSettings.approver, ...(parsed.approver || {}) },
+            runningNumber: { ...defaultAdminSettings.runningNumber, ...(parsed.runningNumber || {}) },
+            defaults: { ...defaultAdminSettings.defaults, ...(parsed.defaults || {}) }
+          };
         }
       } catch (e) {}
 
@@ -339,7 +388,14 @@ function RepairProposalFormInner() {
         const res = await fetch('/api/repair-proposals/settings', { cache: 'no-store' });
         const data = await res.json();
         if (data && data.ok && data.settings) {
-          loaded = { ...loaded, ...data.settings };
+          loaded = { 
+            ...loaded, 
+            ...data.settings,
+            header: { ...loaded.header, ...(data.settings.header || {}) },
+            approver: { ...loaded.approver, ...(data.settings.approver || {}) },
+            runningNumber: { ...loaded.runningNumber, ...(data.settings.runningNumber || {}) },
+            defaults: { ...loaded.defaults, ...(data.settings.defaults || {}) }
+          };
         }
       } catch (e) {}
 
@@ -1306,12 +1362,15 @@ function RepairProposalFormInner() {
                             <input
                               type="file"
                               accept="image/*"
-                              onChange={(e) => {
+                              onChange={async (e) => {
                                 const f = e.target.files[0];
                                 if (!f) return;
-                                const r = new FileReader();
-                                r.onload = ev => setSig2Image(ev.target.result);
-                                r.readAsDataURL(f);
+                                try {
+                                  const compressed = await compressImageFile(f, 600, 200, 0.9);
+                                  setSig2Image(compressed);
+                                } catch (err) {
+                                  alert('ไม่สามารถโหลดรูปภาพได้: ' + err.message);
+                                }
                               }}
                               style={{ display: 'none' }}
                             />
@@ -1495,28 +1554,40 @@ function RepairProposalFormInner() {
               
               {/* Official Letterhead Banner (Configured in Admin Settings) */}
               {adminSettings.header?.showLetterhead && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16, borderBottom: '2.5px solid #0f2e5a', paddingBottom: 12, marginBottom: 14 }}>
-                  {currentLogoUrl && (
+                adminSettings.header?.bannerImageUrl ? (
+                  /* MODE A: รูปภาพหัวกระดาษแบบเต็ม A4 (Full Banner Image - No text overlay) */
+                  <div style={{ width: '100%', borderBottom: '2px solid #0f2e5a', paddingBottom: 8, marginBottom: 14 }}>
                     <img 
-                      src={currentLogoUrl} 
-                      alt="Logo" 
-                      style={{ maxHeight: 60, maxWidth: 90, objectFit: 'contain' }} 
+                      src={adminSettings.header.bannerImageUrl} 
+                      alt="Official Letterhead Banner" 
+                      style={{ width: '100%', maxHeight: 135, objectFit: 'contain', display: 'block', margin: '0 auto' }} 
                     />
-                  )}
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 17, fontWeight: 800, color: '#0f2e5a', lineHeight: 1.25 }}>
-                      {adminSettings.header?.companyTitle}
-                    </div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#334155', marginTop: 2 }}>
-                      {adminSettings.header?.companySubtitle}
-                    </div>
-                    {adminSettings.header?.companyAddress && (
-                      <div style={{ fontSize: 10.5, color: '#64748b', marginTop: 2 }}>
-                        {adminSettings.header?.companyAddress}
-                      </div>
-                    )}
                   </div>
-                </div>
+                ) : (
+                  /* MODE B: ข้อความชื่อองค์กร + โลโก้ (ไว้ใช้ตอนที่ไม่มีรูปหัวกระดาษเท่านั้น) */
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16, borderBottom: '2.5px solid #0f2e5a', paddingBottom: 12, marginBottom: 14 }}>
+                    {currentLogoUrl && (
+                      <img 
+                        src={currentLogoUrl} 
+                        alt="Logo" 
+                        style={{ maxHeight: 60, maxWidth: 90, objectFit: 'contain' }} 
+                      />
+                    )}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 17, fontWeight: 800, color: '#0f2e5a', lineHeight: 1.25 }}>
+                        {adminSettings.header?.companyTitle}
+                      </div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#334155', marginTop: 2 }}>
+                        {adminSettings.header?.companySubtitle}
+                      </div>
+                      {adminSettings.header?.companyAddress && (
+                        <div style={{ fontSize: 10.5, color: '#64748b', marginTop: 2 }}>
+                          {adminSettings.header?.companyAddress}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
               )}
 
               {/* Official Form Header Box */}
@@ -1895,104 +1966,163 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                 เปิดแสดงหัวกระดาษทางการ (Official Letterhead Banner)
               </label>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
-                    ชื่อองค์กร / บริษัทหลัก:
-                  </label>
-                  <input 
-                    type="text" 
-                    value={form.header?.companyTitle} 
-                    onChange={e => handleHeaderChange('companyTitle', e.target.value)} 
-                    style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
-                  />
-                </div>
+              {form.header?.showLetterhead && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  
+                  {/* Section A: Full-width A4 Banner Image */}
+                  <div style={{ border: '1.5px solid #0284c7', borderRadius: 8, padding: 14, background: '#f0f9ff' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <div style={{ fontWeight: 800, fontSize: 13.5, color: '#0369a1', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>🖼️</span> รูปภาพหัวกระดาษแบบเต็ม A4 (Full Banner Image)
+                      </div>
+                      {form.header?.bannerImageUrl && (
+                        <button
+                          type="button"
+                          onClick={() => handleHeaderChange('bannerImageUrl', '')}
+                          style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#b91c1c', padding: '3px 8px', borderRadius: 4, fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
+                          ✕ นำรูปออก (กลับไปใช้ข้อความ)
+                        </button>
+                      )}
+                    </div>
 
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
-                    หน่วยงานย่อย / ฝ่าย / แผนก:
-                  </label>
-                  <input 
-                    type="text" 
-                    value={form.header?.companySubtitle} 
-                    onChange={e => handleHeaderChange('companySubtitle', e.target.value)} 
-                    style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
-                  />
-                </div>
+                    <p style={{ fontSize: 11.5, color: '#475569', margin: '0 0 10px 0', lineHeight: 1.45 }}>
+                      เมื่ออัปโหลดรูปภาพหัวกระดาษแบบเต็ม ระบบจะแสดงภาพเต็มความกว้าง A4 ในเอกสารทันที และ <strong>ไม่แสดงข้อความชื่อองค์กร/ที่อยู่ซ้ำซ้อน</strong> (เหมาะสำหรับหน่วยงานที่มีภาพหัวกระดาษสำเร็จรูป)
+                    </p>
 
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
-                    ข้อมูลติดต่อ / ที่อยู่:
-                  </label>
-                  <input 
-                    type="text" 
-                    value={form.header?.companyAddress} 
-                    onChange={e => handleHeaderChange('companyAddress', e.target.value)} 
-                    style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
-                  />
-                </div>
+                    {form.header?.bannerImageUrl ? (
+                      <div style={{ border: '1.5px dashed #0284c7', borderRadius: 6, padding: 10, background: '#ffffff', textAlign: 'center', marginBottom: 10 }}>
+                        <img 
+                          src={form.header.bannerImageUrl} 
+                          alt="Banner Preview" 
+                          style={{ width: '100%', maxHeight: 110, objectFit: 'contain', display: 'block', margin: '0 auto' }} 
+                        />
+                        <div style={{ fontSize: 11, color: '#15803d', fontWeight: 700, marginTop: 6 }}>
+                          ✓ รูปภาพหัวกระดาษแบบเต็ม A4 พร้อมใช้งาน
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ border: '1.5px dashed #cbd5e1', borderRadius: 6, padding: 16, background: '#ffffff', textAlign: 'center', marginBottom: 10, color: '#94a3b8', fontSize: 12 }}>
+                        ยังไม่มีการอัปโหลดรูปหัวกระดาษแบบเต็ม (ระบบจะใช้ข้อความด้านล่างแทน)
+                      </div>
+                    )}
 
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>
-                    รูปโลโก้หัวกระดาษ:
-                  </label>
-                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-                    <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
-                      <input 
-                        type="radio" 
-                        name="logoType" 
-                        checked={form.header?.logoType === 'egat'} 
-                        onChange={() => handleHeaderChange('logoType', 'egat')} 
-                      />
-                      โลโก้ กฟผ. (EGAT)
-                    </label>
-                    <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
-                      <input 
-                        type="radio" 
-                        name="logoType" 
-                        checked={form.header?.logoType === 'veri'} 
-                        onChange={() => handleHeaderChange('logoType', 'veri')} 
-                      />
-                      โลโก้ Veri
-                    </label>
-                    <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
-                      <input 
-                        type="radio" 
-                        name="logoType" 
-                        checked={form.header?.logoType === 'custom'} 
-                        onChange={() => handleHeaderChange('logoType', 'custom')} 
-                      />
-                      อัปโหลดโลโก้เอง
-                    </label>
-                    <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
-                      <input 
-                        type="radio" 
-                        name="logoType" 
-                        checked={form.header?.logoType === 'none'} 
-                        onChange={() => handleHeaderChange('logoType', 'none')} 
-                      />
-                      ไม่แสดงโลโก้
-                    </label>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <label style={{ background: '#0284c7', color: 'white', padding: '6px 14px', borderRadius: 6, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        📁 {form.header?.bannerImageUrl ? 'เปลี่ยนรูปหัวกระดาษใหม่' : 'อัปโหลดรูปหัวกระดาษแบบเต็ม A4'}
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={async (e) => {
+                            const f = e.target.files[0];
+                            if (!f) return;
+                            try {
+                              const compressed = await compressImageFile(f, 1600, 500, 0.9);
+                              handleHeaderChange('bannerImageUrl', compressed);
+                            } catch (err) {
+                              alert('ไม่สามารถโหลดรูปภาพได้: ' + err.message);
+                            }
+                          }} 
+                          style={{ display: 'none' }} 
+                        />
+                      </label>
+                      {form.header?.bannerImageUrl && (
+                        <span style={{ fontSize: 11.5, color: '#0369a1', fontWeight: 600 }}>
+                          ✓ อัปเดตรูปเรียบร้อย
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  {form.header?.logoType === 'custom' && (
-                    <div style={{ marginTop: 8 }}>
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        onChange={e => {
-                          const f = e.target.files[0];
-                          if (!f) return;
-                          const r = new FileReader();
-                          r.onload = ev => handleHeaderChange('customLogoUrl', ev.target.result);
-                          r.readAsDataURL(f);
-                        }} 
-                        style={{ fontSize: 12 }} 
-                      />
+                  {/* Section B: Text Header Fallback */}
+                  <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: 14, background: form.header?.bannerImageUrl ? '#f8fafc' : '#ffffff', opacity: form.header?.bannerImageUrl ? 0.65 : 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: '#334155' }}>
+                        📝 ข้อมูลข้อความหัวกระดาษ (ไว้ใช้ตอนที่ไม่มีรูปหัวกระดาษเท่านั้น)
+                      </div>
+                      {form.header?.bannerImageUrl && (
+                        <span style={{ fontSize: 11, background: '#e2e8f0', color: '#64748b', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>
+                          ซ่อนในเอกสารอัตโนมัติ (เนื่องจากใช้รูปภาพหัวกระดาษแล้ว)
+                        </span>
+                      )}
                     </div>
-                  )}
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 3 }}>
+                          ชื่อองค์กร / บริษัทหลัก:
+                        </label>
+                        <input 
+                          type="text" 
+                          value={form.header?.companyTitle} 
+                          onChange={e => handleHeaderChange('companyTitle', e.target.value)} 
+                          style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 3 }}>
+                          หน่วยงานย่อย / ฝ่าย / แผนก:
+                        </label>
+                        <input 
+                          type="text" 
+                          value={form.header?.companySubtitle} 
+                          onChange={e => handleHeaderChange('companySubtitle', e.target.value)} 
+                          style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 3 }}>
+                          ข้อมูลติดต่อ / ที่อยู่:
+                        </label>
+                        <input 
+                          type="text" 
+                          value={form.header?.companyAddress} 
+                          onChange={e => handleHeaderChange('companyAddress', e.target.value)} 
+                          style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }} 
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>
+                          โลโก้ประกอบข้อความ (ขนาดเล็ก):
+                        </label>
+                        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+                            <input 
+                              type="radio" 
+                              name="logoType" 
+                              checked={form.header?.logoType === 'egat'} 
+                              onChange={() => handleHeaderChange('logoType', 'egat')} 
+                            />
+                            โลโก้ กฟผ. (EGAT)
+                          </label>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+                            <input 
+                              type="radio" 
+                              name="logoType" 
+                              checked={form.header?.logoType === 'veri'} 
+                              onChange={() => handleHeaderChange('logoType', 'veri')} 
+                            />
+                            โลโก้ Veri
+                          </label>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+                            <input 
+                              type="radio" 
+                              name="logoType" 
+                              checked={form.header?.logoType === 'none'} 
+                              onChange={() => handleHeaderChange('logoType', 'none')} 
+                            />
+                            ไม่แสดงโลโก้
+                          </label>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+
                 </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -2056,12 +2186,15 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                     <input 
                       type="file" 
                       accept="image/*" 
-                      onChange={e => {
+                      onChange={async e => {
                         const f = e.target.files[0];
                         if (!f) return;
-                        const r = new FileReader();
-                        r.onload = ev => handleApproverChange('signatureUrl', ev.target.result);
-                        r.readAsDataURL(f);
+                        try {
+                          const compressed = await compressImageFile(f, 600, 200, 0.9);
+                          handleApproverChange('signatureUrl', compressed);
+                        } catch (err) {
+                          alert('ไม่สามารถโหลดรูปภาพได้: ' + err.message);
+                        }
                       }} 
                       style={{ display: 'none' }} 
                     />
