@@ -1,0 +1,51 @@
+{
+  "refNo": "REP-2569-001",
+  "jobTitle": "",
+  "docDate": "11 พฤศจิกายน 2569",
+  "docDateISO": "2026-11-11",
+  "priority": "high",
+  "status": "approved",
+  "inspector": {
+    "name": "",
+    "role": "วิศวกรระบบไฟฟ้าและบำรุงรักษา",
+    "department": "หบท-ธ. ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร"
+  },
+  "surveyPoints": [
+    {
+      "id": 1,
+      "building": "",
+      "location": "",
+      "symptom": "",
+      "qty": 1,
+      "action": "เปลี่ยนทดแทน",
+      "photo": null
+    }
+  ],
+  "itemsRequested": [
+    {
+      "id": 1,
+      "name": "",
+      "modelPart": "",
+      "qty": 1,
+      "unit": "ตัว",
+      "purpose": ""
+    }
+  ],
+  "substitutionSpecs": "",
+  "justification": "",
+  "signatures": {
+    "surveyor": {
+      "name": "",
+      "role": "วิศวกรระบบไฟฟ้าและบำรุงรักษา",
+      "signed": false,
+      "image": null
+    },
+    "approver": {
+      "name": "นายตวงเพชร ชัยยานนท์",
+      "role": "วศ.4 หบท-ธ.",
+      "signed": true,
+      "decision": "approved",
+      "image": "/assets/shared/signature-approver.png"
+    }
+  }
+}
