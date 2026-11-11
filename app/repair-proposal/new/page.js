@@ -601,7 +601,7 @@ function RepairProposalFormInner() {
     }
   };
 
-  // Handle Admin PIN Check (PIN: 8888)
+  // Handle Admin PIN Check
   const handlePinSubmit = (e) => {
     e.preventDefault();
     if (pinInput.trim() === '8888') {
@@ -611,7 +611,7 @@ function RepairProposalFormInner() {
       setPinInput('');
       setShowSettingsModal(true);
     } else {
-      setPinError('รหัสผ่านไม่ถูกต้อง (รหัสผ่านคือ 8888)');
+      setPinError('รหัส PIN ไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง');
     }
   };
 
@@ -630,10 +630,28 @@ function RepairProposalFormInner() {
     setAdminSettings(newSettings);
     localStorage.setItem('repair_proposal_admin_settings', JSON.stringify(newSettings));
     
-    // Update active form values if creating new
-    setApproverName(newSettings.approver.name);
-    setApproverRole(newSettings.approver.role);
-    setSig2Image(newSettings.approver.signatureUrl);
+    // 1. Update approver & signature immediately in active form
+    if (newSettings.approver?.name) setApproverName(newSettings.approver.name);
+    if (newSettings.approver?.role) setApproverRole(newSettings.approver.role);
+    if (newSettings.approver?.signatureUrl) {
+      setSig2Image(newSettings.approver.signatureUrl);
+      setApproverSigMode('image');
+    }
+
+    // 2. Update default department, inspector role, priority immediately
+    if (newSettings.defaults?.department) setDepartment(newSettings.defaults.department);
+    if (newSettings.defaults?.inspectorRole) setInspectorRole(newSettings.defaults.inspectorRole);
+    if (newSettings.defaults?.priority) setPriority(newSettings.defaults.priority);
+
+    // 3. Re-calculate running refNo with new prefix/next number if creating new proposal
+    if (!editRefNo) {
+      try {
+        const newRef = await generateAutoRefNo(newSettings);
+        if (newRef) setRefNo(newRef);
+      } catch (e) {
+        console.warn('Failed to regenerate refNo:', e);
+      }
+    }
 
     try {
       await fetch('/api/repair-proposals/settings', {
@@ -645,7 +663,7 @@ function RepairProposalFormInner() {
       console.warn('Settings API sync warning:', e);
     }
 
-    alert('บันทึกการตั้งค่าระบบแอดมินเรียบร้อยแล้ว!');
+    alert('บันทึกการตั้งค่าระบบเรียบร้อยแล้ว!');
     setShowSettingsModal(false);
   };
 
@@ -726,7 +744,7 @@ function RepairProposalFormInner() {
             <button 
               onClick={openAdminPanel}
               style={{ background: '#f8fafc', border: '1px solid #94a3b8', borderRadius: 6, padding: '6px 12px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', color: '#0f2e5a' }}>
-              ⚙️ ตั้งค่าแอดมิน (PIN: 8888)
+              ⚙️ ตั้งค่าระบบ (Admin)
             </button>
             <button 
               onClick={resetToBlankForm}
@@ -919,7 +937,7 @@ function RepairProposalFormInner() {
                 </div>
 
                 <div style={{ marginTop: 14, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 12, fontSize: 12, color: '#475569' }}>
-                  ℹ️ <strong>รายละเอียดหัวกระดาษเอกสาร:</strong> ชื่อองค์กร/บริษัท ({adminSettings.header?.companyTitle}) และโลโก้จะแสดงผลอัตโนมัติบนหัวกระดาษเอกสารทางการ โดยสามารถปรับเปลี่ยนได้ที่เมนู <strong>"⚙️ ตั้งค่าแอดมิน"</strong> ด้านบน
+                  ℹ️ <strong>รายละเอียดหัวกระดาษเอกสาร:</strong> ชื่อองค์กร/บริษัท ({adminSettings.header?.companyTitle}) และโลโก้จะแสดงผลอัตโนมัติบนหัวกระดาษเอกสารทางการ โดยสามารถปรับเปลี่ยนได้ที่เมนู <strong>"⚙️ ตั้งค่าระบบ (Admin)"</strong> ด้านบน
                 </div>
               </div>
             )}
@@ -1695,14 +1713,14 @@ function RepairProposalFormInner() {
           </div>
         )}
 
-        {/* PIN Verification Modal (PIN: 8888) */}
+        {/* PIN Verification Modal */}
         {showPinModal && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
             <div style={{ background: 'white', borderRadius: 12, padding: 24, maxWidth: 360, width: '100%', boxShadow: '0 8px 30px rgba(0,0,0,0.2)' }}>
               <div style={{ textAlign: 'center', marginBottom: 16 }}>
                 <div style={{ fontSize: 36, marginBottom: 6 }}>🔒</div>
                 <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0f2e5a', margin: 0 }}>ยืนยันสิทธิ์ผู้ดูแลระบบ (Admin)</h3>
-                <p style={{ fontSize: 12.5, color: '#64748b', margin: '4px 0 0' }}>กรุณากรอกรหัส PIN 4 หลักเพื่อเข้าสู่เมนูตั้งค่า</p>
+                <p style={{ fontSize: 12.5, color: '#64748b', margin: '4px 0 0' }}>กรุณากรอกรหัส PIN เพื่อเข้าสู่เมนูตั้งค่า</p>
               </div>
 
               <form onSubmit={handlePinSubmit}>
@@ -1712,7 +1730,7 @@ function RepairProposalFormInner() {
                   maxLength={4} 
                   value={pinInput} 
                   onChange={e => { setPinInput(e.target.value); setPinError(''); }}
-                  placeholder="กรอกรหัส PIN (8888)"
+                  placeholder="••••"
                   style={{
                     width: '100%',
                     padding: '10px 14px',
@@ -1769,6 +1787,12 @@ function RepairProposalFormInner() {
 function AdminSettingsModal({ settings, onClose, onSave }) {
   const [form, setForm] = useState(JSON.parse(JSON.stringify(settings)));
   const [activeTab, setActiveTab] = useState('header'); // 'header' | 'approver' | 'ref' | 'defaults'
+
+  useEffect(() => {
+    if (settings) {
+      setForm(JSON.parse(JSON.stringify(settings)));
+    }
+  }, [settings]);
 
   const handleHeaderChange = (field, val) => {
     setForm(prev => ({
@@ -2160,7 +2184,11 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '14px 20px', borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
           <button
             type="button"
-            onClick={() => setForm(JSON.parse(JSON.stringify(defaultAdminSettings)))}
+            onClick={() => {
+              if (confirm('ต้องการคืนค่าเริ่มต้นระบบทั้งหมดใช่หรือไม่?')) {
+                setForm(JSON.parse(JSON.stringify(defaultAdminSettings)));
+              }
+            }}
             style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#b91c1c', padding: '7px 14px', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
             คืนค่าเริ่มต้นระบบ
           </button>

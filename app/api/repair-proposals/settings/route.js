@@ -23,7 +23,7 @@ export async function POST(request) {
 
     // Optional PIN verification if sent
     if (body.pin && String(body.pin).trim() !== '8888') {
-      return NextResponse.json({ ok: false, error: 'รหัส PIN ไม่ถูกต้อง (8888)' }, { status: 403 });
+      return NextResponse.json({ ok: false, error: 'รหัส PIN ไม่ถูกต้อง' }, { status: 403 });
     }
 
     const { pin, ...settingsToSave } = body;
