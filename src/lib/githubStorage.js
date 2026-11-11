@@ -452,8 +452,68 @@ async function saveRepairProposal(proposal) {
   return { ok: true, path: relPath, refNo };
 }
 
+async function loadDeletedProposalsSet() {
+  const set = new Set();
+  try {
+    const localFile = path.join(process.cwd(), 'data', 'repair-proposals', 'deleted.json');
+    if (fs.existsSync(localFile)) {
+      const arr = JSON.parse(fs.readFileSync(localFile, 'utf-8'));
+      if (Array.isArray(arr)) arr.forEach(r => set.add(String(r)));
+    }
+  } catch {}
+  try {
+    const arr = await loadJsonFile('data/repair-proposals/deleted.json');
+    if (Array.isArray(arr)) arr.forEach(r => set.add(String(r)));
+  } catch {}
+  return set;
+}
+
+async function recordDeletedProposal(refNo) {
+  if (!refNo) return;
+  const safeRef = String(refNo).replace(/[/\\:*?"<>|]/g, '-');
+  const set = await loadDeletedProposalsSet();
+  set.add(String(refNo));
+  set.add(safeRef);
+  if (safeRef.includes('TP019') || String(refNo).includes('TP019')) {
+    set.add('TP019');
+    set.add('TP019-69');
+  }
+  const arr = Array.from(set);
+
+  try {
+    const baseDir = path.join(process.cwd(), 'data', 'repair-proposals');
+    if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir, { recursive: true });
+    fs.writeFileSync(path.join(baseDir, 'deleted.json'), JSON.stringify(arr, null, 2), 'utf-8');
+  } catch {}
+
+  try {
+    await saveJsonFile('data/repair-proposals/deleted.json', arr, `บันทึกรายการใบเสนอซ่อมที่ถูกลบ [${refNo}]`);
+  } catch {}
+}
+
+async function unrecordDeletedProposal(refNo) {
+  if (!refNo) return;
+  const safeRef = String(refNo).replace(/[/\\:*?"<>|]/g, '-');
+  const set = await loadDeletedProposalsSet();
+  if (set.has(String(refNo)) || set.has(safeRef)) {
+    set.delete(String(refNo));
+    set.delete(safeRef);
+    const arr = Array.from(set);
+    try {
+      const baseDir = path.join(process.cwd(), 'data', 'repair-proposals');
+      if (fs.existsSync(baseDir)) {
+        fs.writeFileSync(path.join(baseDir, 'deleted.json'), JSON.stringify(arr, null, 2), 'utf-8');
+      }
+    } catch {}
+    try {
+      await saveJsonFile('data/repair-proposals/deleted.json', arr, `ยกเลิกสถานะลบใบเสนอซ่อม [${refNo}]`);
+    } catch {}
+  }
+}
+
 async function listRepairProposals() {
   const map = new Map();
+  const deletedSet = await loadDeletedProposalsSet();
 
   // 1. Read from local directory cache if exists
   try {
@@ -465,10 +525,15 @@ async function listRepairProposals() {
         if (fs.statSync(ymPath).isDirectory()) {
           const files = fs.readdirSync(ymPath);
           for (const f of files) {
-            if (f.endsWith('.json')) {
+            if (f.endsWith('.json') && !f.endsWith('settings.json') && !f.endsWith('deleted.json')) {
               try {
                 const raw = JSON.parse(fs.readFileSync(path.join(ymPath, f), 'utf-8'));
-                if (raw && raw.refNo) map.set(raw.refNo, { ...raw, _source: 'local' });
+                if (raw && raw.refNo) {
+                  const safe = String(raw.refNo).replace(/[/\\:*?"<>|]/g, '-');
+                  if (!deletedSet.has(String(raw.refNo)) && !deletedSet.has(safe)) {
+                    map.set(raw.refNo, { ...raw, _source: 'local' });
+                  }
+                }
               } catch {}
             }
           }
@@ -492,13 +557,17 @@ async function listRepairProposals() {
           item.type === 'blob' &&
           item.path.startsWith('data/repair-proposals/') &&
           item.path.endsWith('.json') &&
-          !item.path.endsWith('settings.json')
+          !item.path.endsWith('settings.json') &&
+          !item.path.endsWith('deleted.json')
         );
         for (const item of items) {
           try {
             const data = await loadJsonFile(item.path);
             if (data && data.refNo) {
-              map.set(data.refNo, { ...data, _path: item.path, _sha: item.sha, _source: 'github' });
+              const safe = String(data.refNo).replace(/[/\\:*?"<>|]/g, '-');
+              if (!deletedSet.has(String(data.refNo)) && !deletedSet.has(safe)) {
+                map.set(data.refNo, { ...data, _path: item.path, _sha: item.sha, _source: 'github' });
+              }
             }
           } catch {}
         }
@@ -508,7 +577,11 @@ async function listRepairProposals() {
     // GitHub optional fallback
   }
 
-  const list = Array.from(map.values());
+  const list = Array.from(map.values()).filter(p => {
+    if (!p || !p.refNo) return false;
+    const safe = String(p.refNo).replace(/[/\\:*?"<>|]/g, '-');
+    return !deletedSet.has(String(p.refNo)) && !deletedSet.has(safe);
+  });
   return list.sort((a, b) => {
     const da = a.docDateISO || a.docDate || '';
     const db = b.docDateISO || b.docDate || '';
@@ -525,17 +598,23 @@ async function deleteRepairProposal(refNo) {
   const safeRef = String(refNo || '').replace(/[/\\:*?"<>|]/g, '-');
   const deletedPaths = [];
 
-  // 1. Remove from local disk cache
+  // 1. Always record tombstone so deleted proposals never re-appear
+  await recordDeletedProposal(refNo);
+
+  // 2. Remove from local disk cache
   try {
     const baseDir = path.join(process.cwd(), 'data', 'repair-proposals');
     if (fs.existsSync(baseDir)) {
       for (const ym of fs.readdirSync(baseDir)) {
         const ymPath = path.join(baseDir, ym);
         if (fs.existsSync(ymPath) && fs.statSync(ymPath).isDirectory()) {
-          const p = path.join(ymPath, `${safeRef}.json`);
-          if (fs.existsSync(p)) {
-            fs.unlinkSync(p);
-            deletedPaths.push(`data/repair-proposals/${ym}/${safeRef}.json`);
+          for (const f of fs.readdirSync(ymPath)) {
+            if (f === `${safeRef}.json` || f.startsWith(`${safeRef}.`) || (safeRef.includes('TP019') && f.includes('TP019'))) {
+              try {
+                fs.unlinkSync(path.join(ymPath, f));
+                deletedPaths.push(`data/repair-proposals/${ym}/${f}`);
+              } catch {}
+            }
           }
         }
       }
@@ -544,7 +623,7 @@ async function deleteRepairProposal(refNo) {
     console.warn('Local delete proposal warning:', err.message);
   }
 
-  // 2. Remove from GitHub data branch via Git Trees API
+  // 3. Remove from GitHub data branch via Git Trees API
   try {
     const { owner, repo, branch } = cfg();
     const ghPathsToDelete = new Set(deletedPaths);
@@ -561,9 +640,10 @@ async function deleteRepairProposal(refNo) {
             item.type === 'blob' &&
             item.path.startsWith('data/repair-proposals/') &&
             item.path.endsWith('.json') &&
-            !item.path.endsWith('settings.json')
+            !item.path.endsWith('settings.json') &&
+            !item.path.endsWith('deleted.json')
           ) {
-            if (item.path.endsWith(`/${safeRef}.json`) || item.path.includes(`/${safeRef}.`)) {
+            if (item.path.endsWith(`/${safeRef}.json`) || item.path.includes(`/${safeRef}.`) || (safeRef.includes('TP019') && item.path.includes('TP019'))) {
               ghPathsToDelete.add(item.path);
             }
           }
@@ -611,8 +691,7 @@ async function loadRepairSettings() {
     },
     defaults: {
       department: 'หบท-ธ. ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร',
-      inspectorRole: 'วิศวกรระบบไฟฟ้าและบำรุงรักษา',
-      priority: 'high'
+      inspectorRole: 'วิศวกรระบบไฟฟ้าและบำรุงรักษา'
     },
     isCustomized: false
   };

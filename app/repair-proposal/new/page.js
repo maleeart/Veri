@@ -1914,7 +1914,6 @@ function RepairProposalFormInner() {
                       <td style={{ padding: 6, fontWeight: 800, color: '#0f2e5a', border: '1.5px solid #475569' }}>{it.name || '-'}</td>
                       <td style={{ padding: 6, border: '1.5px solid #475569' }}>
                         <div style={{ fontWeight: 800, color: '#0f172a' }}>{it.modelPart || '-'}</div>
-                        <div style={{ fontSize: 10, color: '#0369a1', fontWeight: 700, marginTop: 1 }}>(คุณสมบัติตามเงื่อนไขข้อ 3)</div>
                       </td>
                       <td style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#0f172a', border: '1.5px solid #475569' }}>{it.qty || 1}</td>
                       <td style={{ padding: 6, textAlign: 'center', fontWeight: 700, color: '#0f172a', border: '1.5px solid #475569' }}>{it.unit || 'ตัว'}</td>
