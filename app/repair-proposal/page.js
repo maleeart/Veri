@@ -219,10 +219,14 @@ function RepairProposalListInner() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {filteredProposals.map((item) => {
               const pointCount = item.surveyPoints?.length || 0;
-              const equipName = item.itemsRequested?.[0]?.name || item.bomName || 'อุปกรณ์/อะไหล่';
-              const equipModel = item.itemsRequested?.[0]?.modelPart || item.bomModelPart || item.bomModel || '-';
-              const equipQty = item.itemsRequested?.[0]?.qty || item.bomQty || pointCount;
-              const equipUnit = item.itemsRequested?.[0]?.unit || item.bomUnit || 'ตัว';
+              const itemsCount = item.itemsRequested?.length || 1;
+              const firstItem = item.itemsRequested?.[0];
+              const equipName = itemsCount > 1 
+                ? `${itemsCount} รายการ: ${firstItem?.name || ''}` 
+                : (firstItem?.name || item.bomName || 'อุปกรณ์/อะไหล่');
+              const equipModel = firstItem?.modelPart || item.bomModelPart || item.bomModel || '-';
+              const equipQty = firstItem?.qty || item.bomQty || pointCount;
+              const equipUnit = firstItem?.unit || item.bomUnit || 'ตัว';
               const isApproved = item.status === 'approved';
 
               return (
