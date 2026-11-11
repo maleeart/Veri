@@ -393,6 +393,68 @@ async function deleteRepairProposal(refNo) {
   return { ok: true };
 }
 
+async function loadRepairSettings() {
+  const defaultSettings = {
+    header: {
+      companyTitle: 'การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย (กฟผ.)',
+      companySubtitle: 'ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร (หบท-ธ.)',
+      companyAddress: 'โทรศัพท์ 02-436-0000 | อาคาร ท.102 สำนักงานกลาง กฟผ.',
+      logoType: 'egat',
+      customLogoUrl: '',
+      showLetterhead: true
+    },
+    approver: {
+      name: 'นายตวงเพชร ชัยยานนท์',
+      role: 'วศ.4 หบท-ธ.',
+      signatureType: 'image',
+      signatureUrl: '/assets/shared/signature-approver.png'
+    },
+    runningNumber: {
+      prefix: 'REP-',
+      yearType: 'buddhist',
+      nextNumber: 1,
+      digits: 3
+    },
+    defaults: {
+      department: 'หบท-ธ. ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร',
+      inspectorRole: 'วิศวกรระบบไฟฟ้าและบำรุงรักษา',
+      priority: 'high'
+    }
+  };
+
+  const localFile = path.join(process.cwd(), 'data', 'repair-proposals', 'settings.json');
+  try {
+    if (fs.existsSync(localFile)) {
+      const data = JSON.parse(fs.readFileSync(localFile, 'utf-8'));
+      return { ...defaultSettings, ...data };
+    }
+  } catch (err) {
+    console.warn('loadRepairSettings local error:', err.message);
+  }
+
+  try {
+    const data = await loadJsonFile('data/repair-proposals/settings.json');
+    if (data) return { ...defaultSettings, ...data };
+  } catch {}
+
+  return defaultSettings;
+}
+
+async function saveRepairSettings(settings) {
+  const localDir = path.join(process.cwd(), 'data', 'repair-proposals');
+  if (!fs.existsSync(localDir)) fs.mkdirSync(localDir, { recursive: true });
+  const localFile = path.join(localDir, 'settings.json');
+  fs.writeFileSync(localFile, JSON.stringify(settings, null, 2), 'utf-8');
+
+  try {
+    await saveJsonFile('data/repair-proposals/settings.json', settings, 'Update repair proposals admin settings');
+  } catch (err) {
+    console.warn('saveRepairSettings github warning:', err.message);
+  }
+
+  return { ok: true, settings };
+}
+
 module.exports = {
   saveInspectionRecord,
   saveSessionByDate,
@@ -407,4 +469,7 @@ module.exports = {
   listRepairProposals,
   loadRepairProposalByRef,
   deleteRepairProposal,
+  loadRepairSettings,
+  saveRepairSettings,
 };
+
