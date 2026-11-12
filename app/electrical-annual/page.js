@@ -628,6 +628,92 @@ function ChecklistRow({ title, item, onChange }) {
   );
 }
 
+// ── Item Switcher Component (Dropdown Selector & Navigation for Multi-Item Sections) ──
+function ItemSwitcher({
+  label,
+  items = [],
+  currentIndex = 0,
+  onSelect,
+  onAdd,
+  addLabel = '+ เพิ่มชุดใหม่',
+  onDelete,
+  deleteLabel = 'ลบชุดนี้',
+  canDelete = false,
+  badgeText,
+  renderOptionLabel,
+}) {
+  const total = items.length;
+  const safeIdx = Math.min(Math.max(0, currentIndex), Math.max(0, total - 1));
+
+  return (
+    <div className="item-switcher-box">
+      <div className="item-switcher-top">
+        <div className="item-switcher-label-wrap">
+          <span className="item-switcher-tag">📌 {label}</span>
+          {badgeText && <span className="item-switcher-badge">{badgeText}</span>}
+        </div>
+        <div className="item-switcher-actions-top">
+          {canDelete && onDelete && (
+            <button
+              type="button"
+              className="btn-switcher-del"
+              onClick={() => onDelete(safeIdx)}
+              title="ลบรายการที่กำลังดูอยู่นี้"
+            >
+              🗑 {deleteLabel}
+            </button>
+          )}
+          {onAdd && (
+            <button
+              type="button"
+              className="btn-switcher-add"
+              onClick={onAdd}
+            >
+              {addLabel}
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="item-switcher-bar">
+        <button
+          type="button"
+          className="btn-switcher-nav"
+          disabled={safeIdx <= 0}
+          onClick={() => onSelect(safeIdx - 1)}
+          title="ก่อนหน้า"
+        >
+          ‹ ก่อนหน้า
+        </button>
+
+        <div className="item-switcher-select-wrap">
+          <select
+            className="item-switcher-select"
+            value={safeIdx}
+            onChange={(e) => onSelect(Number(e.target.value))}
+          >
+            {items.map((it, idx) => (
+              <option key={it.id || idx} value={idx}>
+                {renderOptionLabel ? renderOptionLabel(it, idx) : `ชุดที่ ${idx + 1}`}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <button
+          type="button"
+          className="btn-switcher-nav"
+          disabled={safeIdx >= total - 1}
+          onClick={() => onSelect(safeIdx + 1)}
+          title="ถัดไป"
+        >
+          ถัดไป ›
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Main Page Inner ───────────────────────────────────────────────────────────
 function ElectricalAnnualInner() {
   const router = useRouter();
@@ -645,10 +731,18 @@ function ElectricalAnnualInner() {
   const [allElecRecords, setAllElecRecords] = useState([]);
   const [duplicateModalRecord, setDuplicateModalRecord] = useState(null);
   const [templateModalOffer, setTemplateModalOffer] = useState(null);
-  const [pageStep, setPageStep] = useState(() => (urlIsEdit || urlFilename ? 1 : 0));
+    const [pageStep, setPageStep] = useState(() => (urlIsEdit || urlFilename ? 1 : 0));
   const [isMobile, setIsMobile] = useState(false);
   const [catTab, setCatTab] = useState('hv'); // 'hv' | 'transformer' | 'mdb'
   const [fileSuffix, setFileSuffix] = useState('');
+
+  // Active indices for Master-Detail Dropdown View (Single item at a time)
+  const [activeHvIdx, setActiveHvIdx] = useState(0);
+  const [activeTfIdx, setActiveTfIdx] = useState(0);
+  const [activeMsbIdx, setActiveMsbIdx] = useState(0);
+  const [activeCircuitIdx, setActiveCircuitIdx] = useState(0);
+  const [activeSubPanelIdx, setActiveSubPanelIdx] = useState(0);
+  const [activeEquipIdx, setActiveEquipIdx] = useState(0);
 
   const DRAFT_KEY = 'draft:elec:annual';
   const [step, setStep] = useState(1); // 1: ผู้ตรวจ&สถานประกอบการ, 2: ข้อมูลทั่วไป, 3: ตรวจสอบอุปกรณ์, 4: สรุปผล
@@ -940,12 +1034,16 @@ function ElectricalAnnualInner() {
     setData((d) => ({ ...d, conclusion: { ...d.conclusion, [field]: val } }));
   };
 
-  // Dynamic Repeaters Actions
+    // Dynamic Repeaters Actions
   const addHighVoltage = () => {
-    setData((d) => ({
-      ...d,
-      highVoltageSystems: [...d.highVoltageSystems, createDefaultHighVoltage(d.highVoltageSystems.length + 1)],
-    }));
+    setData((d) => {
+      const nextArr = [...d.highVoltageSystems, createDefaultHighVoltage(d.highVoltageSystems.length + 1)];
+      setActiveHvIdx(nextArr.length - 1);
+      return {
+        ...d,
+        highVoltageSystems: nextArr,
+      };
+    });
   };
 
   const removeHighVoltage = (idx) => {
@@ -954,11 +1052,13 @@ function ElectricalAnnualInner() {
       ...d,
       highVoltageSystems: d.highVoltageSystems.filter((_, i) => i !== idx),
     }));
+    setActiveHvIdx((prev) => Math.max(0, idx <= prev ? prev - 1 : prev));
   };
 
   const addTransformer = () => {
     setData((d) => {
       const nextTfs = [...d.transformers, createDefaultTransformer(d.transformers.length + 1)];
+      setActiveTfIdx(nextTfs.length - 1);
       return {
         ...d,
         transformers: nextTfs,
@@ -983,18 +1083,24 @@ function ElectricalAnnualInner() {
         },
       };
     });
+    setActiveTfIdx((prev) => Math.max(0, idx <= prev ? prev - 1 : prev));
   };
 
   const addMainSwitchboard = () => {
     setData((d) => {
       const nextIdx = d.mainSwitchboards.length + 1;
       const defaultTf = d.transformers[0]?.no || '1';
+      const nextArr = [
+        ...d.mainSwitchboards,
+        createDefaultMainSwitchboard(nextIdx, defaultTf),
+      ];
+      setActiveMsbIdx(nextArr.length - 1);
+      setActiveCircuitIdx(0);
+      setActiveSubPanelIdx(0);
+      setActiveEquipIdx(0);
       return {
         ...d,
-        mainSwitchboards: [
-          ...d.mainSwitchboards,
-          createDefaultMainSwitchboard(nextIdx, defaultTf),
-        ],
+        mainSwitchboards: nextArr,
       };
     });
   };
@@ -1005,6 +1111,10 @@ function ElectricalAnnualInner() {
       ...d,
       mainSwitchboards: d.mainSwitchboards.filter((_, i) => i !== idx),
     }));
+    setActiveMsbIdx((prev) => Math.max(0, idx <= prev ? prev - 1 : prev));
+    setActiveCircuitIdx(0);
+    setActiveSubPanelIdx(0);
+    setActiveEquipIdx(0);
   };
 
   const updateMainSwitchboard = (idx, field, val) => {
@@ -1055,15 +1165,17 @@ function ElectricalAnnualInner() {
     });
   };
 
-  const addMainCircuitToMdb = (mIdx) => {
+    const addMainCircuitToMdb = (mIdx) => {
     setData((d) => {
       const arr = [...d.mainSwitchboards];
       const msb = arr[mIdx];
       const nextNo = (msb.mainCircuits || []).length + 1;
+      const nextCircuits = [...(msb.mainCircuits || []), createDefaultMainCircuit(nextNo)];
       arr[mIdx] = {
         ...msb,
-        mainCircuits: [...(msb.mainCircuits || []), createDefaultMainCircuit(nextNo)],
+        mainCircuits: nextCircuits,
       };
+      setActiveCircuitIdx(nextCircuits.length - 1);
       return { ...d, mainSwitchboards: arr };
     });
   };
@@ -1079,6 +1191,7 @@ function ElectricalAnnualInner() {
       };
       return { ...d, mainSwitchboards: arr };
     });
+    setActiveCircuitIdx((prev) => Math.max(0, cIdx <= prev ? prev - 1 : prev));
   };
 
   const updateMainCircuitInMdb = (mIdx, cIdx, field, val) => {
@@ -1097,10 +1210,12 @@ function ElectricalAnnualInner() {
       const arr = [...d.mainSwitchboards];
       const msb = arr[mIdx];
       const nextNo = (msb.subPanels || []).length + 1;
+      const nextPanels = [...(msb.subPanels || []), { ...createDefaultSubPanel(nextNo), sourceMdb: msb.no || '1' }];
       arr[mIdx] = {
         ...msb,
-        subPanels: [...(msb.subPanels || []), { ...createDefaultSubPanel(nextNo), sourceMdb: msb.no || '1' }],
+        subPanels: nextPanels,
       };
+      setActiveSubPanelIdx(nextPanels.length - 1);
       return { ...d, mainSwitchboards: arr };
     });
   };
@@ -1116,6 +1231,7 @@ function ElectricalAnnualInner() {
       };
       return { ...d, mainSwitchboards: arr };
     });
+    setActiveSubPanelIdx((prev) => Math.max(0, sIdx <= prev ? prev - 1 : prev));
   };
 
   const updateSubPanelInMdb = (mIdx, sIdx, field, val) => {
@@ -1134,10 +1250,12 @@ function ElectricalAnnualInner() {
       const arr = [...d.mainSwitchboards];
       const msb = arr[mIdx];
       const nextNo = (msb.otherEquipments || []).length + 1;
+      const nextEquips = [...(msb.otherEquipments || []), createDefaultOtherEquipment(nextNo)];
       arr[mIdx] = {
         ...msb,
-        otherEquipments: [...(msb.otherEquipments || []), createDefaultOtherEquipment(nextNo)],
+        otherEquipments: nextEquips,
       };
+      setActiveEquipIdx(nextEquips.length - 1);
       return { ...d, mainSwitchboards: arr };
     });
   };
@@ -1153,6 +1271,7 @@ function ElectricalAnnualInner() {
       };
       return { ...d, mainSwitchboards: arr };
     });
+    setActiveEquipIdx((prev) => Math.max(0, eIdx <= prev ? prev - 1 : prev));
   };
 
   const updateOtherEquipmentInMdb = (mIdx, eIdx, field, val) => {
@@ -1426,7 +1545,7 @@ function ElectricalAnnualInner() {
         </div>
       )}
 
-      {pageStep === 0 ? (
+            {pageStep === 0 ? (
         /* ── Screen 0: เลือกปีประจำเล่มรายงาน ── */
         <div className="year-select-container">
           <header className="elec-hdr">
@@ -1441,31 +1560,56 @@ function ElectricalAnnualInner() {
 
           <div className="year-picker-card">
             <div className="ypc-header">
-              <span className="ypc-icon">⚡📅</span>
+              <div className="ypc-icon-badge">
+                <span>⚡</span>
+              </div>
               <h2 className="ypc-title">เลือกปีประจำเล่มรายงาน</h2>
               <p className="ypc-sub">เลือกปี พ.ศ. ที่ต้องการจัดทำเอกสารตรวจสอบความปลอดภัยระบบไฟฟ้า</p>
             </div>
 
             <div className="ypc-body">
-              <div className="field">
-                <label style={{ fontWeight: 700, fontSize: 14, color: 'var(--ink-primary)', display: 'block', marginBottom: 8 }}>
-                  ประจำปี พ.ศ. (ปี ค.ศ.)
-                </label>
-                <select
-                  className="ypc-select"
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                >
-                  {availableYears.map((yr) => {
+              {/* Quick Year Selection Chips */}
+              <div className="ypc-quick-years">
+                <span className="ypc-quick-label">⚡ เลือกปี พ.ศ. ด่วน:</span>
+                <div className="ypc-quick-pills">
+                  {[currentYear + 1, currentYear, currentYear - 1, currentYear - 2].map((yr) => {
                     const bYear = yr + 543;
-                    const hasRec = allElecRecords.some((r) => r.date?.startsWith(String(yr)));
+                    const isAct = selectedYear === yr;
                     return (
-                      <option key={yr} value={yr}>
-                        พ.ศ. {bYear} ({yr}){hasRec ? ' · [มีข้อมูลแล้ว 📝]' : ''}
-                      </option>
+                      <button
+                        key={yr}
+                        type="button"
+                        className={`ypc-year-chip ${isAct ? 'ypc-year-chip--active' : ''}`}
+                        onClick={() => setSelectedYear(yr)}
+                      >
+                        พ.ศ. {bYear}
+                      </button>
                     );
                   })}
-                </select>
+                </div>
+              </div>
+
+              <div className="field" style={{ marginTop: 4 }}>
+                <label style={{ fontWeight: 700, fontSize: 13.5, color: 'var(--ink-primary)', display: 'block', marginBottom: 8 }}>
+                  หรือเลือกจากรายการปีทั้งหมด (พ.ศ. / ค.ศ.)
+                </label>
+                <div className="ypc-select-wrapper">
+                  <select
+                    className="ypc-select"
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                  >
+                    {availableYears.map((yr) => {
+                      const bYear = yr + 543;
+                      const hasRec = allElecRecords.some((r) => r.date?.startsWith(String(yr)));
+                      return (
+                        <option key={yr} value={yr}>
+                          พ.ศ. {bYear} ({yr}){hasRec ? ' · [มีข้อมูลแล้ว 📝]' : ''}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
               </div>
 
               {/* Compact Year Status Pill */}
@@ -1506,7 +1650,7 @@ function ElectricalAnnualInner() {
                 className="ypc-btn-proceed"
                 onClick={() => handleProceedFromYearSelect(selectedYear)}
               >
-                ดำเนินการต่อ ›
+                เข้าสู่แบบฟอร์มตรวจสอบ ›
               </button>
             </div>
           </div>
@@ -2095,9 +2239,14 @@ function ElectricalAnnualInner() {
       )}
 
       {/* ── STEP 3: รายการตรวจสอบอุปกรณ์ (หน้า 3 - 8 ส่วนที่ 2) ── */}
-      {step === 3 && (
+      {step === 3 && (() => {
+        const curHv = Math.min(activeHvIdx, Math.max(0, (data.highVoltageSystems?.length || 1) - 1));
+        const curTf = Math.min(activeTfIdx, Math.max(0, (data.transformers?.length || 1) - 1));
+        const curMsb = Math.min(activeMsbIdx, Math.max(0, (data.mainSwitchboards?.length || 1) - 1));
+
+        return (
         <section className="form-section">
-          {/* ══ Category Sub-Tabs Navigation (3 หมวดหลัก) ══ */}
+          {/* ══ Category Sub-Tabs Navigation (3 หมวดหลัก - ไม่มีตัวเลขนำหน้า) ══ */}
           <div className="cat-subnav-box">
             <div className="cat-subnav-pills">
               <button
@@ -2107,7 +2256,7 @@ function ElectricalAnnualInner() {
               >
                 <span className="cat-tab-icon">⚡</span>
                 <div className="cat-tab-text">
-                  <span className="cat-tab-title">๒.๑ ระบบแรงสูง</span>
+                  <span className="cat-tab-title">ระบบแรงสูง</span>
                   <span className="cat-tab-badge">{data.highVoltageSystems.length} ชุด</span>
                 </div>
               </button>
@@ -2119,7 +2268,7 @@ function ElectricalAnnualInner() {
               >
                 <span className="cat-tab-icon">🔌</span>
                 <div className="cat-tab-text">
-                  <span className="cat-tab-title">๒.๒ หม้อแปลงไฟฟ้า</span>
+                  <span className="cat-tab-title">หม้อแปลงไฟฟ้า</span>
                   <span className="cat-tab-badge">{data.transformers.length} ลูก</span>
                 </div>
               </button>
@@ -2131,19 +2280,19 @@ function ElectricalAnnualInner() {
               >
                 <span className="cat-tab-icon">🏢</span>
                 <div className="cat-tab-text">
-                  <span className="cat-tab-title">๒.๓ - ๒.๕ ตู้เมน & อาคาร</span>
+                  <span className="cat-tab-title">ตู้เมนสวิตช์ & อาคาร</span>
                   <span className="cat-tab-badge">{data.mainSwitchboards.length} ตู้</span>
                 </div>
               </button>
             </div>
           </div>
 
-          {/* ════ หมวดที่ ๑: ๒.๑ ระบบแรงสูง ════ */}
+          {/* ════ หมวดที่ ๑: ระบบแรงสูง ════ */}
           {catTab === 'hv' && (
             <div className="section-block">
               <div className="section-block__hdr">
                 <div>
-                  <h2 className="section-block__title">๒.๑ ระบบแรงสูง</h2>
+                  <h2 className="section-block__title">ระบบแรงสูง (High Voltage System)</h2>
                   <p className="section-block__sub">สายอากาศ และ เครื่องปลดวงจรต้นทาง</p>
                 </div>
                 <button type="button" className="btn-add-item" onClick={addHighVoltage}>
@@ -2151,114 +2300,141 @@ function ElectricalAnnualInner() {
                 </button>
               </div>
 
-              {data.highVoltageSystems.map((hv, idx) => (
-                <div key={hv.id} className="card-box card-box--nested">
-                  <div className="card-box__sub-hdr">
-                    <span className="card-box__item-num">ระบบแรงสูง ชุดที่ {idx + 1}</span>
-                    {data.highVoltageSystems.length > 1 && (
-                      <button type="button" className="btn-del-item" onClick={() => removeHighVoltage(idx)}>
-                        🗑 ลบชุดนี้
-                      </button>
-                    )}
-                  </div>
+              {/* Master-Detail Item Switcher */}
+              <ItemSwitcher
+                label="เลือกระบบแรงสูงที่ต้องการดู / กรอกข้อมูล"
+                items={data.highVoltageSystems}
+                currentIndex={curHv}
+                onSelect={setActiveHvIdx}
+                onAdd={addHighVoltage}
+                addLabel="+ เพิ่มระบบแรงสูง"
+                onDelete={removeHighVoltage}
+                deleteLabel="ลบระบบแรงสูงชุดนี้"
+                canDelete={data.highVoltageSystems.length > 1}
+                badgeText={`ชุดที่ ${curHv + 1} จาก ${data.highVoltageSystems.length}`}
+                renderOptionLabel={(item, i) => `ระบบแรงสูง ชุดที่ ${i + 1}${item.aerialName ? ' : ' + item.aerialName : ''}`}
+              />
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '14px 0 10px', flexWrap: 'wrap' }}>
-                    <h3 className="group-sub-title" style={{ margin: 0 }}>๒.๑.๑ สายอากาศ :</h3>
-                    <input
-                      type="text"
-                      placeholder="ระบุชื่อสายอากาศ / วงจร / ช่วงเสา..."
-                      style={{ flex: 1, minWidth: 200, padding: '6px 12px', borderRadius: 8, border: '1.5px solid var(--border-strong)', background: 'var(--bg-input)', color: 'var(--ink-primary)', fontSize: 13 }}
-                      value={hv.aerialName || ''}
-                      onChange={(e) => {
-                        const arr = [...data.highVoltageSystems];
-                        arr[idx].aerialName = e.target.value;
-                        setData(d => ({ ...d, highVoltageSystems: arr }));
-                      }}
-                    />
-                  </div>
-                  <ChecklistRow title="- สภาพเสา" item={hv.aerial.pole} onChange={(it) => {
-                    const arr = [...data.highVoltageSystems]; arr[idx].aerial.pole = it; setData(d => ({ ...d, highVoltageSystems: arr }));
-                  }} />
-                  <ChecklistRow title="- การประกอบอุปกรณ์หัวเสา" item={hv.aerial.poleTop} onChange={(it) => {
-                    const arr = [...data.highVoltageSystems]; arr[idx].aerial.poleTop = it; setData(d => ({ ...d, highVoltageSystems: arr }));
-                  }} />
-                  <ChecklistRow title="- สายยึดโยง (Guy Wire)" item={hv.aerial.guyWire} onChange={(it) => {
-                    const arr = [...data.highVoltageSystems]; arr[idx].aerial.guyWire = it; setData(d => ({ ...d, highVoltageSystems: arr }));
-                  }} />
-                  <ChecklistRow title="- การพาดสาย (สภาพสาย ระยะหย่อนยาน)" item={hv.aerial.stringing} onChange={(it) => {
-                    const arr = [...data.highVoltageSystems]; arr[idx].aerial.stringing = it; setData(d => ({ ...d, highVoltageSystems: arr }));
-                  }} />
-                  <ChecklistRow title="- ระยะห่างของสายกับอาคาร สิ่งก่อสร้าง หรือต้นไม้" item={hv.aerial.clearance} onChange={(it) => {
-                    const arr = [...data.highVoltageSystems]; arr[idx].aerial.clearance = it; setData(d => ({ ...d, highVoltageSystems: arr }));
-                  }} />
-                  <ChecklistRow title="- การติดตั้งล่อฟ้าและสภาพ" item={hv.aerial.lightning} onChange={(it) => {
-                    const arr = [...data.highVoltageSystems]; arr[idx].aerial.lightning = it; setData(d => ({ ...d, highVoltageSystems: arr }));
-                  }} />
-                  <ChecklistRow title="- สภาพของจุดต่อสาย" item={hv.aerial.joints} onChange={(it) => {
-                    const arr = [...data.highVoltageSystems]; arr[idx].aerial.joints = it; setData(d => ({ ...d, highVoltageSystems: arr }));
-                  }} />
-                  <ChecklistRow title="- การต่อลงดินและสภาพ" item={hv.aerial.grounding} onChange={(it) => {
-                    const arr = [...data.highVoltageSystems]; arr[idx].aerial.grounding = it; setData(d => ({ ...d, highVoltageSystems: arr }));
-                  }} />
+              {(() => {
+                const hv = data.highVoltageSystems[curHv] || data.highVoltageSystems[0];
+                const idx = curHv;
+                if (!hv) return null;
+                return (
+                  <div key={hv.id || idx} className="card-box card-box--nested">
+                    <div className="card-box__sub-hdr">
+                      <span className="card-box__item-num">ระบบแรงสูง ชุดที่ {idx + 1}</span>
+                      {data.highVoltageSystems.length > 1 && (
+                        <button type="button" className="btn-del-item" onClick={() => removeHighVoltage(idx)}>
+                          🗑 ลบชุดนี้
+                        </button>
+                      )}
+                    </div>
 
-                  <h3 className="group-sub-title" style={{ marginTop: 16 }}>๒.๑.๒ การติดตั้งเครื่องปลดวงจรต้นทาง (ส่วนของผู้ใช้ไฟ)</h3>
-                  <ChecklistRow title="- ดรอปฟิวส์คัตเอาท์" item={hv.disconnectors.dropFuse} onChange={(it) => {
-                    const arr = [...data.highVoltageSystems]; arr[idx].disconnectors.dropFuse = it; setData(d => ({ ...d, highVoltageSystems: arr }));
-                  }} />
-                  <ChecklistRow title="- สวิตช์ตัดตอน (Disconnecting Switch)" item={hv.disconnectors.disconnectSwitch} onChange={(it) => {
-                    const arr = [...data.highVoltageSystems]; arr[idx].disconnectors.disconnectSwitch = it; setData(d => ({ ...d, highVoltageSystems: arr }));
-                  }} />
-                  <ChecklistRow title="- RMU" item={hv.disconnectors.rmu} onChange={(it) => {
-                    const arr = [...data.highVoltageSystems]; arr[idx].disconnectors.rmu = it; setData(d => ({ ...d, highVoltageSystems: arr }));
-                  }} />
-                  <div className="field" style={{ marginTop: 8 }}>
-                    <input
-                      type="text"
-                      placeholder="อื่นๆ (ระบุอุปกรณ์เพิ่มเติม)..."
-                      value={hv.disconnectors.otherText || ''}
-                      onChange={(e) => {
-                        const arr = [...data.highVoltageSystems]; arr[idx].disconnectors.otherText = e.target.value; setData(d => ({ ...d, highVoltageSystems: arr }));
-                      }}
-                    />
-                  </div>
-                  <ChecklistRow title="- สภาพอุปกรณ์ปลดวงจรอื่นๆ" item={hv.disconnectors.other} onChange={(it) => {
-                    const arr = [...data.highVoltageSystems]; arr[idx].disconnectors.other = it; setData(d => ({ ...d, highVoltageSystems: arr }));
-                  }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '14px 0 10px', flexWrap: 'wrap' }}>
+                      <h3 className="group-sub-title" style={{ margin: 0 }}>๒.๑.๑ สายอากาศ :</h3>
+                      <input
+                        type="text"
+                        placeholder="ระบุชื่อสายอากาศ / วงจร / ช่วงเสา..."
+                        style={{ flex: 1, minWidth: 200, padding: '6px 12px', borderRadius: 8, border: '1.5px solid var(--border-strong)', background: 'var(--bg-input)', color: 'var(--ink-primary)', fontSize: 13 }}
+                        value={hv.aerialName || ''}
+                        onChange={(e) => {
+                          const arr = [...data.highVoltageSystems];
+                          arr[idx].aerialName = e.target.value;
+                          setData(d => ({ ...d, highVoltageSystems: arr }));
+                        }}
+                      />
+                    </div>
+                    <ChecklistRow title="- สภาพเสา" item={hv.aerial.pole} onChange={(it) => {
+                      const arr = [...data.highVoltageSystems]; arr[idx].aerial.pole = it; setData(d => ({ ...d, highVoltageSystems: arr }));
+                    }} />
+                    <ChecklistRow title="- การประกอบอุปกรณ์หัวเสา" item={hv.aerial.poleTop} onChange={(it) => {
+                      const arr = [...data.highVoltageSystems]; arr[idx].aerial.poleTop = it; setData(d => ({ ...d, highVoltageSystems: arr }));
+                    }} />
+                    <ChecklistRow title="- สายยึดโยง (Guy Wire)" item={hv.aerial.guyWire} onChange={(it) => {
+                      const arr = [...data.highVoltageSystems]; arr[idx].aerial.guyWire = it; setData(d => ({ ...d, highVoltageSystems: arr }));
+                    }} />
+                    <ChecklistRow title="- การพาดสาย (สภาพสาย ระยะหย่อนยาน)" item={hv.aerial.stringing} onChange={(it) => {
+                      const arr = [...data.highVoltageSystems]; arr[idx].aerial.stringing = it; setData(d => ({ ...d, highVoltageSystems: arr }));
+                    }} />
+                    <ChecklistRow title="- ระยะห่างของสายกับอาคาร สิ่งก่อสร้าง หรือต้นไม้" item={hv.aerial.clearance} onChange={(it) => {
+                      const arr = [...data.highVoltageSystems]; arr[idx].aerial.clearance = it; setData(d => ({ ...d, highVoltageSystems: arr }));
+                    }} />
+                    <ChecklistRow title="- การติดตั้งล่อฟ้าและสภาพ" item={hv.aerial.lightning} onChange={(it) => {
+                      const arr = [...data.highVoltageSystems]; arr[idx].aerial.lightning = it; setData(d => ({ ...d, highVoltageSystems: arr }));
+                    }} />
+                    <ChecklistRow title="- สภาพของจุดต่อสาย" item={hv.aerial.joints} onChange={(it) => {
+                      const arr = [...data.highVoltageSystems]; arr[idx].aerial.joints = it; setData(d => ({ ...d, highVoltageSystems: arr }));
+                    }} />
+                    <ChecklistRow title="- การต่อลงดินและสภาพ" item={hv.aerial.grounding} onChange={(it) => {
+                      const arr = [...data.highVoltageSystems]; arr[idx].aerial.grounding = it; setData(d => ({ ...d, highVoltageSystems: arr }));
+                    }} />
 
-                  <h3 className="group-sub-title" style={{ marginTop: 16 }}>๒.๑.๓ อื่นๆ</h3>
-                  <div className="field" style={{ marginBottom: 8 }}>
-                    <input
-                      type="text"
-                      placeholder="ระบุรายการอื่นๆ ในระบบแรงสูง..."
-                      value={hv.otherText || ''}
-                      onChange={(e) => {
-                        const arr = [...data.highVoltageSystems]; arr[idx].otherText = e.target.value; setData(d => ({ ...d, highVoltageSystems: arr }));
-                      }}
-                    />
+                    <h3 className="group-sub-title" style={{ marginTop: 16 }}>๒.๑.๒ การติดตั้งเครื่องปลดวงจรต้นทาง (ส่วนของผู้ใช้ไฟ)</h3>
+                    <ChecklistRow title="- ดรอปฟิวส์คัตเอาท์" item={hv.disconnectors.dropFuse} onChange={(it) => {
+                      const arr = [...data.highVoltageSystems]; arr[idx].disconnectors.dropFuse = it; setData(d => ({ ...d, highVoltageSystems: arr }));
+                    }} />
+                    <ChecklistRow title="- สวิตช์ตัดตอน (Disconnecting Switch)" item={hv.disconnectors.disconnectSwitch} onChange={(it) => {
+                      const arr = [...data.highVoltageSystems]; arr[idx].disconnectors.disconnectSwitch = it; setData(d => ({ ...d, highVoltageSystems: arr }));
+                    }} />
+                    <ChecklistRow title="- RMU" item={hv.disconnectors.rmu} onChange={(it) => {
+                      const arr = [...data.highVoltageSystems]; arr[idx].disconnectors.rmu = it; setData(d => ({ ...d, highVoltageSystems: arr }));
+                    }} />
+                    <div className="field" style={{ marginTop: 8 }}>
+                      <input
+                        type="text"
+                        placeholder="อื่นๆ (ระบุอุปกรณ์เพิ่มเติม)..."
+                        value={hv.disconnectors.otherText || ''}
+                        onChange={(e) => {
+                          const arr = [...data.highVoltageSystems]; arr[idx].disconnectors.otherText = e.target.value; setData(d => ({ ...d, highVoltageSystems: arr }));
+                        }}
+                      />
+                    </div>
+                    <ChecklistRow title="- สภาพอุปกรณ์ปลดวงจรอื่นๆ" item={hv.disconnectors.other} onChange={(it) => {
+                      const arr = [...data.highVoltageSystems]; arr[idx].disconnectors.other = it; setData(d => ({ ...d, highVoltageSystems: arr }));
+                    }} />
+
+                    <h3 className="group-sub-title" style={{ marginTop: 16 }}>๒.๑.๓ อื่นๆ</h3>
+                    <div className="field" style={{ marginBottom: 8 }}>
+                      <input
+                        type="text"
+                        placeholder="ระบุรายการอื่นๆ ในระบบแรงสูง..."
+                        value={hv.otherText || ''}
+                        onChange={(e) => {
+                          const arr = [...data.highVoltageSystems]; arr[idx].otherText = e.target.value; setData(d => ({ ...d, highVoltageSystems: arr }));
+                        }}
+                      />
+                    </div>
+                    <ChecklistRow title="- รายการแรงสูงอื่นๆ" item={hv.other} onChange={(it) => {
+                      const arr = [...data.highVoltageSystems]; arr[idx].other = it; setData(d => ({ ...d, highVoltageSystems: arr }));
+                    }} />
                   </div>
-                  <ChecklistRow title="- รายการแรงสูงอื่นๆ" item={hv.other} onChange={(it) => {
-                    const arr = [...data.highVoltageSystems]; arr[idx].other = it; setData(d => ({ ...d, highVoltageSystems: arr }));
-                  }} />
-                </div>
-              ))}
+                );
+              })()}
+
+              {/* Bottom Add Button */}
+              <div className="section-bottom-add-bar">
+                <button type="button" className="btn-add-item-bottom" onClick={addHighVoltage}>
+                  + เพิ่มระบบแรงสูงชุดใหม่
+                </button>
+              </div>
 
               <div className="cat-bottom-nav">
                 <button type="button" className="btn-secondary" onClick={() => setStep(2)}>
                   ‹ ย้อนกลับ: ข้อมูลทั่วไป
                 </button>
                 <button type="button" className="btn-primary" onClick={() => setCatTab('transformer')}>
-                  ถัดไป: ๒.๒ หม้อแปลงไฟฟ้า ›
+                  ถัดไป: หม้อแปลงไฟฟ้า ›
                 </button>
               </div>
             </div>
           )}
 
-          {/* ════ หมวดที่ ๒: ๒.๒ หม้อแปลงไฟฟ้า ════ */}
+          {/* ════ หมวดที่ ๒: หม้อแปลงไฟฟ้า ════ */}
           {catTab === 'transformer' && (
             <div className="section-block">
               <div className="section-block__hdr">
                 <div>
-                  <h2 className="section-block__title">๒.๒ หม้อแปลงไฟฟ้า (Transformer)</h2>
+                  <h2 className="section-block__title">หม้อแปลงไฟฟ้า (Transformer)</h2>
                   <p className="section-block__sub">รายละเอียดและสภาพหม้อแปลงไฟฟ้า</p>
                 </div>
                 <button type="button" className="btn-add-item" onClick={addTransformer}>
@@ -2266,198 +2442,184 @@ function ElectricalAnnualInner() {
                 </button>
               </div>
 
-              {data.transformers.map((tf, idx) => (
-                <div key={tf.id} className="card-box card-box--nested">
-                  <div className="card-box__sub-hdr">
-                    <span className="card-box__item-num">หม้อแปลงลูกที่ {tf.no || idx + 1}</span>
-                    {data.transformers.length > 1 && (
-                      <button type="button" className="btn-del-item" onClick={() => removeTransformer(idx)}>
-                        🗑 ลบหม้อแปลงลูกนี้
-                      </button>
-                    )}
-                  </div>
+              {/* Master-Detail Item Switcher */}
+              <ItemSwitcher
+                label="เลือกหม้อแปลงไฟฟ้าที่ต้องการดู / กรอกข้อมูล"
+                items={data.transformers}
+                currentIndex={curTf}
+                onSelect={setActiveTfIdx}
+                onAdd={addTransformer}
+                addLabel="+ เพิ่มหม้อแปลง"
+                onDelete={removeTransformer}
+                deleteLabel="ลบหม้อแปลงลูกนี้"
+                canDelete={data.transformers.length > 1}
+                badgeText={`ลูกที่ ${curTf + 1} จาก ${data.transformers.length}`}
+                renderOptionLabel={(tf, i) => `หม้อแปลงลูกที่ ${tf.no || i + 1}${tf.kva ? ' (' + tf.kva + ' kVA)' : ''}${tf.installType ? ' - ' + (tf.installType === 'sitting' ? 'นั่งร้าน' : tf.installType === 'hanging' ? 'แขวน' : tf.installType === 'yard' ? 'ลาน' : tf.installType === 'room' ? 'ในห้อง' : tf.installType) : ''}`}
+              />
 
-                  <div className="field-grid field-grid--3">
-                    <div className="field">
-                      <label>หม้อแปลงลูกที่</label>
-                      <input
-                        type="text"
-                        value={tf.no}
-                        onChange={(e) => {
-                          const arr = [...data.transformers]; arr[idx].no = e.target.value; setData(d => ({ ...d, transformers: arr }));
-                        }}
-                      />
+              {(() => {
+                const tf = data.transformers[curTf] || data.transformers[0];
+                const idx = curTf;
+                if (!tf) return null;
+                return (
+                  <div key={tf.id || idx} className="card-box card-box--nested">
+                    <div className="card-box__sub-hdr">
+                      <span className="card-box__item-num">หม้อแปลงลูกที่ {tf.no || idx + 1}</span>
+                      {data.transformers.length > 1 && (
+                        <button type="button" className="btn-del-item" onClick={() => removeTransformer(idx)}>
+                          🗑 ลบหม้อแปลงลูกนี้
+                        </button>
+                      )}
                     </div>
-                    <div className="field">
-                      <label>ขนาด (kVA)</label>
-                      <input
-                        type="text"
-                        value={tf.kva}
-                        onChange={(e) => {
-                          const arr = [...data.transformers]; arr[idx].kva = e.target.value; setData(d => ({ ...d, transformers: arr }));
-                        }}
-                      />
-                    </div>
-                    <div className="field">
-                      <label>แรงดัน (V)</label>
-                      <input
-                        type="text"
-                        value={tf.voltage}
-                        onChange={(e) => {
-                          const arr = [...data.transformers]; arr[idx].voltage = e.target.value; setData(d => ({ ...d, transformers: arr }));
-                        }}
-                      />
-                    </div>
-                    <div className="field">
-                      <label>% Impedance Voltage</label>
-                      <input
-                        type="text"
-                        value={tf.impedance}
-                        onChange={(e) => {
-                          const arr = [...data.transformers]; arr[idx].impedance = e.target.value; setData(d => ({ ...d, transformers: arr }));
-                        }}
-                      />
-                    </div>
-                    <div className="field">
-                      <label>ชนิดหม้อแปลง</label>
-                      <select
-                        value={tf.type}
-                        onChange={(e) => {
-                          const arr = [...data.transformers]; arr[idx].type = e.target.value; setData(d => ({ ...d, transformers: arr }));
-                        }}
-                      >
-                        <option value="Oil">Oil (น้ำมัน)</option>
-                        <option value="Dry">Dry Type (แห้ง)</option>
-                        <option value="other">อื่นๆ</option>
-                      </select>
-                    </div>
-                    <div className="field">
-                      <label>ลักษณะการติดตั้ง</label>
-                      <select
-                        value={tf.installType}
-                        onChange={(e) => {
-                          const arr = [...data.transformers]; arr[idx].installType = e.target.value; setData(d => ({ ...d, transformers: arr }));
-                        }}
-                      >
-                        <option value="sitting">นั่งร้าน</option>
-                        <option value="hanging">แบบแขวน</option>
-                        <option value="yard">ลานหม้อแปลง</option>
-                        <option value="room">ในห้องหม้อแปลง</option>
-                        <option value="other">อื่นๆ</option>
-                      </select>
-                    </div>
-                  </div>
 
-                  <div className="field-grid field-grid--2" style={{ marginTop: 8 }}>
-                    <div className="field">
-                      <label>เครื่องป้องกันกระแสเกินด้านไฟเข้า (แบบ)</label>
-                      <input
-                        type="text"
-                        placeholder="เช่น ดรอปฟิวส์, เซอร์กิตเบรกเกอร์..."
-                        value={tf.primaryProtection?.type || ''}
-                        onChange={(e) => {
-                          const arr = [...data.transformers]; arr[idx].primaryProtection.type = e.target.value; setData(d => ({ ...d, transformers: arr }));
-                        }}
-                      />
+                    <div className="field-grid field-grid--3">
+                      <div className="field">
+                        <label>หม้อแปลงลูกที่</label>
+                        <input
+                          type="text"
+                          value={tf.no}
+                          onChange={(e) => {
+                            const arr = [...data.transformers]; arr[idx].no = e.target.value; setData(d => ({ ...d, transformers: arr }));
+                          }}
+                        />
+                      </div>
+                      <div className="field">
+                        <label>ขนาด (kVA)</label>
+                        <input
+                          type="text"
+                          value={tf.kva}
+                          onChange={(e) => {
+                            const arr = [...data.transformers]; arr[idx].kva = e.target.value; setData(d => ({ ...d, transformers: arr }));
+                          }}
+                        />
+                      </div>
+                      <div className="field">
+                        <label>แรงดัน (V)</label>
+                        <input
+                          type="text"
+                          value={tf.voltage}
+                          onChange={(e) => {
+                            const arr = [...data.transformers]; arr[idx].voltage = e.target.value; setData(d => ({ ...d, transformers: arr }));
+                          }}
+                        />
+                      </div>
+                      <div className="field">
+                        <label>% Impedance Voltage</label>
+                        <input
+                          type="text"
+                          value={tf.impedance}
+                          onChange={(e) => {
+                            const arr = [...data.transformers]; arr[idx].impedance = e.target.value; setData(d => ({ ...d, transformers: arr }));
+                          }}
+                        />
+                      </div>
+                      <div className="field">
+                        <label>ชนิดหม้อแปลง</label>
+                        <select
+                          value={tf.type}
+                          onChange={(e) => {
+                            const arr = [...data.transformers]; arr[idx].type = e.target.value; setData(d => ({ ...d, transformers: arr }));
+                          }}
+                        >
+                          <option value="Oil">Oil (น้ำมัน)</option>
+                          <option value="Dry">Dry Type (แห้ง)</option>
+                          <option value="other">อื่นๆ</option>
+                        </select>
+                      </div>
+                      <div className="field">
+                        <label>ลักษณะการติดตั้ง</label>
+                        <select
+                          value={tf.installType}
+                          onChange={(e) => {
+                            const arr = [...data.transformers]; arr[idx].installType = e.target.value; setData(d => ({ ...d, transformers: arr }));
+                          }}
+                        >
+                          <option value="sitting">นั่งร้าน</option>
+                          <option value="hanging">แบบแขวน</option>
+                          <option value="yard">ลานหม้อแปลง</option>
+                          <option value="room">ในห้องหม้อแปลง</option>
+                          <option value="other">อื่นๆ</option>
+                        </select>
+                      </div>
                     </div>
-                    <div className="field">
-                      <label>พิกัดกระแส (A)</label>
-                      <input
-                        type="text"
-                        placeholder="เช่น 100 A"
-                        value={tf.primaryProtection?.amp || ''}
-                        onChange={(e) => {
-                          const arr = [...data.transformers]; arr[idx].primaryProtection.amp = e.target.value; setData(d => ({ ...d, transformers: arr }));
-                        }}
-                      />
-                    </div>
-                  </div>
 
-                  <h3 className="group-sub-title" style={{ marginTop: 16 }}>รายการตรวจสอบสภาพหม้อแปลง</h3>
-                  <ChecklistRow title="๒.๒.๔ การต่อสายแรงต่ำและแรงสูงที่หม้อแปลง" item={tf.items.wiring} onChange={(it) => {
-                    const arr = [...data.transformers]; arr[idx].items.wiring = it; setData(d => ({ ...d, transformers: arr }));
-                  }} />
-                  <ChecklistRow title="๒.๒.๕ การติดตั้งล่อฟ้าแรงสูง (Lightning Arrester)" item={tf.items.lightningArrester} onChange={(it) => {
-                    const arr = [...data.transformers]; arr[idx].items.lightningArrester = it; setData(d => ({ ...d, transformers: arr }));
-                  }} />
-                  <ChecklistRow title="๒.๒.๖ การติดตั้งดรอปฟิวส์คัตเอาท์" item={tf.items.dropFuse} onChange={(it) => {
-                    const arr = [...data.transformers]; arr[idx].items.dropFuse = it; setData(d => ({ ...d, transformers: arr }));
-                  }} />
-                  <ChecklistRow title="๒.๒.๗ การป้องกันการสัมผัสส่วนที่มีไฟฟ้า" item={tf.items.touchProtection} onChange={(it) => {
-                    const arr = [...data.transformers]; arr[idx].items.touchProtection = it; setData(d => ({ ...d, transformers: arr }));
-                  }} />
-                  <ChecklistRow title="๒.๒.๘ สายดินกับตัวถังหม้อแปลงและล่อฟ้าแรงสูง" item={tf.items.bodyGround} onChange={(it) => {
-                    const arr = [...data.transformers]; arr[idx].items.bodyGround = it; setData(d => ({ ...d, transformers: arr }));
-                  }} />
+                    <h4 className="group-sub-title" style={{ marginTop: 16 }}>รายการตรวจสอบสภาพหม้อแปลง</h4>
+                    <ChecklistRow title="๒.๒.๑ โครงสร้างและที่รองรับ (เสา, แพลตฟอร์ม, ฐานราก, แผ่นยางกันสะเทือน)" item={tf.items.structure} onChange={(it) => {
+                      const arr = [...data.transformers]; arr[idx].items.structure = it; setData(d => ({ ...d, transformers: arr }));
+                    }} />
+                    <ChecklistRow title="๒.๒.๒ การป้องกันทางกายภาพ (รั้วตาข่าย, ประตู, กุญแจ, ป้ายเตือนอันตราย)" item={tf.items.physicalProtection} onChange={(it) => {
+                      const arr = [...data.transformers]; arr[idx].items.physicalProtection = it; setData(d => ({ ...d, transformers: arr }));
+                    }} />
+                    <ChecklistRow title="๒.๒.๓ ระดับน้ำมันหม้อแปลง (ระดับ, สี, คราบน้ำมัน)" item={tf.items.oilLevel} onChange={(it) => {
+                      const arr = [...data.transformers]; arr[idx].items.oilLevel = it; setData(d => ({ ...d, transformers: arr }));
+                    }} />
+                    <ChecklistRow title="๒.๒.๔ ขั้วต่อและจุดต่อสาย (หลวม, อาร์ก, รอยไหม้, ฉนวนหุ้มขั้ว)" item={tf.items.bushings} onChange={(it) => {
+                      const arr = [...data.transformers]; arr[idx].items.bushings = it; setData(d => ({ ...d, transformers: arr }));
+                    }} />
+                    <ChecklistRow title="๒.๒.๕ บุชชิ่งแรงสูงและแรงต่ำ (สภาพผิว, รอยแตกร้าว, คราบสกปรก)" item={tf.items.tempIndicator} onChange={(it) => {
+                      const arr = [...data.transformers]; arr[idx].items.tempIndicator = it; setData(d => ({ ...d, transformers: arr }));
+                    }} />
+                    <ChecklistRow title="๒.๒.๖ เครื่องวัดอุณหภูมิ (เกจวัด, สัญญาณเตือน, อุณหภูมิขณะใช้งาน)" item={tf.items.pressureRelief} onChange={(it) => {
+                      const arr = [...data.transformers]; arr[idx].items.pressureRelief = it; setData(d => ({ ...d, transformers: arr }));
+                    }} />
+                    <ChecklistRow title="๒.๒.๗ ท่อระบายความดัน / วาล์วลดแรงดัน (Pressure Relief Device)" item={tf.items.silicaGel} onChange={(it) => {
+                      const arr = [...data.transformers]; arr[idx].items.silicaGel = it; setData(d => ({ ...d, transformers: arr }));
+                    }} />
+                    <ChecklistRow title="๒.๒.๘ ซิลิกาเจล สารดูดความชื้น (สี, ปริมาณ, สภาพถ้วยแก้ว)" item={tf.items.grounding} onChange={(it) => {
+                      const arr = [...data.transformers]; arr[idx].items.grounding = it; setData(d => ({ ...d, transformers: arr }));
+                    }} />
+                    <ChecklistRow title="๒.๒.๙ การต่อลงดินของตัวถังและสายนิวทรัล (ขนาดสาย, จุดต่อ, ค่าความต้านทาน)" item={tf.items.wiring} onChange={(it) => {
+                      const arr = [...data.transformers]; arr[idx].items.wiring = it; setData(d => ({ ...d, transformers: arr }));
+                    }} />
+                    <ChecklistRow title="๒.๒.๑๐ สภาพภายนอกหม้อแปลง (สารดูดความชื้น, บุชชิ่ง, รั่วซึม, อุณหภูมิ)" item={tf.items.externalCondition} onChange={(it) => {
+                      const arr = [...data.transformers]; arr[idx].items.externalCondition = it; setData(d => ({ ...d, transformers: arr }));
+                    }} />
+                    <ChecklistRow title="๒.๒.๑๑ สภาพแวดล้อมหม้อแปลง (การระบายอากาศ, ความชื้น, รั้วกั้น, สภาพทั่วไป)" item={tf.items.environment} onChange={(it) => {
+                      const arr = [...data.transformers]; arr[idx].items.environment = it; setData(d => ({ ...d, transformers: arr }));
+                    }} />
 
-                  <div style={{ background: 'var(--bg-surface)', padding: 12, borderRadius: 10, margin: '8px 0' }}>
-                    <span style={{ fontSize: 13, fontWeight: 700 }}>๒.๒.๙ สายดินของหม้อแปลง</span>
-                    <div className="field-row" style={{ margin: '8px 0' }}>
+                    <h3 className="group-sub-title" style={{ marginTop: 16 }}>๒.๒.๑๒ อื่นๆ</h3>
+                    <div className="field" style={{ marginTop: 8 }}>
                       <input
                         type="text"
-                        placeholder="ชนิดสายต่อหลักดิน..."
-                        value={tf.items.groundRod?.wireType || ''}
+                        placeholder="๒.๒.๑๒ อื่นๆ (ระบุ)..."
+                        value={tf.items.otherText || ''}
                         onChange={(e) => {
-                          const arr = [...data.transformers]; arr[idx].items.groundRod.wireType = e.target.value; setData(d => ({ ...d, transformers: arr }));
-                        }}
-                      />
-                      <input
-                        type="text"
-                        placeholder="ขนาด (mm²)..."
-                        value={tf.items.groundRod?.wireSize || ''}
-                        onChange={(e) => {
-                          const arr = [...data.transformers]; arr[idx].items.groundRod.wireSize = e.target.value; setData(d => ({ ...d, transformers: arr }));
+                          const arr = [...data.transformers]; arr[idx].items.otherText = e.target.value; setData(d => ({ ...d, transformers: arr }));
                         }}
                       />
                     </div>
-                    <ChecklistRow title="- สภาพหลักดิน จุดต่อ และสายดิน" item={tf.items.groundRod} onChange={(it) => {
-                      const arr = [...data.transformers];
-                      arr[idx].items.groundRod = { ...arr[idx].items.groundRod, ...it };
-                      setData(d => ({ ...d, transformers: arr }));
+                    <ChecklistRow title="- สภาพรายการอื่นๆ" item={tf.items.other} onChange={(it) => {
+                      const arr = [...data.transformers]; arr[idx].items.other = it; setData(d => ({ ...d, transformers: arr }));
                     }} />
                   </div>
+                );
+              })()}
 
-                  <ChecklistRow title="๒.๒.๑๐ สภาพภายนอกหม้อแปลง (สารดูดความชื้น, บุชชิ่ง, รั่วซึม, อุณหภูมิ)" item={tf.items.externalCondition} onChange={(it) => {
-                    const arr = [...data.transformers]; arr[idx].items.externalCondition = it; setData(d => ({ ...d, transformers: arr }));
-                  }} />
-                  <ChecklistRow title="๒.๒.๑๑ สภาพแวดล้อมหม้อแปลง (การระบายอากาศ, ความชื้น, รั้วกั้น, สภาพทั่วไป)" item={tf.items.environment} onChange={(it) => {
-                    const arr = [...data.transformers]; arr[idx].items.environment = it; setData(d => ({ ...d, transformers: arr }));
-                  }} />
-
-                  <h3 className="group-sub-title" style={{ marginTop: 16 }}>๒.๒.๑๒ อื่นๆ</h3>
-                  <div className="field" style={{ marginTop: 8 }}>
-                    <input
-                      type="text"
-                      placeholder="๒.๒.๑๒ อื่นๆ (ระบุ)..."
-                      value={tf.items.otherText || ''}
-                      onChange={(e) => {
-                        const arr = [...data.transformers]; arr[idx].items.otherText = e.target.value; setData(d => ({ ...d, transformers: arr }));
-                      }}
-                    />
-                  </div>
-                  <ChecklistRow title="- สภาพรายการอื่นๆ" item={tf.items.other} onChange={(it) => {
-                    const arr = [...data.transformers]; arr[idx].items.other = it; setData(d => ({ ...d, transformers: arr }));
-                  }} />
-                </div>
-              ))}
+              {/* Bottom Add Button */}
+              <div className="section-bottom-add-bar">
+                <button type="button" className="btn-add-item-bottom" onClick={addTransformer}>
+                  + เพิ่มหม้อแปลงลูกใหม่
+                </button>
+              </div>
 
               <div className="cat-bottom-nav">
                 <button type="button" className="btn-secondary" onClick={() => setCatTab('hv')}>
-                  ‹ ก่อนหน้า: ๒.๑ ระบบแรงสูง
+                  ‹ ก่อนหน้า: ระบบแรงสูง
                 </button>
                 <button type="button" className="btn-primary" onClick={() => setCatTab('mdb')}>
-                  ถัดไป: ๒.๓ - ๒.๕ ตู้เมนสวิตช์ตามอาคาร ›
+                  ถัดไป: ตู้เมนสวิตช์ & อาคาร ›
                 </button>
               </div>
             </div>
           )}
 
-          {/* ════ หมวดที่ ๓: ๒.๓ - ๒.๕ ตู้เมนสวิตช์และบริภัณฑ์ย่อยตามอาคาร ════ */}
+          {/* ════ หมวดที่ ๓: ตู้เมนสวิตช์และบริภัณฑ์ย่อยตามอาคาร ════ */}
           {catTab === 'mdb' && (
             <div className="section-block">
               <div className="section-block__hdr">
                 <div>
-                  <h2 className="section-block__title">๒.๓ - ๒.๕ ตู้เมนสวิตช์และบริภัณฑ์ย่อยตามอาคาร</h2>
+                  <h2 className="section-block__title">ตู้เมนสวิตช์และบริภัณฑ์ย่อยตามอาคาร</h2>
                   <p className="section-block__sub">
                     ชุดตารางครบวงจรตั้งแต่ตู้เมนสวิตช์ วงจรเมน แผงย่อย และบริภัณฑ์ไฟฟ้า โดยเชื่อมโยงกับหม้อแปลงและระบุอาคาร
                   </p>
@@ -2467,551 +2629,665 @@ function ElectricalAnnualInner() {
                 </button>
               </div>
 
-              {data.mainSwitchboards.map((msb, mIdx) => (
-                <div key={msb.id || mIdx} className="card-box card-box--nested mdb-unified-card">
-                  {/* MDB Header Banner */}
-                  <div className="card-box__sub-hdr mdb-sub-hdr">
-                    <div className="mdb-tag-group">
-                      <span className="card-box__item-num">ตู้เมนสวิตช์ที่ {msb.no || mIdx + 1}</span>
-                      {msb.building && (
-                        <span className="mdb-badge-bld">🏢 {msb.building}</span>
-                      )}
-                      <span className="mdb-badge-tf">⚡ รับจากหม้อแปลงลูกที่ {msb.sourceTransformer || '1'}</span>
-                    </div>
-                    {data.mainSwitchboards.length > 1 && (
-                      <button type="button" className="btn-del-item" onClick={() => removeMainSwitchboard(mIdx)}>
-                        🗑 ลบชุดตู้นี้
-                      </button>
-                    )}
-                  </div>
+              {/* Master-Detail Item Switcher for MDBs */}
+              <ItemSwitcher
+                label="เลือกตู้เมนสวิตช์ & อาคารที่ต้องการดู / กรอกข้อมูล"
+                items={data.mainSwitchboards}
+                currentIndex={curMsb}
+                onSelect={(idx) => {
+                  setActiveMsbIdx(idx);
+                  setActiveCircuitIdx(0);
+                  setActiveSubPanelIdx(0);
+                  setActiveEquipIdx(0);
+                }}
+                onAdd={addMainSwitchboard}
+                addLabel="+ เพิ่มตู้เมน/อาคาร"
+                onDelete={removeMainSwitchboard}
+                deleteLabel="ลบชุดตู้นี้"
+                canDelete={data.mainSwitchboards.length > 1}
+                badgeText={`ตู้ที่ ${curMsb + 1} จาก ${data.mainSwitchboards.length}`}
+                renderOptionLabel={(msb, i) => `ตู้เมนฯ ที่ ${msb.no || i + 1}${msb.building ? ' [อาคาร: ' + msb.building + ']' : ''} (หม้อแปลง ${msb.sourceTransformer || 1})`}
+              />
 
-                  {/* Banner: หม้อแปลงที่จ่ายไฟ และ อาคาร */}
-                  <div className="mdb-banner-grid">
-                    <div className="field">
-                      <label className="field-label-highlight">
-                        ⚡ รับไฟจากหม้อแปลงลูกที่ <span className="req">*</span>
-                      </label>
-                      <select
-                        className="select-highlight"
-                        value={msb.sourceTransformer || (data.transformers[0]?.no || '1')}
-                        onChange={(e) => updateMainSwitchboard(mIdx, 'sourceTransformer', e.target.value)}
-                      >
-                        {data.transformers.map((tf, tIdx) => {
-                          const val = tf.no || `${tIdx + 1}`;
-                          const label = tf.kva ? `หม้อแปลงลูกที่ ${val} (${tf.kva} kVA)` : `หม้อแปลงลูกที่ ${val}`;
-                          return <option key={tf.id || tIdx} value={val}>{label}</option>;
-                        })}
-                        {msb.sourceTransformer && !data.transformers.some((tf, tIdx) => (tf.no || `${tIdx + 1}`) === String(msb.sourceTransformer)) && (
-                          <option value={msb.sourceTransformer}>หม้อแปลงลูกที่ {msb.sourceTransformer}</option>
+              {(() => {
+                const msb = data.mainSwitchboards[curMsb] || data.mainSwitchboards[0];
+                const mIdx = curMsb;
+                if (!msb) return null;
+
+                const circuits = msb.mainCircuits || [];
+                const safeCIdx = Math.min(activeCircuitIdx, Math.max(0, circuits.length - 1));
+                const currentCircuit = circuits[safeCIdx];
+
+                const panels = msb.subPanels || [];
+                const safeSIdx = Math.min(activeSubPanelIdx, Math.max(0, panels.length - 1));
+                const currentPanel = panels[safeSIdx];
+
+                const equips = msb.otherEquipments || [];
+                const safeEIdx = Math.min(activeEquipIdx, Math.max(0, equips.length - 1));
+                const currentEquip = equips[safeEIdx];
+
+                return (
+                  <div key={msb.id || mIdx} className="card-box card-box--nested mdb-unified-card">
+                    {/* MDB Header Banner */}
+                    <div className="card-box__sub-hdr mdb-sub-hdr">
+                      <div className="mdb-tag-group">
+                        <span className="card-box__item-num">ตู้เมนสวิตช์ที่ {msb.no || mIdx + 1}</span>
+                        {msb.building && (
+                          <span className="mdb-badge-bld">🏢 {msb.building}</span>
                         )}
-                      </select>
-                    </div>
-
-                    <div className="field">
-                      <label className="field-label-highlight">
-                        🏢 ประจำอยู่อาคาร (เลือกจากลิสอาคาร) <span className="req">*</span>
-                      </label>
-                      <select
-                        className="select-highlight"
-                        value={msb.building || ''}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          updateMainSwitchboard(mIdx, 'building', val);
-                        }}
-                      >
-                        <option value="">-- กรุณาเลือกอาคาร --</option>
-                        {BUILDING_OPTIONS.map((b) => (
-                          <option key={b.value} value={b.value}>{b.label}</option>
-                        ))}
-                        <option value="__other__">🏢 อื่นๆ (พิมพ์ระบุชื่อเอง)</option>
-                      </select>
-                      {(msb.building === '__other__' || (msb.building && !BUILDING_OPTIONS.some(b => b.value === msb.building))) && (
-                        <input
-                          type="text"
-                          placeholder="พิมพ์ระบุชื่ออาคาร..."
-                          style={{ marginTop: 8 }}
-                          value={msb.customBuilding || (msb.building === '__other__' ? '' : msb.building)}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            updateMainSwitchboard(mIdx, 'customBuilding', val);
-                            updateMainSwitchboard(mIdx, 'building', val);
-                          }}
-                        />
+                        <span className="mdb-badge-tf">⚡ รับจากหม้อแปลงลูกที่ {msb.sourceTransformer || '1'}</span>
+                      </div>
+                      {data.mainSwitchboards.length > 1 && (
+                        <button type="button" className="btn-del-item" onClick={() => removeMainSwitchboard(mIdx)}>
+                          🗑 ลบชุดตู้นี้
+                        </button>
                       )}
                     </div>
-                  </div>
 
-                  {/* ── ตาราง ๒.๓ ตู้เมนสวิตช์ MDB ── */}
-                  <div className="subgroup-card">
-                    <h3 className="subgroup-title">
-                      ๒.๓ ตู้เมนสวิตช์ (Main Switchboard - MDB)
-                    </h3>
-                    <div className="field-grid field-grid--2">
+                    {/* Banner: หม้อแปลงที่จ่ายไฟ และ อาคาร */}
+                    <div className="mdb-banner-grid">
                       <div className="field">
-                        <label>ตู้เมนสวิตช์ที่</label>
-                        <input
-                          type="text"
-                          value={msb.no}
-                          onChange={(e) => updateMainSwitchboard(mIdx, 'no', e.target.value)}
-                        />
-                      </div>
-                      <div className="field">
-                        <label>ลักษณะการติดตั้ง</label>
+                        <label className="field-label-highlight">
+                          ⚡ รับไฟจากหม้อแปลงลูกที่ <span className="req">*</span>
+                        </label>
                         <select
-                          value={msb.locationType}
-                          onChange={(e) => updateMainSwitchboard(mIdx, 'locationType', e.target.value)}
+                          className="select-highlight"
+                          value={msb.sourceTransformer || (data.transformers[0]?.no || '1')}
+                          onChange={(e) => updateMainSwitchboard(mIdx, 'sourceTransformer', e.target.value)}
                         >
-                          <option value="indoor">ภายในอาคาร</option>
-                          <option value="outdoor">ภายนอกอาคาร</option>
-                          <option value="other">อื่นๆ</option>
+                          {data.transformers.map((tf, tIdx) => {
+                            const val = tf.no || `${tIdx + 1}`;
+                            const label = tf.kva ? `หม้อแปลงลูกที่ ${val} (${tf.kva} kVA)` : `หม้อแปลงลูกที่ ${val}`;
+                            return <option key={tf.id || tIdx} value={val}>{label}</option>;
+                          })}
+                          {msb.sourceTransformer && !data.transformers.some((tf, tIdx) => (tf.no || `${tIdx + 1}`) === String(msb.sourceTransformer)) && (
+                            <option value={msb.sourceTransformer}>หม้อแปลงลูกที่ {msb.sourceTransformer}</option>
+                          )}
                         </select>
                       </div>
-                    </div>
 
-                    <h4 className="group-sub-title" style={{ marginTop: 14 }}>๒.๓.๑ รายการตรวจสอบสภาพตู้</h4>
-                    <ChecklistRow title="- สภาพทั่วไป" item={msb.items.generalCondition} onChange={(it) => updateMdbCheckItem(mIdx, 'generalCondition', it)} />
-                    <ChecklistRow title="- จุดต่อสายและจุดต่อบัสบาร์" item={msb.items.busbarJoints} onChange={(it) => updateMdbCheckItem(mIdx, 'busbarJoints', it)} />
-                    <ChecklistRow title="- ที่ว่างเพื่อปฏิบัติงานที่จุดติดตั้งตู้เมนสวิตช์" item={msb.items.workingSpace} onChange={(it) => updateMdbCheckItem(mIdx, 'workingSpace', it)} />
-                    <ChecklistRow title="- แสงสว่างเหนือที่ว่างเพื่อปฏิบัติงาน" item={msb.items.lighting} onChange={(it) => updateMdbCheckItem(mIdx, 'lighting', it)} />
-                    <ChecklistRow title="- การต่อฝาก (Bonding)" item={msb.items.bonding} onChange={(it) => updateMdbCheckItem(mIdx, 'bonding', it)} />
-                    <ChecklistRow title="- การป้องกันส่วนสัมผัสที่มีไฟฟ้า" item={msb.items.livePartProtection} onChange={(it) => updateMdbCheckItem(mIdx, 'livePartProtection', it)} />
-                    <ChecklistRow title="- ป้ายชื่อและแผนภาพเส้นเดี่ยว (Single Line Diagram) ของเมนสวิตช์" item={msb.items.singleLineDiagram} onChange={(it) => updateMdbCheckItem(mIdx, 'singleLineDiagram', it)} />
-
-                    <h4 className="group-sub-title" style={{ marginTop: 16 }}>๒.๓.๒ เครื่องป้องกันกระแสเกิน</h4>
-                    <div className="field-grid field-grid--3">
                       <div className="field">
-                        <label>ชนิด</label>
-                        <input
-                          type="text"
-                          placeholder="เช่น ACB, MCCB..."
-                          value={msb.overcurrentProtection?.type || ''}
-                          onChange={(e) => updateMdbOvercurrent(mIdx, 'type', e.target.value)}
-                        />
-                      </div>
-                      <div className="field">
-                        <label>IC (kA)</label>
-                        <input
-                          type="text"
-                          value={msb.overcurrentProtection?.icKa || ''}
-                          onChange={(e) => updateMdbOvercurrent(mIdx, 'icKa', e.target.value)}
-                        />
-                      </div>
-                      <div className="field">
-                        <label>แรงดัน (V)</label>
-                        <input
-                          type="text"
-                          value={msb.overcurrentProtection?.volt || ''}
-                          onChange={(e) => updateMdbOvercurrent(mIdx, 'volt', e.target.value)}
-                        />
-                      </div>
-                      <div className="field">
-                        <label>พิกัดกระแส AT (A)</label>
-                        <input
-                          type="text"
-                          value={msb.overcurrentProtection?.atAmp || ''}
-                          onChange={(e) => updateMdbOvercurrent(mIdx, 'atAmp', e.target.value)}
-                        />
-                      </div>
-                      <div className="field">
-                        <label>AF (A)</label>
-                        <input
-                          type="text"
-                          value={msb.overcurrentProtection?.afAmp || ''}
-                          onChange={(e) => updateMdbOvercurrent(mIdx, 'afAmp', e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <h4 className="group-sub-title" style={{ marginTop: 16 }}>๒.๓.๓ สายดินของแผงสวิตช์</h4>
-                    <div className="field-row" style={{ margin: '8px 0' }}>
-                      <input
-                        type="text"
-                        placeholder="ชนิดสายต่อหลักดิน..."
-                        value={msb.grounding?.wireType || ''}
-                        onChange={(e) => updateMdbGrounding(mIdx, 'wireType', e.target.value)}
-                      />
-                      <input
-                        type="text"
-                        placeholder="ขนาด (mm²)..."
-                        value={msb.grounding?.wireSize || ''}
-                        onChange={(e) => updateMdbGrounding(mIdx, 'wireSize', e.target.value)}
-                      />
-                    </div>
-                    <ChecklistRow title="- สภาพหลักดิน จุดต่อ และสายดิน" item={msb.grounding} onChange={(it) => updateMdbGrounding(mIdx, null, it)} />
-
-                    <div className="field" style={{ marginTop: 12 }}>
-                      <label style={{ fontWeight: 700 }}>๒.๓.๔ อุณหภูมิของอุปกรณ์</label>
-                      <div className="radio-group-box">
-                        <label className="radio-opt">
-                          <input
-                            type="radio"
-                            name={`temp_msb_${mIdx}`}
-                            checked={msb.temperature === 'normal'}
-                            onChange={() => updateMainSwitchboard(mIdx, 'temperature', 'normal')}
-                          />
-                          <span>✓ ปกติ</span>
+                        <label className="field-label-highlight">
+                          🏢 ประจำอยู่อาคาร (เลือกจากลิสอาคาร) <span className="req">*</span>
                         </label>
-                        <label className="radio-opt">
+                        <select
+                          className="select-highlight"
+                          value={msb.building || ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            updateMainSwitchboard(mIdx, 'building', val);
+                          }}
+                        >
+                          <option value="">-- กรุณาเลือกอาคาร --</option>
+                          {BUILDING_OPTIONS.map((b) => (
+                            <option key={b.value} value={b.value}>{b.label}</option>
+                          ))}
+                          <option value="__other__">🏢 อื่นๆ (พิมพ์ระบุชื่อเอง)</option>
+                        </select>
+                        {(msb.building === '__other__' || (msb.building && !BUILDING_OPTIONS.some(b => b.value === msb.building))) && (
                           <input
-                            type="radio"
-                            name={`temp_msb_${mIdx}`}
-                            checked={msb.temperature === 'abnormal'}
-                            onChange={() => updateMainSwitchboard(mIdx, 'temperature', 'abnormal')}
+                            type="text"
+                            placeholder="พิมพ์ระบุชื่ออาคาร..."
+                            style={{ marginTop: 8 }}
+                            value={msb.customBuilding || (msb.building === '__other__' ? '' : msb.building)}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              updateMainSwitchboard(mIdx, 'customBuilding', val);
+                              updateMainSwitchboard(mIdx, 'building', val);
+                            }}
                           />
-                          <span>✕ ผิดปกติ</span>
-                        </label>
+                        )}
                       </div>
                     </div>
 
-                    <h4 className="group-sub-title" style={{ marginTop: 16 }}>๒.๓.๕ อื่นๆ</h4>
-                    <div className="field" style={{ marginBottom: 8 }}>
-                      <input
-                        type="text"
-                        placeholder="๒.๓.๕ อื่นๆ (ระบุ)..."
-                        value={msb.otherText || ''}
-                        onChange={(e) => updateMainSwitchboard(mIdx, 'otherText', e.target.value)}
-                      />
-                    </div>
-                    <ChecklistRow title="- รายการตู้เมนสวิตช์อื่นๆ" item={msb.other} onChange={(it) => updateMainSwitchboard(mIdx, 'other', it)} />
-                  </div>
-
-                  {/* ── ตาราง ๒.๔.๑ วงจรเมน (Main Circuit) ของตู้นี้ ── */}
-                  <div className="subgroup-card">
-                    <div className="subgroup-hdr-flex">
-                      <div>
-                        <h3 className="subgroup-title">๒.๔.๑ วงจรเมน (Main Circuit)</h3>
-                        <p className="subgroup-desc">สายเข้าเมนสวิตช์และรางเดินสายของตู้เมนฯ ที่ {msb.no || mIdx + 1}</p>
-                      </div>
-                      <button type="button" className="btn-add-mini" onClick={() => addMainCircuitToMdb(mIdx)}>
-                        + เพิ่มวงจรเมน
-                      </button>
-                    </div>
-
-                    {(msb.mainCircuits || []).map((mc, cIdx) => (
-                      <div key={mc.id || cIdx} className="nested-item-box">
-                        <div className="nested-item-hdr">
-                          <span className="nested-item-badge">วงจรเมน ชุดที่ {cIdx + 1}</span>
-                          {(msb.mainCircuits || []).length > 1 && (
-                            <button type="button" className="btn-del-mini" onClick={() => removeMainCircuitFromMdb(mIdx, cIdx)}>
-                              🗑 ลบชุดนี้
-                            </button>
-                          )}
+                    {/* ── ตาราง ๒.๓ ตู้เมนสวิตช์ MDB ── */}
+                    <div className="subgroup-card">
+                      <h3 className="subgroup-title">
+                        ๒.๓ ตู้เมนสวิตช์ (Main Switchboard - MDB)
+                      </h3>
+                      <div className="field-grid field-grid--2">
+                        <div className="field">
+                          <label>ตู้เมนสวิตช์ที่</label>
+                          <input
+                            type="text"
+                            value={msb.no}
+                            onChange={(e) => updateMainSwitchboard(mIdx, 'no', e.target.value)}
+                          />
                         </div>
-
-                        <h5 className="group-sub-title">๒.๔.๑.๑ สายเข้าเมนสวิตช์</h5>
-                        <div className="field-grid field-grid--2">
-                          <div className="field">
-                            <label>สายเฟส (ชนิด / ขนาด mm²)</label>
-                            <div className="field-row">
-                              <input
-                                type="text"
-                                placeholder="ชนิดสาย เช่น NYY..."
-                                value={mc.phaseWire?.type || ''}
-                                onChange={(e) => updateMainCircuitInMdb(mIdx, cIdx, 'phaseWire', { ...mc.phaseWire, type: e.target.value })}
-                              />
-                              <input
-                                type="text"
-                                placeholder="ขนาด mm²..."
-                                value={mc.phaseWire?.size || ''}
-                                onChange={(e) => updateMainCircuitInMdb(mIdx, cIdx, 'phaseWire', { ...mc.phaseWire, size: e.target.value })}
-                              />
-                            </div>
-                          </div>
-
-                          <div className="field">
-                            <label>สายนิวทรัล (ชนิด / ขนาด mm²)</label>
-                            <div className="field-row">
-                              <input
-                                type="text"
-                                placeholder="ชนิดสาย..."
-                                value={mc.neutralWire?.type || ''}
-                                onChange={(e) => updateMainCircuitInMdb(mIdx, cIdx, 'neutralWire', { ...mc.neutralWire, type: e.target.value })}
-                              />
-                              <input
-                                type="text"
-                                placeholder="ขนาด mm²..."
-                                value={mc.neutralWire?.size || ''}
-                                onChange={(e) => updateMainCircuitInMdb(mIdx, cIdx, 'neutralWire', { ...mc.neutralWire, size: e.target.value })}
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="field" style={{ marginTop: 8 }}>
-                          <label>วิธีเดินสาย (เดินใน)</label>
+                        <div className="field">
+                          <label>ลักษณะการติดตั้ง</label>
                           <select
-                            value={mc.raceway}
-                            onChange={(e) => updateMainCircuitInMdb(mIdx, cIdx, 'raceway', e.target.value)}
+                            value={msb.locationType}
+                            onChange={(e) => updateMainSwitchboard(mIdx, 'locationType', e.target.value)}
                           >
-                            <option value="conduit">ท่อร้อยสาย (Conduit)</option>
-                            <option value="wireway">รางเดินสาย (Wire Way)</option>
-                            <option value="cabletray">รางเคเบิล (Cable Tray)</option>
-                            <option value="rack">ลูกถ้วยราวยึดสาย (Rack)</option>
+                            <option value="indoor">ภายในอาคาร</option>
+                            <option value="outdoor">ภายนอกอาคาร</option>
                             <option value="other">อื่นๆ</option>
                           </select>
                         </div>
+                      </div>
 
-                        <h5 className="group-sub-title" style={{ marginTop: 14 }}>รายการตรวจสอบ</h5>
-                        <ChecklistRow title="๒.๔.๑.๒ รางเดินสายและรางเคเบิล" item={mc.items.racewayCondition} onChange={(it) => updateMainCircuitInMdb(mIdx, cIdx, 'items', { ...mc.items, racewayCondition: it })} />
-                        <ChecklistRow title="๒.๔.๑.๓ สภาพฉนวนสายไฟ" item={mc.items.insulation} onChange={(it) => updateMainCircuitInMdb(mIdx, cIdx, 'items', { ...mc.items, insulation: it })} />
-                        <ChecklistRow title="๒.๔.๑.๔ สภาพจุดต่อของสาย" item={mc.items.joints} onChange={(it) => updateMainCircuitInMdb(mIdx, cIdx, 'items', { ...mc.items, joints: it })} />
-                        <ChecklistRow title="๒.๔.๑.๕ การป้องกันความร้อนจากการเหนี่ยวนำ" item={mc.items.inductionHeatProtection} onChange={(it) => updateMainCircuitInMdb(mIdx, cIdx, 'items', { ...mc.items, inductionHeatProtection: it })} />
+                      <h4 className="group-sub-title" style={{ marginTop: 14 }}>๒.๓.๑ รายการตรวจสอบสภาพตู้</h4>
+                      <ChecklistRow title="- สภาพทั่วไป" item={msb.items.generalCondition} onChange={(it) => updateMdbCheckItem(mIdx, 'generalCondition', it)} />
+                      <ChecklistRow title="- จุดต่อสายและจุดต่อบัสบาร์" item={msb.items.busbarJoints} onChange={(it) => updateMdbCheckItem(mIdx, 'busbarJoints', it)} />
+                      <ChecklistRow title="- ที่ว่างเพื่อปฏิบัติงานที่จุดติดตั้งตู้เมนสวิตช์" item={msb.items.workingSpace} onChange={(it) => updateMdbCheckItem(mIdx, 'workingSpace', it)} />
+                      <ChecklistRow title="- แสงสว่างเหนือที่ว่างเพื่อปฏิบัติงาน" item={msb.items.lighting} onChange={(it) => updateMdbCheckItem(mIdx, 'lighting', it)} />
+                      <ChecklistRow title="- การต่อฝาก (Bonding)" item={msb.items.bonding} onChange={(it) => updateMdbCheckItem(mIdx, 'bonding', it)} />
+                      <ChecklistRow title="- การป้องกันส่วนสัมผัสที่มีไฟฟ้า" item={msb.items.livePartProtection} onChange={(it) => updateMdbCheckItem(mIdx, 'livePartProtection', it)} />
+                      <ChecklistRow title="- ป้ายชื่อและแผนภาพเส้นเดี่ยว (Single Line Diagram) ของเมนสวิตช์" item={msb.items.singleLineDiagram} onChange={(it) => updateMdbCheckItem(mIdx, 'singleLineDiagram', it)} />
 
-                        <div className="field" style={{ marginTop: 12 }}>
-                          <label style={{ fontWeight: 700 }}>๒.๔.๑.๖ อุณหภูมิของอุปกรณ์</label>
-                          <div className="radio-group-box">
-                            <label className="radio-opt">
-                              <input
-                                type="radio"
-                                name={`temp_mc_${mIdx}_${cIdx}`}
-                                checked={mc.temperature === 'normal'}
-                                onChange={() => updateMainCircuitInMdb(mIdx, cIdx, 'temperature', 'normal')}
-                              />
-                              <span>✓ ปกติ</span>
-                            </label>
-                            <label className="radio-opt">
-                              <input
-                                type="radio"
-                                name={`temp_mc_${mIdx}_${cIdx}`}
-                                checked={mc.temperature === 'abnormal'}
-                                onChange={() => updateMainCircuitInMdb(mIdx, cIdx, 'temperature', 'abnormal')}
-                              />
-                              <span>✕ ผิดปกติ</span>
-                            </label>
-                          </div>
-                        </div>
-
-                        <h5 className="group-sub-title" style={{ marginTop: 16 }}>๒.๔.๑.๗ อื่นๆ</h5>
-                        <div className="field" style={{ marginBottom: 8 }}>
+                      <h4 className="group-sub-title" style={{ marginTop: 16 }}>๒.๓.๒ เครื่องป้องกันกระแสเกิน</h4>
+                      <div className="field-grid field-grid--3">
+                        <div className="field">
+                          <label>ชนิด</label>
                           <input
                             type="text"
-                            placeholder="๒.๔.๑.๗ อื่นๆ (ระบุ)..."
-                            value={mc.otherText || ''}
-                            onChange={(e) => updateMainCircuitInMdb(mIdx, cIdx, 'otherText', e.target.value)}
+                            placeholder="เช่น ACB, MCCB..."
+                            value={msb.overcurrentProtection?.type || ''}
+                            onChange={(e) => updateMdbOvercurrent(mIdx, 'type', e.target.value)}
                           />
                         </div>
-                        <ChecklistRow title="- รายการวงจรเมนอื่นๆ" item={mc.other} onChange={(it) => updateMainCircuitInMdb(mIdx, cIdx, 'other', it)} />
+                        <div className="field">
+                          <label>IC (kA)</label>
+                          <input
+                            type="text"
+                            value={msb.overcurrentProtection?.icKa || ''}
+                            onChange={(e) => updateMdbOvercurrent(mIdx, 'icKa', e.target.value)}
+                          />
+                        </div>
+                        <div className="field">
+                          <label>แรงดัน (V)</label>
+                          <input
+                            type="text"
+                            value={msb.overcurrentProtection?.volt || ''}
+                            onChange={(e) => updateMdbOvercurrent(mIdx, 'volt', e.target.value)}
+                          />
+                        </div>
+                        <div className="field">
+                          <label>พิกัดกระแส AT (A)</label>
+                          <input
+                            type="text"
+                            value={msb.overcurrentProtection?.atAmp || ''}
+                            onChange={(e) => updateMdbOvercurrent(mIdx, 'atAmp', e.target.value)}
+                          />
+                        </div>
+                        <div className="field">
+                          <label>AF (A)</label>
+                          <input
+                            type="text"
+                            value={msb.overcurrentProtection?.afAmp || ''}
+                            onChange={(e) => updateMdbOvercurrent(mIdx, 'afAmp', e.target.value)}
+                          />
+                        </div>
                       </div>
-                    ))}
-                  </div>
 
-                  {/* ── ตาราง ๒.๔.๒ แผงย่อย (Sub Panel / DB) ของตู้นี้ ── */}
-                  <div className="subgroup-card">
-                    <div className="subgroup-hdr-flex">
-                      <div>
-                        <h3 className="subgroup-title">๒.๔.๒ แผงย่อย (Distribution Board - DB)</h3>
-                        <p className="subgroup-desc">แผงวงจรย่อยที่ต่อแยกจากตู้เมนสวิตช์ที่ {msb.no || mIdx + 1}</p>
+                      <h4 className="group-sub-title" style={{ marginTop: 16 }}>๒.๓.๓ สายดินของแผงสวิตช์</h4>
+                      <div className="field-row" style={{ margin: '8px 0' }}>
+                        <input
+                          type="text"
+                          placeholder="ชนิดสายต่อหลักดิน..."
+                          value={msb.grounding?.wireType || ''}
+                          onChange={(e) => updateMdbGrounding(mIdx, 'wireType', e.target.value)}
+                        />
+                        <input
+                          type="text"
+                          placeholder="ขนาด (mm²)..."
+                          value={msb.grounding?.wireSize || ''}
+                          onChange={(e) => updateMdbGrounding(mIdx, 'wireSize', e.target.value)}
+                        />
                       </div>
-                      <button type="button" className="btn-add-mini" onClick={() => addSubPanelToMdb(mIdx)}>
-                        + เพิ่มแผงย่อย (DB)
-                      </button>
+                      <ChecklistRow title="- สภาพหลักดิน จุดต่อ และสายดิน" item={msb.grounding} onChange={(it) => updateMdbGrounding(mIdx, null, it)} />
+
+                      <div className="field" style={{ marginTop: 12 }}>
+                        <label style={{ fontWeight: 700 }}>๒.๓.๔ อุณหภูมิของอุปกรณ์</label>
+                        <div className="radio-group-box">
+                          <label className="radio-opt">
+                            <input
+                              type="radio"
+                              name={`temp_msb_${mIdx}`}
+                              checked={msb.temperature === 'normal'}
+                              onChange={() => updateMainSwitchboard(mIdx, 'temperature', 'normal')}
+                            />
+                            <span>✓ ปกติ</span>
+                          </label>
+                          <label className="radio-opt">
+                            <input
+                              type="radio"
+                              name={`temp_msb_${mIdx}`}
+                              checked={msb.temperature === 'abnormal'}
+                              onChange={() => updateMainSwitchboard(mIdx, 'temperature', 'abnormal')}
+                            />
+                            <span>✕ ผิดปกติ</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <h4 className="group-sub-title" style={{ marginTop: 16 }}>๒.๓.๕ อื่นๆ</h4>
+                      <div className="field" style={{ marginBottom: 8 }}>
+                        <input
+                          type="text"
+                          placeholder="๒.๓.๕ อื่นๆ (ระบุ)..."
+                          value={msb.otherText || ''}
+                          onChange={(e) => updateMainSwitchboard(mIdx, 'otherText', e.target.value)}
+                        />
+                      </div>
+                      <ChecklistRow title="- รายการตู้เมนสวิตช์อื่นๆ" item={msb.other} onChange={(it) => updateMainSwitchboard(mIdx, 'other', it)} />
                     </div>
 
-                    {(msb.subPanels || []).map((sp, sIdx) => (
-                      <div key={sp.id || sIdx} className="nested-item-box">
-                        <div className="nested-item-hdr">
-                          <span className="nested-item-badge">แผงย่อยที่ {sp.no || sIdx + 1}</span>
-                          {(msb.subPanels || []).length > 1 && (
-                            <button type="button" className="btn-del-mini" onClick={() => removeSubPanelFromMdb(mIdx, sIdx)}>
-                              🗑 ลบแผงนี้
-                            </button>
-                          )}
+                    {/* ── ตาราง ๒.๔.๑ วงจรเมน (Main Circuit) ของตู้นี้ ── */}
+                    <div className="subgroup-card">
+                      <div className="subgroup-hdr-flex">
+                        <div>
+                          <h3 className="subgroup-title">๒.๔.๑ วงจรเมน (Main Circuit)</h3>
+                          <p className="subgroup-desc">สายเข้าเมนสวิตช์และรางเดินสายของตู้เมนฯ ที่ {msb.no || mIdx + 1}</p>
                         </div>
+                        <button type="button" className="btn-add-mini" onClick={() => addMainCircuitToMdb(mIdx)}>
+                          + เพิ่มวงจรเมน
+                        </button>
+                      </div>
 
-                        <div className="field-grid field-grid--3">
-                          <div className="field">
-                            <label>แผงย่อยที่</label>
-                            <input
-                              type="text"
-                              placeholder="เช่น DB-1, LP-2..."
-                              value={sp.no}
-                              onChange={(e) => updateSubPanelInMdb(mIdx, sIdx, 'no', e.target.value)}
-                            />
+                      {circuits.length > 0 && (
+                        <ItemSwitcher
+                          label="เลือกวงจรเมนของตู้นี้"
+                          items={circuits}
+                          currentIndex={safeCIdx}
+                          onSelect={setActiveCircuitIdx}
+                          onAdd={() => addMainCircuitToMdb(mIdx)}
+                          addLabel="+ เพิ่มวงจรเมน"
+                          onDelete={(cIdx) => removeMainCircuitFromMdb(mIdx, cIdx)}
+                          deleteLabel="ลบวงจรเมนชุดนี้"
+                          canDelete={circuits.length > 1}
+                          badgeText={`วงจรที่ ${safeCIdx + 1} จาก ${circuits.length}`}
+                          renderOptionLabel={(mc, i) => `วงจรเมน ชุดที่ ${i + 1}${mc.phaseWire?.type ? ' (' + mc.phaseWire.type + ' ' + (mc.phaseWire.size || '') + ')' : ''}`}
+                        />
+                      )}
+
+                      {currentCircuit && (
+                        <div key={currentCircuit.id || safeCIdx} className="nested-item-box">
+                          <div className="nested-item-hdr">
+                            <span className="nested-item-badge">วงจรเมน ชุดที่ {safeCIdx + 1}</span>
+                            {circuits.length > 1 && (
+                              <button type="button" className="btn-del-mini" onClick={() => removeMainCircuitFromMdb(mIdx, safeCIdx)}>
+                                🗑 ลบชุดนี้
+                              </button>
+                            )}
                           </div>
-                          <div className="field">
-                            <label>ตำแหน่ง / พื้นที่ติดตั้ง</label>
-                            <input
-                              type="text"
-                              placeholder="เช่น ชั้น 2 โซน A..."
-                              value={sp.location}
-                              onChange={(e) => updateSubPanelInMdb(mIdx, sIdx, 'location', e.target.value)}
-                            />
+
+                          <h5 className="group-sub-title">๒.๔.๑.๑ สายเข้าเมนสวิตช์</h5>
+                          <div className="field-grid field-grid--2">
+                            <div className="field">
+                              <label>สายเฟส (ชนิด / ขนาด mm²)</label>
+                              <div className="field-row">
+                                <input
+                                  type="text"
+                                  placeholder="ชนิดสาย เช่น NYY..."
+                                  value={currentCircuit.phaseWire?.type || ''}
+                                  onChange={(e) => updateMainCircuitInMdb(mIdx, safeCIdx, 'phaseWire', { ...currentCircuit.phaseWire, type: e.target.value })}
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="ขนาด mm²..."
+                                  value={currentCircuit.phaseWire?.size || ''}
+                                  onChange={(e) => updateMainCircuitInMdb(mIdx, safeCIdx, 'phaseWire', { ...currentCircuit.phaseWire, size: e.target.value })}
+                                />
+                              </div>
+                            </div>
+
+                            <div className="field">
+                              <label>สายนิวทรัล (ชนิด / ขนาด mm²)</label>
+                              <div className="field-row">
+                                <input
+                                  type="text"
+                                  placeholder="ชนิดสาย..."
+                                  value={currentCircuit.neutralWire?.type || ''}
+                                  onChange={(e) => updateMainCircuitInMdb(mIdx, safeCIdx, 'neutralWire', { ...currentCircuit.neutralWire, type: e.target.value })}
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="ขนาด mm²..."
+                                  value={currentCircuit.neutralWire?.size || ''}
+                                  onChange={(e) => updateMainCircuitInMdb(mIdx, safeCIdx, 'neutralWire', { ...currentCircuit.neutralWire, size: e.target.value })}
+                                />
+                              </div>
+                            </div>
                           </div>
-                          <div className="field">
-                            <label>การติดตั้ง</label>
+
+                          <div className="field" style={{ marginTop: 8 }}>
+                            <label>วิธีเดินสาย (เดินใน)</label>
                             <select
-                              value={sp.locationType}
-                              onChange={(e) => updateSubPanelInMdb(mIdx, sIdx, 'locationType', e.target.value)}
+                              value={currentCircuit.raceway}
+                              onChange={(e) => updateMainCircuitInMdb(mIdx, safeCIdx, 'raceway', e.target.value)}
                             >
-                              <option value="indoor">ภายในอาคาร</option>
-                              <option value="outdoor">ภายนอกอาคาร</option>
+                              <option value="conduit">ท่อร้อยสาย (Conduit)</option>
+                              <option value="wireway">รางเดินสาย (Wire Way)</option>
+                              <option value="cabletray">รางเคเบิล (Cable Tray)</option>
+                              <option value="rack">ลูกถ้วยราวยึดสาย (Rack)</option>
                               <option value="other">อื่นๆ</option>
                             </select>
                           </div>
-                        </div>
 
-                        <h5 className="group-sub-title" style={{ marginTop: 14 }}>๒.๔.๒.๑ รายการตรวจสอบสภาพแผงย่อย</h5>
-                        <ChecklistRow title="- สภาพทั่วไป" item={sp.items.generalCondition} onChange={(it) => updateSubPanelInMdb(mIdx, sIdx, 'items', { ...sp.items, generalCondition: it })} />
-                        <ChecklistRow title="- จุดต่อสาย และจุดต่อบัสบาร์" item={sp.items.busbarJoints} onChange={(it) => updateSubPanelInMdb(mIdx, sIdx, 'items', { ...sp.items, busbarJoints: it })} />
-                        <ChecklistRow title="- ที่ว่างเพื่อปฏิบัติงานที่จุดติดตั้งแผงย่อย" item={sp.items.workingSpace} onChange={(it) => updateSubPanelInMdb(mIdx, sIdx, 'items', { ...sp.items, workingSpace: it })} />
-                        <ChecklistRow title="- แสงสว่างเหนือที่ว่างเพื่อปฏิบัติงาน" item={sp.items.lighting} onChange={(it) => updateSubPanelInMdb(mIdx, sIdx, 'items', { ...sp.items, lighting: it })} />
-                        <ChecklistRow title="- การต่อฝาก" item={sp.items.bonding} onChange={(it) => updateSubPanelInMdb(mIdx, sIdx, 'items', { ...sp.items, bonding: it })} />
-                        <ChecklistRow title="- การป้องกันส่วนสัมผัสที่มีไฟฟ้า" item={sp.items.livePartProtection} onChange={(it) => updateSubPanelInMdb(mIdx, sIdx, 'items', { ...sp.items, livePartProtection: it })} />
+                          <h5 className="group-sub-title" style={{ marginTop: 14 }}>รายการตรวจสอบ</h5>
+                          <ChecklistRow title="๒.๔.๑.๒ รางเดินสายและรางเคเบิล" item={currentCircuit.items.racewayCondition} onChange={(it) => updateMainCircuitInMdb(mIdx, safeCIdx, 'items', { ...currentCircuit.items, racewayCondition: it })} />
+                          <ChecklistRow title="๒.๔.๑.๓ สภาพฉนวนสายไฟ" item={currentCircuit.items.insulation} onChange={(it) => updateMainCircuitInMdb(mIdx, safeCIdx, 'items', { ...currentCircuit.items, insulation: it })} />
+                          <ChecklistRow title="๒.๔.๑.๔ สภาพจุดต่อของสาย" item={currentCircuit.items.joints} onChange={(it) => updateMainCircuitInMdb(mIdx, safeCIdx, 'items', { ...currentCircuit.items, joints: it })} />
+                          <ChecklistRow title="๒.๔.๑.๕ การป้องกันความร้อนจากการเหนี่ยวนำ" item={currentCircuit.items.inductionHeatProtection} onChange={(it) => updateMainCircuitInMdb(mIdx, safeCIdx, 'items', { ...currentCircuit.items, inductionHeatProtection: it })} />
 
-                        <h5 className="group-sub-title" style={{ marginTop: 16 }}>๒.๔.๒.๒ เครื่องป้องกันกระแสเกินของแผงย่อย</h5>
-                        <div className="field-grid field-grid--3">
-                          <div className="field">
-                            <label>ชนิด</label>
+                          <div className="field" style={{ marginTop: 12 }}>
+                            <label style={{ fontWeight: 700 }}>๒.๔.๑.๖ อุณหภูมิของอุปกรณ์</label>
+                            <div className="radio-group-box">
+                              <label className="radio-opt">
+                                <input
+                                  type="radio"
+                                  name={`temp_mc_${mIdx}_${safeCIdx}`}
+                                  checked={currentCircuit.temperature === 'normal'}
+                                  onChange={() => updateMainCircuitInMdb(mIdx, safeCIdx, 'temperature', 'normal')}
+                                />
+                                <span>✓ ปกติ</span>
+                              </label>
+                              <label className="radio-opt">
+                                <input
+                                  type="radio"
+                                  name={`temp_mc_${mIdx}_${safeCIdx}`}
+                                  checked={currentCircuit.temperature === 'abnormal'}
+                                  onChange={() => updateMainCircuitInMdb(mIdx, safeCIdx, 'temperature', 'abnormal')}
+                                />
+                                <span>✕ ผิดปกติ</span>
+                              </label>
+                            </div>
+                          </div>
+
+                          <h5 className="group-sub-title" style={{ marginTop: 16 }}>๒.๔.๑.๗ อื่นๆ</h5>
+                          <div className="field" style={{ marginBottom: 8 }}>
                             <input
                               type="text"
-                              value={sp.overcurrentProtection?.type || ''}
-                              onChange={(e) => updateSubPanelInMdb(mIdx, sIdx, 'overcurrentProtection', { ...sp.overcurrentProtection, type: e.target.value })}
+                              placeholder="๒.๔.๑.๗ อื่นๆ (ระบุ)..."
+                              value={currentCircuit.otherText || ''}
+                              onChange={(e) => updateMainCircuitInMdb(mIdx, safeCIdx, 'otherText', e.target.value)}
                             />
                           </div>
-                          <div className="field">
-                            <label>IC (kA)</label>
-                            <input
-                              type="text"
-                              value={sp.overcurrentProtection?.icKa || ''}
-                              onChange={(e) => updateSubPanelInMdb(mIdx, sIdx, 'overcurrentProtection', { ...sp.overcurrentProtection, icKa: e.target.value })}
-                            />
-                          </div>
-                          <div className="field">
-                            <label>แรงดัน (V)</label>
-                            <input
-                              type="text"
-                              value={sp.overcurrentProtection?.volt || ''}
-                              onChange={(e) => updateSubPanelInMdb(mIdx, sIdx, 'overcurrentProtection', { ...sp.overcurrentProtection, volt: e.target.value })}
-                            />
-                          </div>
-                          <div className="field">
-                            <label>พิกัดกระแส AT (A)</label>
-                            <input
-                              type="text"
-                              value={sp.overcurrentProtection?.atAmp || ''}
-                              onChange={(e) => updateSubPanelInMdb(mIdx, sIdx, 'overcurrentProtection', { ...sp.overcurrentProtection, atAmp: e.target.value })}
-                            />
-                          </div>
-                          <div className="field">
-                            <label>AF (A)</label>
-                            <input
-                              type="text"
-                              value={sp.overcurrentProtection?.afAmp || ''}
-                              onChange={(e) => updateSubPanelInMdb(mIdx, sIdx, 'overcurrentProtection', { ...sp.overcurrentProtection, afAmp: e.target.value })}
-                            />
-                          </div>
+                          <ChecklistRow title="- รายการวงจรเมนอื่นๆ" item={currentCircuit.other} onChange={(it) => updateMainCircuitInMdb(mIdx, safeCIdx, 'other', it)} />
                         </div>
+                      )}
 
-                        <h5 className="group-sub-title" style={{ marginTop: 16 }}>๒.๔.๒.๓ สายดินของแผงย่อย</h5>
-                        <div className="field-row" style={{ margin: '8px 0' }}>
-                          <input
-                            type="text"
-                            placeholder="ชนิดสายดิน..."
-                            value={sp.grounding?.wireType || ''}
-                            onChange={(e) => updateSubPanelInMdb(mIdx, sIdx, 'grounding', { ...sp.grounding, wireType: e.target.value })}
-                          />
-                          <input
-                            type="text"
-                            placeholder="ขนาด (mm²)..."
-                            value={sp.grounding?.wireSize || ''}
-                            onChange={(e) => updateSubPanelInMdb(mIdx, sIdx, 'grounding', { ...sp.grounding, wireSize: e.target.value })}
-                          />
-                        </div>
-                        <ChecklistRow title="- สภาพสายดินและจุดต่อ" item={sp.grounding} onChange={(it) => updateSubPanelInMdb(mIdx, sIdx, 'grounding', { ...sp.grounding, ...it })} />
-
-                        <div className="field" style={{ marginTop: 12 }}>
-                          <label style={{ fontWeight: 700 }}>๒.๔.๒.๔ อุณหภูมิของอุปกรณ์</label>
-                          <div className="radio-group-box">
-                            <label className="radio-opt">
-                              <input
-                                type="radio"
-                                name={`temp_sp_${mIdx}_${sIdx}`}
-                                checked={sp.temperature === 'normal'}
-                                onChange={() => updateSubPanelInMdb(mIdx, sIdx, 'temperature', 'normal')}
-                              />
-                              <span>✓ ปกติ</span>
-                            </label>
-                            <label className="radio-opt">
-                              <input
-                                type="radio"
-                                name={`temp_sp_${mIdx}_${sIdx}`}
-                                checked={sp.temperature === 'abnormal'}
-                                onChange={() => updateSubPanelInMdb(mIdx, sIdx, 'temperature', 'abnormal')}
-                              />
-                              <span>✕ ผิดปกติ</span>
-                            </label>
-                          </div>
-                        </div>
-
-                        <h5 className="group-sub-title" style={{ marginTop: 16 }}>๒.๔.๒.๕ อื่นๆ</h5>
-                        <div className="field" style={{ marginBottom: 8 }}>
-                          <input
-                            type="text"
-                            placeholder="๒.๔.๒.๕ อื่นๆ (ระบุ)..."
-                            value={sp.otherText || ''}
-                            onChange={(e) => updateSubPanelInMdb(mIdx, sIdx, 'otherText', e.target.value)}
-                          />
-                        </div>
-                        <ChecklistRow title="- รายการแผงย่อยอื่นๆ" item={sp.other} onChange={(it) => updateSubPanelInMdb(mIdx, sIdx, 'other', it)} />
+                      {/* Bottom Add Circuit Button */}
+                      <div className="subgroup-bottom-add-bar">
+                        <button type="button" className="btn-add-mini-bottom" onClick={() => addMainCircuitToMdb(mIdx)}>
+                          + เพิ่มวงจรเมนชุดใหม่
+                        </button>
                       </div>
-                    ))}
-                  </div>
-
-                  {/* ── ตาราง ๒.๕ บริภัณฑ์ไฟฟ้าอื่นๆ ในอาคารนี้ ── */}
-                  <div className="subgroup-card">
-                    <div className="subgroup-hdr-flex">
-                      <div>
-                        <h3 className="subgroup-title">๒.๕ บริภัณฑ์ไฟฟ้าอื่นๆ</h3>
-                        <p className="subgroup-desc">เช่น มอเตอร์, ตู้เย็น/เครื่องทำน้ำดื่ม, เครื่องเชื่อม ภายใต้อาคารนี้</p>
-                      </div>
-                      <button type="button" className="btn-add-mini" onClick={() => addOtherEquipmentToMdb(mIdx)}>
-                        + เพิ่มบริภัณฑ์ไฟฟ้า
-                      </button>
                     </div>
 
-                    {(msb.otherEquipments || []).map((eq, eIdx) => (
-                      <div key={eq.id || eIdx} className="nested-item-box">
-                        <div className="nested-item-hdr">
-                          <span className="nested-item-badge">บริภัณฑ์ที่ {eIdx + 1}</span>
-                          {(msb.otherEquipments || []).length > 1 && (
-                            <button type="button" className="btn-del-mini" onClick={() => removeOtherEquipmentFromMdb(mIdx, eIdx)}>
-                              🗑 ลบรายการนี้
-                            </button>
-                          )}
+                    {/* ── ตาราง ๒.๔.๒ แผงย่อย (Sub Panel / DB) ของตู้นี้ ── */}
+                    <div className="subgroup-card">
+                      <div className="subgroup-hdr-flex">
+                        <div>
+                          <h3 className="subgroup-title">๒.๔.๒ แผงย่อย (Distribution Board - DB)</h3>
+                          <p className="subgroup-desc">แผงวงจรย่อยที่ต่อแยกจากตู้เมนสวิตช์ที่ {msb.no || mIdx + 1}</p>
                         </div>
-
-                        <div className="field">
-                          <label>ชื่อบริภัณฑ์ไฟฟ้า</label>
-                          <input
-                            type="text"
-                            placeholder="เช่น มอเตอร์ปั๊มน้ำ, ตู้เย็น, แอร์, เครื่องเชื่อม..."
-                            value={eq.name || ''}
-                            onChange={(e) => updateOtherEquipmentInMdb(mIdx, eIdx, 'name', e.target.value)}
-                          />
-                        </div>
-
-                        <ChecklistRow title="๒.๕.๑ การติดตั้ง" item={eq.installation} onChange={(it) => updateOtherEquipmentInMdb(mIdx, eIdx, 'installation', it)} />
-                        <ChecklistRow title="๒.๕.๒ สภาพภายนอก" item={eq.external} onChange={(it) => updateOtherEquipmentInMdb(mIdx, eIdx, 'external', it)} />
-
-                        <h5 className="group-sub-title" style={{ marginTop: 16 }}>๒.๕.๓ อื่นๆ</h5>
-                        <div className="field" style={{ marginTop: 8 }}>
-                          <input
-                            type="text"
-                            placeholder="๒.๕.๓ อื่นๆ (ระบุ)..."
-                            value={eq.otherText || ''}
-                            onChange={(e) => updateOtherEquipmentInMdb(mIdx, eIdx, 'otherText', e.target.value)}
-                          />
-                        </div>
-                        <ChecklistRow title="- สภาพรายการอื่นๆ" item={eq.other} onChange={(it) => updateOtherEquipmentInMdb(mIdx, eIdx, 'other', it)} />
+                        <button type="button" className="btn-add-mini" onClick={() => addSubPanelToMdb(mIdx)}>
+                          + เพิ่มแผงย่อย (DB)
+                        </button>
                       </div>
-                    ))}
+
+                      {panels.length > 0 && (
+                        <ItemSwitcher
+                          label="เลือกแผงย่อย (DB) ของตู้นี้"
+                          items={panels}
+                          currentIndex={safeSIdx}
+                          onSelect={setActiveSubPanelIdx}
+                          onAdd={() => addSubPanelToMdb(mIdx)}
+                          addLabel="+ เพิ่มแผงย่อย (DB)"
+                          onDelete={(sIdx) => removeSubPanelFromMdb(mIdx, sIdx)}
+                          deleteLabel="ลบแผงย่อยนี้"
+                          canDelete={panels.length > 1}
+                          badgeText={`แผงที่ ${safeSIdx + 1} จาก ${panels.length}`}
+                          renderOptionLabel={(sp, i) => `แผงย่อยที่ ${sp.no || i + 1}${sp.location ? ' - ' + sp.location : ''}`}
+                        />
+                      )}
+
+                      {currentPanel && (
+                        <div key={currentPanel.id || safeSIdx} className="nested-item-box">
+                          <div className="nested-item-hdr">
+                            <span className="nested-item-badge">แผงย่อยที่ {currentPanel.no || safeSIdx + 1}</span>
+                            {panels.length > 1 && (
+                              <button type="button" className="btn-del-mini" onClick={() => removeSubPanelFromMdb(mIdx, safeSIdx)}>
+                                🗑 ลบแผงนี้
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="field-grid field-grid--3">
+                            <div className="field">
+                              <label>แผงย่อยที่</label>
+                              <input
+                                type="text"
+                                placeholder="เช่น DB-1, LP-2..."
+                                value={currentPanel.no}
+                                onChange={(e) => updateSubPanelInMdb(mIdx, safeSIdx, 'no', e.target.value)}
+                              />
+                            </div>
+                            <div className="field">
+                              <label>ตำแหน่ง / พื้นที่ติดตั้ง</label>
+                              <input
+                                type="text"
+                                placeholder="เช่น ชั้น 2 โซน A..."
+                                value={currentPanel.location}
+                                onChange={(e) => updateSubPanelInMdb(mIdx, safeSIdx, 'location', e.target.value)}
+                              />
+                            </div>
+                            <div className="field">
+                              <label>การติดตั้ง</label>
+                              <select
+                                value={currentPanel.locationType}
+                                onChange={(e) => updateSubPanelInMdb(mIdx, safeSIdx, 'locationType', e.target.value)}
+                              >
+                                <option value="indoor">ภายในอาคาร</option>
+                                <option value="outdoor">ภายนอกอาคาร</option>
+                                <option value="other">อื่นๆ</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <h5 className="group-sub-title" style={{ marginTop: 14 }}>๒.๔.๒.๑ รายการตรวจสอบสภาพแผงย่อย</h5>
+                          <ChecklistRow title="- สภาพทั่วไป" item={currentPanel.items.generalCondition} onChange={(it) => updateSubPanelInMdb(mIdx, safeSIdx, 'items', { ...currentPanel.items, generalCondition: it })} />
+                          <ChecklistRow title="- จุดต่อสาย และจุดต่อบัสบาร์" item={currentPanel.items.busbarJoints} onChange={(it) => updateSubPanelInMdb(mIdx, safeSIdx, 'items', { ...currentPanel.items, busbarJoints: it })} />
+                          <ChecklistRow title="- ที่ว่างเพื่อปฏิบัติงานที่จุดติดตั้งแผงย่อย" item={currentPanel.items.workingSpace} onChange={(it) => updateSubPanelInMdb(mIdx, safeSIdx, 'items', { ...currentPanel.items, workingSpace: it })} />
+                          <ChecklistRow title="- แสงสว่างเหนือที่ว่างเพื่อปฏิบัติงาน" item={currentPanel.items.lighting} onChange={(it) => updateSubPanelInMdb(mIdx, safeSIdx, 'items', { ...currentPanel.items, lighting: it })} />
+                          <ChecklistRow title="- การต่อฝาก" item={currentPanel.items.bonding} onChange={(it) => updateSubPanelInMdb(mIdx, safeSIdx, 'items', { ...currentPanel.items, bonding: it })} />
+                          <ChecklistRow title="- การป้องกันส่วนสัมผัสที่มีไฟฟ้า" item={currentPanel.items.livePartProtection} onChange={(it) => updateSubPanelInMdb(mIdx, safeSIdx, 'items', { ...currentPanel.items, livePartProtection: it })} />
+
+                          <h5 className="group-sub-title" style={{ marginTop: 16 }}>๒.๔.๒.๒ เครื่องป้องกันกระแสเกินของแผงย่อย</h5>
+                          <div className="field-grid field-grid--3">
+                            <div className="field">
+                              <label>ชนิด</label>
+                              <input
+                                type="text"
+                                value={currentPanel.overcurrentProtection?.type || ''}
+                                onChange={(e) => updateSubPanelInMdb(mIdx, safeSIdx, 'overcurrentProtection', { ...currentPanel.overcurrentProtection, type: e.target.value })}
+                              />
+                            </div>
+                            <div className="field">
+                              <label>IC (kA)</label>
+                              <input
+                                type="text"
+                                value={currentPanel.overcurrentProtection?.icKa || ''}
+                                onChange={(e) => updateSubPanelInMdb(mIdx, safeSIdx, 'overcurrentProtection', { ...currentPanel.overcurrentProtection, icKa: e.target.value })}
+                              />
+                            </div>
+                            <div className="field">
+                              <label>แรงดัน (V)</label>
+                              <input
+                                type="text"
+                                value={currentPanel.overcurrentProtection?.volt || ''}
+                                onChange={(e) => updateSubPanelInMdb(mIdx, safeSIdx, 'overcurrentProtection', { ...currentPanel.overcurrentProtection, volt: e.target.value })}
+                              />
+                            </div>
+                            <div className="field">
+                              <label>พิกัดกระแส AT (A)</label>
+                              <input
+                                type="text"
+                                value={currentPanel.overcurrentProtection?.atAmp || ''}
+                                onChange={(e) => updateSubPanelInMdb(mIdx, safeSIdx, 'overcurrentProtection', { ...currentPanel.overcurrentProtection, atAmp: e.target.value })}
+                              />
+                            </div>
+                            <div className="field">
+                              <label>AF (A)</label>
+                              <input
+                                type="text"
+                                value={currentPanel.overcurrentProtection?.afAmp || ''}
+                                onChange={(e) => updateSubPanelInMdb(mIdx, safeSIdx, 'overcurrentProtection', { ...currentPanel.overcurrentProtection, afAmp: e.target.value })}
+                              />
+                            </div>
+                          </div>
+
+                          <h5 className="group-sub-title" style={{ marginTop: 16 }}>๒.๔.๒.๓ สายดินของแผงย่อย</h5>
+                          <div className="field-row" style={{ margin: '8px 0' }}>
+                            <input
+                              type="text"
+                              placeholder="ชนิดสายดิน..."
+                              value={currentPanel.grounding?.wireType || ''}
+                              onChange={(e) => updateSubPanelInMdb(mIdx, safeSIdx, 'grounding', { ...currentPanel.grounding, wireType: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              placeholder="ขนาด (mm²)..."
+                              value={currentPanel.grounding?.wireSize || ''}
+                              onChange={(e) => updateSubPanelInMdb(mIdx, safeSIdx, 'grounding', { ...currentPanel.grounding, wireSize: e.target.value })}
+                            />
+                          </div>
+                          <ChecklistRow title="- สภาพสายดินและจุดต่อ" item={currentPanel.grounding} onChange={(it) => updateSubPanelInMdb(mIdx, safeSIdx, 'grounding', { ...currentPanel.grounding, ...it })} />
+
+                          <div className="field" style={{ marginTop: 12 }}>
+                            <label style={{ fontWeight: 700 }}>๒.๔.๒.๔ อุณหภูมิของอุปกรณ์</label>
+                            <div className="radio-group-box">
+                              <label className="radio-opt">
+                                <input
+                                  type="radio"
+                                  name={`temp_sp_${mIdx}_${safeSIdx}`}
+                                  checked={currentPanel.temperature === 'normal'}
+                                  onChange={() => updateSubPanelInMdb(mIdx, safeSIdx, 'temperature', 'normal')}
+                                />
+                                <span>✓ ปกติ</span>
+                              </label>
+                              <label className="radio-opt">
+                                <input
+                                  type="radio"
+                                  name={`temp_sp_${mIdx}_${safeSIdx}`}
+                                  checked={currentPanel.temperature === 'abnormal'}
+                                  onChange={() => updateSubPanelInMdb(mIdx, safeSIdx, 'temperature', 'abnormal')}
+                                />
+                                <span>✕ ผิดปกติ</span>
+                              </label>
+                            </div>
+                          </div>
+
+                          <h5 className="group-sub-title" style={{ marginTop: 16 }}>๒.๔.๒.๕ อื่นๆ</h5>
+                          <div className="field" style={{ marginBottom: 8 }}>
+                            <input
+                              type="text"
+                              placeholder="๒.๔.๒.๕ อื่นๆ (ระบุ)..."
+                              value={currentPanel.otherText || ''}
+                              onChange={(e) => updateSubPanelInMdb(mIdx, safeSIdx, 'otherText', e.target.value)}
+                            />
+                          </div>
+                          <ChecklistRow title="- รายการแผงย่อยอื่นๆ" item={currentPanel.other} onChange={(it) => updateSubPanelInMdb(mIdx, safeSIdx, 'other', it)} />
+                        </div>
+                      )}
+
+                      {/* Bottom Add SubPanel Button */}
+                      <div className="subgroup-bottom-add-bar">
+                        <button type="button" className="btn-add-mini-bottom" onClick={() => addSubPanelToMdb(mIdx)}>
+                          + เพิ่มแผงย่อยชุดใหม่
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* ── ตาราง ๒.๕ บริภัณฑ์ไฟฟ้าอื่นๆ ในอาคารนี้ ── */}
+                    <div className="subgroup-card">
+                      <div className="subgroup-hdr-flex">
+                        <div>
+                          <h3 className="subgroup-title">๒.๕ บริภัณฑ์ไฟฟ้าอื่นๆ</h3>
+                          <p className="subgroup-desc">เช่น มอเตอร์, ตู้เย็น/เครื่องทำน้ำดื่ม, เครื่องเชื่อม ภายใต้อาคารนี้</p>
+                        </div>
+                        <button type="button" className="btn-add-mini" onClick={() => addOtherEquipmentToMdb(mIdx)}>
+                          + เพิ่มบริภัณฑ์ไฟฟ้า
+                        </button>
+                      </div>
+
+                      {equips.length > 0 && (
+                        <ItemSwitcher
+                          label="เลือกบริภัณฑ์ไฟฟ้าในอาคารนี้"
+                          items={equips}
+                          currentIndex={safeEIdx}
+                          onSelect={setActiveEquipIdx}
+                          onAdd={() => addOtherEquipmentToMdb(mIdx)}
+                          addLabel="+ เพิ่มบริภัณฑ์ไฟฟ้า"
+                          onDelete={(eIdx) => removeOtherEquipmentFromMdb(mIdx, eIdx)}
+                          deleteLabel="ลบบริภัณฑ์นี้"
+                          canDelete={equips.length > 1}
+                          badgeText={`รายการที่ ${safeEIdx + 1} จาก ${equips.length}`}
+                          renderOptionLabel={(eq, i) => `บริภัณฑ์ที่ ${i + 1}${eq.name ? ' : ' + eq.name : ''}`}
+                        />
+                      )}
+
+                      {currentEquip && (
+                        <div key={currentEquip.id || safeEIdx} className="nested-item-box">
+                          <div className="nested-item-hdr">
+                            <span className="nested-item-badge">บริภัณฑ์ที่ {safeEIdx + 1}</span>
+                            {equips.length > 1 && (
+                              <button type="button" className="btn-del-mini" onClick={() => removeOtherEquipmentFromMdb(mIdx, safeEIdx)}>
+                                🗑 ลบรายการนี้
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="field">
+                            <label>ชื่อบริภัณฑ์ไฟฟ้า</label>
+                            <input
+                              type="text"
+                              placeholder="เช่น มอเตอร์ปั๊มน้ำ, ตู้เย็น, แอร์, เครื่องเชื่อม..."
+                              value={currentEquip.name || ''}
+                              onChange={(e) => updateOtherEquipmentInMdb(mIdx, safeEIdx, 'name', e.target.value)}
+                            />
+                          </div>
+
+                          <ChecklistRow title="๒.๕.๑ การติดตั้ง" item={currentEquip.installation} onChange={(it) => updateOtherEquipmentInMdb(mIdx, safeEIdx, 'installation', it)} />
+                          <ChecklistRow title="๒.๕.๒ สภาพภายนอก" item={currentEquip.external} onChange={(it) => updateOtherEquipmentInMdb(mIdx, safeEIdx, 'external', it)} />
+
+                          <h5 className="group-sub-title" style={{ marginTop: 16 }}>๒.๕.๓ อื่นๆ</h5>
+                          <div className="field" style={{ marginTop: 8 }}>
+                            <input
+                              type="text"
+                              placeholder="๒.๕.๓ อื่นๆ (ระบุ)..."
+                              value={currentEquip.otherText || ''}
+                              onChange={(e) => updateOtherEquipmentInMdb(mIdx, safeEIdx, 'otherText', e.target.value)}
+                            />
+                          </div>
+                          <ChecklistRow title="- สภาพรายการอื่นๆ" item={currentEquip.other} onChange={(it) => updateOtherEquipmentInMdb(mIdx, safeEIdx, 'other', it)} />
+                        </div>
+                      )}
+
+                      {/* Bottom Add Equipment Button */}
+                      <div className="subgroup-bottom-add-bar">
+                        <button type="button" className="btn-add-mini-bottom" onClick={() => addOtherEquipmentToMdb(mIdx)}>
+                          + เพิ่มบริภัณฑ์ไฟฟ้าชุดใหม่
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })()}
+
+              {/* Bottom Add MDB Button */}
+              <div className="section-bottom-add-bar">
+                <button type="button" className="btn-add-item-bottom" onClick={addMainSwitchboard}>
+                  + เพิ่มตู้เมนสวิตช์ / ชุดอาคารใหม่
+                </button>
+              </div>
 
               <div className="cat-bottom-nav">
                 <button type="button" className="btn-secondary" onClick={() => setCatTab('transformer')}>
-                  ‹ ก่อนหน้า: ๒.๒ หม้อแปลงไฟฟ้า
+                  ‹ ก่อนหน้า: หม้อแปลงไฟฟ้า
                 </button>
                 <button type="button" className="btn-primary" onClick={() => setStep(4)}>
                   ถัดไป: สรุปผล & บันทึก (ขั้นตอนที่ 4) ›
@@ -3020,8 +3296,8 @@ function ElectricalAnnualInner() {
             </div>
           )}
         </section>
-      )}
-
+        );
+      })()}
       {/* ── STEP 4: สรุปผลการตรวจสอบ & บันทึก (หน้า 9 ส่วนที่ 3) ── */}
       {step === 4 && (
         <section className="form-section">
@@ -3739,21 +4015,84 @@ function ElectricalAnnualInner() {
           overflow-y: auto;
           padding: 20px;
         }
-        @media (max-width: 768px) {
+                @media (max-width: 768px) {
           .step-nav {
             grid-template-columns: repeat(2, 1fr);
           }
           .check-row__main {
             flex-direction: column;
-            align-items: flex-start;
+            align-items: stretch;
+            gap: 8px;
+          }
+          .check-row__title {
+            font-size: 13px;
+            line-height: 1.4;
+            word-break: break-word;
           }
           .check-row__options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
             width: 100%;
-            justify-content: space-between;
+          }
+          .status-pill {
+            justify-content: center;
+            text-align: center;
+            padding: 8px 3px;
+            font-size: 11px;
+            white-space: nowrap;
+            letter-spacing: -0.2px;
+          }
+          .status-pill span {
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
           .elec-year-bar {
             flex-direction: column;
             align-items: flex-start;
+          }
+          .cat-subnav-pills {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+          }
+          .cat-tab-btn {
+            flex-direction: column;
+            text-align: center;
+            padding: 9px 4px;
+            gap: 4px;
+          }
+          .cat-tab-icon {
+            font-size: 18px;
+          }
+          .cat-tab-title {
+            font-size: 11px;
+            line-height: 1.25;
+            white-space: normal;
+          }
+          .cat-tab-badge {
+            font-size: 10px;
+          }
+          .ypc-quick-pills {
+            grid-template-columns: repeat(2, 1fr);
+          }
+          .item-switcher-top {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .item-switcher-actions-top {
+            justify-content: space-between;
+          }
+          .item-switcher-select {
+            font-size: 12.5px;
+            padding: 8px 10px;
+          }
+          .btn-switcher-nav {
+            padding: 8px 10px;
+            font-size: 12px;
+          }
+          .btn-add-item-bottom {
+            font-size: 13.5px;
+            padding: 12px 16px;
           }
         }
 
@@ -3834,7 +4173,7 @@ function ElectricalAnnualInner() {
           border: 1px solid #c7d2fe;
         }
 
-        /* ── Screen 0: Year Selection Card ── */
+        /* ── Screen 0: Year Selection Card (Navy / Royal Blue Modern Theme) ── */
         .year-select-container {
           max-width: 580px;
           margin: 0 auto;
@@ -3844,25 +4183,33 @@ function ElectricalAnnualInner() {
           padding-bottom: 60px;
         }
         .year-picker-card {
-          background: var(--bg-surface, #111d32);
-          border: 1px solid var(--border-hairline, #1e2e4a);
-          border-radius: 20px;
+          background: linear-gradient(180deg, rgba(23, 35, 64, 0.95) 0%, rgba(17, 29, 50, 0.98) 100%);
+          border: 1.5px solid rgba(59, 130, 246, 0.3);
+          border-radius: 22px;
           padding: 28px 24px;
-          box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+          box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.04);
         }
         .ypc-header {
           text-align: center;
           margin-bottom: 24px;
         }
-        .ypc-icon {
-          font-size: 40px;
-          display: block;
-          margin-bottom: 8px;
+        .ypc-icon-badge {
+          width: 58px;
+          height: 58px;
+          border-radius: 18px;
+          background: radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, rgba(17, 29, 50, 0) 75%);
+          border: 1.5px solid rgba(96, 165, 250, 0.4);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 12px;
+          font-size: 28px;
+          box-shadow: 0 4px 18px rgba(37, 99, 235, 0.3);
         }
         .ypc-title {
-          font-size: 20px;
+          font-size: 21px;
           font-weight: 800;
-          color: var(--ink-primary, #eef2ff);
+          color: #ffffff;
           margin: 0 0 6px;
         }
         .ypc-sub {
@@ -3876,14 +4223,58 @@ function ElectricalAnnualInner() {
           flex-direction: column;
           gap: 16px;
         }
+
+        /* Quick Year Selection Chips */
+        .ypc-quick-years {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .ypc-quick-label {
+          font-size: 12.5px;
+          font-weight: 700;
+          color: #93c5fd;
+        }
+        .ypc-quick-pills {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 8px;
+        }
+        .ypc-year-chip {
+          padding: 10px 6px;
+          border-radius: 10px;
+          border: 1.5px solid rgba(148, 163, 196, 0.2);
+          background: rgba(23, 35, 64, 0.8);
+          color: #eef2ff;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.16s ease;
+          text-align: center;
+        }
+        .ypc-year-chip:hover {
+          border-color: rgba(96, 165, 250, 0.6);
+          background: rgba(37, 99, 235, 0.18);
+          color: #ffffff;
+        }
+        .ypc-year-chip--active {
+          background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%) !important;
+          border-color: #93c5fd !important;
+          color: #ffffff !important;
+          box-shadow: 0 4px 16px rgba(37, 99, 235, 0.45);
+        }
+
+        .ypc-select-wrapper {
+          position: relative;
+        }
         .ypc-select {
           width: 100%;
           background: var(--bg-input, #080e1a);
-          border: 1px solid var(--border-strong, #2d3f5e);
+          border: 1.5px solid rgba(59, 130, 246, 0.35);
           border-radius: 12px;
-          color: var(--ink-primary, #eef2ff);
-          padding: 13px 14px;
-          font-size: 16px;
+          color: #ffffff;
+          padding: 12px 14px;
+          font-size: 15px;
           font-weight: 600;
           font-family: inherit;
           cursor: pointer;
@@ -3891,33 +4282,34 @@ function ElectricalAnnualInner() {
           transition: border-color 0.15s;
         }
         .ypc-select:focus {
-          border-color: var(--accent, #2563eb);
+          border-color: #60a5fa;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
         }
         .ypc-badge-pill {
           display: flex;
           align-items: center;
           gap: 8px;
-          padding: 9px 13px;
-          border-radius: 10px;
+          padding: 10px 14px;
+          border-radius: 12px;
           font-size: 13px;
-          font-weight: 500;
+          font-weight: 600;
           width: 100%;
           box-sizing: border-box;
           line-height: 1.4;
         }
         .ypc-badge-pill--amber {
-          background: rgba(245, 158, 11, 0.12);
-          border: 1px solid rgba(245, 158, 11, 0.3);
+          background: rgba(245, 158, 11, 0.14);
+          border: 1.5px solid rgba(245, 158, 11, 0.35);
           color: #fbbf24;
         }
         .ypc-badge-pill--blue {
-          background: rgba(59, 130, 246, 0.12);
-          border: 1px solid rgba(59, 130, 246, 0.3);
-          color: #60a5fa;
+          background: rgba(59, 130, 246, 0.14);
+          border: 1.5px solid rgba(59, 130, 246, 0.35);
+          color: #93c5fd;
         }
         .ypc-badge-pill--green {
-          background: rgba(34, 197, 94, 0.12);
-          border: 1px solid rgba(34, 197, 94, 0.3);
+          background: rgba(34, 197, 94, 0.14);
+          border: 1.5px solid rgba(34, 197, 94, 0.35);
           color: #4ade80;
         }
         .ypc-badge-pill__icon {
@@ -3925,38 +4317,40 @@ function ElectricalAnnualInner() {
           flex-shrink: 0;
         }
         .ypc-btn-proceed {
-          background: var(--accent, #2563eb);
+          background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
           color: #ffffff;
           border: none;
           border-radius: 12px;
           padding: 14px 20px;
-          font-size: 16px;
+          font-size: 15.5px;
           font-weight: 700;
           font-family: inherit;
           cursor: pointer;
-          transition: background 0.15s, transform 0.1s;
+          box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+          transition: all 0.16s ease;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 6px;
-          margin-top: 4px;
+          gap: 8px;
+          margin-top: 6px;
         }
         .ypc-btn-proceed:hover {
-          background: var(--accent-strong, #3b82f6);
-          transform: translateY(-1px);
+          transform: translateY(-1.5px);
+          box-shadow: 0 8px 26px rgba(37, 99, 235, 0.6);
         }
 
         /* ── Existing reports card on pageStep 0 ── */
         .existing-reports-card {
-          background: var(--bg-surface, #111d32);
-          border: 1px solid var(--border-hairline, #1e2e4a);
+          background: linear-gradient(180deg, rgba(23, 35, 64, 0.85) 0%, rgba(17, 29, 50, 0.9) 100%);
+          border: 1px solid rgba(59, 130, 246, 0.25);
           border-radius: 20px;
           padding: 20px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
         .erc-title {
           font-size: 14px;
           font-weight: 700;
-          color: var(--ink-primary, #eef2ff);
+          color: #93c5fd;
           margin: 0 0 12px;
         }
         .erc-list {
@@ -3971,8 +4365,8 @@ function ElectricalAnnualInner() {
           gap: 12px;
           padding: 10px 14px;
           border-radius: 10px;
-          background: var(--bg-surface-raised, #172340);
-          border: 1px solid var(--border-hairline, #1e2e4a);
+          background: rgba(17, 29, 50, 0.85);
+          border: 1px solid rgba(148, 163, 196, 0.18);
         }
         .erc-item-info {
           display: flex;
@@ -3983,37 +4377,217 @@ function ElectricalAnnualInner() {
         .erc-year {
           font-weight: 700;
           font-size: 14px;
-          color: var(--ink-primary, #eef2ff);
+          color: #ffffff;
         }
         .erc-date {
           font-size: 12px;
-          color: var(--ink-muted, #5a6a8a);
+          color: var(--ink-secondary, #94a3c4);
         }
         .erc-bld {
           font-size: 11px;
-          background: var(--bg-input, #080e1a);
-          padding: 2px 6px;
-          border-radius: 4px;
-          color: var(--ink-secondary, #94a3c4);
+          background: rgba(59, 130, 246, 0.15);
+          border: 1px solid rgba(59, 130, 246, 0.3);
+          padding: 2px 7px;
+          border-radius: 6px;
+          color: #93c5fd;
+          font-weight: 600;
         }
         .erc-item-btn {
-          background: var(--bg-input, #080e1a);
-          border: 1px solid var(--border-strong, #2d3f5e);
-          color: var(--ink-primary, #eef2ff);
+          background: rgba(37, 99, 235, 0.15);
+          border: 1.5px solid rgba(59, 130, 246, 0.4);
+          color: #93c5fd;
           border-radius: 8px;
           padding: 6px 12px;
           font-size: 12px;
-          font-weight: 600;
+          font-weight: 700;
           cursor: pointer;
           white-space: nowrap;
-          transition: background 0.15s;
+          transition: all 0.15s ease;
         }
         .erc-item-btn:hover {
-          background: var(--accent, #2563eb);
-          border-color: var(--accent, #2563eb);
+          background: #2563eb;
+          border-color: #3b82f6;
           color: #ffffff;
         }
 
+        /* ── Modern Item Switcher Bar (Master-Detail Dropdown Selector) ── */
+        .item-switcher-box {
+          background: linear-gradient(180deg, rgba(23, 35, 64, 0.95) 0%, rgba(17, 29, 50, 0.95) 100%);
+          border: 1.5px solid rgba(59, 130, 246, 0.35);
+          border-radius: 16px;
+          padding: 12px 14px;
+          margin-bottom: 16px;
+          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .item-switcher-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .item-switcher-label-wrap {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+        .item-switcher-tag {
+          font-size: 13px;
+          font-weight: 700;
+          color: #ffffff;
+        }
+        .item-switcher-badge {
+          background: rgba(37, 99, 235, 0.2);
+          border: 1px solid rgba(59, 130, 246, 0.4);
+          color: #93c5fd;
+          font-size: 11.5px;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: 20px;
+        }
+        .item-switcher-actions-top {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .btn-switcher-del {
+          background: rgba(239, 68, 68, 0.15);
+          border: 1px solid rgba(239, 68, 68, 0.35);
+          color: #fca5a5;
+          padding: 5px 10px;
+          border-radius: 8px;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+        .btn-switcher-del:hover {
+          background: #ef4444;
+          color: #ffffff;
+        }
+        .btn-switcher-add {
+          background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+          border: none;
+          color: #ffffff;
+          padding: 6px 12px;
+          border-radius: 8px;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+          transition: all 0.15s ease;
+        }
+        .btn-switcher-add:hover {
+          background: #3b82f6;
+          transform: translateY(-1px);
+        }
+        .item-switcher-bar {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .btn-switcher-nav {
+          background: rgba(17, 29, 50, 0.9);
+          border: 1px solid rgba(148, 163, 196, 0.25);
+          color: #eef2ff;
+          padding: 9px 12px;
+          border-radius: 10px;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          flex-shrink: 0;
+          transition: all 0.15s ease;
+        }
+        .btn-switcher-nav:hover:not(:disabled) {
+          border-color: #60a5fa;
+          background: rgba(37, 99, 235, 0.2);
+          color: #93c5fd;
+        }
+        .btn-switcher-nav:disabled {
+          opacity: 0.35;
+          cursor: not-allowed;
+        }
+        .item-switcher-select-wrap {
+          flex: 1;
+          min-width: 0;
+        }
+        .item-switcher-select {
+          width: 100%;
+          background: var(--bg-input, #080e1a);
+          border: 1.5px solid rgba(59, 130, 246, 0.4);
+          border-radius: 10px;
+          color: #ffffff;
+          padding: 9px 12px;
+          font-size: 13.5px;
+          font-weight: 700;
+          font-family: inherit;
+          cursor: pointer;
+          outline: none;
+          transition: border-color 0.15s ease;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
+        }
+        .item-switcher-select:focus {
+          border-color: #60a5fa;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+        }
+
+        /* ── Bottom Add Buttons (Convenience at end of section) ── */
+        .section-bottom-add-bar {
+          margin: 18px 0 14px;
+          display: flex;
+          justify-content: center;
+        }
+        .btn-add-item-bottom {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 13px 24px;
+          background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
+          color: #ffffff;
+          border: none;
+          border-radius: 12px;
+          font-size: 14.5px;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+          transition: all 0.18s ease;
+          width: 100%;
+          max-width: 440px;
+        }
+        .btn-add-item-bottom:hover {
+          transform: translateY(-1.5px);
+          box-shadow: 0 6px 22px rgba(37, 99, 235, 0.5);
+        }
+        .subgroup-bottom-add-bar {
+          margin-top: 12px;
+          display: flex;
+          justify-content: flex-end;
+        }
+        .btn-add-mini-bottom {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 7px 14px;
+          background: rgba(37, 99, 235, 0.15);
+          border: 1px solid rgba(59, 130, 246, 0.4);
+          color: #93c5fd;
+          border-radius: 8px;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+        .btn-add-mini-bottom:hover {
+          background: #2563eb;
+          color: #ffffff;
+        }
         /* ── Modern Centered Modal (Firepump Bubble Style) ── */
         .elec-modal-overlay {
           position: fixed;
@@ -4229,13 +4803,15 @@ function ElectricalAnnualInner() {
           }
         }
       
-        /* ── Subcategory Tabs Bar (3 หมวดหลักในขั้นตอนที่ 3) ── */
+                /* ── Subcategory Tabs Bar (3 หมวดหลักในขั้นตอนที่ 3) ── */
         .cat-subnav-box {
           margin-bottom: 20px;
-          background: var(--bg-surface);
-          border: 1px solid var(--border-hairline);
+          background: rgba(17, 29, 50, 0.85);
+          backdrop-filter: blur(8px);
+          border: 1.5px solid rgba(59, 130, 246, 0.28);
           border-radius: 16px;
           padding: 8px;
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
         }
         .cat-subnav-pills {
           display: grid;
@@ -4249,7 +4825,7 @@ function ElectricalAnnualInner() {
           gap: 10px;
           padding: 12px 14px;
           border-radius: 12px;
-          border: 1.5px solid transparent;
+          border: 1.5px solid rgba(148, 163, 196, 0.15);
           background: var(--bg-surface-raised, #172340);
           color: var(--ink-secondary, #94a3c4);
           cursor: pointer;
@@ -4258,14 +4834,15 @@ function ElectricalAnnualInner() {
           text-align: left;
         }
         .cat-tab-btn:hover {
-          border-color: var(--border-strong);
-          color: var(--ink-primary);
+          border-color: rgba(59, 130, 246, 0.45);
+          color: #ffffff;
+          background: rgba(23, 35, 64, 0.95);
         }
         .cat-tab-btn--active {
-          background: rgba(37, 99, 235, 0.15);
-          border-color: var(--accent, #2563eb);
+          background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%) !important;
+          border-color: #93c5fd !important;
           color: #ffffff !important;
-          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+          box-shadow: 0 4px 18px rgba(37, 99, 235, 0.45);
         }
         .cat-tab-icon {
           font-size: 20px;
@@ -4291,7 +4868,7 @@ function ElectricalAnnualInner() {
           font-weight: 600;
         }
         .cat-tab-btn--active .cat-tab-badge {
-          color: #93c5fd;
+          color: #dbeafe !important;
         }
 
         /* ── MDB Unified Building Card ── */
