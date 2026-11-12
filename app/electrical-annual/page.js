@@ -200,12 +200,12 @@ const createInitialState = (targetYear) => {
       asBuiltDrawing: 'yes',
       asBuiltReason: '',
     },
-    highVoltageSystems: [createDefaultHighVoltage(1)],
+        highVoltageSystems: [createDefaultHighVoltage(1)],
     transformers: [createDefaultTransformer(1)],
-    mainSwitchboards: [createDefaultMainSwitchboard(1)],
-    mainCircuits: [createDefaultMainCircuit(1)],
-    subPanels: [createDefaultSubPanel(1)],
-    otherEquipments: [createDefaultOtherEquipment(1)],
+    mainSwitchboards: [createDefaultMainSwitchboard(1, '1')],
+    mainCircuits: [],
+    subPanels: [],
+    otherEquipments: [],
     conclusion: {
       result: 'pass',
       repairDays: '',
@@ -217,6 +217,140 @@ const createInitialState = (targetYear) => {
 };
 
 // ── Clone previous inspection record as clean starting template ──────────────
+// ── Normalize form data for compatibility across old flat & new nested structures ──
+const normalizeFormData = (loaded, targetYear) => {
+  if (!loaded) return createInitialState(targetYear);
+  const base = createInitialState(targetYear);
+
+  const tfs = loaded.transformers && loaded.transformers.length > 0 ? loaded.transformers : base.transformers;
+  const legacyCircuits = Array.isArray(loaded.mainCircuits) && loaded.mainCircuits.length > 0 ? loaded.mainCircuits : null;
+  const legacyPanels = Array.isArray(loaded.subPanels) && loaded.subPanels.length > 0 ? loaded.subPanels : null;
+  const legacyEquips = Array.isArray(loaded.otherEquipments) && loaded.otherEquipments.length > 0 ? loaded.otherEquipments : null;
+
+  const msbs = (loaded.mainSwitchboards && loaded.mainSwitchboards.length > 0 ? loaded.mainSwitchboards : base.mainSwitchboards).map((msb, mIdx) => {
+    const mNo = msb.no || String(mIdx + 1);
+
+    let circuits = Array.isArray(msb.mainCircuits) && msb.mainCircuits.length > 0 ? msb.mainCircuits : null;
+    if (!circuits && legacyCircuits) {
+      circuits = legacyCircuits;
+    }
+    if (!circuits || circuits.length === 0) circuits = [createDefaultMainCircuit(1)];
+
+    let panels = Array.isArray(msb.subPanels) && msb.subPanels.length > 0 ? msb.subPanels : null;
+    if (!panels && legacyPanels) {
+      const matched = legacyPanels.filter(p => !p.sourceMdb || String(p.sourceMdb) === String(mNo));
+      panels = matched.length > 0 ? matched : (mIdx === 0 ? legacyPanels : [createDefaultSubPanel(1)]);
+    }
+    if (!panels || panels.length === 0) panels = [createDefaultSubPanel(1)];
+
+    let equips = Array.isArray(msb.otherEquipments) && msb.otherEquipments.length > 0 ? msb.otherEquipments : null;
+    if (!equips && legacyEquips && mIdx === 0) equips = legacyEquips;
+    if (!equips || equips.length === 0) equips = [createDefaultOtherEquipment(1)];
+
+    return {
+      ...createDefaultMainSwitchboard(mIdx + 1, tfs[0]?.no || '1'),
+      ...msb,
+      no: mNo,
+      sourceTransformer: String(msb.sourceTransformer || tfs[0]?.no || '1'),
+      building: msb.building || '',
+      mainCircuits: circuits,
+      subPanels: panels,
+      otherEquipments: equips,
+    };
+  });
+
+  return {
+    ...base,
+    ...loaded,
+    inspector: { ...base.inspector, ...(loaded.inspector || {}) },
+    workplace: { ...base.workplace, ...(loaded.workplace || {}) },
+    general: { ...base.general, ...(loaded.general || {}) },
+    highVoltageSystems: loaded.highVoltageSystems && loaded.highVoltageSystems.length > 0 ? loaded.highVoltageSystems : base.highVoltageSystems,
+    transformers: tfs,
+    mainSwitchboards: msbs,
+    conclusion: { ...base.conclusion, ...(loaded.conclusion || {}) },
+  };
+};
+
+// ── Create blank form keeping only inspector & general from previous year ──────────
+const createBlankWithGeneralOnly = (sourceData, targetYear) => {
+  const fresh = createInitialState(targetYear);
+  if (!sourceData) return fresh;
+  const today = new Date();
+  const m = String(today.getMonth() + 1).padStart(2, '0');
+  const d = String(today.getDate()).padStart(2, '0');
+  const dateStr = `${targetYear}-${m}-${d}`;
+
+  return {
+    ...fresh,
+    inspector: {
+      ...fresh.inspector,
+      name: sourceData.inspector?.name || '',
+      age: sourceData.inspector?.age || '',
+      address: sourceData.inspector?.address || '',
+      moo: sourceData.inspector?.moo || '',
+      soi: sourceData.inspector?.soi || '',
+      road: sourceData.inspector?.road || '',
+      subdistrict: sourceData.inspector?.subdistrict || '',
+      district: sourceData.inspector?.district || '',
+      province: sourceData.inspector?.province || '',
+      phone: sourceData.inspector?.phone || '',
+      licenseLevel: sourceData.inspector?.licenseLevel || 'ภาคีวิศวกร',
+      licenseBranch: sourceData.inspector?.licenseBranch || 'วิศวกรรมไฟฟ้า แขนงไฟฟ้ากำลัง',
+      licenseNo: sourceData.inspector?.licenseNo || '',
+      licenseStart: sourceData.inspector?.licenseStart || '',
+      licenseEnd: sourceData.inspector?.licenseEnd || '',
+      certType: sourceData.inspector?.certType || 'sec9',
+      juristicName: sourceData.inspector?.juristicName || '',
+      certNo: sourceData.inspector?.certNo || '',
+      certStart: sourceData.inspector?.certStart || '',
+      certEnd: sourceData.inspector?.certEnd || '',
+      signature: sourceData.inspector?.signature || '',
+    },
+    workplace: {
+      ...fresh.workplace,
+      name: sourceData.workplace?.name || '',
+      businessType: sourceData.workplace?.businessType || '',
+      employerName: sourceData.workplace?.employerName || '',
+      address: sourceData.workplace?.address || '',
+      moo: sourceData.workplace?.moo || '',
+      soi: sourceData.workplace?.soi || '',
+      road: sourceData.workplace?.road || '',
+      subdistrict: sourceData.workplace?.subdistrict || '',
+      district: sourceData.workplace?.district || '',
+      province: sourceData.workplace?.province || '',
+      phone: sourceData.workplace?.phone || '',
+      inspectionDate: dateStr,
+      employerSignature: sourceData.workplace?.employerSignature || '',
+    },
+    general: {
+      ...fresh.general,
+      voltage: sourceData.general?.voltage || '380/220',
+      phase: sourceData.general?.phase || '3',
+      wires: sourceData.general?.wires || '4',
+      meterAmp: sourceData.general?.meterAmp || '',
+      meterVolt: sourceData.general?.meterVolt || '380/220',
+      meterPhase: sourceData.general?.meterPhase || '3',
+      meterWires: sourceData.general?.meterWires || '4',
+      meterNo: sourceData.general?.meterNo || '',
+      peakKw12Months: '',
+      transformerCount: sourceData.general?.transformerCount || '1',
+      transformerTotalKva: sourceData.general?.transformerTotalKva || '',
+      generatorCount: sourceData.general?.generatorCount || '',
+      generatorTotalKva: sourceData.general?.generatorTotalKva || '',
+      responsiblePerson1: { ...(sourceData.general?.responsiblePerson1 || { name: '', position: '' }) },
+      responsiblePerson2: { ...(sourceData.general?.responsiblePerson2 || { name: '', position: '' }) },
+      asBuiltDrawing: sourceData.general?.asBuiltDrawing || 'yes',
+      asBuiltReason: sourceData.general?.asBuiltReason || '',
+    },
+    conclusion: {
+      ...fresh.conclusion,
+      inspectionDate: dateStr,
+      inspectorSignature: sourceData.conclusion?.inspectorSignature || sourceData.inspector?.signature || '',
+    },
+  };
+};
+
 const cloneAsTemplate = (sourceData, targetYear) => {
   if (!sourceData) return createInitialState(targetYear);
   const today = new Date();
@@ -235,20 +369,22 @@ const cloneAsTemplate = (sourceData, targetYear) => {
     };
   };
 
+  const normalized = normalizeFormData(sourceData, targetYear);
+
   return {
     inspector: {
-      ...(sourceData.inspector || {}),
+      ...(normalized.inspector || {}),
       signature: '',
     },
     workplace: {
-      ...(sourceData.workplace || {}),
+      ...(normalized.workplace || {}),
       inspectionDate: newDate,
       employerSignature: '',
     },
     general: {
-      ...(sourceData.general || {}),
+      ...(normalized.general || {}),
     },
-    highVoltageSystems: (sourceData.highVoltageSystems || []).map((hv, idx) => ({
+    highVoltageSystems: (normalized.highVoltageSystems || []).map((hv, idx) => ({
       ...hv,
       id: `hv_${Date.now()}_${idx + 1}`,
       aerialName: hv.aerialName || '',
@@ -265,7 +401,7 @@ const cloneAsTemplate = (sourceData, targetYear) => {
       otherText: hv.otherText || '',
       other: cleanCheck(hv.other),
     })),
-    transformers: (sourceData.transformers || []).map((tf, idx) => ({
+    transformers: (normalized.transformers || []).map((tf, idx) => ({
       ...tf,
       id: `tf_${Date.now()}_${idx + 1}`,
       items: Object.fromEntries(
@@ -275,52 +411,83 @@ const cloneAsTemplate = (sourceData, targetYear) => {
         ])
       ),
     })),
-    mainSwitchboards: (sourceData.mainSwitchboards || []).map((msb, idx) => ({
+    mainSwitchboards: (normalized.mainSwitchboards || []).map((msb, idx) => ({
       ...msb,
       id: `msb_${Date.now()}_${idx + 1}`,
+      name: msb.name || '',
+      sourceTransformer: msb.sourceTransformer || '1',
+      building: msb.building || '',
+      customBuilding: msb.customBuilding || '',
+      locationType: msb.locationType || 'indoor',
+      locationOther: msb.locationOther || '',
       items: Object.fromEntries(
         Object.entries(msb.items || {}).map(([k, it]) => [k, cleanCheck(it)])
       ),
+      overcurrentProtection: { ...(msb.overcurrentProtection || {}) },
       grounding: cleanCheck(msb.grounding),
       temperature: 'normal',
       temperatureNote: '',
       temperaturePhoto: null,
       otherText: msb.otherText || '',
       other: cleanCheck(msb.other),
+      mainCircuits: (msb.mainCircuits || []).map((mc, cIdx) => ({
+        ...mc,
+        id: `mc_${Date.now()}_${cIdx + 1}`,
+        title: mc.title || `วงจรเมน ชุดที่ ${cIdx + 1}`,
+        source: mc.source || '',
+        phaseWire: { ...(mc.phaseWire || {}) },
+        neutralWire: { ...(mc.neutralWire || {}) },
+        raceway: mc.raceway || 'conduit',
+        racewayOther: mc.racewayOther || '',
+        items: Object.fromEntries(
+          Object.entries(mc.items || {}).map(([k, it]) => [k, cleanCheck(it)])
+        ),
+        mainSwitchFuse: { ...(mc.mainSwitchFuse || {}) },
+        circuitBreaker: { ...(mc.circuitBreaker || {}) },
+        overcurrentProtection: { ...(mc.overcurrentProtection || {}) },
+        temperature: 'normal',
+        temperatureNote: '',
+        temperaturePhoto: null,
+        otherText: mc.otherText || '',
+        other: cleanCheck(mc.other),
+      })),
+      subPanels: (msb.subPanels || []).map((sp, sIdx) => ({
+        ...sp,
+        id: `sp_${Date.now()}_${sIdx + 1}`,
+        no: sp.no || String(sIdx + 1),
+        subCircuitOf: sp.subCircuitOf || '',
+        source: sp.source || '',
+        sourceMdb: sp.sourceMdb || msb.no || '1',
+        items: Object.fromEntries(
+          Object.entries(sp.items || {}).map(([k, it]) => [k, cleanCheck(it)])
+        ),
+        conductors: { ...(sp.conductors || {}) },
+        raceway: { ...(sp.raceway || {}) },
+        circuitBreaker: { ...(sp.circuitBreaker || {}) },
+        fuseSwitch: { ...(sp.fuseSwitch || {}) },
+        overcurrentProtection: { ...(sp.overcurrentProtection || {}) },
+        receptacles: { ...(sp.receptacles || {}) },
+        enclosureGrounding: { ...(sp.enclosureGrounding || {}) },
+        grounding: cleanCheck(sp.grounding),
+        temperature: 'normal',
+        temperatureNote: '',
+        temperaturePhoto: null,
+        otherText: sp.otherText || '',
+        other: cleanCheck(sp.other),
+      })),
+      otherEquipments: (msb.otherEquipments || []).map((eq, eIdx) => ({
+        ...eq,
+        id: `eq_${Date.now()}_${eIdx + 1}`,
+        name: eq.name || '',
+        installation: cleanCheck(eq.installation),
+        external: cleanCheck(eq.external),
+        otherText: eq.otherText || '',
+        other: cleanCheck(eq.other),
+      })),
     })),
-    mainCircuits: (sourceData.mainCircuits || []).map((mc, idx) => ({
-      ...mc,
-      id: `mc_${Date.now()}_${idx + 1}`,
-      items: Object.fromEntries(
-        Object.entries(mc.items || {}).map(([k, it]) => [k, cleanCheck(it)])
-      ),
-      temperature: 'normal',
-      temperatureNote: '',
-      temperaturePhoto: null,
-      otherText: mc.otherText || '',
-      other: cleanCheck(mc.other),
-    })),
-    subPanels: (sourceData.subPanels || []).map((sp, idx) => ({
-      ...sp,
-      id: `sp_${Date.now()}_${idx + 1}`,
-      items: Object.fromEntries(
-        Object.entries(sp.items || {}).map(([k, it]) => [k, cleanCheck(it)])
-      ),
-      grounding: cleanCheck(sp.grounding),
-      temperature: 'normal',
-      temperatureNote: '',
-      temperaturePhoto: null,
-      otherText: sp.otherText || '',
-      other: cleanCheck(sp.other),
-    })),
-    otherEquipments: (sourceData.otherEquipments || []).map((eq, idx) => ({
-      ...eq,
-      id: `eq_${Date.now()}_${idx + 1}`,
-      installation: cleanCheck(eq.installation),
-      external: cleanCheck(eq.external),
-      otherText: eq.otherText || '',
-      other: cleanCheck(eq.other),
-    })),
+    mainCircuits: [],
+    subPanels: [],
+    otherEquipments: [],
     conclusion: {
       result: 'pass',
       repairDays: '',
@@ -471,7 +638,7 @@ function ElectricalAnnualInner() {
   const urlIsEdit = searchParams.get('edit') === '1';
   const urlFilename = searchParams.get('filename');
 
-  const [isEditMode, setIsEditMode] = useState(urlIsEdit);
+    const [isEditMode, setIsEditMode] = useState(urlIsEdit);
   const [editFilename, setEditFilename] = useState(urlFilename);
   const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear());
   const [prefilledFrom, setPrefilledFrom] = useState('');
@@ -479,9 +646,22 @@ function ElectricalAnnualInner() {
   const [duplicateModalRecord, setDuplicateModalRecord] = useState(null);
   const [templateModalOffer, setTemplateModalOffer] = useState(null);
   const [pageStep, setPageStep] = useState(() => (urlIsEdit || urlFilename ? 1 : 0));
+  const [isMobile, setIsMobile] = useState(false);
+  const [catTab, setCatTab] = useState('hv'); // 'hv' | 'transformer' | 'mdb'
+  const [fileSuffix, setFileSuffix] = useState('');
 
   const DRAFT_KEY = 'draft:elec:annual';
   const [step, setStep] = useState(1); // 1: ผู้ตรวจ&สถานประกอบการ, 2: ข้อมูลทั่วไป, 3: ตรวจสอบอุปกรณ์, 4: สรุปผล
+
+  // Detect mobile device / viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(typeof window !== 'undefined' && window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   const [data, setData] = useState(() => createInitialState(new Date().getFullYear()));
   const [editReason, setEditReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -521,11 +701,11 @@ function ElectricalAnnualInner() {
       fetch(`/api/inspections?filename=${encodeURIComponent(editFilename)}`)
         .then((r) => (r.ok ? r.json() : null))
         .then((res) => {
-          if (res?.records?.formData) {
-            setData(res.records.formData);
-            if (res.records.editReason) setEditReason(res.records.editReason);
+                    if (res?.records?.formData) {
             const dateStr = res.records.formData.workplace?.inspectionDate || res.date || '';
-            const yr = parseInt(dateStr.slice(0, 4));
+            const yr = parseInt(dateStr.slice(0, 4)) || new Date().getFullYear();
+            setData(normalizeFormData(res.records.formData, yr));
+            if (res.records.editReason) setEditReason(res.records.editReason);
             if (yr && !isNaN(yr)) setSelectedYear(yr);
           }
         })
@@ -534,9 +714,10 @@ function ElectricalAnnualInner() {
     }
 
     try {
-      const savedDraft = localStorage.getItem(DRAFT_KEY);
+            const savedDraft = localStorage.getItem(DRAFT_KEY);
       if (savedDraft) {
-        const parsed = JSON.parse(savedDraft);
+        const raw = JSON.parse(savedDraft);
+        const parsed = normalizeFormData(raw);
         setData(parsed);
         setHasDraft(true);
         const dateStr = parsed.workplace?.inspectionDate || '';
@@ -591,9 +772,10 @@ function ElectricalAnnualInner() {
       return;
     }
 
-    // 3. No existing records anywhere -> apply directly and enter form
+        // 3. No existing records anywhere -> apply directly and enter form
     applyYearDirectly(targetYear);
     setPageStep(1);
+    setStep(isMobile ? 3 : 1);
   };
 
   const handleYearChange = (newYear) => {
@@ -628,14 +810,16 @@ function ElectricalAnnualInner() {
       : `/api/inspections?filename=${encodeURIComponent(rec.filename)}`;
     try {
       const res = await fetch(url).then((r) => r.json());
-      if (res?.records?.formData) {
-        setData(res.records.formData);
+            if (res?.records?.formData) {
+        setData(normalizeFormData(res.records.formData, modalData.year));
         if (res.records.editReason) setEditReason(res.records.editReason);
         setIsEditMode(true);
         setEditFilename(rec.filename);
         setSelectedYear(modalData.year);
         setPrefilledFrom('');
+        setFileSuffix('');
         setPageStep(1);
+        setStep(isMobile ? 3 : 1);
         router.replace(`/electrical-annual?filename=${encodeURIComponent(rec.filename)}&edit=1`);
       }
     } catch (e) {
@@ -644,18 +828,37 @@ function ElectricalAnnualInner() {
     setDuplicateModalRecord(null);
   };
 
-  const handleCreateFreshForDuplicateYear = (modalData) => {
-    const fresh = createInitialState(modalData.year);
+    const handleCreateFreshForDuplicateYear = async (modalData) => {
+    const rec = modalData.record;
+    const existingForYear = allElecRecords.filter((r) => r.date?.startsWith(String(modalData.year)));
+    const revNum = existingForYear.length + 1;
+    const suffix = `ฉบับที่-${revNum}`;
+    setFileSuffix(suffix);
+
+    const url = rec._path
+      ? `/api/inspections?path=${encodeURIComponent(rec._path)}`
+      : `/api/inspections?filename=${encodeURIComponent(rec.filename)}`;
+
+    let fresh = createInitialState(modalData.year);
+    try {
+      const res = await fetch(url).then((r) => r.json());
+      if (res?.records?.formData) {
+        // ยกข้อมูลผู้ตรวจ & ข้อมูลทั่วไปมาแบบเดิม ส่วนอุปกรณ์เป็นฟอร์มเปล่า
+        fresh = createBlankWithGeneralOnly(res.records.formData, modalData.year);
+      }
+    } catch {}
+
     setData(fresh);
     setIsEditMode(false);
     setEditFilename(null);
     setSelectedYear(modalData.year);
-    setPrefilledFrom('');
+    setPrefilledFrom(`ดึงข้อมูลทั่วไปปี พ.ศ. ${modalData.year + 543} (${suffix})`);
     try {
       localStorage.removeItem(DRAFT_KEY);
     } catch {}
     setDuplicateModalRecord(null);
     setPageStep(1);
+    setStep(isMobile ? 3 : 1);
     router.replace('/electrical-annual');
   };
 
@@ -663,7 +866,7 @@ function ElectricalAnnualInner() {
     setDuplicateModalRecord(null);
   };
 
-  // Template Offer Modal Handlers
+    // Template Offer Modal Handlers
   const handleApplyTemplate = async (offerData) => {
     const prior = offerData.priorRecord;
     const url = prior._path
@@ -679,20 +882,40 @@ function ElectricalAnnualInner() {
         setEditFilename(null);
         setPrefilledFrom(`พ.ศ. ${offerData.priorYear + 543} (${offerData.priorYear})`);
         setPageStep(1);
+        setStep(isMobile ? 3 : 1);
         router.replace('/electrical-annual');
       }
     } catch (e) {
       setValidationError('ไม่สามารถโหลดข้อมูลเทมเพลตได้: ' + e.message);
       applyYearDirectly(offerData.targetYear);
       setPageStep(1);
+      setStep(isMobile ? 3 : 1);
     }
     setTemplateModalOffer(null);
     setDuplicateModalRecord(null);
   };
 
-  const handleDeclineTemplate = (offerData) => {
-    applyYearDirectly(offerData.targetYear);
+  const handleDeclineTemplate = async (offerData) => {
+    const prior = offerData.priorRecord;
+    const url = prior._path
+      ? `/api/inspections?path=${encodeURIComponent(prior._path)}`
+      : `/api/inspections?filename=${encodeURIComponent(prior.filename)}`;
+    let fresh = createInitialState(offerData.targetYear);
+    try {
+      const res = await fetch(url).then((r) => r.json());
+      if (res?.records?.formData) {
+        // ผู้ตรวจ & ข้อมูลทั่วไป ยังคงยกมาใช้แบบเดิม ส่วนเมนูอื่นเป็นฟอร์มเปล่า
+        fresh = createBlankWithGeneralOnly(res.records.formData, offerData.targetYear);
+      }
+    } catch {}
+
+    setData(fresh);
+    setSelectedYear(offerData.targetYear);
+    setIsEditMode(false);
+    setEditFilename(null);
+    setPrefilledFrom(`ดึงข้อมูลผู้ตรวจ & ข้อมูลทั่วไปจากปี พ.ศ. ${offerData.priorYear + 543}`);
     setPageStep(1);
+    setStep(isMobile ? 3 : 1);
     setTemplateModalOffer(null);
   };
 
@@ -770,7 +993,7 @@ function ElectricalAnnualInner() {
         ...d,
         mainSwitchboards: [
           ...d.mainSwitchboards,
-          { ...createDefaultMainSwitchboard(nextIdx), sourceTransformer: defaultTf },
+          createDefaultMainSwitchboard(nextIdx, defaultTf),
         ],
       };
     });
@@ -784,56 +1007,163 @@ function ElectricalAnnualInner() {
     }));
   };
 
-  const addMainCircuit = () => {
-    setData((d) => ({
-      ...d,
-      mainCircuits: [...d.mainCircuits, createDefaultMainCircuit(d.mainCircuits.length + 1)],
-    }));
-  };
-
-  const removeMainCircuit = (idx) => {
-    if (data.mainCircuits.length <= 1) return;
-    setData((d) => ({
-      ...d,
-      mainCircuits: d.mainCircuits.filter((_, i) => i !== idx),
-    }));
-  };
-
-  const addSubPanel = () => {
+  const updateMainSwitchboard = (idx, field, val) => {
     setData((d) => {
-      const nextIdx = d.subPanels.length + 1;
-      const defaultMdb = d.mainSwitchboards[0]?.no || '1';
-      return {
-        ...d,
-        subPanels: [
-          ...d.subPanels,
-          { ...createDefaultSubPanel(nextIdx), sourceMdb: defaultMdb },
-        ],
-      };
+      const arr = [...d.mainSwitchboards];
+      arr[idx] = { ...arr[idx], [field]: val };
+      return { ...d, mainSwitchboards: arr };
     });
   };
 
-  const removeSubPanel = (idx) => {
-    if (data.subPanels.length <= 1) return;
-    setData((d) => ({
-      ...d,
-      subPanels: d.subPanels.filter((_, i) => i !== idx),
-    }));
+  const updateMdbCheckItem = (mIdx, subKey, val) => {
+    setData((d) => {
+      const arr = [...d.mainSwitchboards];
+      arr[mIdx] = {
+        ...arr[mIdx],
+        items: { ...arr[mIdx].items, [subKey]: val },
+      };
+      return { ...d, mainSwitchboards: arr };
+    });
   };
 
-  const addOtherEquipment = () => {
-    setData((d) => ({
-      ...d,
-      otherEquipments: [...d.otherEquipments, createDefaultOtherEquipment(d.otherEquipments.length + 1)],
-    }));
+  const updateMdbOvercurrent = (mIdx, field, val) => {
+    setData((d) => {
+      const arr = [...d.mainSwitchboards];
+      arr[mIdx] = {
+        ...arr[mIdx],
+        overcurrentProtection: { ...arr[mIdx].overcurrentProtection, [field]: val },
+      };
+      return { ...d, mainSwitchboards: arr };
+    });
   };
 
-  const removeOtherEquipment = (idx) => {
-    if (data.otherEquipments.length <= 1) return;
-    setData((d) => ({
-      ...d,
-      otherEquipments: d.otherEquipments.filter((_, i) => i !== idx),
-    }));
+  const updateMdbGrounding = (mIdx, field, val) => {
+    setData((d) => {
+      const arr = [...d.mainSwitchboards];
+      if (field) {
+        arr[mIdx] = {
+          ...arr[mIdx],
+          grounding: { ...arr[mIdx].grounding, [field]: val },
+        };
+      } else {
+        arr[mIdx] = {
+          ...arr[mIdx],
+          grounding: { ...arr[mIdx].grounding, ...val },
+        };
+      }
+      return { ...d, mainSwitchboards: arr };
+    });
+  };
+
+  const addMainCircuitToMdb = (mIdx) => {
+    setData((d) => {
+      const arr = [...d.mainSwitchboards];
+      const msb = arr[mIdx];
+      const nextNo = (msb.mainCircuits || []).length + 1;
+      arr[mIdx] = {
+        ...msb,
+        mainCircuits: [...(msb.mainCircuits || []), createDefaultMainCircuit(nextNo)],
+      };
+      return { ...d, mainSwitchboards: arr };
+    });
+  };
+
+  const removeMainCircuitFromMdb = (mIdx, cIdx) => {
+    setData((d) => {
+      const arr = [...d.mainSwitchboards];
+      const msb = arr[mIdx];
+      if ((msb.mainCircuits || []).length <= 1) return d;
+      arr[mIdx] = {
+        ...msb,
+        mainCircuits: msb.mainCircuits.filter((_, i) => i !== cIdx),
+      };
+      return { ...d, mainSwitchboards: arr };
+    });
+  };
+
+  const updateMainCircuitInMdb = (mIdx, cIdx, field, val) => {
+    setData((d) => {
+      const arr = [...d.mainSwitchboards];
+      const msb = arr[mIdx];
+      const circuits = [...(msb.mainCircuits || [])];
+      circuits[cIdx] = { ...circuits[cIdx], [field]: val };
+      arr[mIdx] = { ...msb, mainCircuits: circuits };
+      return { ...d, mainSwitchboards: arr };
+    });
+  };
+
+  const addSubPanelToMdb = (mIdx) => {
+    setData((d) => {
+      const arr = [...d.mainSwitchboards];
+      const msb = arr[mIdx];
+      const nextNo = (msb.subPanels || []).length + 1;
+      arr[mIdx] = {
+        ...msb,
+        subPanels: [...(msb.subPanels || []), { ...createDefaultSubPanel(nextNo), sourceMdb: msb.no || '1' }],
+      };
+      return { ...d, mainSwitchboards: arr };
+    });
+  };
+
+  const removeSubPanelFromMdb = (mIdx, sIdx) => {
+    setData((d) => {
+      const arr = [...d.mainSwitchboards];
+      const msb = arr[mIdx];
+      if ((msb.subPanels || []).length <= 1) return d;
+      arr[mIdx] = {
+        ...msb,
+        subPanels: msb.subPanels.filter((_, i) => i !== sIdx),
+      };
+      return { ...d, mainSwitchboards: arr };
+    });
+  };
+
+  const updateSubPanelInMdb = (mIdx, sIdx, field, val) => {
+    setData((d) => {
+      const arr = [...d.mainSwitchboards];
+      const msb = arr[mIdx];
+      const panels = [...(msb.subPanels || [])];
+      panels[sIdx] = { ...panels[sIdx], [field]: val };
+      arr[mIdx] = { ...msb, subPanels: panels };
+      return { ...d, mainSwitchboards: arr };
+    });
+  };
+
+  const addOtherEquipmentToMdb = (mIdx) => {
+    setData((d) => {
+      const arr = [...d.mainSwitchboards];
+      const msb = arr[mIdx];
+      const nextNo = (msb.otherEquipments || []).length + 1;
+      arr[mIdx] = {
+        ...msb,
+        otherEquipments: [...(msb.otherEquipments || []), createDefaultOtherEquipment(nextNo)],
+      };
+      return { ...d, mainSwitchboards: arr };
+    });
+  };
+
+  const removeOtherEquipmentFromMdb = (mIdx, eIdx) => {
+    setData((d) => {
+      const arr = [...d.mainSwitchboards];
+      const msb = arr[mIdx];
+      if ((msb.otherEquipments || []).length <= 1) return d;
+      arr[mIdx] = {
+        ...msb,
+        otherEquipments: msb.otherEquipments.filter((_, i) => i !== eIdx),
+      };
+      return { ...d, mainSwitchboards: arr };
+    });
+  };
+
+  const updateOtherEquipmentInMdb = (mIdx, eIdx, field, val) => {
+    setData((d) => {
+      const arr = [...d.mainSwitchboards];
+      const msb = arr[mIdx];
+      const equips = [...(msb.otherEquipments || [])];
+      equips[eIdx] = { ...equips[eIdx], [field]: val };
+      arr[mIdx] = { ...msb, otherEquipments: equips };
+      return { ...d, mainSwitchboards: arr };
+    });
   };
 
   // Submit Handler
@@ -862,7 +1192,15 @@ function ElectricalAnnualInner() {
 
     try {
       const inspectionDate = data.workplace.inspectionDate || new Date().toISOString().slice(0, 10);
-      const buildingName = data.workplace.name.replace(/[\/\\]/g, '-');
+      let buildingName = (data.workplace.name || 'บริภัณฑ์ไฟฟ้า').replace(/[/\\]/g, '-');
+      if (!isEditMode && fileSuffix) {
+        buildingName = `${buildingName}_${fileSuffix}`;
+      }
+
+      // Flatten arrays for backwards compatibility
+      const flattenedCircuits = (data.mainSwitchboards || []).flatMap(m => m.mainCircuits || []);
+      const flattenedPanels = (data.mainSwitchboards || []).flatMap(m => m.subPanels || []);
+      const flattenedEquipments = (data.mainSwitchboards || []).flatMap(m => m.otherEquipments || []);
 
       const payload = {
         date: inspectionDate,
@@ -870,7 +1208,12 @@ function ElectricalAnnualInner() {
         building: buildingName,
         floor: '',
         records: {
-          formData: data,
+          formData: {
+            ...data,
+            mainCircuits: flattenedCircuits,
+            subPanels: flattenedPanels,
+            otherEquipments: flattenedEquipments,
+          },
           editReason: isEditMode ? editReason.trim() : undefined,
         },
         ...(isEditMode && editFilename ? { originalFilename: editFilename } : {}),
