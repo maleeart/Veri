@@ -58,6 +58,7 @@ function RepairProposalListInner() {
       const q = search.trim().toLowerCase();
       const matchSearch = !q || 
         (item.refNo && item.refNo.toLowerCase().includes(q)) ||
+        (item.fmRefNo && item.fmRefNo.toLowerCase().includes(q)) ||
         (item.jobTitle && item.jobTitle.toLowerCase().includes(q)) ||
         (item.inspector?.name && item.inspector.name.toLowerCase().includes(q)) ||
         (item.surveyPoints && item.surveyPoints.some(sp => sp.building && sp.building.toLowerCase().includes(q)));
@@ -265,9 +266,17 @@ function RepairProposalListInner() {
                           {item.refNo}
                         </span>
                         <span style={{ fontSize: 13, color: 'var(--ink-secondary, #94a3c4)' }}>• วันที่ {item.docDate || item.docDateISO}</span>
-                        {item.priority === 'high' && (
-                          <span style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 4, border: '1px solid rgba(245, 158, 11, 0.4)' }}>
-                            เร่งด่วนสูง
+                        {item.fmRefNo && (
+                          <span style={{ 
+                            background: 'rgba(2, 132, 199, 0.18)', 
+                            color: '#38bdf8', 
+                            fontSize: 11.5, 
+                            fontWeight: 700, 
+                            padding: '2px 8px', 
+                            borderRadius: 4, 
+                            border: '1px solid rgba(2, 132, 199, 0.35)' 
+                          }}>
+                            FM: {item.fmRefNo}
                           </span>
                         )}
                       </div>

@@ -289,6 +289,7 @@ function RepairProposalFormInner() {
   // Form Fields (Blank by default!)
   const [jobTitle, setJobTitle] = useState('');
   const [refNo, setRefNo] = useState('');
+  const [fmRefNo, setFmRefNo] = useState('');
   const [docDate, setDocDate] = useState('');
   const [priority, setPriority] = useState('high'); // 'high' | 'normal'
   const [inspectorName, setInspectorName] = useState('');
@@ -457,6 +458,7 @@ function RepairProposalFormInner() {
         .then(data => {
           if (data && data.refNo) {
             setRefNo(data.refNo);
+            setFmRefNo(data.fmRefNo || '');
             setJobTitle(data.jobTitle || '');
             setDocDate(data.docDate || data.docDateISO || getTodayThaiDate());
             setPriority(data.priority || 'high');
@@ -487,6 +489,7 @@ function RepairProposalFormInner() {
   const resetToBlankForm = async () => {
     if (!confirm('ต้องการล้างค่าและเริ่มสร้างฟอร์มเปล่าใหม่ใช่หรือไม่?')) return;
     setJobTitle('');
+    setFmRefNo('');
     setDocDate(getTodayThaiDate());
     setPriority(adminSettings.defaults?.priority || 'high');
     setInspectorName('');
@@ -518,6 +521,7 @@ function RepairProposalFormInner() {
     if (!confirm('ต้องการโหลดข้อมูลตัวอย่าง TP019-69 (เปลี่ยน Digital Meter 9 ตัว) ใช่หรือไม่?')) return;
     setJobTitle('งานเปลี่ยน meter Main MDB ของหน่วยงาน');
     setRefNo('TP019-69');
+    setFmRefNo('FM-69-0412');
     setDocDate('10 พฤศจิกายน 2569');
     setPriority('high');
     setInspectorName('นายวิศวกร ช่างสำรวจ (วิศวกรไฟฟ้า)');
@@ -647,6 +651,7 @@ function RepairProposalFormInner() {
     setSaving(true);
     const payload = {
       refNo: refNo.trim(),
+      fmRefNo: (fmRefNo || '').trim(),
       jobTitle: jobTitle.trim(),
       docDate,
       docDateISO: new Date().toISOString().slice(0, 10),
@@ -1074,7 +1079,7 @@ function RepairProposalFormInner() {
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', marginBottom: 16 }}>
                   📋 ข้อมูลงานและเอกสารอ้างอิง
                 </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
                   <div>
                     <label style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                       เลขที่ใบเสนอแจ้งซ่อม (Ref. No. รันอัตโนมัติ) *
@@ -1099,6 +1104,19 @@ function RepairProposalFormInner() {
                         🔄 รันใหม่
                       </button>
                     </div>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
+                      หมายเลขใบแจ้งซ่อม FM (ถ้ามี)
+                    </label>
+                    <input 
+                      type="text" 
+                      value={fmRefNo} 
+                      placeholder="เช่น FM-69-0125 หรือเลขงานระบบ FM" 
+                      onChange={e => setFmRefNo(e.target.value)} 
+                      className="wizard-dark-input"
+                      style={{ width: '100%', padding: '8px 12px', fontSize: 13, color: '#38bdf8', fontWeight: 600 }} 
+                    />
                   </div>
                   <div>
                     <label style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
@@ -1842,6 +1860,7 @@ function RepairProposalFormInner() {
                   <div style={{ fontSize: 10.5, fontWeight: 800, color: '#0369a1', marginBottom: 3 }}>เอกสารแนบ - หน้า 1 / {hasAnnex ? 3 : 2}</div>
                   <div><strong style={{ color: '#0f172a' }}>เลขที่ใบแจ้งซ่อม:</strong> <strong style={{ color: '#b91c1c' }}>{refNo || '-'}</strong></div>
                   <div><strong style={{ color: '#0f172a' }}>วันที่เสนอ:</strong> <strong style={{ color: '#0f172a' }}>{docDate || '-'}</strong></div>
+                  <div><strong style={{ color: '#0f172a' }}>ใบแจ้งซ่อม FM:</strong> <strong style={{ color: fmRefNo ? '#0369a1' : '#64748b' }}>{fmRefNo || '-'}</strong></div>
                 </div>
               </div>
 
@@ -1933,7 +1952,7 @@ function RepairProposalFormInner() {
             <div className="a4-print-page" style={{ background: '#ffffff', borderRadius: 8, padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.4)', marginBottom: 20, color: '#0f172a' }}>
               {/* Official Page 2 Header for Attachment Document */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid #cbd5e1', paddingBottom: 4, marginBottom: 12, fontSize: 11, color: '#475569', fontWeight: 700 }}>
-                <span>เอกสารแนบใบเสนอแจ้งซ่อมเลขที่: <strong style={{ color: '#0f2e5a' }}>{refNo || '-'}</strong></span>
+                <span>เอกสารแนบใบเสนอแจ้งซ่อมเลขที่: <strong style={{ color: '#0f2e5a' }}>{refNo || '-'}</strong>{fmRefNo ? ` (FM: ${fmRefNo})` : ''}</span>
                 <span>หน้า 2 / {hasAnnex ? 3 : 2}</span>
               </div>
 
@@ -2000,7 +2019,7 @@ function RepairProposalFormInner() {
               <div className="a4-print-page" style={{ background: '#ffffff', borderRadius: 8, padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.4)', color: '#0f172a' }}>
                 {/* Official Page 3 Header for Attachment Document */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid #cbd5e1', paddingBottom: 4, marginBottom: 12, fontSize: 11, color: '#475569', fontWeight: 700 }}>
-                  <span>เอกสารแนบใบเสนอแจ้งซ่อมเลขที่: <strong style={{ color: '#0f2e5a' }}>{refNo || '-'}</strong> (ภาคผนวกภาพถ่ายสภาพหน้างาน)</span>
+                  <span>เอกสารแนบใบเสนอแจ้งซ่อมเลขที่: <strong style={{ color: '#0f2e5a' }}>{refNo || '-'}</strong>{fmRefNo ? ` (FM: ${fmRefNo})` : ''} (ภาคผนวกภาพถ่ายสภาพหน้างาน)</span>
                   <span>หน้า 3 / 3</span>
                 </div>
 
