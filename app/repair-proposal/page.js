@@ -331,7 +331,7 @@ function RepairProposalListInner() {
                         )}
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)', marginTop: 6 }}>
-                        ผู้ตรวจสอบ: {item.inspector?.name || 'ช่างสำรวจหน้างาน'}
+                        ผู้สำรวจและวิเคราะห์: {item.inspector?.name || 'ช่างสำรวจหน้างาน'}
                       </div>
                     </div>
                   </div>

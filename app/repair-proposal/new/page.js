@@ -1150,12 +1150,12 @@ function RepairProposalFormInner() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14, marginTop: 14 }}>
                   <div>
                     <label style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
-                      ชื่อผู้แจ้งซ่อม / ผู้ตรวจสอบ
+                      ชื่อผู้แจ้งซ่อม / ผู้สำรวจและวิเคราะห์
                     </label>
                     <input 
                       type="text" 
                       value={inspectorName} 
-                      placeholder="ระบุชื่อ-นามสกุล ผู้ตรวจสอบ / สำรวจ" 
+                      placeholder="ระบุชื่อ-นามสกุล ผู้สำรวจและวิเคราะห์" 
                       onChange={e => setInspectorName(e.target.value)} 
                       className="wizard-dark-input"
                       style={{ width: '100%', padding: '8px 12px', fontSize: 13 }} 
@@ -1472,7 +1472,7 @@ function RepairProposalFormInner() {
             {currentStep === 4 && (
               <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 12, padding: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', marginBottom: 14 }}>
-                  ✍️ เหตุผลความจำเป็นและการลงลายมือชื่อ (2 ท่าน)
+                  ✍️ เหตุผลความจำเป็น และส่วนลงนาม (ผู้สำรวจและวิเคราะห์ / ผู้ตรวจสอบและรับรอง)
                 </h3>
 
                 <div style={{ marginBottom: 18 }}>
@@ -1490,16 +1490,16 @@ function RepairProposalFormInner() {
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
-                  {/* Sign 1: Surveyor / Inspector */}
+                  {/* Sign 1: Surveyor & Analyst */}
                   <div style={{ border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: 14, textAlign: 'center', background: 'var(--bg-surface-raised, #172340)' }}>
                     <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink-primary, #eef2ff)', marginBottom: 8 }}>
-                      1. ผู้ตรวจสอบ / ผู้สำรวจหน้างาน
+                      1. ผู้สำรวจและวิเคราะห์
                     </div>
                     
                     <SignaturePad 
                       value={sig1Image} 
                       onChange={setSig1Image} 
-                      placeholder="วาดลายเซ็นต์ผู้ตรวจสอบ" 
+                      placeholder="วาดลายเซ็นต์ผู้สำรวจและวิเคราะห์" 
                     />
 
                     <div style={{ textAlign: 'left', marginTop: 10, marginBottom: 6 }}>
@@ -1507,7 +1507,7 @@ function RepairProposalFormInner() {
                       <input 
                         type="text" 
                         value={inspectorName} 
-                        placeholder="พิมพ์ชื่อ-นามสกุลผู้ตรวจสอบ"
+                        placeholder="พิมพ์ชื่อ-นามสกุลผู้สำรวจและวิเคราะห์"
                         onChange={e => setInspectorName(e.target.value)} 
                         className="wizard-dark-input"
                         style={{ width: '100%', padding: '6px 8px', fontSize: 12.5 }} 
@@ -1526,18 +1526,18 @@ function RepairProposalFormInner() {
                     </div>
                   </div>
 
-                  {/* Sign 2: Approver (Default: นายตวงเพชร ชัยยานนท์) */}
+                  {/* Sign 2: Inspector & Certifier (Default: นายตวงเพชร ชัยยานนท์) */}
                   <div style={{ border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: 14, textAlign: 'center', background: 'var(--bg-surface-raised, #172340)' }}>
                     <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink-primary, #eef2ff)', marginBottom: 6 }}>
-                      2. ผู้อนุมัติ / ผู้มีอำนาจสั่งการ
+                      2. ผู้ตรวจสอบและรับรอง
                     </div>
                     
                     <div style={{ display: 'flex', justifyContent: 'center', gap: 14, marginBottom: 8, fontSize: 12 }}>
                       <label style={{ fontWeight: 700, color: '#4ade80', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <input type="radio" name="apprDecision" checked={approvalDecision === 'approved'} onChange={() => setApprovalDecision('approved')} /> อนุมัติ
+                        <input type="radio" name="apprDecision" checked={approvalDecision === 'approved'} onChange={() => setApprovalDecision('approved')} /> รับรอง
                       </label>
                       <label style={{ color: 'var(--ink-secondary, #94a3c4)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <input type="radio" name="apprDecision" checked={approvalDecision === 'rejected'} onChange={() => setApprovalDecision('rejected')} /> ไม้อนุมัติ
+                        <input type="radio" name="apprDecision" checked={approvalDecision === 'rejected'} onChange={() => setApprovalDecision('rejected')} /> ไม่รับรอง
                       </label>
                     </div>
 
@@ -1551,7 +1551,7 @@ function RepairProposalFormInner() {
                             </div>
                           </div>
                         ) : (
-                          <div style={{ color: '#94a3b8', fontSize: 12, fontStyle: 'italic' }}>ยังไม่มีลายเซ็นต์ผู้อนุมัติ</div>
+                          <div style={{ color: '#94a3b8', fontSize: 12, fontStyle: 'italic' }}>ยังไม่มีลายเซ็นต์ผู้ตรวจสอบและรับรอง</div>
                         )}
                         <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
                           <button
@@ -1591,7 +1591,7 @@ function RepairProposalFormInner() {
                         <SignaturePad 
                           value={sig2Image} 
                           onChange={setSig2Image} 
-                          placeholder="วาดลายเซ็นต์ผู้อนุมัติ" 
+                          placeholder="วาดลายเซ็นต์ผู้ตรวจสอบและรับรอง" 
                         />
                         <button
                           type="button"
@@ -1603,7 +1603,7 @@ function RepairProposalFormInner() {
                     )}
 
                     <div style={{ textAlign: 'left', marginTop: 10, marginBottom: 6 }}>
-                      <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)' }}>ชื่อ-นามสกุล ผู้อนุมัติ:</label>
+                      <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)' }}>ชื่อ-นามสกุล ผู้ตรวจสอบและรับรอง:</label>
                       <input 
                         type="text" 
                         value={approverName} 
@@ -1868,7 +1868,7 @@ function RepairProposalFormInner() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5, marginBottom: 12, border: '1.5px solid #475569' }}>
                 <tbody>
                   <tr>
-                    <td style={{ width: '20%', background: '#e2e8f0', fontWeight: 800, color: '#0f2e5a', padding: '6px 10px', border: '1.5px solid #475569' }}>ผู้แจ้งซ่อม / ตรวจสอบ</td>
+                    <td style={{ width: '20%', background: '#e2e8f0', fontWeight: 800, color: '#0f2e5a', padding: '6px 10px', border: '1.5px solid #475569' }}>ผู้แจ้งซ่อม / ผู้สำรวจและวิเคราะห์</td>
                     <td style={{ width: '30%', padding: '6px 10px', border: '1.5px solid #475569', color: '#0f172a', fontWeight: 600 }}>{inspectorName || '-'}</td>
                     <td style={{ width: '20%', background: '#e2e8f0', fontWeight: 800, color: '#0f2e5a', padding: '6px 10px', border: '1.5px solid #475569' }}>ตำแหน่ง / สายงาน</td>
                     <td style={{ width: '30%', padding: '6px 10px', border: '1.5px solid #475569', color: '#0f172a', fontWeight: 600 }}>{inspectorRole || '-'}</td>
@@ -1972,14 +1972,14 @@ function RepairProposalFormInner() {
                 {justification || '(ยังไม่ระบุเหตุผลความจำเป็น)'}
               </div>
 
-              {/* Section 5: Signatures (2 Signatories Only: Inspector & Tuangpetch) */}
+              {/* Section 5: Signatures (2 Signatories: Surveyor/Analyst & Certifier) */}
               <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a', borderBottom: '2.5px solid #0f2e5a', paddingBottom: 4, marginBottom: 10 }}>
-                5. ส่วนลงนามการตรวจสอบและพิจารณาอนุมัติ
+                5. ส่วนลงนามผู้สำรวจและวิเคราะห์ และผู้ตรวจสอบและรับรอง
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                {/* Sig 1: Inspector */}
+                {/* Sig 1: Surveyor & Analyst */}
                 <div style={{ border: '2px solid #334155', borderRadius: 6, padding: '12px 14px', textAlign: 'center', minHeight: 145, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#ffffff' }}>
-                  <div style={{ fontWeight: 800, color: '#0f2e5a', marginBottom: 4, fontSize: 12.5 }}>ผู้ตรวจสอบ / สำรวจหน้างาน</div>
+                  <div style={{ fontWeight: 800, color: '#0f2e5a', marginBottom: 4, fontSize: 12.5 }}>ผู้สำรวจและวิเคราะห์</div>
                   <div style={{ height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {sig1Image ? (
                       <img src={sig1Image} alt="Signature 1" style={{ maxHeight: 48, maxWidth: '90%', objectFit: 'contain' }} />
@@ -1990,14 +1990,14 @@ function RepairProposalFormInner() {
                   <div style={{ borderTop: '1.5px solid #334155', paddingTop: 6, fontSize: 11.5, fontWeight: 700, color: '#0f172a' }}>
                     ({inspectorName || '....................................................'})
                   </div>
-                  <div style={{ fontSize: 11, color: '#1e293b', fontWeight: 600 }}>{inspectorRole || 'วิศวกรผู้ตรวจสอบหน้างาน'}</div>
+                  <div style={{ fontSize: 11, color: '#1e293b', fontWeight: 600 }}>{inspectorRole || 'วิศวกรผู้สำรวจและวิเคราะห์'}</div>
                 </div>
 
-                {/* Sig 2: Approver (Tuangpetch) */}
+                {/* Sig 2: Inspector & Certifier (Tuangpetch) */}
                 <div style={{ border: '2px solid #334155', borderRadius: 6, padding: '12px 14px', textAlign: 'center', minHeight: 145, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#ffffff' }}>
-                  <div style={{ fontWeight: 800, color: '#0f2e5a', marginBottom: 2, fontSize: 12.5 }}>ผู้อนุมัติ / ผู้มีอำนาจสั่งการ</div>
+                  <div style={{ fontWeight: 800, color: '#0f2e5a', marginBottom: 2, fontSize: 12.5 }}>ผู้ตรวจสอบและรับรอง</div>
                   <div style={{ fontSize: 11, color: approvalDecision === 'approved' ? '#15803d' : '#b91c1c', fontWeight: 800 }}>
-                    {approvalDecision === 'approved' ? '⦿ อนุมัติการจัดซื้อจัดจ้าง' : '⭘ ไม้อนุมัติ'}
+                    {approvalDecision === 'approved' ? '⦿ ตรวจสอบและรับรองความถูกต้อง' : '⭘ ไม่รับรอง'}
                   </div>
                   <div style={{ height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {sig2Image ? (
@@ -2007,7 +2007,7 @@ function RepairProposalFormInner() {
                     )}
                   </div>
                   <div style={{ borderTop: '1.5px solid #334155', paddingTop: 6, fontSize: 11.5, fontWeight: 700, color: '#0f172a' }}>
-                    ({approverName || 'ผู้อนุมัติ'})
+                    ({approverName || 'ผู้ตรวจสอบและรับรอง'})
                   </div>
                   <div style={{ fontSize: 11, color: '#1e293b', fontWeight: 600 }}>{approverRole || 'วศ.4 หบท-ธ.'}</div>
                 </div>
@@ -2184,7 +2184,7 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
             <span style={{ fontSize: 20 }}>⚙️</span>
             <div>
               <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink-primary, #eef2ff)', margin: 0 }}>ตั้งค่าระบบแอดมิน (Admin Settings)</h2>
-              <div style={{ fontSize: 11.5, color: 'var(--ink-secondary, #94a3c4)' }}>ปรับแต่งหัวกระดาษ, ลายเซ็นต์ผู้อนุมัติ, และการรันเลขที่ใบเสนอซ่อม</div>
+              <div style={{ fontSize: 11.5, color: 'var(--ink-secondary, #94a3c4)' }}>ปรับแต่งหัวกระดาษ, ลายเซ็นต์ผู้ตรวจสอบและรับรอง, และการรันเลขที่ใบเสนอซ่อม</div>
             </div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--ink-secondary, #94a3c4)' }}>✕</button>
@@ -2194,7 +2194,7 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
         <div style={{ display: 'flex', borderBottom: '1px solid var(--border-hairline, #1e2e4a)', background: 'var(--bg-surface, #111d32)', overflowX: 'auto' }}>
           {[
             { id: 'header', label: '🏢 หัวกระดาษ & โลโก้' },
-            { id: 'approver', label: '✍️ ผู้อนุมัติ & ลายเซ็นต์' },
+            { id: 'approver', label: '✍️ ผู้ตรวจสอบและรับรอง & ลายเซ็นต์' },
             { id: 'ref', label: '🔢 การรันเลขที่ใบงาน' },
             { id: 'defaults', label: '⚙️ ค่าเริ่มต้นอื่นๆ' }
           ].map(tab => (
@@ -2432,7 +2432,7 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
                 <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
-                  ชื่อ-นามสกุล ผู้อนุมัติเริ่มต้น:
+                  ชื่อ-นามสกุล ผู้ตรวจสอบและรับรองเริ่มต้น:
                 </label>
                 <input 
                   type="text" 
@@ -2445,7 +2445,7 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
 
               <div>
                 <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
-                  ตำแหน่งผู้อนุมัติ:
+                  ตำแหน่งผู้ตรวจสอบและรับรอง:
                 </label>
                 <input 
                   type="text" 
@@ -2458,7 +2458,7 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
 
               <div>
                 <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 6 }}>
-                  รูปลายเซ็นต์ผู้อนุมัติ:
+                  รูปลายเซ็นต์ผู้ตรวจสอบและรับรอง:
                 </label>
                 <div style={{ border: '1px dashed var(--border-strong, #2d3f5e)', borderRadius: 6, padding: 12, textAlign: 'center', background: '#ffffff', marginBottom: 8 }}>
                   {form.approver?.signatureUrl ? (
@@ -2594,7 +2594,7 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
 
               <div>
                 <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
-                  ตำแหน่งผู้ตรวจสอบเริ่มต้น:
+                  ตำแหน่งผู้สำรวจและวิเคราะห์เริ่มต้น:
                 </label>
                 <input 
                   type="text" 
