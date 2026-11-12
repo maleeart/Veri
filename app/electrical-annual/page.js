@@ -1612,7 +1612,7 @@ function ElectricalAnnualInner() {
             </div>
           </div>
 
-          {/* ══ Grid of Large Tactile Year Bubble Cards (สัมผัสเดียวเริ่มทันที) ══ */}
+          {/* ══ Grid of Large Tactile Year Bubble Cards (สัมผัสเดียวเริ่มทันที — สไตล์ 3D Bubble Balloon) ══ */}
           <div className="year-bubble-grid">
             {[currentYear + 1, currentYear, currentYear - 1, currentYear - 2, currentYear - 3].map((yr) => {
               const bYear = yr + 543;
@@ -1627,20 +1627,19 @@ function ElectricalAnnualInner() {
                     handleProceedFromYearSelect(yr);
                   }}
                 >
-                  <div className="ybc-num-wrap">
+                  {/* Floating Top Balloon Badge (บอลลูนลอยด้านบน) */}
+                  <span className={`year-floating-balloon ${match ? 'year-floating-balloon--amber' : 'year-floating-balloon--green'}`}>
+                    {match ? '📝 มีข้อมูลเดิม' : '✨ เล่มใหม่'}
+                  </span>
+
+                  <div className="ybc-balloon-body">
+                    <span className="ybc-thai-prefix">เล่มประจำปี พ.ศ.</span>
                     <span className="ybc-num">{bYear}</span>
-                    <span className="ybc-sub">พ.ศ. ({yr})</span>
+                    <span className="ybc-sub">ค.ศ. {yr}</span>
                   </div>
-                  <div className="ybc-status-wrap">
-                    {match ? (
-                      <span className="ybc-pill ybc-pill--amber">
-                        📝 มีข้อมูลแล้ว ({match.date})
-                      </span>
-                    ) : (
-                      <span className="ybc-pill ybc-pill--blue">
-                        ✨ สร้างเล่มใหม่
-                      </span>
-                    )}
+
+                  <div className="ybc-action-bubble">
+                    <span>{match ? `แตะเปิดดู / แก้ไข (${match.date}) ›` : 'แตะเริ่มจัดทำเล่มใหม่ ›'}</span>
                   </div>
                 </button>
               );
@@ -2253,37 +2252,37 @@ function ElectricalAnnualInner() {
 
         return (
         <section className="form-section">
-          {/* ══ Category Sub-Tabs Navigation (3 หมวดหลัก - ไม่มีตัวเลขนำหน้า) ══ */}
+          {/* ══ Category Sub-Tabs Navigation (3 หมวดหลัก — 3D Bubble Balloon Capsules) ══ */}
           <div className="cat-subnav-box">
             <div className="cat-subnav-pills">
               <button
                 type="button"
-                className={`cat-tab-btn ${catTab === 'hv' ? 'cat-tab-btn--active' : ''}`}
+                className={`cat-tab-btn cat-tab-btn--hv ${catTab === 'hv' ? 'cat-tab-btn--active' : ''}`}
                 onClick={() => setCatTab('hv')}
               >
+                <span className="cat-tab-balloon-badge">{data.highVoltageSystems.length}</span>
                 <span className="cat-tab-icon">⚡</span>
                 <span className="cat-tab-title">ระบบแรงสูง</span>
-                <span className="cat-tab-badge">{data.highVoltageSystems.length}</span>
               </button>
 
               <button
                 type="button"
-                className={`cat-tab-btn ${catTab === 'transformer' ? 'cat-tab-btn--active' : ''}`}
+                className={`cat-tab-btn cat-tab-btn--tf ${catTab === 'transformer' ? 'cat-tab-btn--active' : ''}`}
                 onClick={() => setCatTab('transformer')}
               >
+                <span className="cat-tab-balloon-badge">{data.transformers.length}</span>
                 <span className="cat-tab-icon">🔌</span>
                 <span className="cat-tab-title">หม้อแปลงไฟฟ้า</span>
-                <span className="cat-tab-badge">{data.transformers.length}</span>
               </button>
 
               <button
                 type="button"
-                className={`cat-tab-btn ${catTab === 'mdb' ? 'cat-tab-btn--active' : ''}`}
+                className={`cat-tab-btn cat-tab-btn--mdb ${catTab === 'mdb' ? 'cat-tab-btn--active' : ''}`}
                 onClick={() => setCatTab('mdb')}
               >
+                <span className="cat-tab-balloon-badge">{data.mainSwitchboards.length}</span>
                 <span className="cat-tab-icon">🏢</span>
                 <span className="cat-tab-title">ตู้เมนสวิตช์ & อาคาร</span>
-                <span className="cat-tab-badge">{data.mainSwitchboards.length}</span>
               </button>
             </div>
           </div>
@@ -3007,8 +3006,24 @@ function ElectricalAnnualInner() {
 
                       <div className="field">
                         <label className="field-label-highlight">
-                          🏢 ประจำอยู่อาคาร (เลือกจากลิสอาคาร) <span className="req">*</span>
+                          🏢 ประจำอยู่อาคาร (แตะบอลลูนอาคาร หรือเลือกจากรายการ) <span className="req">*</span>
                         </label>
+                        {/* ══ บอลลูนอาคารด่วน (Interactive Building Bubble Balloons) ══ */}
+                        <div className="bld-bubble-cloud">
+                          {BUILDING_OPTIONS.slice(0, 10).map((b) => {
+                            const isSelected = msb.building === b.value;
+                            return (
+                              <button
+                                key={b.value}
+                                type="button"
+                                className={`bld-bubble-pill ${isSelected ? 'bld-bubble-pill--active' : ''}`}
+                                onClick={() => updateMainSwitchboard(mIdx, 'building', b.value)}
+                              >
+                                {isSelected ? '✓ ' : ''}{b.label}
+                              </button>
+                            );
+                          })}
+                        </div>
                         <select
                           className="select-highlight"
                           value={msb.building || ''}
@@ -3017,7 +3032,7 @@ function ElectricalAnnualInner() {
                             updateMainSwitchboard(mIdx, 'building', val);
                           }}
                         >
-                          <option value="">-- กรุณาเลือกอาคาร --</option>
+                          <option value="">-- หรือเลือกอาคารทั้งหมด ({BUILDING_OPTIONS.length} อาคาร) --</option>
                           {BUILDING_OPTIONS.map((b) => (
                             <option key={b.value} value={b.value}>{b.label}</option>
                           ))}
@@ -4405,28 +4420,58 @@ function ElectricalAnnualInner() {
             display: none;
           }
           .cat-tab-btn {
-            flex: 0 0 auto;
-            padding: 8px 14px;
+            flex: 1 1 0;
+            min-width: 0;
+            padding: 9px 8px;
             border-radius: 9999px;
+            gap: 5px;
+          }
+          .cat-tab-icon {
+            font-size: 16px;
           }
           .cat-tab-title {
-            font-size: 12.5px;
+            font-size: 12px;
             white-space: nowrap;
           }
-          .cat-tab-badge {
-            font-size: 10px;
-            padding: 1px 6px;
+          .cat-tab-balloon-badge {
+            top: -7px;
+            right: 4px;
+            min-width: 19px;
+            height: 19px;
+            font-size: 9.5px;
+            padding: 0 4px;
           }
           .year-bubble-grid {
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            gap: 12px;
           }
           .year-bubble-card {
-            padding: 16px 10px;
-            gap: 8px;
+            padding: 18px 8px 12px;
+            gap: 6px;
+            border-radius: 22px;
+          }
+          .year-floating-balloon {
+            top: -10px;
+            right: 6px;
+            font-size: 10px;
+            padding: 3px 8px;
+          }
+          .ybc-thai-prefix {
+            font-size: 10.5px;
           }
           .ybc-num {
-            font-size: 26px;
+            font-size: 30px;
+          }
+          .ybc-sub {
+            font-size: 11px;
+          }
+          .ybc-action-bubble {
+            font-size: 10.5px;
+            padding: 5px 8px;
+          }
+          .bld-bubble-pill {
+            font-size: 11px;
+            padding: 5px 10px;
           }
           .item-switcher-top {
             flex-direction: column;
@@ -4587,84 +4632,118 @@ function ElectricalAnnualInner() {
         }
         .year-bubble-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 14px;
+          grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+          gap: 16px;
         }
         .year-bubble-card {
+          position: relative;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 12px;
-          padding: 24px 16px;
-          border-radius: 22px;
-          border: 1.5px solid rgba(59, 130, 246, 0.35);
-          background: linear-gradient(135deg, rgba(23, 35, 64, 0.95) 0%, rgba(17, 29, 50, 0.95) 100%);
+          gap: 10px;
+          padding: 24px 16px 18px;
+          border-radius: 28px;
           cursor: pointer;
           font-family: inherit;
           text-align: center;
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.08);
-          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
           -webkit-tap-highlight-color: transparent;
+          overflow: visible;
         }
-        .year-bubble-card:hover {
-          transform: translateY(-3px);
-          border-color: #60a5fa;
-          background: linear-gradient(135deg, rgba(30, 58, 138, 0.45) 0%, rgba(23, 35, 64, 0.95) 100%);
-          box-shadow: 0 14px 36px rgba(37, 99, 235, 0.4);
+        /* Year Balloon for New Years (Royal Blue 3D Balloon) */
+        .year-bubble-card--new {
+          background: radial-gradient(circle at 40% 20%, rgba(255, 255, 255, 0.28) 0%, transparent 65%),
+                      linear-gradient(145deg, #1e40af 0%, #2563eb 55%, #172554 100%);
+          border: 1.5px solid #93c5fd;
+          box-shadow: 0 12px 30px rgba(37, 99, 235, 0.42), inset 0 2px 4px rgba(255, 255, 255, 0.55), inset 0 -3px 6px rgba(0, 0, 0, 0.35);
+        }
+        .year-bubble-card--new:hover {
+          transform: translateY(-4px) scale(1.02);
+          border-color: #bfdbfe;
+          box-shadow: 0 18px 42px rgba(37, 99, 235, 0.65), inset 0 2px 6px rgba(255, 255, 255, 0.7);
+        }
+        /* Year Balloon for Existing Data (Amber / Gold 3D Balloon) */
+        .year-bubble-card--has-data {
+          background: radial-gradient(circle at 40% 20%, rgba(255, 255, 255, 0.3) 0%, transparent 65%),
+                      linear-gradient(145deg, #9a3412 0%, #d97706 50%, #78350f 100%);
+          border: 1.5px solid #fde68a;
+          box-shadow: 0 12px 30px rgba(217, 119, 6, 0.45), inset 0 2px 4px rgba(255, 255, 255, 0.6), inset 0 -3px 6px rgba(0, 0, 0, 0.35);
+        }
+        .year-bubble-card--has-data:hover {
+          transform: translateY(-4px) scale(1.02);
+          border-color: #fef3c7;
+          box-shadow: 0 18px 42px rgba(217, 119, 6, 0.65), inset 0 2px 6px rgba(255, 255, 255, 0.75);
         }
         .year-bubble-card:active {
           transform: scale(0.97);
         }
-        .year-bubble-card--has-data {
-          border-color: rgba(245, 158, 11, 0.45);
+        /* Floating Top Status Balloon Badge */
+        .year-floating-balloon {
+          position: absolute;
+          top: -12px;
+          right: 12px;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 12px;
+          border-radius: 9999px;
+          font-size: 11.5px;
+          font-weight: 800;
+          line-height: 1.2;
+          color: #ffffff;
+          border: 2px solid #0c1220;
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+          letter-spacing: -0.2px;
         }
-        .year-bubble-card--has-data:hover {
-          border-color: #fbbf24;
-          box-shadow: 0 14px 36px rgba(245, 158, 11, 0.35);
+        .year-floating-balloon--green {
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          box-shadow: 0 4px 14px rgba(16, 185, 129, 0.6);
         }
-        .ybc-num-wrap {
+        .year-floating-balloon--amber {
+          background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+          box-shadow: 0 4px 14px rgba(245, 158, 11, 0.6);
+        }
+        .ybc-balloon-body {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 2px;
+          gap: 1px;
+        }
+        .ybc-thai-prefix {
+          font-size: 12px;
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.85);
+          letter-spacing: 0.3px;
         }
         .ybc-num {
-          font-size: 34px;
-          font-weight: 800;
+          font-size: 38px;
+          font-weight: 900;
           color: #ffffff;
-          line-height: 1;
+          line-height: 1.05;
           letter-spacing: -0.5px;
+          text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
         }
         .ybc-sub {
-          font-size: 13px;
+          font-size: 12.5px;
           font-weight: 600;
-          color: rgba(255, 255, 255, 0.7);
+          color: rgba(255, 255, 255, 0.85);
         }
-        .ybc-status-wrap {
-          width: 100%;
-        }
-        .ybc-pill {
+        .ybc-action-bubble {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          padding: 6px 14px;
+          padding: 7px 16px;
           border-radius: 9999px;
+          background: rgba(0, 0, 0, 0.28);
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          color: #ffffff;
           font-size: 12px;
           font-weight: 700;
-          line-height: 1.2;
+          backdrop-filter: blur(4px);
           width: 100%;
           box-sizing: border-box;
-        }
-        .ybc-pill--amber {
-          background: rgba(245, 158, 11, 0.18);
-          border: 1px solid rgba(245, 158, 11, 0.5);
-          color: #fbbf24;
-        }
-        .ybc-pill--blue {
-          background: rgba(37, 99, 235, 0.2);
-          border: 1px solid rgba(59, 130, 246, 0.5);
-          color: #93c5fd;
+          margin-top: 4px;
         }
         .year-older-pill-box {
           display: flex;
@@ -5409,20 +5488,20 @@ function ElectricalAnnualInner() {
           }
         }
       
-                /* ── Subcategory Tabs Bar (3 หมวดหลัก — Bubble Balloon Capsules) ── */
+                /* ── Subcategory Tabs Bar (3 หมวดหลัก — 3D Bubble Balloon Capsules) ── */
         .cat-subnav-box {
-          margin-bottom: 20px;
-          background: rgba(17, 29, 50, 0.95);
+          margin-bottom: 22px;
+          background: rgba(15, 23, 42, 0.85);
           backdrop-filter: blur(14px);
           -webkit-backdrop-filter: blur(14px);
-          border: 1.5px solid rgba(59, 130, 246, 0.35);
+          border: 1.5px solid rgba(148, 163, 184, 0.25);
           border-radius: 9999px;
           padding: 6px;
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), inset 0 1px 2px rgba(255, 255, 255, 0.1);
         }
         .cat-subnav-pills {
           display: flex;
-          gap: 8px;
+          gap: 10px;
           overflow-x: auto;
           flex-wrap: nowrap;
           -webkit-overflow-scrolling: touch;
@@ -5432,59 +5511,132 @@ function ElectricalAnnualInner() {
           display: none;
         }
         .cat-tab-btn {
+          position: relative;
           flex: 1;
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
-          padding: 10px 18px;
+          padding: 12px 20px;
           border-radius: 9999px;
-          border: 1.5px solid var(--border-hairline, #1e2e4a);
-          background: var(--bg-surface-raised, #172340);
-          color: var(--ink-secondary, #94a3c4);
+          border: 1.5px solid rgba(148, 163, 184, 0.2);
+          background: rgba(30, 41, 59, 0.7);
+          color: #cbd5e1;
           cursor: pointer;
           font-family: inherit;
-          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
           text-align: center;
           white-space: nowrap;
           flex-shrink: 0;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+          -webkit-tap-highlight-color: transparent;
         }
         .cat-tab-btn:hover:not(.cat-tab-btn--active) {
-          background: rgba(30, 58, 138, 0.35);
+          background: rgba(51, 65, 85, 0.85);
           color: #ffffff;
-          border-color: rgba(59, 130, 246, 0.5);
+          border-color: rgba(148, 163, 184, 0.45);
+          transform: translateY(-1px);
         }
-        .cat-tab-btn--active {
-          background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%) !important;
+        .cat-tab-btn:active {
+          transform: scale(0.97);
+        }
+        /* Tab 1: ระบบแรงสูง — Golden Amber Bubble Balloon */
+        .cat-tab-btn--hv.cat-tab-btn--active {
+          background: radial-gradient(circle at 40% 25%, rgba(255, 255, 255, 0.35) 0%, transparent 65%),
+                      linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #b45309 100%) !important;
+          border-color: #fde68a !important;
+          color: #ffffff !important;
+          box-shadow: 0 8px 24px rgba(245, 158, 11, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.6), inset 0 -2px 4px rgba(0, 0, 0, 0.3) !important;
+          transform: scale(1.03);
+        }
+        /* Tab 2: หม้อแปลงไฟฟ้า — Royal Blue Bubble Balloon */
+        .cat-tab-btn--tf.cat-tab-btn--active {
+          background: radial-gradient(circle at 40% 25%, rgba(255, 255, 255, 0.35) 0%, transparent 65%),
+                      linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #1e40af 100%) !important;
           border-color: #93c5fd !important;
           color: #ffffff !important;
-          box-shadow: 0 6px 20px rgba(37, 99, 235, 0.55), inset 0 1px 1px rgba(255,255,255,0.4) !important;
-          transform: scale(1.02);
+          box-shadow: 0 8px 24px rgba(37, 99, 235, 0.65), inset 0 2px 4px rgba(255, 255, 255, 0.6), inset 0 -2px 4px rgba(0, 0, 0, 0.3) !important;
+          transform: scale(1.03);
+        }
+        /* Tab 3: ตู้เมนสวิตช์ & อาคาร — Indigo / Violet Bubble Balloon */
+        .cat-tab-btn--mdb.cat-tab-btn--active {
+          background: radial-gradient(circle at 40% 25%, rgba(255, 255, 255, 0.35) 0%, transparent 65%),
+                      linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #3730a3 100%) !important;
+          border-color: #c7d2fe !important;
+          color: #ffffff !important;
+          box-shadow: 0 8px 24px rgba(99, 102, 241, 0.65), inset 0 2px 4px rgba(255, 255, 255, 0.6), inset 0 -2px 4px rgba(0, 0, 0, 0.3) !important;
+          transform: scale(1.03);
         }
         .cat-tab-icon {
-          font-size: 18px;
+          font-size: 19px;
           flex-shrink: 0;
           line-height: 1;
         }
         .cat-tab-title {
-          font-size: 13.5px;
-          font-weight: 700;
-          white-space: nowrap;
-        }
-        .cat-tab-badge {
-          font-size: 11px;
-          background: rgba(255, 255, 255, 0.15);
-          color: #dbeafe;
-          padding: 2px 8px;
-          border-radius: 9999px;
+          font-size: 14px;
           font-weight: 800;
           white-space: nowrap;
-          line-height: 1.2;
+          letter-spacing: -0.2px;
         }
-        .cat-tab-btn--active .cat-tab-badge {
-          background: rgba(255, 255, 255, 0.28);
-          color: #ffffff;
+        /* Floating Count Balloon Badge (บอลลูนลอยมุมขวาบนของแท็บ) */
+        .cat-tab-balloon-badge {
+          position: absolute;
+          top: -9px;
+          right: 8px;
+          min-width: 22px;
+          height: 22px;
+          padding: 0 6px;
+          border-radius: 9999px;
+          background: #0f172a;
+          color: #93c5fd;
+          border: 2px solid #3b82f6;
+          font-size: 11px;
+          font-weight: 800;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
+          line-height: 1;
+        }
+        .cat-tab-btn--active .cat-tab-balloon-badge {
+          background: #ffffff;
+          color: #0f172a;
+          border-color: #ffffff;
+          box-shadow: 0 4px 12px rgba(255, 255, 255, 0.5);
+        }
+        /* ── Building Bubble Balloon Cloud (บอลลูนอาคารด่วน) ── */
+        .bld-bubble-cloud {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 10px;
+        }
+        .bld-bubble-pill {
+          padding: 7px 14px;
+          border-radius: 9999px;
+          background: rgba(30, 41, 59, 0.8);
+          border: 1.5px solid rgba(148, 163, 184, 0.25);
+          color: #cbd5e1;
+          font-size: 12.5px;
+          font-weight: 700;
+          font-family: inherit;
+          cursor: pointer;
+          transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+          white-space: nowrap;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        }
+        .bld-bubble-pill:hover {
+          background: rgba(59, 130, 246, 0.2);
+          border-color: #60a5fa;
+          color: #93c5fd;
+          transform: translateY(-1px);
+        }
+        .bld-bubble-pill--active {
+          background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%) !important;
+          border-color: #93c5fd !important;
+          color: #ffffff !important;
+          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.5) !important;
+          transform: scale(1.03);
         }
 
         /* ── MDB Unified Building Card ── */
