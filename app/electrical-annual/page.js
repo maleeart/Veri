@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import SignaturePad from '../components/SignaturePad';
 import ElecReport from '../components/ElecReport';
+import Sidenav from '../components/Sidenav';
 import { useCanWrite } from '../lib/useCanWrite';
 import { BUILDING_OPTIONS } from '../../src/lib/buildingList';
 
@@ -1408,14 +1409,17 @@ function ElectricalAnnualInner() {
   };
 
   const steps = [
-    { num: 1, title: 'ผู้ตรวจ & สถานประกอบการ', sub: 'หน้า 2' },
-    { num: 2, title: 'ข้อมูลทั่วไป', sub: 'หน้า 3' },
-    { num: 3, title: 'รายการตรวจอุปกรณ์', sub: 'หน้า 3 - 8' },
-    { num: 4, title: 'สรุปผล & บันทึก', sub: 'หน้า 9' },
+    { num: 1, icon: '🏢', title: 'ผู้ตรวจ & สถานประกอบการ' },
+    { num: 2, icon: '📋', title: 'ข้อมูลทั่วไป' },
+    { num: 3, icon: '⚡', title: 'รายการตรวจอุปกรณ์' },
+    { num: 4, icon: '✓', title: 'สรุปผล & บันทึก' },
   ];
 
   return (
-    <div className="elec-page">
+    <div className="sn-shell">
+      <Sidenav />
+      <div className="sn-shell-main">
+        <div className="elec-page">
       {/* ── Modal: Duplicate Year Detected (Firepump bubble style) ── */}
       {duplicateModalRecord && (
         <div className="elec-modal-overlay" onClick={handleCancelDuplicateModal}>
@@ -1588,119 +1592,94 @@ function ElectricalAnnualInner() {
       )}
 
             {pageStep === 0 ? (
-        /* ── Screen 0: เลือกปีประจำเล่มรายงาน ── */
+        /* ── Screen 0: เลือกปีประจำเล่มรายงาน (ธีม Bubble Balloon Cards) ── */
         <div className="year-select-container">
           <header className="elec-hdr">
             <div className="elec-hdr__left">
               <button type="button" className="btn-back" onClick={() => router.push('/')}>‹ หน้าหลัก</button>
               <div>
-                <h1 className="elec-hdr__title">⚡ ตรวจสอบบริภัณฑ์ไฟฟ้าประจำปี</h1>
-                <p className="elec-hdr__sub">แบบฟอร์ม ESPSIB001 · กรมสวัสดิการและคุ้มครองแรงงาน</p>
+                <h1 className="elec-hdr__title">⚡ บริภัณฑ์ไฟฟ้าประจำปี</h1>
+                <p className="elec-hdr__sub">เลือกปี พ.ศ. ประจำเล่มรายงาน</p>
               </div>
             </div>
           </header>
 
-          <div className="year-picker-card">
-            <div className="ypc-header">
-              <div className="ypc-icon-badge">
-                <span>⚡</span>
-              </div>
-              <h2 className="ypc-title">เลือกปีประจำเล่มรายงาน</h2>
-              <p className="ypc-sub">เลือกปี พ.ศ. ที่ต้องการจัดทำเอกสารตรวจสอบความปลอดภัยระบบไฟฟ้า</p>
+          <div className="year-intro-card">
+            <div className="yic-badge-icon">📅</div>
+            <div className="yic-content">
+              <h2 className="yic-title">เลือกปีประจำเล่มรายงาน</h2>
+              <p className="yic-sub">แตะเลือกปี พ.ศ. ด้านล่างเพื่อเข้าสู่แบบฟอร์มตรวจสอบความปลอดภัยระบบไฟฟ้า</p>
             </div>
+          </div>
 
-            <div className="ypc-body">
-              {/* Quick Year Selection Chips */}
-              <div className="ypc-quick-years">
-                <span className="ypc-quick-label">⚡ เลือกปี พ.ศ. ด่วน:</span>
-                <div className="ypc-quick-pills">
-                  {[currentYear + 1, currentYear, currentYear - 1, currentYear - 2].map((yr) => {
-                    const bYear = yr + 543;
-                    const isAct = selectedYear === yr;
-                    return (
-                      <button
-                        key={yr}
-                        type="button"
-                        className={`ypc-year-chip ${isAct ? 'ypc-year-chip--active' : ''}`}
-                        onClick={() => setSelectedYear(yr)}
-                      >
-                        พ.ศ. {bYear}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="field" style={{ marginTop: 4 }}>
-                <label style={{ fontWeight: 700, fontSize: 13.5, color: 'var(--ink-primary)', display: 'block', marginBottom: 8 }}>
-                  หรือเลือกจากรายการปีทั้งหมด (พ.ศ. / ค.ศ.)
-                </label>
-                <div className="ypc-select-wrapper">
-                  <select
-                    className="ypc-select"
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                  >
-                    {availableYears.map((yr) => {
-                      const bYear = yr + 543;
-                      const hasRec = allElecRecords.some((r) => r.date?.startsWith(String(yr)));
-                      return (
-                        <option key={yr} value={yr}>
-                          พ.ศ. {bYear} ({yr}){hasRec ? ' · [มีข้อมูลแล้ว 📝]' : ''}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
-              </div>
-
-              {/* Compact Year Status Pill */}
-              {(() => {
-                const match = allElecRecords.find((r) => r.date?.startsWith(String(selectedYear)));
-                const prior = allElecRecords
-                  .map((r) => ({ ...r, year: parseInt(r.date?.slice(0, 4)) }))
-                  .filter((r) => !isNaN(r.year) && r.year < selectedYear)
-                  .sort((a, b) => b.year - a.year)[0];
-
-                if (match) {
-                  return (
-                    <div className="ypc-badge-pill ypc-badge-pill--amber">
-                      <span className="ypc-badge-pill__icon">📌</span>
-                      <span>มีบันทึกรายงานปี พ.ศ. {selectedYear + 543} อยู่แล้ว ({match.date})</span>
-                    </div>
-                  );
-                }
-                if (prior) {
-                  const priorYr = parseInt(prior.date?.slice(0, 4)) || prior.year;
-                  return (
-                    <div className="ypc-badge-pill ypc-badge-pill--blue">
-                      <span className="ypc-badge-pill__icon">💡</span>
-                      <span>มีข้อมูลอุปกรณ์ปี พ.ศ. {priorYr + 543} (พร้อมใช้เป็นแม่แบบ)</span>
-                    </div>
-                  );
-                }
-                return (
-                  <div className="ypc-badge-pill ypc-badge-pill--green">
-                    <span className="ypc-badge-pill__icon">✨</span>
-                    <span>รายงานฉบับใหม่ (ยังไม่มีบันทึกของปีนี้)</span>
+          {/* ══ Grid of Large Tactile Year Bubble Cards (สัมผัสเดียวเริ่มทันที) ══ */}
+          <div className="year-bubble-grid">
+            {[currentYear + 1, currentYear, currentYear - 1, currentYear - 2, currentYear - 3].map((yr) => {
+              const bYear = yr + 543;
+              const match = allElecRecords.find((r) => r.date?.startsWith(String(yr)));
+              return (
+                <button
+                  key={yr}
+                  type="button"
+                  className={`year-bubble-card ${match ? 'year-bubble-card--has-data' : 'year-bubble-card--new'}`}
+                  onClick={() => {
+                    setSelectedYear(yr);
+                    handleProceedFromYearSelect(yr);
+                  }}
+                >
+                  <div className="ybc-num-wrap">
+                    <span className="ybc-num">{bYear}</span>
+                    <span className="ybc-sub">พ.ศ. ({yr})</span>
                   </div>
-                );
-              })()}
+                  <div className="ybc-status-wrap">
+                    {match ? (
+                      <span className="ybc-pill ybc-pill--amber">
+                        📝 มีข้อมูลแล้ว ({match.date})
+                      </span>
+                    ) : (
+                      <span className="ybc-pill ybc-pill--blue">
+                        ✨ สร้างเล่มใหม่
+                      </span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
 
-              <button
-                type="button"
-                className="ypc-btn-proceed"
-                onClick={() => handleProceedFromYearSelect(selectedYear)}
-              >
-                เข้าสู่แบบฟอร์มตรวจสอบ ›
-              </button>
-            </div>
+          {/* Dropdown for older historical years */}
+          <div className="year-older-pill-box">
+            <span className="yob-icon">🔍</span>
+            <label className="yob-label" htmlFor="elec-older-years">หรือเลือกปีอื่นๆ ย้อนหลัง:</label>
+            <select
+              id="elec-older-years"
+              className="year-older-select"
+              value={selectedYear}
+              onChange={(e) => {
+                const yr = parseInt(e.target.value);
+                if (!isNaN(yr)) {
+                  setSelectedYear(yr);
+                  handleProceedFromYearSelect(yr);
+                }
+              }}
+            >
+              <option value="">-- แตะเลือกปีอื่นๆ (พ.ศ. / ค.ศ.) --</option>
+              {availableYears.map((yr) => {
+                const bYear = yr + 543;
+                const hasRec = allElecRecords.some((r) => r.date?.startsWith(String(yr)));
+                return (
+                  <option key={yr} value={yr}>
+                    พ.ศ. {bYear} ({yr}) {hasRec ? '✓ มีข้อมูลในระบบ' : ''}
+                  </option>
+                );
+              })}
+            </select>
           </div>
 
           {/* List of Existing Reports in System */}
           {allElecRecords.length > 0 && (
             <div className="existing-reports-card">
-              <h3 className="erc-title">📋 รายการรายงานที่มีอยู่ในระบบ ({allElecRecords.length} ฉบับ)</h3>
+              <h3 className="erc-title">📋 รายการเล่มรายงานที่มีในระบบ ({allElecRecords.length} ฉบับ)</h3>
               <div className="erc-list">
                 {allElecRecords.map((rec, i) => {
                   const yr = parseInt(rec.date?.slice(0, 4)) || 0;
@@ -1765,31 +1744,19 @@ function ElectricalAnnualInner() {
             </div>
           </header>
 
-      {/* ── Year Selector & Report Status Bar ── */}
+      {/* ── Year Selector & Status Bubble Capsule Bar ── */}
       <div className="elec-year-bar">
         <div className="elec-year-bar__left">
-          <label className="year-label" htmlFor="elec-year-select">
-            <span className="year-icon">📅</span>
-            <span className="year-text">เล่มรายงานประจำปี:</span>
-          </label>
-          <div className="year-select-wrap">
-            <select
-              id="elec-year-select"
-              className="elec-year-select"
-              value={selectedYear}
-              onChange={(e) => handleYearChange(parseInt(e.target.value))}
-            >
-              {availableYears.map((yr) => {
-                const bYear = yr + 543;
-                const hasRec = allElecRecords.some((r) => r.date?.startsWith(String(yr)));
-                return (
-                  <option key={yr} value={yr}>
-                    พ.ศ. {bYear} ({yr}){hasRec ? ' ✓ มีข้อมูลในระบบ' : ''}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
+          <button
+            type="button"
+            className="year-badge-bubble"
+            onClick={() => setPageStep(0)}
+            title="แตะเพื่อเลือกปีใหม่"
+          >
+            <span className="year-badge-icon">📅</span>
+            <span className="year-badge-text">เล่มประจำปี พ.ศ. {selectedYear + 543}</span>
+            <span className="year-badge-change">เปลี่ยนปี ▾</span>
+          </button>
         </div>
 
         <div className="elec-year-bar__right">
@@ -1799,7 +1766,7 @@ function ElectricalAnnualInner() {
             </span>
           ) : (
             <span className="year-mode-pill year-mode-pill--new">
-              ✨ รายงานฉบับใหม่ปี พ.ศ. {selectedYear + 543}
+              ✨ เล่มใหม่ปี พ.ศ. {selectedYear + 543}
             </span>
           )}
           {prefilledFrom && (
@@ -1810,19 +1777,17 @@ function ElectricalAnnualInner() {
         </div>
       </div>
 
-      {/* Step Navigation Bar */}
-      <nav className="step-nav">
+      {/* Step Navigation Bar — Horizontal Bubble Capsule Pills */}
+      <nav className="step-nav-capsules">
         {steps.map((s) => (
           <button
             key={s.num}
-            className={`step-nav__item ${step === s.num ? 'step-nav__item--active' : ''} ${step > s.num ? 'step-nav__item--done' : ''}`}
+            type="button"
+            className={`step-bubble-btn ${step === s.num ? 'step-bubble-btn--active' : ''} ${step > s.num ? 'step-bubble-btn--done' : ''}`}
             onClick={() => setStep(s.num)}
           >
-            <span className="step-nav__badge">{step > s.num ? '✓' : s.num}</span>
-            <div className="step-nav__label">
-              <span className="step-nav__name">{s.title}</span>
-              <span className="step-nav__sub">{s.sub}</span>
-            </div>
+            <span className="step-bubble-icon">{step > s.num ? '✓' : s.icon}</span>
+            <span className="step-bubble-title">{s.title}</span>
           </button>
         ))}
       </nav>
@@ -2297,10 +2262,8 @@ function ElectricalAnnualInner() {
                 onClick={() => setCatTab('hv')}
               >
                 <span className="cat-tab-icon">⚡</span>
-                <div className="cat-tab-text">
-                  <span className="cat-tab-title">ระบบแรงสูง</span>
-                  <span className="cat-tab-badge">{data.highVoltageSystems.length} ชุด</span>
-                </div>
+                <span className="cat-tab-title">ระบบแรงสูง</span>
+                <span className="cat-tab-badge">{data.highVoltageSystems.length}</span>
               </button>
 
               <button
@@ -2309,10 +2272,8 @@ function ElectricalAnnualInner() {
                 onClick={() => setCatTab('transformer')}
               >
                 <span className="cat-tab-icon">🔌</span>
-                <div className="cat-tab-text">
-                  <span className="cat-tab-title">หม้อแปลงไฟฟ้า</span>
-                  <span className="cat-tab-badge">{data.transformers.length} ลูก</span>
-                </div>
+                <span className="cat-tab-title">หม้อแปลงไฟฟ้า</span>
+                <span className="cat-tab-badge">{data.transformers.length}</span>
               </button>
 
               <button
@@ -2321,10 +2282,8 @@ function ElectricalAnnualInner() {
                 onClick={() => setCatTab('mdb')}
               >
                 <span className="cat-tab-icon">🏢</span>
-                <div className="cat-tab-text">
-                  <span className="cat-tab-title">ตู้เมนสวิตช์ & อาคาร</span>
-                  <span className="cat-tab-badge">{data.mainSwitchboards.length} ตู้</span>
-                </div>
+                <span className="cat-tab-title">ตู้เมนสวิตช์ & อาคาร</span>
+                <span className="cat-tab-badge">{data.mainSwitchboards.length}</span>
               </button>
             </div>
           </div>
@@ -3083,7 +3042,7 @@ function ElectricalAnnualInner() {
                     {/* ── ตาราง ๒.๓ ตู้เมนสวิตช์ MDB ── */}
                     <div className="subgroup-card">
                       <h3 className="subgroup-title">
-                        ๒.๓ ตู้เมนสวิตช์ (Main Switchboard - MDB)
+                        ตู้เมนสวิตช์ (Main Switchboard - MDB)
                       </h3>
                       <div className="field-grid field-grid--2">
                         <div className="field">
@@ -3218,7 +3177,7 @@ function ElectricalAnnualInner() {
                     <div className="subgroup-card">
                       <div className="subgroup-hdr-flex">
                         <div>
-                          <h3 className="subgroup-title">๒.๔.๑ วงจรเมน (Main Circuit)</h3>
+                          <h3 className="subgroup-title">วงจรเมน (Main Circuit)</h3>
                           <p className="subgroup-desc">สายเข้าเมนสวิตช์และรางเดินสายของตู้เมนฯ ที่ {msb.no || mIdx + 1}</p>
                         </div>
                         <button type="button" className="btn-add-mini" onClick={() => addMainCircuitToMdb(mIdx)}>
@@ -3361,7 +3320,7 @@ function ElectricalAnnualInner() {
                     <div className="subgroup-card">
                       <div className="subgroup-hdr-flex">
                         <div>
-                          <h3 className="subgroup-title">๒.๔.๒ แผงย่อย (Distribution Board - DB)</h3>
+                          <h3 className="subgroup-title">แผงย่อย (Distribution Board - DB)</h3>
                           <p className="subgroup-desc">แผงวงจรย่อยที่ต่อแยกจากตู้เมนสวิตช์ที่ {msb.no || mIdx + 1}</p>
                         </div>
                         <button type="button" className="btn-add-mini" onClick={() => addSubPanelToMdb(mIdx)}>
@@ -3546,7 +3505,7 @@ function ElectricalAnnualInner() {
                     <div className="subgroup-card">
                       <div className="subgroup-hdr-flex">
                         <div>
-                          <h3 className="subgroup-title">๒.๕ บริภัณฑ์ไฟฟ้าอื่นๆ</h3>
+                          <h3 className="subgroup-title">บริภัณฑ์ไฟฟ้าอื่นๆ</h3>
                           <p className="subgroup-desc">เช่น มอเตอร์, ตู้เย็น/เครื่องทำน้ำดื่ม, เครื่องเชื่อม ภายใต้อาคารนี้</p>
                         </div>
                         <button type="button" className="btn-add-mini" onClick={() => addOtherEquipmentToMdb(mIdx)}>
@@ -3637,7 +3596,7 @@ function ElectricalAnnualInner() {
                   ‹ ก่อนหน้า: หม้อแปลงไฟฟ้า
                 </button>
                 <button type="button" className="btn-primary" onClick={() => setStep(4)}>
-                  ถัดไป: สรุปผล & บันทึก (ขั้นตอนที่ 4) ›
+                  ถัดไป: สรุปผล & บันทึก ›
                 </button>
               </div>
             </div>
@@ -3832,91 +3791,73 @@ function ElectricalAnnualInner() {
           cursor: pointer;
         }
         /* ── Step navigation — Bubble Capsule Pill Bar ── */
-        .step-nav {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
+        .step-nav-capsules {
+          display: flex;
           gap: 8px;
-          margin-bottom: 24px;
-          background: rgba(17, 29, 50, 0.9);
+          margin-bottom: 22px;
+          background: rgba(17, 29, 50, 0.95);
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
-          border: 1.5px solid rgba(59, 130, 246, 0.3);
+          border: 1.5px solid rgba(59, 130, 246, 0.35);
           border-radius: 9999px;
           padding: 6px;
           box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+          overflow-x: auto;
+          flex-wrap: nowrap;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
         }
-        .step-nav__item {
+        .step-nav-capsules::-webkit-scrollbar {
+          display: none;
+        }
+        .step-bubble-btn {
+          flex: 1;
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
-          padding: 8px 14px;
-          background: transparent;
-          border: 1.5px solid transparent;
+          padding: 10px 18px;
+          background: var(--bg-surface-raised, #172340);
+          border: 1.5px solid var(--border-hairline, #1e2e4a);
           border-radius: 9999px;
           cursor: pointer;
+          font-family: inherit;
           transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-          min-width: 0;
-          text-align: left;
+          white-space: nowrap;
+          flex-shrink: 0;
+          color: var(--ink-secondary, #94a3c4);
+          box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
-        .step-nav__item:hover:not(.step-nav__item--active) {
-          background: rgba(255, 255, 255, 0.05);
-          border-color: rgba(59, 130, 246, 0.25);
+        .step-bubble-btn:hover:not(.step-bubble-btn--active) {
+          background: rgba(30, 58, 138, 0.35);
+          border-color: rgba(59, 130, 246, 0.45);
+          color: #ffffff;
         }
-        .step-nav__item--active {
+        .step-bubble-btn--active {
           background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%) !important;
           border-color: #93c5fd !important;
-          box-shadow: 0 4px 18px rgba(37, 99, 235, 0.55), inset 0 1px 1px rgba(255,255,255,0.4);
+          color: #ffffff !important;
+          box-shadow: 0 6px 20px rgba(37, 99, 235, 0.55), inset 0 1px 1px rgba(255,255,255,0.4) !important;
+          transform: scale(1.02);
         }
-        .step-nav__badge {
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background: rgba(255, 255, 255, 0.1);
-          color: var(--ink-secondary);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 11.5px;
-          font-weight: 800;
+        .step-bubble-btn--done:not(.step-bubble-btn--active) {
+          background: rgba(16, 185, 129, 0.15);
+          border-color: rgba(16, 185, 129, 0.4);
+          color: #4ade80;
+        }
+        .step-bubble-icon {
+          font-size: 15px;
+          line-height: 1;
           flex-shrink: 0;
-          transition: all 0.2s;
         }
-        .step-nav__item--active .step-nav__badge {
-          background: #ffffff;
-          color: #1d4ed8;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-        }
-        .step-nav__item--done:not(.step-nav__item--active) {
-          background: rgba(16, 185, 129, 0.12);
-          border-color: rgba(16, 185, 129, 0.3);
-        }
-        .step-nav__item--done .step-nav__badge {
-          background: var(--status-pass);
-          color: #ffffff;
-        }
-        .step-nav__label {
-          display: flex;
-          flex-direction: column;
-          min-width: 0;
-        }
-        .step-nav__name {
-          font-size: 12px;
+        .step-bubble-title {
+          font-size: 13px;
           font-weight: 700;
-          color: var(--ink-primary);
+          color: inherit;
           white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
         }
-        .step-nav__item--active .step-nav__name {
+        .step-bubble-btn--active .step-bubble-title {
           color: #ffffff;
-        }
-        .step-nav__sub {
-          font-size: 10px;
-          color: var(--ink-muted);
-        }
-        .step-nav__item--active .step-nav__sub {
-          color: #dbeafe;
         }
         /* Card box */
         .card-box {
@@ -4403,21 +4344,17 @@ function ElectricalAnnualInner() {
           padding: 20px;
         }
                 @media (max-width: 768px) {
-          .step-nav {
-            grid-template-columns: repeat(2, 1fr);
-            border-radius: 20px;
-            padding: 6px;
+          .step-nav-capsules {
+            border-radius: 9999px;
+            padding: 4px;
             gap: 6px;
           }
-          .step-nav__item {
-            padding: 8px 10px;
-            border-radius: 9999px;
+          .step-bubble-btn {
+            flex: 0 0 auto;
+            padding: 8px 14px;
           }
-          .step-nav__name {
-            font-size: 11px;
-          }
-          .step-nav__sub {
-            display: none;
+          .step-bubble-title {
+            font-size: 12px;
           }
           .check-row__main {
             flex-direction: column;
@@ -4451,46 +4388,45 @@ function ElectricalAnnualInner() {
           .elec-year-bar {
             flex-direction: column;
             align-items: flex-start;
+            gap: 8px;
           }
           .cat-subnav-box {
-            border-radius: 20px;
-            padding: 5px;
+            border-radius: 9999px;
+            padding: 4px;
           }
           .cat-subnav-pills {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 4px;
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            scrollbar-width: none;
+          }
+          .cat-subnav-pills::-webkit-scrollbar {
+            display: none;
           }
           .cat-tab-btn {
-            flex-direction: column;
-            text-align: center;
-            padding: 8px 3px;
-            gap: 3px;
+            flex: 0 0 auto;
+            padding: 8px 14px;
             border-radius: 9999px;
-          }
-          .cat-tab-icon {
-            font-size: 17px;
-          }
-          .cat-tab-text {
-            flex-direction: column;
-            gap: 1px;
-            align-items: center;
           }
           .cat-tab-title {
-            font-size: 10.5px;
-            line-height: 1.2;
-            white-space: normal;
+            font-size: 12.5px;
+            white-space: nowrap;
           }
           .cat-tab-badge {
-            font-size: 9.5px;
+            font-size: 10px;
             padding: 1px 6px;
           }
-          .ypc-quick-pills {
+          .year-bubble-grid {
             grid-template-columns: repeat(2, 1fr);
-            border-radius: 16px;
+            gap: 10px;
           }
-          .ypc-year-chip {
-            padding: 8px 10px;
-            border-radius: 9999px;
+          .year-bubble-card {
+            padding: 16px 10px;
+            gap: 8px;
+          }
+          .ybc-num {
+            font-size: 26px;
           }
           .item-switcher-top {
             flex-direction: column;
@@ -4612,164 +4548,187 @@ function ElectricalAnnualInner() {
           gap: 20px;
           padding-bottom: 60px;
         }
-        .year-picker-card {
-          background: linear-gradient(180deg, rgba(23, 35, 64, 0.95) 0%, rgba(17, 29, 50, 0.98) 100%);
-          border: 1.5px solid rgba(59, 130, 246, 0.3);
-          border-radius: 22px;
-          padding: 28px 24px;
-          box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.04);
+        /* ── Year Selection — 3D Bubble Balloon Cards ── */
+        .year-intro-card {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          background: linear-gradient(135deg, rgba(30, 58, 138, 0.25) 0%, rgba(17, 29, 50, 0.85) 100%);
+          border: 1.5px solid rgba(59, 130, 246, 0.35);
+          border-radius: 20px;
+          padding: 18px 20px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+          margin-bottom: 8px;
         }
-        .ypc-header {
-          text-align: center;
-          margin-bottom: 24px;
-        }
-        .ypc-icon-badge {
-          width: 58px;
-          height: 58px;
-          border-radius: 18px;
-          background: radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, rgba(17, 29, 50, 0) 75%);
+        .yic-badge-icon {
+          width: 50px;
+          height: 50px;
+          border-radius: 16px;
+          background: rgba(37, 99, 235, 0.2);
           border: 1.5px solid rgba(96, 165, 250, 0.4);
           display: flex;
           align-items: center;
           justify-content: center;
-          margin: 0 auto 12px;
-          font-size: 28px;
-          box-shadow: 0 4px 18px rgba(37, 99, 235, 0.3);
+          font-size: 26px;
+          flex-shrink: 0;
+          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
         }
-        .ypc-title {
-          font-size: 21px;
+        .yic-title {
+          font-size: 18px;
           font-weight: 800;
           color: #ffffff;
-          margin: 0 0 6px;
+          margin: 0 0 4px;
         }
-        .ypc-sub {
-          font-size: 13.5px;
+        .yic-sub {
+          font-size: 13px;
           color: var(--ink-secondary, #94a3c4);
           margin: 0;
-          line-height: 1.45;
+          line-height: 1.4;
         }
-        .ypc-body {
+        .year-bubble-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 14px;
+        }
+        .year-bubble-card {
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          padding: 24px 16px;
+          border-radius: 22px;
+          border: 1.5px solid rgba(59, 130, 246, 0.35);
+          background: linear-gradient(135deg, rgba(23, 35, 64, 0.95) 0%, rgba(17, 29, 50, 0.95) 100%);
+          cursor: pointer;
+          font-family: inherit;
+          text-align: center;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          -webkit-tap-highlight-color: transparent;
         }
-
-        /* Quick Year Selection Chips */
-        .ypc-quick-years {
+        .year-bubble-card:hover {
+          transform: translateY(-3px);
+          border-color: #60a5fa;
+          background: linear-gradient(135deg, rgba(30, 58, 138, 0.45) 0%, rgba(23, 35, 64, 0.95) 100%);
+          box-shadow: 0 14px 36px rgba(37, 99, 235, 0.4);
+        }
+        .year-bubble-card:active {
+          transform: scale(0.97);
+        }
+        .year-bubble-card--has-data {
+          border-color: rgba(245, 158, 11, 0.45);
+        }
+        .year-bubble-card--has-data:hover {
+          border-color: #fbbf24;
+          box-shadow: 0 14px 36px rgba(245, 158, 11, 0.35);
+        }
+        .ybc-num-wrap {
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          align-items: center;
+          gap: 2px;
         }
-        .ypc-quick-label {
-          font-size: 12.5px;
+        .ybc-num {
+          font-size: 34px;
+          font-weight: 800;
+          color: #ffffff;
+          line-height: 1;
+          letter-spacing: -0.5px;
+        }
+        .ybc-sub {
+          font-size: 13px;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.7);
+        }
+        .ybc-status-wrap {
+          width: 100%;
+        }
+        .ybc-pill {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 6px 14px;
+          border-radius: 9999px;
+          font-size: 12px;
           font-weight: 700;
+          line-height: 1.2;
+          width: 100%;
+          box-sizing: border-box;
+        }
+        .ybc-pill--amber {
+          background: rgba(245, 158, 11, 0.18);
+          border: 1px solid rgba(245, 158, 11, 0.5);
+          color: #fbbf24;
+        }
+        .ybc-pill--blue {
+          background: rgba(37, 99, 235, 0.2);
+          border: 1px solid rgba(59, 130, 246, 0.5);
           color: #93c5fd;
         }
-        .ypc-quick-pills {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 8px;
-          background: rgba(17, 29, 50, 0.85);
-          padding: 6px;
+        .year-older-pill-box {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: var(--bg-surface-raised, #172340);
+          border: 1.5px solid var(--border-hairline, #1e2e4a);
           border-radius: 9999px;
-          border: 1.5px solid rgba(59, 130, 246, 0.25);
+          padding: 10px 18px;
+          box-shadow: 0 4px 14px rgba(0,0,0,0.25);
         }
-        .ypc-year-chip {
-          padding: 9px 12px;
-          border-radius: 9999px;
-          border: 1.5px solid transparent;
-          background: transparent;
-          color: #cbd5e1;
+        .yob-icon {
+          font-size: 16px;
+          flex-shrink: 0;
+        }
+        .yob-label {
           font-size: 13px;
           font-weight: 700;
-          cursor: pointer;
-          transition: all 0.18s ease;
-          text-align: center;
+          color: var(--ink-secondary, #94a3c4);
+          white-space: nowrap;
+          flex-shrink: 0;
         }
-        .ypc-year-chip:hover {
-          background: rgba(255, 255, 255, 0.06);
-          color: #ffffff;
-        }
-        .ypc-year-chip--active {
-          background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%) !important;
-          border-color: #93c5fd !important;
-          color: #ffffff !important;
-          box-shadow: 0 4px 16px rgba(37, 99, 235, 0.5) !important;
-        }
-
-        .ypc-select-wrapper {
-          position: relative;
-        }
-        .ypc-select {
-          width: 100%;
-          background: var(--bg-input, #080e1a);
-          border: 1.5px solid rgba(59, 130, 246, 0.45);
-          border-radius: 9999px;
-          color: #ffffff;
-          padding: 12px 18px;
-          font-size: 15px;
+        .year-older-select {
+          flex: 1;
+          min-width: 0;
+          background: transparent;
+          border: none;
+          color: var(--ink-primary, #eef2ff);
+          font-size: 13.5px;
           font-weight: 700;
           font-family: inherit;
           cursor: pointer;
           outline: none;
-          transition: border-color 0.15s;
         }
-        .ypc-select:focus {
-          border-color: #60a5fa;
-          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
-        }
-        .ypc-badge-pill {
-          display: flex;
+        .year-badge-bubble {
+          display: inline-flex;
           align-items: center;
           gap: 8px;
-          padding: 10px 18px;
+          padding: 8px 16px;
           border-radius: 9999px;
-          font-size: 13px;
-          font-weight: 700;
-          width: 100%;
-          box-sizing: border-box;
-          line-height: 1.4;
-        }
-        .ypc-badge-pill--amber {
-          background: rgba(245, 158, 11, 0.16);
-          border: 1.5px solid rgba(245, 158, 11, 0.45);
-          color: #fbbf24;
-        }
-        .ypc-badge-pill--blue {
-          background: rgba(59, 130, 246, 0.16);
+          background: rgba(37, 99, 235, 0.18);
           border: 1.5px solid rgba(59, 130, 246, 0.45);
           color: #93c5fd;
-        }
-        .ypc-badge-pill--green {
-          background: rgba(34, 197, 94, 0.16);
-          border: 1.5px solid rgba(34, 197, 94, 0.45);
-          color: #4ade80;
-        }
-        .ypc-badge-pill__icon {
-          font-size: 16px;
-          flex-shrink: 0;
-        }
-        .ypc-btn-proceed {
-          background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
-          color: #ffffff;
-          border: 1.5px solid #93c5fd;
-          border-radius: 9999px;
-          padding: 14px 28px;
-          font-size: 15.5px;
-          font-weight: 800;
-          font-family: inherit;
+          font-size: 13px;
+          font-weight: 700;
           cursor: pointer;
-          box-shadow: 0 6px 22px rgba(37, 99, 235, 0.5);
-          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          margin-top: 6px;
+          font-family: inherit;
+          transition: all 0.15s;
         }
-        .ypc-btn-proceed:hover {
-          transform: translateY(-1.5px);
-          box-shadow: 0 8px 26px rgba(37, 99, 235, 0.6);
+        .year-badge-bubble:hover {
+          background: rgba(37, 99, 235, 0.28);
+          border-color: #60a5fa;
+          color: #ffffff;
+        }
+        .year-badge-icon {
+          font-size: 16px;
+        }
+        .year-badge-text {
+          font-weight: 800;
+        }
+        .year-badge-change {
+          font-size: 11px;
+          opacity: 0.8;
+          text-decoration: underline;
         }
 
         /* ── Existing reports card on pageStep 0 ── */
@@ -5453,45 +5412,54 @@ function ElectricalAnnualInner() {
                 /* ── Subcategory Tabs Bar (3 หมวดหลัก — Bubble Balloon Capsules) ── */
         .cat-subnav-box {
           margin-bottom: 20px;
-          background: rgba(17, 29, 50, 0.9);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1.5px solid rgba(59, 130, 246, 0.3);
+          background: rgba(17, 29, 50, 0.95);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          border: 1.5px solid rgba(59, 130, 246, 0.35);
           border-radius: 9999px;
           padding: 6px;
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
         }
         .cat-subnav-pills {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 6px;
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+          flex-wrap: nowrap;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+        }
+        .cat-subnav-pills::-webkit-scrollbar {
+          display: none;
         }
         .cat-tab-btn {
+          flex: 1;
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
           padding: 10px 18px;
           border-radius: 9999px;
-          border: 1.5px solid transparent;
-          background: transparent;
+          border: 1.5px solid var(--border-hairline, #1e2e4a);
+          background: var(--bg-surface-raised, #172340);
           color: var(--ink-secondary, #94a3c4);
           cursor: pointer;
           font-family: inherit;
           transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
           text-align: center;
-          min-width: 0;
+          white-space: nowrap;
+          flex-shrink: 0;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
         .cat-tab-btn:hover:not(.cat-tab-btn--active) {
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(30, 58, 138, 0.35);
           color: #ffffff;
-          border-color: rgba(59, 130, 246, 0.25);
+          border-color: rgba(59, 130, 246, 0.5);
         }
         .cat-tab-btn--active {
           background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%) !important;
           border-color: #93c5fd !important;
           color: #ffffff !important;
-          box-shadow: 0 4px 18px rgba(37, 99, 235, 0.55), inset 0 1px 1px rgba(255,255,255,0.4);
+          box-shadow: 0 6px 20px rgba(37, 99, 235, 0.55), inset 0 1px 1px rgba(255,255,255,0.4) !important;
           transform: scale(1.02);
         }
         .cat-tab-icon {
@@ -5499,18 +5467,10 @@ function ElectricalAnnualInner() {
           flex-shrink: 0;
           line-height: 1;
         }
-        .cat-tab-text {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          min-width: 0;
-        }
         .cat-tab-title {
-          font-size: 13px;
+          font-size: 13.5px;
           font-weight: 700;
           white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
         }
         .cat-tab-badge {
           font-size: 11px;
@@ -5518,11 +5478,12 @@ function ElectricalAnnualInner() {
           color: #dbeafe;
           padding: 2px 8px;
           border-radius: 9999px;
-          font-weight: 700;
+          font-weight: 800;
           white-space: nowrap;
+          line-height: 1.2;
         }
         .cat-tab-btn--active .cat-tab-badge {
-          background: rgba(255, 255, 255, 0.25);
+          background: rgba(255, 255, 255, 0.28);
           color: #ffffff;
         }
 
@@ -5686,13 +5647,6 @@ function ElectricalAnnualInner() {
 
         /* ── Mobile enhancements ── */
         @media (max-width: 768px) {
-          .cat-subnav-pills {
-            grid-template-columns: 1fr;
-            gap: 6px;
-          }
-          .cat-tab-btn {
-            padding: 10px 12px;
-          }
           .mdb-banner-grid {
             grid-template-columns: 1fr;
             gap: 10px;
@@ -5711,6 +5665,8 @@ function ElectricalAnnualInner() {
         }
 
       `}</style>
+        </div>
+      </div>
     </div>
   );
 }
