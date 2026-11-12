@@ -8,6 +8,12 @@ import ElecReport from '../components/ElecReport';
 import { useCanWrite } from '../lib/useCanWrite';
 import { BUILDING_OPTIONS } from '../../src/lib/buildingList';
 
+const getBuildingLabel = (val) => {
+  if (!val) return '';
+  const found = BUILDING_OPTIONS.find(b => b.value === val);
+  return found ? found.label : val;
+};
+
 // ── Default Initial Form Data ────────────────────────────────────────────────
 const createDefaultHighVoltage = (idx = 1) => ({
   id: `hv_${Date.now()}_${idx}`,
@@ -222,7 +228,22 @@ const normalizeFormData = (loaded, targetYear) => {
   if (!loaded) return createInitialState(targetYear);
   const base = createInitialState(targetYear);
 
-  const tfs = loaded.transformers && loaded.transformers.length > 0 ? loaded.transformers : base.transformers;
+  const tfs = (loaded.transformers && loaded.transformers.length > 0 ? loaded.transformers : base.transformers).map((tf, tIdx) => {
+    const defTf = createDefaultTransformer(tIdx + 1);
+    return {
+      ...defTf,
+      ...tf,
+      no: tf.no || String(tIdx + 1),
+      primaryProtection: {
+        ...defTf.primaryProtection,
+        ...(tf.primaryProtection || {}),
+      },
+      items: {
+        ...defTf.items,
+        ...(tf.items || {}),
+      },
+    };
+  });
   const legacyCircuits = Array.isArray(loaded.mainCircuits) && loaded.mainCircuits.length > 0 ? loaded.mainCircuits : null;
   const legacyPanels = Array.isArray(loaded.subPanels) && loaded.subPanels.length > 0 ? loaded.subPanels : null;
   const legacyEquips = Array.isArray(loaded.otherEquipments) && loaded.otherEquipments.length > 0 ? loaded.otherEquipments : null;
@@ -526,26 +547,27 @@ const processImageUpload = (file, onComplete) => {
 // ── Status Choice Row Component ───────────────────────────────────────────────
 function ChecklistRow({ title, item, onChange }) {
   const fileInputRef = useRef(null);
+  const safeItem = item || { status: 'pass', note: '', photo: null };
 
   const handleStatusChange = (val) => {
-    onChange({ ...item, status: val });
+    onChange({ ...safeItem, status: val });
   };
 
   const handleNoteChange = (val) => {
-    onChange({ ...item, note: val });
+    onChange({ ...safeItem, note: val });
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     processImageUpload(file, (base64) => {
-      onChange({ ...item, photo: base64 });
+      onChange({ ...safeItem, photo: base64 });
     });
     e.target.value = '';
   };
 
   const removePhoto = () => {
-    onChange({ ...item, photo: null });
+    onChange({ ...safeItem, photo: null });
   };
 
   return (
@@ -553,29 +575,29 @@ function ChecklistRow({ title, item, onChange }) {
       <div className="check-row__main">
         <span className="check-row__title">{title}</span>
         <div className="check-row__options">
-          <label className={`status-pill ${item.status === 'pass' ? 'status-pill--pass' : ''}`}>
+          <label className={`status-pill ${safeItem.status === 'pass' ? 'status-pill--pass' : ''}`}>
             <input
               type="radio"
               name={`status_${title}`}
-              checked={item.status === 'pass'}
+              checked={safeItem.status === 'pass'}
               onChange={() => handleStatusChange('pass')}
             />
             <span>✓ ใช้ได้</span>
           </label>
-          <label className={`status-pill ${item.status === 'improve' ? 'status-pill--improve' : ''}`}>
+          <label className={`status-pill ${safeItem.status === 'improve' ? 'status-pill--improve' : ''}`}>
             <input
               type="radio"
               name={`status_${title}`}
-              checked={item.status === 'improve'}
+              checked={safeItem.status === 'improve'}
               onChange={() => handleStatusChange('improve')}
             />
             <span>△ ควรปรับปรุง</span>
           </label>
-          <label className={`status-pill ${item.status === 'fix' ? 'status-pill--fix' : ''}`}>
+          <label className={`status-pill ${safeItem.status === 'fix' ? 'status-pill--fix' : ''}`}>
             <input
               type="radio"
               name={`status_${title}`}
-              checked={item.status === 'fix'}
+              checked={safeItem.status === 'fix'}
               onChange={() => handleStatusChange('fix')}
             />
             <span>✕ ต้องแก้ไข</span>
@@ -588,7 +610,7 @@ function ChecklistRow({ title, item, onChange }) {
           type="text"
           className="check-row__note"
           placeholder="คำแนะนำ / ความเห็นเพิ่มเติม (ถ้ามี)..."
-          value={item.note || ''}
+          value={safeItem.note || ''}
           onChange={(e) => handleNoteChange(e.target.value)}
         />
         <div className="check-row__photo-actions">
@@ -600,7 +622,7 @@ function ChecklistRow({ title, item, onChange }) {
             style={{ display: 'none' }}
             onChange={handleFileChange}
           />
-          {!item.photo ? (
+          {!safeItem.photo ? (
             <button
               type="button"
               className="btn-attach-photo"
@@ -611,7 +633,7 @@ function ChecklistRow({ title, item, onChange }) {
             </button>
           ) : (
             <div className="photo-thumb-wrap">
-              <img src={item.photo} alt="หลักฐาน" className="photo-thumb" />
+              <img src={safeItem.photo} alt="หลักฐาน" className="photo-thumb" />
               <button
                 type="button"
                 className="btn-remove-photo"
@@ -739,6 +761,7 @@ function ElectricalAnnualInner() {
   // Active indices for Master-Detail Dropdown View (Single item at a time)
   const [activeHvIdx, setActiveHvIdx] = useState(0);
   const [activeTfIdx, setActiveTfIdx] = useState(0);
+  const [selectedTfForMdb, setSelectedTfForMdb] = useState('1');
   const [activeMsbIdx, setActiveMsbIdx] = useState(0);
   const [activeCircuitIdx, setActiveCircuitIdx] = useState(0);
   const [activeSubPanelIdx, setActiveSubPanelIdx] = useState(0);
@@ -1103,6 +1126,25 @@ function ElectricalAnnualInner() {
         mainSwitchboards: nextArr,
       };
     });
+  };
+
+  const addMainSwitchboardForTransformer = (tfNo) => {
+    const targetTf = String(tfNo || selectedTfForMdb || data.transformers[0]?.no || '1');
+    setData((d) => {
+      const nextIdx = d.mainSwitchboards.length + 1;
+      const newMsb = createDefaultMainSwitchboard(nextIdx, targetTf);
+      newMsb.sourceTransformer = targetTf;
+      const nextArr = [...d.mainSwitchboards, newMsb];
+      setActiveMsbIdx(nextArr.length - 1);
+      setActiveCircuitIdx(0);
+      setActiveSubPanelIdx(0);
+      setActiveEquipIdx(0);
+      return {
+        ...d,
+        mainSwitchboards: nextArr,
+      };
+    });
+    setSelectedTfForMdb(targetTf);
   };
 
   const removeMainSwitchboard = (idx) => {
@@ -2543,55 +2585,189 @@ function ElectricalAnnualInner() {
                       </div>
                     </div>
 
-                    <h4 className="group-sub-title" style={{ marginTop: 16 }}>รายการตรวจสอบสภาพหม้อแปลง</h4>
-                    <ChecklistRow title="๒.๒.๑ โครงสร้างและที่รองรับ (เสา, แพลตฟอร์ม, ฐานราก, แผ่นยางกันสะเทือน)" item={tf.items.structure} onChange={(it) => {
-                      const arr = [...data.transformers]; arr[idx].items.structure = it; setData(d => ({ ...d, transformers: arr }));
-                    }} />
-                    <ChecklistRow title="๒.๒.๒ การป้องกันทางกายภาพ (รั้วตาข่าย, ประตู, กุญแจ, ป้ายเตือนอันตราย)" item={tf.items.physicalProtection} onChange={(it) => {
-                      const arr = [...data.transformers]; arr[idx].items.physicalProtection = it; setData(d => ({ ...d, transformers: arr }));
-                    }} />
-                    <ChecklistRow title="๒.๒.๓ ระดับน้ำมันหม้อแปลง (ระดับ, สี, คราบน้ำมัน)" item={tf.items.oilLevel} onChange={(it) => {
-                      const arr = [...data.transformers]; arr[idx].items.oilLevel = it; setData(d => ({ ...d, transformers: arr }));
-                    }} />
-                    <ChecklistRow title="๒.๒.๔ ขั้วต่อและจุดต่อสาย (หลวม, อาร์ก, รอยไหม้, ฉนวนหุ้มขั้ว)" item={tf.items.bushings} onChange={(it) => {
-                      const arr = [...data.transformers]; arr[idx].items.bushings = it; setData(d => ({ ...d, transformers: arr }));
-                    }} />
-                    <ChecklistRow title="๒.๒.๕ บุชชิ่งแรงสูงและแรงต่ำ (สภาพผิว, รอยแตกร้าว, คราบสกปรก)" item={tf.items.tempIndicator} onChange={(it) => {
-                      const arr = [...data.transformers]; arr[idx].items.tempIndicator = it; setData(d => ({ ...d, transformers: arr }));
-                    }} />
-                    <ChecklistRow title="๒.๒.๖ เครื่องวัดอุณหภูมิ (เกจวัด, สัญญาณเตือน, อุณหภูมิขณะใช้งาน)" item={tf.items.pressureRelief} onChange={(it) => {
-                      const arr = [...data.transformers]; arr[idx].items.pressureRelief = it; setData(d => ({ ...d, transformers: arr }));
-                    }} />
-                    <ChecklistRow title="๒.๒.๗ ท่อระบายความดัน / วาล์วลดแรงดัน (Pressure Relief Device)" item={tf.items.silicaGel} onChange={(it) => {
-                      const arr = [...data.transformers]; arr[idx].items.silicaGel = it; setData(d => ({ ...d, transformers: arr }));
-                    }} />
-                    <ChecklistRow title="๒.๒.๘ ซิลิกาเจล สารดูดความชื้น (สี, ปริมาณ, สภาพถ้วยแก้ว)" item={tf.items.grounding} onChange={(it) => {
-                      const arr = [...data.transformers]; arr[idx].items.grounding = it; setData(d => ({ ...d, transformers: arr }));
-                    }} />
-                    <ChecklistRow title="๒.๒.๙ การต่อลงดินของตัวถังและสายนิวทรัล (ขนาดสาย, จุดต่อ, ค่าความต้านทาน)" item={tf.items.wiring} onChange={(it) => {
-                      const arr = [...data.transformers]; arr[idx].items.wiring = it; setData(d => ({ ...d, transformers: arr }));
-                    }} />
-                    <ChecklistRow title="๒.๒.๑๐ สภาพภายนอกหม้อแปลง (สารดูดความชื้น, บุชชิ่ง, รั่วซึม, อุณหภูมิ)" item={tf.items.externalCondition} onChange={(it) => {
-                      const arr = [...data.transformers]; arr[idx].items.externalCondition = it; setData(d => ({ ...d, transformers: arr }));
-                    }} />
-                    <ChecklistRow title="๒.๒.๑๑ สภาพแวดล้อมหม้อแปลง (การระบายอากาศ, ความชื้น, รั้วกั้น, สภาพทั่วไป)" item={tf.items.environment} onChange={(it) => {
-                      const arr = [...data.transformers]; arr[idx].items.environment = it; setData(d => ({ ...d, transformers: arr }));
-                    }} />
+                    {/* ๒.๒.๓ เครื่องป้องกันกระแสเกินด้านไฟเข้า */}
+                    <div className="subgroup-card" style={{ marginTop: 14 }}>
+                      <h4 className="group-sub-title" style={{ margin: '0 0 10px' }}>๒.๒.๓ เครื่องป้องกันกระแสเกินด้านไฟเข้า</h4>
+                      <div className="field-grid field-grid--2">
+                        <div className="field">
+                          <label>แบบเครื่องป้องกัน (เช่น ดรอปฟิวส์, โหลดเบรกสวิตช์)</label>
+                          <input
+                            type="text"
+                            placeholder="ระบุแบบเครื่องป้องกัน..."
+                            value={tf.primaryProtection?.type || ''}
+                            onChange={(e) => {
+                              const arr = [...data.transformers];
+                              arr[idx] = { ...arr[idx], primaryProtection: { ...(arr[idx].primaryProtection || {}), type: e.target.value } };
+                              setData(d => ({ ...d, transformers: arr }));
+                            }}
+                          />
+                        </div>
+                        <div className="field">
+                          <label>พิกัดกระแส (A)</label>
+                          <input
+                            type="text"
+                            placeholder="เช่น 100, 200..."
+                            value={tf.primaryProtection?.amp || ''}
+                            onChange={(e) => {
+                              const arr = [...data.transformers];
+                              arr[idx] = { ...arr[idx], primaryProtection: { ...(arr[idx].primaryProtection || {}), amp: e.target.value } };
+                              setData(d => ({ ...d, transformers: arr }));
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
 
-                    <h3 className="group-sub-title" style={{ marginTop: 16 }}>๒.๒.๑๒ อื่นๆ</h3>
-                    <div className="field" style={{ marginTop: 8 }}>
+                    <h4 className="group-sub-title" style={{ marginTop: 16 }}>รายการตรวจสอบหม้อแปลงไฟฟ้า (ข้อ ๒.๒.๔ - ๒.๒.๑๒)</h4>
+                    <ChecklistRow
+                      title="๒.๒.๔ การต่อสายแรงต่ำและแรงสูงที่หม้อแปลง"
+                      item={tf.items?.wiring}
+                      onChange={(it) => {
+                        const arr = [...data.transformers];
+                        arr[idx] = { ...arr[idx], items: { ...(arr[idx].items || {}), wiring: it } };
+                        setData(d => ({ ...d, transformers: arr }));
+                      }}
+                    />
+                    <ChecklistRow
+                      title="๒.๒.๕ การติดตั้งล่อฟ้าแรงสูง (Lightning Arrester)"
+                      item={tf.items?.lightningArrester}
+                      onChange={(it) => {
+                        const arr = [...data.transformers];
+                        arr[idx] = { ...arr[idx], items: { ...(arr[idx].items || {}), lightningArrester: it } };
+                        setData(d => ({ ...d, transformers: arr }));
+                      }}
+                    />
+                    <ChecklistRow
+                      title="๒.๒.๖ การติดตั้งดรอปฟิวส์คัตเอาท์"
+                      item={tf.items?.dropFuse}
+                      onChange={(it) => {
+                        const arr = [...data.transformers];
+                        arr[idx] = { ...arr[idx], items: { ...(arr[idx].items || {}), dropFuse: it } };
+                        setData(d => ({ ...d, transformers: arr }));
+                      }}
+                    />
+                    <ChecklistRow
+                      title="๒.๒.๗ การป้องกันการสัมผัสส่วนที่มีไฟฟ้า"
+                      item={tf.items?.touchProtection}
+                      onChange={(it) => {
+                        const arr = [...data.transformers];
+                        arr[idx] = { ...arr[idx], items: { ...(arr[idx].items || {}), touchProtection: it } };
+                        setData(d => ({ ...d, transformers: arr }));
+                      }}
+                    />
+                    <ChecklistRow
+                      title="๒.๒.๘ สายดินกับตัวถังหม้อแปลงและล่อฟ้าแรงสูง"
+                      item={tf.items?.bodyGround}
+                      onChange={(it) => {
+                        const arr = [...data.transformers];
+                        arr[idx] = { ...arr[idx], items: { ...(arr[idx].items || {}), bodyGround: it } };
+                        setData(d => ({ ...d, transformers: arr }));
+                      }}
+                    />
+
+                    {/* ๒.๒.๙ สายดินของหม้อแปลง */}
+                    <div className="subgroup-card" style={{ marginTop: 8, marginBottom: 8 }}>
+                      <ChecklistRow
+                        title="๒.๒.๙ สายดินของหม้อแปลง (สภาพหลักดินและจุดต่อ)"
+                        item={tf.items?.groundRod}
+                        onChange={(it) => {
+                          const arr = [...data.transformers];
+                          const prevGr = arr[idx]?.items?.groundRod || {};
+                          arr[idx] = {
+                            ...arr[idx],
+                            items: {
+                              ...(arr[idx].items || {}),
+                              groundRod: { ...prevGr, ...it },
+                            },
+                          };
+                          setData(d => ({ ...d, transformers: arr }));
+                        }}
+                      />
+                      <div className="field-grid field-grid--2" style={{ marginTop: 8 }}>
+                        <div className="field">
+                          <label>สายต่อหลักดิน ชนิด</label>
+                          <input
+                            type="text"
+                            placeholder="เช่น THW, ทองแดงเปลือย..."
+                            value={tf.items?.groundRod?.wireType || ''}
+                            onChange={(e) => {
+                              const arr = [...data.transformers];
+                              const prevGr = arr[idx]?.items?.groundRod || { status: 'pass', note: '', photo: null };
+                              arr[idx] = {
+                                ...arr[idx],
+                                items: {
+                                  ...(arr[idx].items || {}),
+                                  groundRod: { ...prevGr, wireType: e.target.value },
+                                },
+                              };
+                              setData(d => ({ ...d, transformers: arr }));
+                            }}
+                          />
+                        </div>
+                        <div className="field">
+                          <label>ขนาด (mm²)</label>
+                          <input
+                            type="text"
+                            placeholder="เช่น 35, 50..."
+                            value={tf.items?.groundRod?.wireSize || ''}
+                            onChange={(e) => {
+                              const arr = [...data.transformers];
+                              const prevGr = arr[idx]?.items?.groundRod || { status: 'pass', note: '', photo: null };
+                              arr[idx] = {
+                                ...arr[idx],
+                                items: {
+                                  ...(arr[idx].items || {}),
+                                  groundRod: { ...prevGr, wireSize: e.target.value },
+                                },
+                              };
+                              setData(d => ({ ...d, transformers: arr }));
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <ChecklistRow
+                      title="๒.๒.๑๐ สภาพภายนอกหม้อแปลง (สารดูดความชื้น, บุชชิ่ง, รั่วซึม, อุณหภูมิ)"
+                      item={tf.items?.externalCondition}
+                      onChange={(it) => {
+                        const arr = [...data.transformers];
+                        arr[idx] = { ...arr[idx], items: { ...(arr[idx].items || {}), externalCondition: it } };
+                        setData(d => ({ ...d, transformers: arr }));
+                      }}
+                    />
+                    <ChecklistRow
+                      title="๒.๒.๑๑ สภาพแวดล้อมหม้อแปลง (การระบายอากาศ, ความชื้น, รั้วกั้น, สภาพทั่วไป)"
+                      item={tf.items?.environment}
+                      onChange={(it) => {
+                        const arr = [...data.transformers];
+                        arr[idx] = { ...arr[idx], items: { ...(arr[idx].items || {}), environment: it } };
+                        setData(d => ({ ...d, transformers: arr }));
+                      }}
+                    />
+
+                    <h4 className="group-sub-title" style={{ marginTop: 16 }}>๒.๒.๑๒ อื่นๆ</h4>
+                    <div className="field" style={{ marginTop: 8, marginBottom: 8 }}>
                       <input
                         type="text"
                         placeholder="๒.๒.๑๒ อื่นๆ (ระบุ)..."
-                        value={tf.items.otherText || ''}
+                        value={tf.items?.otherText || ''}
                         onChange={(e) => {
-                          const arr = [...data.transformers]; arr[idx].items.otherText = e.target.value; setData(d => ({ ...d, transformers: arr }));
+                          const arr = [...data.transformers];
+                          arr[idx] = { ...arr[idx], items: { ...(arr[idx].items || {}), otherText: e.target.value } };
+                          setData(d => ({ ...d, transformers: arr }));
                         }}
                       />
                     </div>
-                    <ChecklistRow title="- สภาพรายการอื่นๆ" item={tf.items.other} onChange={(it) => {
-                      const arr = [...data.transformers]; arr[idx].items.other = it; setData(d => ({ ...d, transformers: arr }));
-                    }} />
+                    <ChecklistRow
+                      title="- สภาพรายการอื่นๆ"
+                      item={tf.items?.other}
+                      onChange={(it) => {
+                        const arr = [...data.transformers];
+                        arr[idx] = { ...arr[idx], items: { ...(arr[idx].items || {}), other: it } };
+                        setData(d => ({ ...d, transformers: arr }));
+                      }}
+                    />
                   </div>
                 );
               })()}
@@ -2629,30 +2805,194 @@ function ElectricalAnnualInner() {
                 </button>
               </div>
 
-              {/* Master-Detail Item Switcher for MDBs */}
-              <ItemSwitcher
-                label="เลือกตู้เมนสวิตช์ & อาคารที่ต้องการดู / กรอกข้อมูล"
-                items={data.mainSwitchboards}
-                currentIndex={curMsb}
-                onSelect={(idx) => {
-                  setActiveMsbIdx(idx);
-                  setActiveCircuitIdx(0);
-                  setActiveSubPanelIdx(0);
-                  setActiveEquipIdx(0);
-                }}
-                onAdd={addMainSwitchboard}
-                addLabel="+ เพิ่มตู้เมน/อาคาร"
-                onDelete={removeMainSwitchboard}
-                deleteLabel="ลบชุดตู้นี้"
-                canDelete={data.mainSwitchboards.length > 1}
-                badgeText={`ตู้ที่ ${curMsb + 1} จาก ${data.mainSwitchboards.length}`}
-                renderOptionLabel={(msb, i) => `ตู้เมนฯ ที่ ${msb.no || i + 1}${msb.building ? ' [อาคาร: ' + msb.building + ']' : ''} (หม้อแปลง ${msb.sourceTransformer || 1})`}
-              />
-
               {(() => {
-                const msb = data.mainSwitchboards[curMsb] || data.mainSwitchboards[0];
-                const mIdx = curMsb;
-                if (!msb) return null;
+                const mdbsForCurrentTf = data.mainSwitchboards
+                  .map((m, idx) => ({ ...m, originalIdx: idx }))
+                  .filter(m => String(m.sourceTransformer || '1') === String(selectedTfForMdb));
+
+                const currentMsbInTf = mdbsForCurrentTf.find(m => m.originalIdx === curMsb) || mdbsForCurrentTf[0];
+                const effectiveMsbIdx = currentMsbInTf ? currentMsbInTf.originalIdx : 0;
+                const currentFilteredIdx = currentMsbInTf
+                  ? mdbsForCurrentTf.findIndex(m => m.originalIdx === effectiveMsbIdx)
+                  : 0;
+
+                return (
+                  <>
+                    {/* Cascading 2-Step Dropdown Selector: เลือกหม้อแปลงก่อน -> แล้วเลือกตู้เมนสวิตช์ & อาคาร */}
+                    <div className="mdb-cascading-panel">
+                      <div className="mcs-banner-title">
+                        <span className="mcs-main-icon">🏢</span>
+                        <div>
+                          <h3 className="mcs-title">เลือกหม้อแปลง และ ตู้เมนสวิตช์ / อาคาร</h3>
+                          <p className="mcs-sub">เลือกหม้อแปลงที่จ่ายไฟก่อน แล้วเลือกตู้เมนสวิตช์ประจำอาคารที่ต้องการตรวจ</p>
+                        </div>
+                      </div>
+
+                      <div className="mcs-steps-container">
+                        {/* ขั้นตอนที่ ๑: เลือกหม้อแปลงไฟฟ้า */}
+                        <div className="mcs-step-box">
+                          <div className="mcs-step-hdr">
+                            <span className="mcs-step-badge">ขั้นตอนที่ ๑</span>
+                            <span className="mcs-step-label">⚡ เลือกหม้อแปลงไฟฟ้า</span>
+                          </div>
+                          <div className="mcs-select-row">
+                            <div className="mcs-select-wrapper">
+                              <select
+                                className="mcs-select"
+                                value={selectedTfForMdb}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setSelectedTfForMdb(val);
+                                  const matching = data.mainSwitchboards
+                                    .map((m, idx) => ({ ...m, originalIdx: idx }))
+                                    .filter(m => String(m.sourceTransformer || '1') === String(val));
+                                  if (matching.length > 0) {
+                                    setActiveMsbIdx(matching[0].originalIdx);
+                                    setActiveCircuitIdx(0);
+                                    setActiveSubPanelIdx(0);
+                                    setActiveEquipIdx(0);
+                                  }
+                                }}
+                              >
+                                {data.transformers.map((tf, tIdx) => {
+                                  const tNo = tf.no || `${tIdx + 1}`;
+                                  const count = data.mainSwitchboards.filter(m => String(m.sourceTransformer || '1') === String(tNo)).length;
+                                  return (
+                                    <option key={tf.id || tIdx} value={tNo}>
+                                      หม้อแปลงลูกที่ {tNo}{tf.kva ? ` (${tf.kva} kVA)` : ''} — [มี {count} ตู้เมน/อาคาร]
+                                    </option>
+                                  );
+                                })}
+                              </select>
+                            </div>
+                            <button
+                              type="button"
+                              className="mcs-btn-action"
+                              onClick={addTransformer}
+                              title="เพิ่มหม้อแปลงลูกใหม่"
+                            >
+                              + เพิ่มหม้อแปลง
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* ขั้นตอนที่ ๒: เลือกตู้เมนสวิตช์ & อาคาร */}
+                        <div className="mcs-step-box">
+                          <div className="mcs-step-hdr">
+                            <span className="mcs-step-badge mcs-step-badge--step2">ขั้นตอนที่ ๒</span>
+                            <span className="mcs-step-label">🏢 เลือกตู้เมนสวิตช์ & อาคาร</span>
+                            {mdbsForCurrentTf.length > 0 && (
+                              <span className="mcs-count-badge">
+                                {currentFilteredIdx + 1} จาก {mdbsForCurrentTf.length} ตู้
+                              </span>
+                            )}
+                          </div>
+
+                          {mdbsForCurrentTf.length > 0 ? (
+                            <div className="mcs-select-row">
+                              <button
+                                type="button"
+                                className="mcs-btn-nav"
+                                disabled={currentFilteredIdx <= 0}
+                                onClick={() => {
+                                  const prevM = mdbsForCurrentTf[currentFilteredIdx - 1];
+                                  if (prevM) {
+                                    setActiveMsbIdx(prevM.originalIdx);
+                                    setActiveCircuitIdx(0);
+                                    setActiveSubPanelIdx(0);
+                                    setActiveEquipIdx(0);
+                                  }
+                                }}
+                                title="ก่อนหน้า"
+                              >
+                                ‹ ก่อนหน้า
+                              </button>
+
+                              <div className="mcs-select-wrapper">
+                                <select
+                                  className="mcs-select"
+                                  value={effectiveMsbIdx}
+                                  onChange={(e) => {
+                                    const newIdx = Number(e.target.value);
+                                    setActiveMsbIdx(newIdx);
+                                    setActiveCircuitIdx(0);
+                                    setActiveSubPanelIdx(0);
+                                    setActiveEquipIdx(0);
+                                  }}
+                                >
+                                  {mdbsForCurrentTf.map((m, fIdx) => {
+                                    const bldLabel = getBuildingLabel(m.building) || m.building || 'ยังไม่ระบุอาคาร';
+                                    return (
+                                      <option key={m.id || m.originalIdx} value={m.originalIdx}>
+                                        ตู้เมนสวิตช์ที่ {m.no || fIdx + 1} — อาคาร: {bldLabel}
+                                      </option>
+                                    );
+                                  })}
+                                </select>
+                              </div>
+
+                              <button
+                                type="button"
+                                className="mcs-btn-nav"
+                                disabled={currentFilteredIdx >= mdbsForCurrentTf.length - 1}
+                                onClick={() => {
+                                  const nextM = mdbsForCurrentTf[currentFilteredIdx + 1];
+                                  if (nextM) {
+                                    setActiveMsbIdx(nextM.originalIdx);
+                                    setActiveCircuitIdx(0);
+                                    setActiveSubPanelIdx(0);
+                                    setActiveEquipIdx(0);
+                                  }
+                                }}
+                                title="ถัดไป"
+                              >
+                                ถัดไป ›
+                              </button>
+
+                              <button
+                                type="button"
+                                className="mcs-btn-action"
+                                onClick={() => addMainSwitchboardForTransformer(selectedTfForMdb)}
+                                title={`เพิ่มตู้เมนสวิตช์/อาคาร สำหรับหม้อแปลงลูกที่ ${selectedTfForMdb}`}
+                              >
+                                + เพิ่มตู้เมน/อาคาร
+                              </button>
+
+                              {data.mainSwitchboards.length > 1 && (
+                                <button
+                                  type="button"
+                                  className="mcs-btn-del"
+                                  onClick={() => removeMainSwitchboard(effectiveMsbIdx)}
+                                  title="ลบชุดตู้เมนสวิตช์นี้"
+                                >
+                                  🗑 ลบตู้นี้
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="mcs-empty-balloon">
+                              <span className="mcs-empty-icon">⚠️</span>
+                              <div className="mcs-empty-text">
+                                <span>หม้อแปลงลูกที่ {selectedTfForMdb} ยังไม่มีตู้เมนสวิตช์ / อาคาร</span>
+                                <small>กดปุ่มด้านขวาเพื่อเพิ่มตู้เมนสวิตช์และเลือกว่าอยู่อาคารใด</small>
+                              </div>
+                              <button
+                                type="button"
+                                className="mcs-btn-create-first"
+                                onClick={() => addMainSwitchboardForTransformer(selectedTfForMdb)}
+                              >
+                                + เพิ่มตู้เมนสวิตช์สำหรับหม้อแปลงลูกที่ {selectedTfForMdb}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {mdbsForCurrentTf.length > 0 && (() => {
+                      const msb = data.mainSwitchboards[effectiveMsbIdx];
+                      const mIdx = effectiveMsbIdx;
+                      if (!msb) return null;
 
                 const circuits = msb.mainCircuits || [];
                 const safeCIdx = Math.min(activeCircuitIdx, Math.max(0, circuits.length - 1));
@@ -3278,12 +3618,19 @@ function ElectricalAnnualInner() {
                 );
               })()}
 
-              {/* Bottom Add MDB Button */}
-              <div className="section-bottom-add-bar">
-                <button type="button" className="btn-add-item-bottom" onClick={addMainSwitchboard}>
-                  + เพิ่มตู้เมนสวิตช์ / ชุดอาคารใหม่
-                </button>
-              </div>
+                    {/* Bottom Add MDB Button */}
+                    <div className="section-bottom-add-bar">
+                      <button
+                        type="button"
+                        className="btn-add-item-bottom"
+                        onClick={() => addMainSwitchboardForTransformer(selectedTfForMdb)}
+                      >
+                        + เพิ่มตู้เมนสวิตช์ / อาคาร สำหรับหม้อแปลงลูกที่ {selectedTfForMdb}
+                      </button>
+                    </div>
+                  </>
+                );
+              })()}
 
               <div className="cat-bottom-nav">
                 <button type="button" className="btn-secondary" onClick={() => setCatTab('transformer')}>
@@ -3484,50 +3831,69 @@ function ElectricalAnnualInner() {
           font-weight: 700;
           cursor: pointer;
         }
-        /* Step navigation */
+        /* ── Step navigation — Bubble Capsule Pill Bar ── */
         .step-nav {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
-          gap: 6px;
+          gap: 8px;
           margin-bottom: 24px;
+          background: rgba(17, 29, 50, 0.9);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1.5px solid rgba(59, 130, 246, 0.3);
+          border-radius: 9999px;
+          padding: 6px;
+          box-shadow: 0 8px 30px rgba(0,0,0,0.35);
         }
         .step-nav__item {
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 8px;
-          padding: 10px;
-          background: var(--bg-surface);
-          border: 1px solid var(--border-hairline);
-          border-radius: 12px;
+          padding: 8px 14px;
+          background: transparent;
+          border: 1.5px solid transparent;
+          border-radius: 9999px;
           cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          min-width: 0;
           text-align: left;
-          transition: all 0.15s;
+        }
+        .step-nav__item:hover:not(.step-nav__item--active) {
+          background: rgba(255, 255, 255, 0.05);
+          border-color: rgba(59, 130, 246, 0.25);
         }
         .step-nav__item--active {
-          background: rgba(37,99,235,0.12);
-          border-color: var(--accent-strong);
+          background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%) !important;
+          border-color: #93c5fd !important;
+          box-shadow: 0 4px 18px rgba(37, 99, 235, 0.55), inset 0 1px 1px rgba(255,255,255,0.4);
         }
         .step-nav__badge {
-          width: 26px;
-          height: 26px;
+          width: 24px;
+          height: 24px;
           border-radius: 50%;
-          background: var(--bg-surface-raised);
-          color: var(--ink-muted);
+          background: rgba(255, 255, 255, 0.1);
+          color: var(--ink-secondary);
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 12px;
+          font-size: 11.5px;
           font-weight: 800;
           flex-shrink: 0;
+          transition: all 0.2s;
         }
         .step-nav__item--active .step-nav__badge {
-          background: var(--accent);
-          color: #fff;
+          background: #ffffff;
+          color: #1d4ed8;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        }
+        .step-nav__item--done:not(.step-nav__item--active) {
+          background: rgba(16, 185, 129, 0.12);
+          border-color: rgba(16, 185, 129, 0.3);
         }
         .step-nav__item--done .step-nav__badge {
-          background: var(--status-pass-bg);
-          color: var(--status-pass);
-          border: 1px solid var(--status-pass);
+          background: var(--status-pass);
+          color: #ffffff;
         }
         .step-nav__label {
           display: flex;
@@ -3542,9 +3908,15 @@ function ElectricalAnnualInner() {
           overflow: hidden;
           text-overflow: ellipsis;
         }
+        .step-nav__item--active .step-nav__name {
+          color: #ffffff;
+        }
         .step-nav__sub {
           font-size: 10px;
           color: var(--ink-muted);
+        }
+        .step-nav__item--active .step-nav__sub {
+          color: #dbeafe;
         }
         /* Card box */
         .card-box {
@@ -3756,37 +4128,52 @@ function ElectricalAnnualInner() {
           gap: 6px;
           flex-shrink: 0;
         }
+        /* ── Status Pills (✓ ใช้ได้, △ ควรปรับปรุง, ✕ ต้องแก้ไข — 3D Bubble Capsules) ── */
         .status-pill {
           display: flex;
           align-items: center;
-          gap: 4px;
-          padding: 5px 9px;
-          border-radius: 8px;
-          border: 1px solid var(--border-hairline);
-          background: var(--bg-surface-raised);
-          font-size: 11px;
+          justify-content: center;
+          gap: 5px;
+          padding: 7px 14px;
+          border-radius: 9999px;
+          border: 1.5px solid rgba(148, 163, 196, 0.22);
+          background: rgba(23, 35, 64, 0.7);
+          font-size: 12px;
           font-weight: 700;
-          color: var(--ink-muted);
+          color: var(--ink-secondary);
           cursor: pointer;
-          transition: all 0.12s;
+          transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+          user-select: none;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .status-pill:hover:not(.status-pill--pass):not(.status-pill--improve):not(.status-pill--fix) {
+          border-color: rgba(59, 130, 246, 0.4);
+          background: rgba(37, 99, 235, 0.12);
+          color: #ffffff;
         }
         .status-pill input {
           display: none;
         }
         .status-pill--pass {
-          background: var(--status-pass-bg);
-          color: var(--status-pass);
-          border-color: var(--status-pass);
+          background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+          color: #ffffff !important;
+          border: 1.5px solid #6ee7b7 !important;
+          box-shadow: 0 3px 12px rgba(16, 185, 129, 0.45) !important;
+          transform: scale(1.02);
         }
         .status-pill--improve {
-          background: rgba(217,119,6,0.15);
-          color: var(--status-warn);
-          border-color: var(--status-warn);
+          background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%) !important;
+          color: #ffffff !important;
+          border: 1.5px solid #fde68a !important;
+          box-shadow: 0 3px 12px rgba(245, 158, 11, 0.45) !important;
+          transform: scale(1.02);
         }
         .status-pill--fix {
-          background: var(--status-fail-bg);
-          color: var(--status-fail);
-          border-color: var(--status-fail);
+          background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%) !important;
+          color: #ffffff !important;
+          border: 1.5px solid #fca5a5 !important;
+          box-shadow: 0 3px 12px rgba(239, 68, 68, 0.45) !important;
+          transform: scale(1.02);
         }
         .check-row__sub {
           display: flex;
@@ -4018,6 +4405,19 @@ function ElectricalAnnualInner() {
                 @media (max-width: 768px) {
           .step-nav {
             grid-template-columns: repeat(2, 1fr);
+            border-radius: 20px;
+            padding: 6px;
+            gap: 6px;
+          }
+          .step-nav__item {
+            padding: 8px 10px;
+            border-radius: 9999px;
+          }
+          .step-nav__name {
+            font-size: 11px;
+          }
+          .step-nav__sub {
+            display: none;
           }
           .check-row__main {
             flex-direction: column;
@@ -4032,16 +4432,17 @@ function ElectricalAnnualInner() {
           .check-row__options {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
+            gap: 5px;
             width: 100%;
           }
           .status-pill {
             justify-content: center;
             text-align: center;
-            padding: 8px 3px;
+            padding: 8px 2px;
             font-size: 11px;
             white-space: nowrap;
-            letter-spacing: -0.2px;
+            letter-spacing: -0.3px;
+            border-radius: 9999px;
           }
           .status-pill span {
             overflow: hidden;
@@ -4051,29 +4452,45 @@ function ElectricalAnnualInner() {
             flex-direction: column;
             align-items: flex-start;
           }
+          .cat-subnav-box {
+            border-radius: 20px;
+            padding: 5px;
+          }
           .cat-subnav-pills {
             grid-template-columns: repeat(3, 1fr);
-            gap: 5px;
+            gap: 4px;
           }
           .cat-tab-btn {
             flex-direction: column;
             text-align: center;
-            padding: 9px 4px;
-            gap: 4px;
+            padding: 8px 3px;
+            gap: 3px;
+            border-radius: 9999px;
           }
           .cat-tab-icon {
-            font-size: 18px;
+            font-size: 17px;
+          }
+          .cat-tab-text {
+            flex-direction: column;
+            gap: 1px;
+            align-items: center;
           }
           .cat-tab-title {
-            font-size: 11px;
-            line-height: 1.25;
+            font-size: 10.5px;
+            line-height: 1.2;
             white-space: normal;
           }
           .cat-tab-badge {
-            font-size: 10px;
+            font-size: 9.5px;
+            padding: 1px 6px;
           }
           .ypc-quick-pills {
             grid-template-columns: repeat(2, 1fr);
+            border-radius: 16px;
+          }
+          .ypc-year-chip {
+            padding: 8px 10px;
+            border-radius: 9999px;
           }
           .item-switcher-top {
             flex-direction: column;
@@ -4084,15 +4501,28 @@ function ElectricalAnnualInner() {
           }
           .item-switcher-select {
             font-size: 12.5px;
-            padding: 8px 10px;
+            padding: 8px 12px;
           }
           .btn-switcher-nav {
             padding: 8px 10px;
             font-size: 12px;
           }
           .btn-add-item-bottom {
-            font-size: 13.5px;
+            font-size: 13px;
             padding: 12px 16px;
+            border-radius: 9999px;
+          }
+          .mcs-step-row, .mcs-select-row {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .mcs-select-wrapper {
+            min-width: 0;
+            width: 100%;
+          }
+          .mcs-btn-action, .mcs-btn-del {
+            width: 100%;
+            text-align: center;
           }
         }
 
@@ -4239,29 +4669,32 @@ function ElectricalAnnualInner() {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
           gap: 8px;
+          background: rgba(17, 29, 50, 0.85);
+          padding: 6px;
+          border-radius: 9999px;
+          border: 1.5px solid rgba(59, 130, 246, 0.25);
         }
         .ypc-year-chip {
-          padding: 10px 6px;
-          border-radius: 10px;
-          border: 1.5px solid rgba(148, 163, 196, 0.2);
-          background: rgba(23, 35, 64, 0.8);
-          color: #eef2ff;
+          padding: 9px 12px;
+          border-radius: 9999px;
+          border: 1.5px solid transparent;
+          background: transparent;
+          color: #cbd5e1;
           font-size: 13px;
           font-weight: 700;
           cursor: pointer;
-          transition: all 0.16s ease;
+          transition: all 0.18s ease;
           text-align: center;
         }
         .ypc-year-chip:hover {
-          border-color: rgba(96, 165, 250, 0.6);
-          background: rgba(37, 99, 235, 0.18);
+          background: rgba(255, 255, 255, 0.06);
           color: #ffffff;
         }
         .ypc-year-chip--active {
           background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%) !important;
           border-color: #93c5fd !important;
           color: #ffffff !important;
-          box-shadow: 0 4px 16px rgba(37, 99, 235, 0.45);
+          box-shadow: 0 4px 16px rgba(37, 99, 235, 0.5) !important;
         }
 
         .ypc-select-wrapper {
@@ -4270,12 +4703,12 @@ function ElectricalAnnualInner() {
         .ypc-select {
           width: 100%;
           background: var(--bg-input, #080e1a);
-          border: 1.5px solid rgba(59, 130, 246, 0.35);
-          border-radius: 12px;
+          border: 1.5px solid rgba(59, 130, 246, 0.45);
+          border-radius: 9999px;
           color: #ffffff;
-          padding: 12px 14px;
+          padding: 12px 18px;
           font-size: 15px;
-          font-weight: 600;
+          font-weight: 700;
           font-family: inherit;
           cursor: pointer;
           outline: none;
@@ -4289,27 +4722,27 @@ function ElectricalAnnualInner() {
           display: flex;
           align-items: center;
           gap: 8px;
-          padding: 10px 14px;
-          border-radius: 12px;
+          padding: 10px 18px;
+          border-radius: 9999px;
           font-size: 13px;
-          font-weight: 600;
+          font-weight: 700;
           width: 100%;
           box-sizing: border-box;
           line-height: 1.4;
         }
         .ypc-badge-pill--amber {
-          background: rgba(245, 158, 11, 0.14);
-          border: 1.5px solid rgba(245, 158, 11, 0.35);
+          background: rgba(245, 158, 11, 0.16);
+          border: 1.5px solid rgba(245, 158, 11, 0.45);
           color: #fbbf24;
         }
         .ypc-badge-pill--blue {
-          background: rgba(59, 130, 246, 0.14);
-          border: 1.5px solid rgba(59, 130, 246, 0.35);
+          background: rgba(59, 130, 246, 0.16);
+          border: 1.5px solid rgba(59, 130, 246, 0.45);
           color: #93c5fd;
         }
         .ypc-badge-pill--green {
-          background: rgba(34, 197, 94, 0.14);
-          border: 1.5px solid rgba(34, 197, 94, 0.35);
+          background: rgba(34, 197, 94, 0.16);
+          border: 1.5px solid rgba(34, 197, 94, 0.45);
           color: #4ade80;
         }
         .ypc-badge-pill__icon {
@@ -4319,15 +4752,15 @@ function ElectricalAnnualInner() {
         .ypc-btn-proceed {
           background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
           color: #ffffff;
-          border: none;
-          border-radius: 12px;
-          padding: 14px 20px;
+          border: 1.5px solid #93c5fd;
+          border-radius: 9999px;
+          padding: 14px 28px;
           font-size: 15.5px;
-          font-weight: 700;
+          font-weight: 800;
           font-family: inherit;
           cursor: pointer;
-          box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
-          transition: all 0.16s ease;
+          box-shadow: 0 6px 22px rgba(37, 99, 235, 0.5);
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -4410,17 +4843,17 @@ function ElectricalAnnualInner() {
           color: #ffffff;
         }
 
-        /* ── Modern Item Switcher Bar (Master-Detail Dropdown Selector) ── */
+        /* ── Modern Master-Detail Item Switcher (Bubble Balloon Panel) ── */
         .item-switcher-box {
-          background: linear-gradient(180deg, rgba(23, 35, 64, 0.95) 0%, rgba(17, 29, 50, 0.95) 100%);
+          background: linear-gradient(180deg, rgba(23, 35, 64, 0.95) 0%, rgba(17, 29, 50, 0.98) 100%);
           border: 1.5px solid rgba(59, 130, 246, 0.35);
-          border-radius: 16px;
-          padding: 12px 14px;
-          margin-bottom: 16px;
-          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+          border-radius: 20px;
+          padding: 14px 16px;
+          margin-bottom: 18px;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 12px;
         }
         .item-switcher-top {
           display: flex;
@@ -4441,13 +4874,13 @@ function ElectricalAnnualInner() {
           color: #ffffff;
         }
         .item-switcher-badge {
-          background: rgba(37, 99, 235, 0.2);
-          border: 1px solid rgba(59, 130, 246, 0.4);
+          background: rgba(37, 99, 235, 0.25);
+          border: 1px solid rgba(96, 165, 250, 0.45);
           color: #93c5fd;
-          font-size: 11.5px;
+          font-size: 11px;
           font-weight: 700;
-          padding: 2px 8px;
-          border-radius: 20px;
+          padding: 3px 10px;
+          border-radius: 9999px;
         }
         .item-switcher-actions-top {
           display: flex;
@@ -4458,10 +4891,10 @@ function ElectricalAnnualInner() {
           background: rgba(239, 68, 68, 0.15);
           border: 1px solid rgba(239, 68, 68, 0.35);
           color: #fca5a5;
-          padding: 5px 10px;
-          border-radius: 8px;
+          padding: 6px 12px;
+          border-radius: 9999px;
           font-size: 12px;
-          font-weight: 600;
+          font-weight: 700;
           cursor: pointer;
           transition: all 0.15s ease;
         }
@@ -4471,19 +4904,20 @@ function ElectricalAnnualInner() {
         }
         .btn-switcher-add {
           background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
-          border: none;
+          border: 1px solid #93c5fd;
           color: #ffffff;
-          padding: 6px 12px;
-          border-radius: 8px;
+          padding: 6px 14px;
+          border-radius: 9999px;
           font-size: 12px;
           font-weight: 700;
           cursor: pointer;
-          box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+          box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
           transition: all 0.15s ease;
         }
         .btn-switcher-add:hover {
           background: #3b82f6;
           transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(37, 99, 235, 0.5);
         }
         .item-switcher-bar {
           display: flex;
@@ -4492,11 +4926,11 @@ function ElectricalAnnualInner() {
         }
         .btn-switcher-nav {
           background: rgba(17, 29, 50, 0.9);
-          border: 1px solid rgba(148, 163, 196, 0.25);
+          border: 1.5px solid rgba(148, 163, 196, 0.25);
           color: #eef2ff;
-          padding: 9px 12px;
-          border-radius: 10px;
-          font-size: 13px;
+          padding: 9px 14px;
+          border-radius: 9999px;
+          font-size: 12.5px;
           font-weight: 700;
           cursor: pointer;
           flex-shrink: 0;
@@ -4518,10 +4952,10 @@ function ElectricalAnnualInner() {
         .item-switcher-select {
           width: 100%;
           background: var(--bg-input, #080e1a);
-          border: 1.5px solid rgba(59, 130, 246, 0.4);
-          border-radius: 10px;
+          border: 1.5px solid rgba(59, 130, 246, 0.45);
+          border-radius: 9999px;
           color: #ffffff;
-          padding: 9px 12px;
+          padding: 9px 16px;
           font-size: 13.5px;
           font-weight: 700;
           font-family: inherit;
@@ -4537,9 +4971,221 @@ function ElectricalAnnualInner() {
           box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
         }
 
-        /* ── Bottom Add Buttons (Convenience at end of section) ── */
+        /* ── Cascading 2-Step Dropdown Selector for MDB & Transformers ── */
+        .mdb-cascading-panel {
+          background: linear-gradient(180deg, rgba(23, 35, 64, 0.96) 0%, rgba(17, 29, 50, 0.98) 100%);
+          border: 1.5px solid rgba(59, 130, 246, 0.38);
+          border-radius: 22px;
+          padding: 16px 18px;
+          margin-bottom: 20px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+        .mcs-banner-title {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding-bottom: 12px;
+          border-bottom: 1px dashed rgba(59, 130, 246, 0.25);
+        }
+        .mcs-main-icon {
+          font-size: 26px;
+          line-height: 1;
+        }
+        .mcs-title {
+          font-size: 15px;
+          font-weight: 800;
+          color: #ffffff;
+          margin: 0 0 2px;
+        }
+        .mcs-sub {
+          font-size: 12px;
+          color: var(--ink-secondary, #94a3c4);
+          margin: 0;
+        }
+        .mcs-steps-container {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .mcs-step-box {
+          background: rgba(11, 20, 38, 0.7);
+          border: 1px solid rgba(59, 130, 246, 0.25);
+          border-radius: 16px;
+          padding: 12px 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .mcs-step-hdr {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+        .mcs-step-badge {
+          background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+          color: #ffffff;
+          font-size: 11px;
+          font-weight: 800;
+          padding: 3px 10px;
+          border-radius: 9999px;
+          border: 1px solid rgba(147, 197, 253, 0.5);
+        }
+        .mcs-step-badge--step2 {
+          background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+          border-color: rgba(199, 210, 254, 0.5);
+        }
+        .mcs-step-label {
+          font-size: 13px;
+          font-weight: 700;
+          color: #ffffff;
+        }
+        .mcs-count-badge {
+          margin-left: auto;
+          font-size: 11.5px;
+          color: #93c5fd;
+          background: rgba(37, 99, 235, 0.2);
+          border: 1px solid rgba(59, 130, 246, 0.35);
+          padding: 2px 8px;
+          border-radius: 9999px;
+          font-weight: 700;
+        }
+        .mcs-select-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+        .mcs-select-wrapper {
+          flex: 1;
+          min-width: 200px;
+        }
+        .mcs-select {
+          width: 100%;
+          background: var(--bg-input, #080e1a);
+          border: 1.5px solid rgba(59, 130, 246, 0.45);
+          border-radius: 9999px;
+          color: #ffffff;
+          padding: 9px 16px;
+          font-size: 13.5px;
+          font-weight: 700;
+          font-family: inherit;
+          cursor: pointer;
+          outline: none;
+          transition: all 0.15s ease;
+        }
+        .mcs-select:focus {
+          border-color: #60a5fa;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+        }
+        .mcs-btn-action {
+          background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+          color: #ffffff;
+          border: 1px solid #93c5fd;
+          padding: 8px 14px;
+          border-radius: 9999px;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          white-space: nowrap;
+          box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+          transition: all 0.15s ease;
+        }
+        .mcs-btn-action:hover {
+          background: #3b82f6;
+          transform: translateY(-1px);
+        }
+        .mcs-btn-nav {
+          background: rgba(17, 29, 50, 0.9);
+          border: 1.5px solid rgba(148, 163, 196, 0.25);
+          color: #eef2ff;
+          padding: 8px 12px;
+          border-radius: 9999px;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          flex-shrink: 0;
+          transition: all 0.15s ease;
+        }
+        .mcs-btn-nav:hover:not(:disabled) {
+          border-color: #60a5fa;
+          background: rgba(37, 99, 235, 0.2);
+          color: #93c5fd;
+        }
+        .mcs-btn-nav:disabled {
+          opacity: 0.35;
+          cursor: not-allowed;
+        }
+        .mcs-btn-del {
+          background: rgba(239, 68, 68, 0.15);
+          border: 1px solid rgba(239, 68, 68, 0.35);
+          color: #fca5a5;
+          padding: 8px 12px;
+          border-radius: 9999px;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: all 0.15s ease;
+        }
+        .mcs-btn-del:hover {
+          background: #ef4444;
+          color: #ffffff;
+        }
+        .mcs-empty-balloon {
+          background: rgba(245, 158, 11, 0.08);
+          border: 1.5px dashed rgba(245, 158, 11, 0.4);
+          border-radius: 16px;
+          padding: 14px 16px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+        .mcs-empty-icon {
+          font-size: 22px;
+          flex-shrink: 0;
+        }
+        .mcs-empty-text {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          font-size: 13px;
+          font-weight: 700;
+          color: #fde68a;
+          flex: 1;
+          min-width: 200px;
+        }
+        .mcs-empty-text small {
+          font-size: 11.5px;
+          font-weight: 500;
+          color: #cbd5e1;
+        }
+        .mcs-btn-create-first {
+          background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+          color: #ffffff;
+          border: 1px solid #93c5fd;
+          padding: 9px 16px;
+          border-radius: 9999px;
+          font-size: 12.5px;
+          font-weight: 800;
+          cursor: pointer;
+          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+          transition: all 0.15s ease;
+          white-space: nowrap;
+        }
+        .mcs-btn-create-first:hover {
+          background: #3b82f6;
+          transform: translateY(-1px);
+        }
+
+        /* ── Bottom Add Buttons (Bubble Balloon Pill Style) ── */
         .section-bottom-add-bar {
-          margin: 18px 0 14px;
+          margin: 20px 0 16px;
           display: flex;
           justify-content: center;
         }
@@ -4548,25 +5194,25 @@ function ElectricalAnnualInner() {
           align-items: center;
           justify-content: center;
           gap: 8px;
-          padding: 13px 24px;
+          padding: 13px 28px;
           background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
           color: #ffffff;
-          border: none;
-          border-radius: 12px;
-          font-size: 14.5px;
-          font-weight: 700;
+          border: 1.5px solid #93c5fd;
+          border-radius: 9999px;
+          font-size: 14px;
+          font-weight: 800;
           cursor: pointer;
-          box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
-          transition: all 0.18s ease;
+          box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
           width: 100%;
           max-width: 440px;
         }
         .btn-add-item-bottom:hover {
-          transform: translateY(-1.5px);
-          box-shadow: 0 6px 22px rgba(37, 99, 235, 0.5);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 26px rgba(37, 99, 235, 0.6);
         }
         .subgroup-bottom-add-bar {
-          margin-top: 12px;
+          margin-top: 14px;
           display: flex;
           justify-content: flex-end;
         }
@@ -4574,11 +5220,11 @@ function ElectricalAnnualInner() {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 7px 14px;
-          background: rgba(37, 99, 235, 0.15);
-          border: 1px solid rgba(59, 130, 246, 0.4);
+          padding: 7px 16px;
+          background: rgba(37, 99, 235, 0.18);
+          border: 1.5px solid rgba(59, 130, 246, 0.45);
           color: #93c5fd;
-          border-radius: 8px;
+          border-radius: 9999px;
           font-size: 12px;
           font-weight: 700;
           cursor: pointer;
@@ -4587,6 +5233,7 @@ function ElectricalAnnualInner() {
         .btn-add-mini-bottom:hover {
           background: #2563eb;
           color: #ffffff;
+          border-color: #93c5fd;
         }
         /* ── Modern Centered Modal (Firepump Bubble Style) ── */
         .elec-modal-overlay {
@@ -4803,60 +5450,63 @@ function ElectricalAnnualInner() {
           }
         }
       
-                /* ── Subcategory Tabs Bar (3 หมวดหลักในขั้นตอนที่ 3) ── */
+                /* ── Subcategory Tabs Bar (3 หมวดหลัก — Bubble Balloon Capsules) ── */
         .cat-subnav-box {
           margin-bottom: 20px;
-          background: rgba(17, 29, 50, 0.85);
-          backdrop-filter: blur(8px);
-          border: 1.5px solid rgba(59, 130, 246, 0.28);
-          border-radius: 16px;
-          padding: 8px;
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+          background: rgba(17, 29, 50, 0.9);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1.5px solid rgba(59, 130, 246, 0.3);
+          border-radius: 9999px;
+          padding: 6px;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
         }
         .cat-subnav-pills {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 8px;
+          gap: 6px;
         }
         .cat-tab-btn {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 10px;
-          padding: 12px 14px;
-          border-radius: 12px;
-          border: 1.5px solid rgba(148, 163, 196, 0.15);
-          background: var(--bg-surface-raised, #172340);
+          gap: 8px;
+          padding: 10px 18px;
+          border-radius: 9999px;
+          border: 1.5px solid transparent;
+          background: transparent;
           color: var(--ink-secondary, #94a3c4);
           cursor: pointer;
           font-family: inherit;
-          transition: all 0.18s ease;
-          text-align: left;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          text-align: center;
+          min-width: 0;
         }
-        .cat-tab-btn:hover {
-          border-color: rgba(59, 130, 246, 0.45);
+        .cat-tab-btn:hover:not(.cat-tab-btn--active) {
+          background: rgba(255, 255, 255, 0.05);
           color: #ffffff;
-          background: rgba(23, 35, 64, 0.95);
+          border-color: rgba(59, 130, 246, 0.25);
         }
         .cat-tab-btn--active {
           background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%) !important;
           border-color: #93c5fd !important;
           color: #ffffff !important;
-          box-shadow: 0 4px 18px rgba(37, 99, 235, 0.45);
+          box-shadow: 0 4px 18px rgba(37, 99, 235, 0.55), inset 0 1px 1px rgba(255,255,255,0.4);
+          transform: scale(1.02);
         }
         .cat-tab-icon {
-          font-size: 20px;
+          font-size: 18px;
           flex-shrink: 0;
           line-height: 1;
         }
         .cat-tab-text {
           display: flex;
-          flex-direction: column;
-          gap: 2px;
+          align-items: center;
+          gap: 6px;
           min-width: 0;
         }
         .cat-tab-title {
-          font-size: 13.5px;
+          font-size: 13px;
           font-weight: 700;
           white-space: nowrap;
           overflow: hidden;
@@ -4864,11 +5514,16 @@ function ElectricalAnnualInner() {
         }
         .cat-tab-badge {
           font-size: 11px;
-          color: var(--ink-muted, #7c8ba1);
-          font-weight: 600;
+          background: rgba(255, 255, 255, 0.15);
+          color: #dbeafe;
+          padding: 2px 8px;
+          border-radius: 9999px;
+          font-weight: 700;
+          white-space: nowrap;
         }
         .cat-tab-btn--active .cat-tab-badge {
-          color: #dbeafe !important;
+          background: rgba(255, 255, 255, 0.25);
+          color: #ffffff;
         }
 
         /* ── MDB Unified Building Card ── */
