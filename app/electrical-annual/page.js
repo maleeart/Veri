@@ -2331,11 +2331,11 @@ function ElectricalAnnualInner() {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '14px 0 10px', flexWrap: 'wrap' }}>
-                      <h3 className="group-sub-title" style={{ margin: 0 }}>๒.๑.๑ สายอากาศ :</h3>
+                      <h3 className="group-sub-title" style={{ margin: 0 }}>สายอากาศ :</h3>
                       <input
                         type="text"
                         placeholder="ระบุชื่อสายอากาศ / วงจร / ช่วงเสา..."
-                        style={{ flex: 1, minWidth: 200, padding: '6px 12px', borderRadius: 8, border: '1.5px solid var(--border-strong)', background: 'var(--bg-input)', color: 'var(--ink-primary)', fontSize: 13 }}
+                        style={{ flex: 1, minWidth: 200, padding: '8px 14px', borderRadius: 10, border: '1.5px solid rgba(59, 130, 246, 0.45)', background: '#080e1a', color: '#ffffff', fontSize: 13 }}
                         value={hv.aerialName || ''}
                         onChange={(e) => {
                           const arr = [...data.highVoltageSystems];
@@ -2369,7 +2369,7 @@ function ElectricalAnnualInner() {
                       const arr = [...data.highVoltageSystems]; arr[idx].aerial.grounding = it; setData(d => ({ ...d, highVoltageSystems: arr }));
                     }} />
 
-                    <h3 className="group-sub-title" style={{ marginTop: 16 }}>๒.๑.๒ การติดตั้งเครื่องปลดวงจรต้นทาง (ส่วนของผู้ใช้ไฟ)</h3>
+                    <h3 className="group-sub-title" style={{ marginTop: 16 }}>การติดตั้งเครื่องปลดวงจรต้นทาง (ส่วนของผู้ใช้ไฟ)</h3>
                     <ChecklistRow title="- ดรอปฟิวส์คัตเอาท์" item={hv.disconnectors.dropFuse} onChange={(it) => {
                       const arr = [...data.highVoltageSystems]; arr[idx].disconnectors.dropFuse = it; setData(d => ({ ...d, highVoltageSystems: arr }));
                     }} />
@@ -2393,7 +2393,7 @@ function ElectricalAnnualInner() {
                       const arr = [...data.highVoltageSystems]; arr[idx].disconnectors.other = it; setData(d => ({ ...d, highVoltageSystems: arr }));
                     }} />
 
-                    <h3 className="group-sub-title" style={{ marginTop: 16 }}>๒.๑.๓ อื่นๆ</h3>
+                    <h3 className="group-sub-title" style={{ marginTop: 16 }}>รายการอื่นๆ ในระบบแรงสูง</h3>
                     <div className="field" style={{ marginBottom: 8 }}>
                       <input
                         type="text"
@@ -2543,9 +2543,9 @@ function ElectricalAnnualInner() {
                       </div>
                     </div>
 
-                    {/* ๒.๒.๓ เครื่องป้องกันกระแสเกินด้านไฟเข้า */}
+                    {/* เครื่องป้องกันกระแสเกินด้านไฟเข้า */}
                     <div className="subgroup-card" style={{ marginTop: 14 }}>
-                      <h4 className="group-sub-title" style={{ margin: '0 0 10px' }}>๒.๒.๓ เครื่องป้องกันกระแสเกินด้านไฟเข้า</h4>
+                      <h4 className="group-sub-title" style={{ margin: '0 0 10px' }}>เครื่องป้องกันกระแสเกินด้านไฟเข้า</h4>
                       <div className="field-grid field-grid--2">
                         <div className="field">
                           <label>แบบเครื่องป้องกัน (เช่น ดรอปฟิวส์, โหลดเบรกสวิตช์)</label>
@@ -2576,9 +2576,9 @@ function ElectricalAnnualInner() {
                       </div>
                     </div>
 
-                    <h4 className="group-sub-title" style={{ marginTop: 16 }}>รายการตรวจสอบหม้อแปลงไฟฟ้า (ข้อ ๒.๒.๔ - ๒.๒.๑๒)</h4>
+                    <h4 className="group-sub-title" style={{ marginTop: 16 }}>รายการตรวจสอบหม้อแปลงไฟฟ้า</h4>
                     <ChecklistRow
-                      title="๒.๒.๔ การต่อสายแรงต่ำและแรงสูงที่หม้อแปลง"
+                      title="การต่อสายแรงต่ำและแรงสูงที่หม้อแปลง"
                       item={tf.items?.wiring}
                       onChange={(it) => {
                         const arr = [...data.transformers];
@@ -2587,7 +2587,7 @@ function ElectricalAnnualInner() {
                       }}
                     />
                     <ChecklistRow
-                      title="๒.๒.๕ การติดตั้งล่อฟ้าแรงสูง (Lightning Arrester)"
+                      title="การติดตั้งล่อฟ้าแรงสูง (Lightning Arrester)"
                       item={tf.items?.lightningArrester}
                       onChange={(it) => {
                         const arr = [...data.transformers];
@@ -2596,7 +2596,7 @@ function ElectricalAnnualInner() {
                       }}
                     />
                     <ChecklistRow
-                      title="๒.๒.๖ การติดตั้งดรอปฟิวส์คัตเอาท์"
+                      title="การติดตั้งดรอปฟิวส์คัตเอาท์"
                       item={tf.items?.dropFuse}
                       onChange={(it) => {
                         const arr = [...data.transformers];
@@ -2605,7 +2605,7 @@ function ElectricalAnnualInner() {
                       }}
                     />
                     <ChecklistRow
-                      title="๒.๒.๗ การป้องกันการสัมผัสส่วนที่มีไฟฟ้า"
+                      title="การป้องกันการสัมผัสส่วนที่มีไฟฟ้า"
                       item={tf.items?.touchProtection}
                       onChange={(it) => {
                         const arr = [...data.transformers];
@@ -2614,7 +2614,7 @@ function ElectricalAnnualInner() {
                       }}
                     />
                     <ChecklistRow
-                      title="๒.๒.๘ สายดินกับตัวถังหม้อแปลงและล่อฟ้าแรงสูง"
+                      title="สายดินกับตัวถังหม้อแปลงและล่อฟ้าแรงสูง"
                       item={tf.items?.bodyGround}
                       onChange={(it) => {
                         const arr = [...data.transformers];
@@ -2623,10 +2623,10 @@ function ElectricalAnnualInner() {
                       }}
                     />
 
-                    {/* ๒.๒.๙ สายดินของหม้อแปลง */}
+                    {/* สายดินของหม้อแปลง */}
                     <div className="subgroup-card" style={{ marginTop: 8, marginBottom: 8 }}>
                       <ChecklistRow
-                        title="๒.๒.๙ สายดินของหม้อแปลง (สภาพหลักดินและจุดต่อ)"
+                        title="สายดินของหม้อแปลง (สภาพหลักดินและจุดต่อ)"
                         item={tf.items?.groundRod}
                         onChange={(it) => {
                           const arr = [...data.transformers];
@@ -2686,7 +2686,7 @@ function ElectricalAnnualInner() {
                     </div>
 
                     <ChecklistRow
-                      title="๒.๒.๑๐ สภาพภายนอกหม้อแปลง (สารดูดความชื้น, บุชชิ่ง, รั่วซึม, อุณหภูมิ)"
+                      title="สภาพภายนอกหม้อแปลง (สารดูดความชื้น, บุชชิ่ง, รั่วซึม, อุณหภูมิ)"
                       item={tf.items?.externalCondition}
                       onChange={(it) => {
                         const arr = [...data.transformers];
@@ -2695,7 +2695,7 @@ function ElectricalAnnualInner() {
                       }}
                     />
                     <ChecklistRow
-                      title="๒.๒.๑๑ สภาพแวดล้อมหม้อแปลง (การระบายอากาศ, ความชื้น, รั้วกั้น, สภาพทั่วไป)"
+                      title="สภาพแวดล้อมหม้อแปลง (การระบายอากาศ, ความชื้น, รั้วกั้น, สภาพทั่วไป)"
                       item={tf.items?.environment}
                       onChange={(it) => {
                         const arr = [...data.transformers];
@@ -2704,11 +2704,11 @@ function ElectricalAnnualInner() {
                       }}
                     />
 
-                    <h4 className="group-sub-title" style={{ marginTop: 16 }}>๒.๒.๑๒ อื่นๆ</h4>
+                    <h4 className="group-sub-title" style={{ marginTop: 16 }}>รายการอื่นๆ (หม้อแปลงไฟฟ้า)</h4>
                     <div className="field" style={{ marginTop: 8, marginBottom: 8 }}>
                       <input
                         type="text"
-                        placeholder="๒.๒.๑๒ อื่นๆ (ระบุ)..."
+                        placeholder="อื่นๆ (ระบุ)..."
                         value={tf.items?.otherText || ''}
                         onChange={(e) => {
                           const arr = [...data.transformers];
@@ -3081,7 +3081,7 @@ function ElectricalAnnualInner() {
                         </div>
                       </div>
 
-                      <h4 className="group-sub-title" style={{ marginTop: 14 }}>๒.๓.๑ รายการตรวจสอบสภาพตู้</h4>
+                      <h4 className="group-sub-title" style={{ marginTop: 14 }}>รายการตรวจสอบสภาพตู้</h4>
                       <ChecklistRow title="- สภาพทั่วไป" item={msb.items.generalCondition} onChange={(it) => updateMdbCheckItem(mIdx, 'generalCondition', it)} />
                       <ChecklistRow title="- จุดต่อสายและจุดต่อบัสบาร์" item={msb.items.busbarJoints} onChange={(it) => updateMdbCheckItem(mIdx, 'busbarJoints', it)} />
                       <ChecklistRow title="- ที่ว่างเพื่อปฏิบัติงานที่จุดติดตั้งตู้เมนสวิตช์" item={msb.items.workingSpace} onChange={(it) => updateMdbCheckItem(mIdx, 'workingSpace', it)} />
@@ -3090,7 +3090,7 @@ function ElectricalAnnualInner() {
                       <ChecklistRow title="- การป้องกันส่วนสัมผัสที่มีไฟฟ้า" item={msb.items.livePartProtection} onChange={(it) => updateMdbCheckItem(mIdx, 'livePartProtection', it)} />
                       <ChecklistRow title="- ป้ายชื่อและแผนภาพเส้นเดี่ยว (Single Line Diagram) ของเมนสวิตช์" item={msb.items.singleLineDiagram} onChange={(it) => updateMdbCheckItem(mIdx, 'singleLineDiagram', it)} />
 
-                      <h4 className="group-sub-title" style={{ marginTop: 16 }}>๒.๓.๒ เครื่องป้องกันกระแสเกิน</h4>
+                      <h4 className="group-sub-title" style={{ marginTop: 16 }}>เครื่องป้องกันกระแสเกิน</h4>
                       <div className="field-grid field-grid--3">
                         <div className="field">
                           <label>ชนิด</label>
@@ -3135,7 +3135,7 @@ function ElectricalAnnualInner() {
                         </div>
                       </div>
 
-                      <h4 className="group-sub-title" style={{ marginTop: 16 }}>๒.๓.๓ สายดินของแผงสวิตช์</h4>
+                      <h4 className="group-sub-title" style={{ marginTop: 16 }}>สายดินของแผงสวิตช์</h4>
                       <div className="field-row" style={{ margin: '8px 0' }}>
                         <input
                           type="text"
@@ -3153,7 +3153,7 @@ function ElectricalAnnualInner() {
                       <ChecklistRow title="- สภาพหลักดิน จุดต่อ และสายดิน" item={msb.grounding} onChange={(it) => updateMdbGrounding(mIdx, null, it)} />
 
                       <div className="field" style={{ marginTop: 12 }}>
-                        <label style={{ fontWeight: 700 }}>๒.๓.๔ อุณหภูมิของอุปกรณ์</label>
+                        <label style={{ fontWeight: 700 }}>อุณหภูมิของอุปกรณ์</label>
                         <div className="radio-group-box">
                           <label className="radio-opt">
                             <input
@@ -3176,11 +3176,11 @@ function ElectricalAnnualInner() {
                         </div>
                       </div>
 
-                      <h4 className="group-sub-title" style={{ marginTop: 16 }}>๒.๓.๕ อื่นๆ</h4>
+                      <h4 className="group-sub-title" style={{ marginTop: 16 }}>รายการอื่นๆ (ตู้เมนสวิตช์)</h4>
                       <div className="field" style={{ marginBottom: 8 }}>
                         <input
                           type="text"
-                          placeholder="๒.๓.๕ อื่นๆ (ระบุ)..."
+                          placeholder="อื่นๆ (ระบุ)..."
                           value={msb.otherText || ''}
                           onChange={(e) => updateMainSwitchboard(mIdx, 'otherText', e.target.value)}
                         />
@@ -3227,7 +3227,7 @@ function ElectricalAnnualInner() {
                             )}
                           </div>
 
-                          <h5 className="group-sub-title">๒.๔.๑.๑ สายเข้าเมนสวิตช์</h5>
+                          <h5 className="group-sub-title">สายเข้าเมนสวิตช์</h5>
                           <div className="field-grid field-grid--2">
                             <div className="field">
                               <label>สายเฟส (ชนิด / ขนาด mm²)</label>
@@ -3281,13 +3281,13 @@ function ElectricalAnnualInner() {
                           </div>
 
                           <h5 className="group-sub-title" style={{ marginTop: 14 }}>รายการตรวจสอบ</h5>
-                          <ChecklistRow title="๒.๔.๑.๒ รางเดินสายและรางเคเบิล" item={currentCircuit.items.racewayCondition} onChange={(it) => updateMainCircuitInMdb(mIdx, safeCIdx, 'items', { ...currentCircuit.items, racewayCondition: it })} />
-                          <ChecklistRow title="๒.๔.๑.๓ สภาพฉนวนสายไฟ" item={currentCircuit.items.insulation} onChange={(it) => updateMainCircuitInMdb(mIdx, safeCIdx, 'items', { ...currentCircuit.items, insulation: it })} />
-                          <ChecklistRow title="๒.๔.๑.๔ สภาพจุดต่อของสาย" item={currentCircuit.items.joints} onChange={(it) => updateMainCircuitInMdb(mIdx, safeCIdx, 'items', { ...currentCircuit.items, joints: it })} />
-                          <ChecklistRow title="๒.๔.๑.๕ การป้องกันความร้อนจากการเหนี่ยวนำ" item={currentCircuit.items.inductionHeatProtection} onChange={(it) => updateMainCircuitInMdb(mIdx, safeCIdx, 'items', { ...currentCircuit.items, inductionHeatProtection: it })} />
+                          <ChecklistRow title="รางเดินสายและรางเคเบิล" item={currentCircuit.items.racewayCondition} onChange={(it) => updateMainCircuitInMdb(mIdx, safeCIdx, 'items', { ...currentCircuit.items, racewayCondition: it })} />
+                          <ChecklistRow title="สภาพฉนวนสายไฟ" item={currentCircuit.items.insulation} onChange={(it) => updateMainCircuitInMdb(mIdx, safeCIdx, 'items', { ...currentCircuit.items, insulation: it })} />
+                          <ChecklistRow title="สภาพจุดต่อของสาย" item={currentCircuit.items.joints} onChange={(it) => updateMainCircuitInMdb(mIdx, safeCIdx, 'items', { ...currentCircuit.items, joints: it })} />
+                          <ChecklistRow title="การป้องกันความร้อนจากการเหนี่ยวนำ" item={currentCircuit.items.inductionHeatProtection} onChange={(it) => updateMainCircuitInMdb(mIdx, safeCIdx, 'items', { ...currentCircuit.items, inductionHeatProtection: it })} />
 
                           <div className="field" style={{ marginTop: 12 }}>
-                            <label style={{ fontWeight: 700 }}>๒.๔.๑.๖ อุณหภูมิของอุปกรณ์</label>
+                            <label style={{ fontWeight: 700 }}>อุณหภูมิของอุปกรณ์</label>
                             <div className="radio-group-box">
                               <label className="radio-opt">
                                 <input
@@ -3310,11 +3310,11 @@ function ElectricalAnnualInner() {
                             </div>
                           </div>
 
-                          <h5 className="group-sub-title" style={{ marginTop: 16 }}>๒.๔.๑.๗ อื่นๆ</h5>
+                          <h5 className="group-sub-title" style={{ marginTop: 16 }}>รายการอื่นๆ (วงจรเมน)</h5>
                           <div className="field" style={{ marginBottom: 8 }}>
                             <input
                               type="text"
-                              placeholder="๒.๔.๑.๗ อื่นๆ (ระบุ)..."
+                              placeholder="อื่นๆ (ระบุ)..."
                               value={currentCircuit.otherText || ''}
                               onChange={(e) => updateMainCircuitInMdb(mIdx, safeCIdx, 'otherText', e.target.value)}
                             />
@@ -3402,7 +3402,7 @@ function ElectricalAnnualInner() {
                             </div>
                           </div>
 
-                          <h5 className="group-sub-title" style={{ marginTop: 14 }}>๒.๔.๒.๑ รายการตรวจสอบสภาพแผงย่อย</h5>
+                          <h5 className="group-sub-title" style={{ marginTop: 14 }}>รายการตรวจสอบสภาพแผงย่อย</h5>
                           <ChecklistRow title="- สภาพทั่วไป" item={currentPanel.items.generalCondition} onChange={(it) => updateSubPanelInMdb(mIdx, safeSIdx, 'items', { ...currentPanel.items, generalCondition: it })} />
                           <ChecklistRow title="- จุดต่อสาย และจุดต่อบัสบาร์" item={currentPanel.items.busbarJoints} onChange={(it) => updateSubPanelInMdb(mIdx, safeSIdx, 'items', { ...currentPanel.items, busbarJoints: it })} />
                           <ChecklistRow title="- ที่ว่างเพื่อปฏิบัติงานที่จุดติดตั้งแผงย่อย" item={currentPanel.items.workingSpace} onChange={(it) => updateSubPanelInMdb(mIdx, safeSIdx, 'items', { ...currentPanel.items, workingSpace: it })} />
@@ -3410,7 +3410,7 @@ function ElectricalAnnualInner() {
                           <ChecklistRow title="- การต่อฝาก" item={currentPanel.items.bonding} onChange={(it) => updateSubPanelInMdb(mIdx, safeSIdx, 'items', { ...currentPanel.items, bonding: it })} />
                           <ChecklistRow title="- การป้องกันส่วนสัมผัสที่มีไฟฟ้า" item={currentPanel.items.livePartProtection} onChange={(it) => updateSubPanelInMdb(mIdx, safeSIdx, 'items', { ...currentPanel.items, livePartProtection: it })} />
 
-                          <h5 className="group-sub-title" style={{ marginTop: 16 }}>๒.๔.๒.๒ เครื่องป้องกันกระแสเกินของแผงย่อย</h5>
+                          <h5 className="group-sub-title" style={{ marginTop: 16 }}>เครื่องป้องกันกระแสเกินของแผงย่อย</h5>
                           <div className="field-grid field-grid--3">
                             <div className="field">
                               <label>ชนิด</label>
@@ -3454,7 +3454,7 @@ function ElectricalAnnualInner() {
                             </div>
                           </div>
 
-                          <h5 className="group-sub-title" style={{ marginTop: 16 }}>๒.๔.๒.๓ สายดินของแผงย่อย</h5>
+                          <h5 className="group-sub-title" style={{ marginTop: 16 }}>สายดินของแผงย่อย</h5>
                           <div className="field-row" style={{ margin: '8px 0' }}>
                             <input
                               type="text"
@@ -3472,7 +3472,7 @@ function ElectricalAnnualInner() {
                           <ChecklistRow title="- สภาพสายดินและจุดต่อ" item={currentPanel.grounding} onChange={(it) => updateSubPanelInMdb(mIdx, safeSIdx, 'grounding', { ...currentPanel.grounding, ...it })} />
 
                           <div className="field" style={{ marginTop: 12 }}>
-                            <label style={{ fontWeight: 700 }}>๒.๔.๒.๔ อุณหภูมิของอุปกรณ์</label>
+                            <label style={{ fontWeight: 700 }}>อุณหภูมิของอุปกรณ์</label>
                             <div className="radio-group-box">
                               <label className="radio-opt">
                                 <input
@@ -3495,11 +3495,11 @@ function ElectricalAnnualInner() {
                             </div>
                           </div>
 
-                          <h5 className="group-sub-title" style={{ marginTop: 16 }}>๒.๔.๒.๕ อื่นๆ</h5>
+                          <h5 className="group-sub-title" style={{ marginTop: 16 }}>รายการอื่นๆ (แผงย่อย)</h5>
                           <div className="field" style={{ marginBottom: 8 }}>
                             <input
                               type="text"
-                              placeholder="๒.๔.๒.๕ อื่นๆ (ระบุ)..."
+                              placeholder="อื่นๆ (ระบุ)..."
                               value={currentPanel.otherText || ''}
                               onChange={(e) => updateSubPanelInMdb(mIdx, safeSIdx, 'otherText', e.target.value)}
                             />
@@ -3516,7 +3516,7 @@ function ElectricalAnnualInner() {
                       </div>
                     </div>
 
-                    {/* ── ตาราง ๒.๕ บริภัณฑ์ไฟฟ้าอื่นๆ ในอาคารนี้ ── */}
+                    {/* ── บริภัณฑ์ไฟฟ้าอื่นๆ ในอาคารนี้ ── */}
                     <div className="subgroup-card">
                       <div className="subgroup-hdr-flex">
                         <div>
@@ -3565,14 +3565,14 @@ function ElectricalAnnualInner() {
                             />
                           </div>
 
-                          <ChecklistRow title="๒.๕.๑ การติดตั้ง" item={currentEquip.installation} onChange={(it) => updateOtherEquipmentInMdb(mIdx, safeEIdx, 'installation', it)} />
-                          <ChecklistRow title="๒.๕.๒ สภาพภายนอก" item={currentEquip.external} onChange={(it) => updateOtherEquipmentInMdb(mIdx, safeEIdx, 'external', it)} />
+                          <ChecklistRow title="การติดตั้ง" item={currentEquip.installation} onChange={(it) => updateOtherEquipmentInMdb(mIdx, safeEIdx, 'installation', it)} />
+                          <ChecklistRow title="สภาพภายนอก" item={currentEquip.external} onChange={(it) => updateOtherEquipmentInMdb(mIdx, safeEIdx, 'external', it)} />
 
-                          <h5 className="group-sub-title" style={{ marginTop: 16 }}>๒.๕.๓ อื่นๆ</h5>
+                          <h5 className="group-sub-title" style={{ marginTop: 16 }}>รายการอื่นๆ (บริภัณฑ์ไฟฟ้า)</h5>
                           <div className="field" style={{ marginTop: 8 }}>
                             <input
                               type="text"
-                              placeholder="๒.๕.๓ อื่นๆ (ระบุ)..."
+                              placeholder="อื่นๆ (ระบุ)..."
                               value={currentEquip.otherText || ''}
                               onChange={(e) => updateOtherEquipmentInMdb(mIdx, safeEIdx, 'otherText', e.target.value)}
                             />
@@ -3748,7 +3748,7 @@ function ElectricalAnnualInner() {
           align-items: center;
           justify-content: space-between;
           padding-bottom: 18px;
-          border-bottom: 1px solid var(--border-hairline);
+          border-bottom: 1px solid rgba(59, 130, 246, 0.25);
           margin-bottom: 20px;
           flex-wrap: wrap;
           gap: 12px;
@@ -3776,34 +3776,55 @@ function ElectricalAnnualInner() {
           gap: 8px;
         }
         .btn-back {
-          padding: 6px 12px;
-          border-radius: 8px;
-          background: var(--bg-surface-raised);
-          border: 1px solid var(--border-strong);
-          color: var(--ink-primary);
+          padding: 8px 16px;
+          border-radius: 9999px;
+          background: rgba(30, 41, 59, 0.75);
+          border: 1.5px solid rgba(148, 163, 184, 0.35);
+          color: #cbd5e1;
           font-size: 13px;
           font-weight: 700;
           cursor: pointer;
+          transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        }
+        .btn-back:hover {
+          background: rgba(59, 130, 246, 0.25);
+          border-color: #60a5fa;
+          color: #ffffff;
+          transform: translateY(-1px);
         }
         .btn-draft-clear {
-          padding: 6px 10px;
-          border-radius: 8px;
-          background: rgba(239,68,68,0.1);
-          border: 1px solid rgba(239,68,68,0.3);
-          color: var(--status-fail);
+          padding: 8px 14px;
+          border-radius: 9999px;
+          background: rgba(239, 68, 68, 0.15);
+          border: 1.5px solid rgba(239, 68, 68, 0.35);
+          color: #fca5a5;
           font-size: 12px;
           font-weight: 700;
           cursor: pointer;
+          transition: all 0.18s ease;
+        }
+        .btn-draft-clear:hover {
+          background: #ef4444;
+          color: #ffffff;
         }
         .btn-preview-link {
-          padding: 6px 12px;
-          border-radius: 8px;
-          background: var(--bg-surface-raised);
-          border: 1px solid var(--border-strong);
-          color: var(--accent-strong);
+          padding: 8px 16px;
+          border-radius: 9999px;
+          background: linear-gradient(135deg, rgba(37, 99, 235, 0.25) 0%, rgba(30, 58, 138, 0.45) 100%);
+          border: 1.5px solid rgba(96, 165, 250, 0.5);
+          color: #93c5fd;
           font-size: 13px;
-          font-weight: 700;
+          font-weight: 800;
           cursor: pointer;
+          box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+          transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-preview-link:hover {
+          background: #2563eb;
+          color: #ffffff;
+          border-color: #bfdbfe;
+          transform: translateY(-1px);
         }
         /* ── Step navigation — Bubble Capsule Pill Bar ── */
         .step-nav-capsules {
@@ -3877,24 +3898,29 @@ function ElectricalAnnualInner() {
         .step-bubble-btn--active .step-bubble-title {
           color: #ffffff;
         }
-        /* Card box */
+        /* Card box — Frosted Glass Bubble Container */
         .card-box {
-          background: var(--bg-surface);
-          border: 1px solid var(--border-hairline);
-          border-radius: 16px;
-          padding: 20px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+          background: linear-gradient(145deg, rgba(23, 37, 68, 0.72) 0%, rgba(15, 23, 42, 0.88) 100%);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          border: 1.5px solid rgba(59, 130, 246, 0.35);
+          border-radius: 22px;
+          padding: 22px;
+          box-shadow: 0 10px 32px rgba(0, 0, 0, 0.38), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+          margin-bottom: 20px;
         }
         .card-box--nested {
           margin-top: 14px;
-          background: rgba(255,255,255,0.015);
-          border-color: var(--border-strong);
+          background: linear-gradient(145deg, rgba(30, 41, 59, 0.55) 0%, rgba(15, 23, 42, 0.75) 100%);
+          border: 1.5px solid rgba(96, 165, 250, 0.3);
+          border-radius: 18px;
         }
         .card-box__title {
-          font-size: 16px;
+          font-size: 16.5px;
           font-weight: 800;
-          color: var(--ink-primary);
+          color: #ffffff;
           margin: 0 0 16px;
+          letter-spacing: -0.2px;
         }
         .card-box__sub-hdr {
           display: flex;
@@ -3902,29 +3928,29 @@ function ElectricalAnnualInner() {
           justify-content: space-between;
           padding-bottom: 10px;
           margin-bottom: 12px;
-          border-bottom: 1px dashed var(--border-hairline);
+          border-bottom: 1px dashed rgba(59, 130, 246, 0.3);
         }
         .card-box__item-num {
-          font-size: 13px;
+          font-size: 13.5px;
           font-weight: 800;
-          color: var(--accent-strong);
+          color: #93c5fd;
         }
         .sub-title {
           font-size: 14px;
           font-weight: 700;
-          color: var(--ink-secondary);
+          color: #cbd5e1;
           margin: 16px 0 10px;
         }
         .group-sub-title {
-          font-size: 13px;
+          font-size: 13.5px;
           font-weight: 800;
-          color: var(--accent-strong);
+          color: #93c5fd;
           margin: 14px 0 8px;
         }
         .divider {
           border: none;
           height: 1px;
-          background: var(--border-hairline);
+          background: rgba(59, 130, 246, 0.25);
           margin: 18px 0;
         }
         /* Fields & Grid */
@@ -3953,32 +3979,34 @@ function ElectricalAnnualInner() {
         .field label {
           font-size: 12px;
           font-weight: 700;
-          color: var(--ink-secondary);
+          color: #cbd5e1;
         }
         .field input, .field select, .field textarea {
-          padding: 10px 12px;
-          border-radius: 10px;
-          border: 1.5px solid var(--border-strong);
-          background: var(--bg-input);
-          color: var(--ink-primary);
-          font-size: 13px;
+          padding: 10px 14px;
+          border-radius: 12px;
+          border: 1.5px solid rgba(59, 130, 246, 0.45);
+          background: #080e1a;
+          color: #ffffff;
+          font-size: 13.5px;
           font-family: inherit;
           box-sizing: border-box;
-          transition: border-color 0.15s;
+          transition: border-color 0.15s, box-shadow 0.15s;
+          box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
         }
         .field input:focus, .field select:focus, .field textarea:focus {
           outline: none;
-          border-color: var(--accent-strong);
+          border-color: #60a5fa;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35), inset 0 2px 4px rgba(0, 0, 0, 0.4);
         }
         .field-group {
           margin-top: 14px;
           padding-top: 12px;
-          border-top: 1px solid var(--border-hairline);
+          border-top: 1px dashed rgba(59, 130, 246, 0.3);
         }
         .group-label {
           font-size: 13px;
           font-weight: 800;
-          color: var(--ink-primary);
+          color: #ffffff;
           display: block;
           margin-bottom: 8px;
         }
@@ -4070,16 +4098,21 @@ function ElectricalAnnualInner() {
           background: #ef4444;
           color: #ffffff;
         }
-        /* Checklist row */
+        /* Checklist row — Frosted Glass Row */
         .check-row {
-          background: var(--bg-surface);
-          border: 1px solid var(--border-hairline);
-          border-radius: 12px;
-          padding: 10px 12px;
-          margin-bottom: 8px;
+          background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.75) 100%);
+          border: 1.5px solid rgba(96, 165, 250, 0.28);
+          border-radius: 16px;
+          padding: 12px 16px;
+          margin-bottom: 10px;
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 10px;
+          box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
+          transition: border-color 0.18s ease, transform 0.18s ease;
+        }
+        .check-row:hover {
+          border-color: rgba(96, 165, 250, 0.5);
         }
         .check-row__main {
           display: flex;
@@ -4089,9 +4122,9 @@ function ElectricalAnnualInner() {
           flex-wrap: wrap;
         }
         .check-row__title {
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--ink-primary);
+          font-size: 13.5px;
+          font-weight: 700;
+          color: #f1f5f9;
           flex: 1;
           min-width: 180px;
         }
@@ -4105,46 +4138,51 @@ function ElectricalAnnualInner() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 5px;
-          padding: 7px 14px;
+          gap: 6px;
+          padding: 8px 16px;
           border-radius: 9999px;
-          border: 1.5px solid rgba(148, 163, 196, 0.22);
-          background: rgba(23, 35, 64, 0.7);
-          font-size: 12px;
+          border: 1.5px solid rgba(148, 163, 196, 0.35);
+          background: linear-gradient(145deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+          font-size: 12.5px;
           font-weight: 700;
-          color: var(--ink-secondary);
+          color: #e2e8f0;
           cursor: pointer;
           transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
           user-select: none;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.08);
           -webkit-tap-highlight-color: transparent;
         }
         .status-pill:hover:not(.status-pill--pass):not(.status-pill--improve):not(.status-pill--fix) {
-          border-color: rgba(59, 130, 246, 0.4);
-          background: rgba(37, 99, 235, 0.12);
+          border-color: #60a5fa;
+          background: rgba(37, 99, 235, 0.22);
           color: #ffffff;
+          transform: translateY(-1px);
         }
         .status-pill input {
           display: none;
         }
         .status-pill--pass {
-          background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+          background: radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.4) 0%, transparent 60%),
+                      linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
           color: #ffffff !important;
           border: 1.5px solid #6ee7b7 !important;
-          box-shadow: 0 3px 12px rgba(16, 185, 129, 0.45) !important;
+          box-shadow: 0 4px 14px rgba(16, 185, 129, 0.55), inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
           transform: scale(1.02);
         }
         .status-pill--improve {
-          background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%) !important;
+          background: radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.4) 0%, transparent 60%),
+                      linear-gradient(135deg, #d97706 0%, #f59e0b 100%) !important;
           color: #ffffff !important;
           border: 1.5px solid #fde68a !important;
-          box-shadow: 0 3px 12px rgba(245, 158, 11, 0.45) !important;
+          box-shadow: 0 4px 14px rgba(245, 158, 11, 0.55), inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
           transform: scale(1.02);
         }
         .status-pill--fix {
-          background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%) !important;
+          background: radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.4) 0%, transparent 60%),
+                      linear-gradient(135deg, #dc2626 0%, #ef4444 100%) !important;
           color: #ffffff !important;
           border: 1.5px solid #fca5a5 !important;
-          box-shadow: 0 3px 12px rgba(239, 68, 68, 0.45) !important;
+          box-shadow: 0 4px 14px rgba(239, 68, 68, 0.55), inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
           transform: scale(1.02);
         }
         .check-row__sub {
@@ -4154,23 +4192,37 @@ function ElectricalAnnualInner() {
         }
         .check-row__note {
           flex: 1;
-          padding: 6px 10px;
-          border-radius: 8px;
-          border: 1px solid var(--border-strong);
-          background: var(--bg-input);
-          color: var(--ink-primary);
-          font-size: 12px;
+          padding: 8px 12px;
+          border-radius: 10px;
+          border: 1.5px solid rgba(59, 130, 246, 0.35);
+          background: #080e1a;
+          color: #ffffff;
+          font-size: 12.5px;
+          box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+        }
+        .check-row__note:focus {
+          outline: none;
+          border-color: #60a5fa;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
         }
         .btn-attach-photo {
-          padding: 6px 10px;
-          border-radius: 8px;
-          background: var(--bg-surface-raised);
-          border: 1px solid var(--border-strong);
-          color: var(--ink-secondary);
+          padding: 7px 14px;
+          border-radius: 9999px;
+          background: linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(30, 58, 138, 0.35) 100%);
+          border: 1.5px solid rgba(96, 165, 250, 0.45);
+          color: #93c5fd;
           font-size: 12px;
-          font-weight: 600;
+          font-weight: 700;
           cursor: pointer;
           white-space: nowrap;
+          transition: all 0.15s ease;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        .btn-attach-photo:hover {
+          background: #2563eb;
+          color: #ffffff;
+          border-color: #bfdbfe;
+          transform: translateY(-1px);
         }
         .photo-thumb-wrap {
           position: relative;
@@ -4212,40 +4264,43 @@ function ElectricalAnnualInner() {
           display: flex;
           align-items: flex-start;
           gap: 12px;
-          padding: 14px 16px;
-          border-radius: 12px;
-          border: 1.5px solid var(--border-strong);
-          background: var(--bg-surface-raised);
+          padding: 14px 18px;
+          border-radius: 16px;
+          border: 1.5px solid rgba(59, 130, 246, 0.35);
+          background: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
           cursor: pointer;
           transition: all 0.15s;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
         .conc-pill input {
           margin-top: 3px;
         }
         .conc-pill--active {
-          border-color: var(--status-pass);
-          background: rgba(16,185,129,0.08);
+          border-color: #10b981;
+          background: rgba(16, 185, 129, 0.15);
+          box-shadow: 0 4px 16px rgba(16, 185, 129, 0.25);
         }
         .conc-pill--warn {
-          border-color: var(--status-warn);
-          background: rgba(217,119,6,0.08);
+          border-color: #f59e0b;
+          background: rgba(245, 158, 11, 0.15);
+          box-shadow: 0 4px 16px rgba(245, 158, 11, 0.25);
         }
         .conc-pill__title {
-          font-size: 14px;
+          font-size: 14.5px;
           font-weight: 800;
-          color: var(--ink-primary);
+          color: #ffffff;
         }
         .conc-pill__sub {
           font-size: 12px;
-          color: var(--ink-secondary);
+          color: #cbd5e1;
           margin-top: 2px;
           line-height: 1.4;
         }
         .edit-reason-box {
-          background: rgba(217,119,6,0.08);
-          border: 1.5px dashed var(--status-warn);
+          background: rgba(217, 119, 6, 0.12);
+          border: 1.5px dashed #f59e0b;
           padding: 14px;
-          border-radius: 12px;
+          border-radius: 16px;
           display: flex;
           flex-direction: column;
           gap: 6px;
@@ -4258,24 +4313,37 @@ function ElectricalAnnualInner() {
           margin-top: 24px;
         }
         .btn-primary {
-          padding: 11px 22px;
-          border-radius: 12px;
-          background: var(--accent);
+          padding: 12px 26px;
+          border-radius: 9999px;
+          background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
           color: #fff;
-          border: none;
+          border: 1.5px solid #bfdbfe;
           font-size: 14px;
           font-weight: 800;
           cursor: pointer;
+          box-shadow: 0 4px 16px rgba(37, 99, 235, 0.45);
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(37, 99, 235, 0.65);
         }
         .btn-secondary {
-          padding: 11px 18px;
-          border-radius: 12px;
-          background: var(--bg-surface-raised);
-          border: 1px solid var(--border-strong);
-          color: var(--ink-secondary);
-          font-size: 14px;
+          padding: 11px 20px;
+          border-radius: 9999px;
+          background: rgba(30, 41, 59, 0.85);
+          border: 1.5px solid rgba(148, 163, 184, 0.35);
+          color: #cbd5e1;
+          font-size: 13.5px;
           font-weight: 700;
           cursor: pointer;
+          transition: all 0.15s ease;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        .btn-secondary:hover {
+          background: rgba(59, 130, 246, 0.25);
+          border-color: #60a5fa;
+          color: #ffffff;
         }
         .btn-submit {
           padding: 12px 28px;
@@ -4530,11 +4598,14 @@ function ElectricalAnnualInner() {
           justify-content: space-between;
           flex-wrap: wrap;
           gap: 12px;
-          background: var(--bg-surface);
-          border: 1px solid var(--border-hairline);
-          border-radius: 12px;
-          padding: 10px 14px;
-          margin-bottom: 16px;
+          background: linear-gradient(135deg, rgba(30, 58, 138, 0.35) 0%, rgba(15, 23, 42, 0.85) 100%);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1.5px solid rgba(59, 130, 246, 0.45);
+          border-radius: 18px;
+          padding: 12px 18px;
+          margin-bottom: 20px;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.1);
         }
         .elec-year-bar__left {
           display: flex;
@@ -4546,30 +4617,33 @@ function ElectricalAnnualInner() {
           display: flex;
           align-items: center;
           gap: 6px;
-          font-size: 13px;
-          font-weight: 700;
-          color: var(--ink-primary);
+          font-size: 13.5px;
+          font-weight: 800;
+          color: #ffffff;
         }
         .year-select-wrap {
           position: relative;
         }
         .elec-year-select {
           appearance: none;
-          background: var(--bg-surface-raised);
-          color: var(--ink-primary);
-          border: 1.5px solid var(--accent-strong);
-          border-radius: 8px;
-          padding: 6px 30px 6px 12px;
+          background: #0f172a;
+          color: #ffffff;
+          border: 2px solid #3b82f6;
+          border-radius: 9999px;
+          padding: 8px 36px 8px 16px;
           font-size: 13.5px;
-          font-weight: 700;
+          font-weight: 800;
           cursor: pointer;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23e11d48' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
           background-repeat: no-repeat;
-          background-position: right 10px center;
+          background-position: right 12px center;
+          transition: all 0.15s ease;
         }
         .elec-year-select:focus {
           outline: none;
-          box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.2);
+          border-color: #93c5fd;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.45);
         }
         .elec-year-bar__right {
           display: flex;
@@ -4579,24 +4653,25 @@ function ElectricalAnnualInner() {
         }
         .year-mode-pill {
           font-size: 12px;
-          font-weight: 700;
-          padding: 4px 10px;
-          border-radius: 20px;
+          font-weight: 800;
+          padding: 5px 14px;
+          border-radius: 9999px;
           white-space: nowrap;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
         }
         .year-mode-pill--edit {
-          background: #fef3c7;
-          color: #92400e;
+          background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+          color: #ffffff;
           border: 1px solid #fde68a;
         }
         .year-mode-pill--new {
-          background: #ecfdf5;
-          color: #065f46;
+          background: linear-gradient(135deg, #059669 0%, #047857 100%);
+          color: #ffffff;
           border: 1px solid #a7f3d0;
         }
         .year-mode-pill--tmpl {
-          background: #e0e7ff;
-          color: #3730a3;
+          background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+          color: #ffffff;
           border: 1px solid #c7d2fe;
         }
 
@@ -4614,11 +4689,11 @@ function ElectricalAnnualInner() {
           display: flex;
           align-items: center;
           gap: 16px;
-          background: linear-gradient(135deg, rgba(30, 58, 138, 0.25) 0%, rgba(17, 29, 50, 0.85) 100%);
-          border: 1.5px solid rgba(59, 130, 246, 0.35);
-          border-radius: 20px;
-          padding: 18px 20px;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+          background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(15, 23, 42, 0.9) 100%);
+          border: 2px solid rgba(59, 130, 246, 0.45);
+          border-radius: 24px;
+          padding: 20px 24px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255, 255, 255, 0.1);
           margin-bottom: 8px;
         }
         .yic-badge-icon {
@@ -4829,32 +4904,33 @@ function ElectricalAnnualInner() {
 
         /* ── Existing reports card on pageStep 0 ── */
         .existing-reports-card {
-          background: linear-gradient(180deg, rgba(23, 35, 64, 0.85) 0%, rgba(17, 29, 50, 0.9) 100%);
-          border: 1.5px solid rgba(59, 130, 246, 0.35);
-          border-radius: 20px;
-          padding: 20px;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+          background: linear-gradient(180deg, rgba(23, 37, 68, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%);
+          border: 2px solid rgba(59, 130, 246, 0.4);
+          border-radius: 22px;
+          padding: 22px;
+          box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
         }
         .erc-title {
-          font-size: 14px;
-          font-weight: 700;
+          font-size: 14.5px;
+          font-weight: 800;
           color: #93c5fd;
-          margin: 0 0 12px;
+          margin: 0 0 14px;
         }
         .erc-list {
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 10px;
         }
         .erc-item {
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 12px;
-          padding: 10px 14px;
-          border-radius: 12px;
-          background: rgba(17, 29, 50, 0.85);
-          border: 1px solid rgba(148, 163, 196, 0.18);
+          padding: 12px 16px;
+          border-radius: 14px;
+          background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
+          border: 1.5px solid rgba(96, 165, 250, 0.3);
+          box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
         }
         .erc-item-info {
           display: flex;
@@ -5318,14 +5394,14 @@ function ElectricalAnnualInner() {
           to { opacity: 1; }
         }
         .elec-modal-box {
-          background: var(--bg-surface-raised, #172340);
-          border: 1px solid var(--border-strong, #2d3f5e);
+          background: linear-gradient(145deg, #131d35 0%, #0c1424 100%);
+          border: 1.5px solid rgba(59, 130, 246, 0.45);
           border-radius: 24px;
           padding: 28px 24px 22px;
           width: 100%;
           max-width: 410px;
           text-align: center;
-          box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.08);
+          box-shadow: 0 24px 70px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.1);
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -5369,13 +5445,13 @@ function ElectricalAnnualInner() {
           line-height: 1.5;
         }
         .elec-modal-badge {
-          background: var(--bg-input, #080e1a);
-          border: 1px solid var(--border-hairline, #1e2e4a);
-          border-radius: 10px;
-          padding: 6px 12px;
+          background: #080e1a;
+          border: 1px solid rgba(59, 130, 246, 0.35);
+          border-radius: 9999px;
+          padding: 6px 14px;
           font-size: 12px;
-          color: var(--ink-muted, #7c8ba1);
-          font-weight: 500;
+          color: #93c5fd;
+          font-weight: 600;
           margin: 0 0 4px;
           display: flex;
           align-items: center;
@@ -5417,12 +5493,12 @@ function ElectricalAnnualInner() {
           color: #60a5fa;
         }
         .elec-modal-card-btn--secondary {
-          border: 1.5px solid var(--border-strong, #2d3f5e);
-          background: var(--bg-surface, #111d32);
+          border: 1.5px solid rgba(148, 163, 184, 0.35);
+          background: rgba(30, 41, 59, 0.8);
         }
         .elec-modal-card-btn--secondary:hover {
-          background: var(--border-hairline, #1e2e4a);
-          border-color: #475569;
+          background: rgba(59, 130, 246, 0.2);
+          border-color: #60a5fa;
           transform: translateY(-1px);
         }
         .elec-modal-card-btn--secondary .elec-modal-card-title {
@@ -5705,7 +5781,7 @@ function ElectricalAnnualInner() {
           flex-wrap: wrap;
           gap: 10px;
           padding-bottom: 12px;
-          border-bottom: 1px solid var(--border-hairline);
+          border-bottom: 1px solid rgba(59, 130, 246, 0.25);
           margin-bottom: 14px;
         }
         .mdb-tag-group {
@@ -5736,40 +5812,43 @@ function ElectricalAnnualInner() {
           display: grid;
           grid-template-columns: 1fr 1.5fr;
           gap: 14px;
-          background: var(--bg-surface-raised, #172340);
-          border: 1.5px solid var(--border-strong, #2d3f5e);
-          border-radius: 14px;
-          padding: 14px 16px;
-          margin-bottom: 18px;
+          background: linear-gradient(145deg, rgba(30, 58, 138, 0.35) 0%, rgba(15, 23, 42, 0.85) 100%);
+          border: 2px solid rgba(59, 130, 246, 0.45);
+          border-radius: 18px;
+          padding: 16px 18px;
+          margin-bottom: 20px;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
         }
         .field-label-highlight {
           font-size: 13.5px;
           font-weight: 800;
-          color: var(--ink-primary);
+          color: #ffffff;
           display: block;
           margin-bottom: 6px;
         }
         .select-highlight {
           width: 100%;
-          background: var(--bg-input, #080e1a);
-          border: 1.5px solid var(--accent, #2563eb);
-          color: var(--ink-primary, #eef2ff);
-          border-radius: 10px;
-          padding: 10px 12px;
+          background: #080e1a;
+          border: 2px solid #3b82f6;
+          color: #ffffff;
+          border-radius: 12px;
+          padding: 10px 14px;
           font-size: 14px;
-          font-weight: 600;
+          font-weight: 700;
           font-family: inherit;
           cursor: pointer;
           outline: none;
+          box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
         }
 
         /* ── Subgroup Box within MDB (ตาราง 2.3, 2.4.1, 2.4.2, 2.5) ── */
         .subgroup-card {
-          background: var(--bg-surface, #111d32);
-          border: 1px solid var(--border-hairline, #1e2e4a);
-          border-radius: 14px;
-          padding: 16px;
-          margin-bottom: 16px;
+          background: linear-gradient(145deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.82) 100%);
+          border: 1.5px solid rgba(59, 130, 246, 0.35);
+          border-radius: 20px;
+          padding: 18px;
+          margin-bottom: 18px;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
         }
         .subgroup-hdr-flex {
           display: flex;
@@ -5779,52 +5858,60 @@ function ElectricalAnnualInner() {
           gap: 10px;
           margin-bottom: 14px;
           padding-bottom: 10px;
-          border-bottom: 1px solid var(--border-hairline);
+          border-bottom: 1px dashed rgba(59, 130, 246, 0.3);
         }
         .subgroup-title {
           font-size: 15px;
           font-weight: 800;
-          color: var(--ink-primary, #eef2ff);
+          color: #ffffff;
           margin: 0;
         }
         .subgroup-desc {
           font-size: 12px;
-          color: var(--ink-muted, #7c8ba1);
+          color: #cbd5e1;
           margin: 3px 0 0;
         }
         .btn-add-mini {
-          padding: 6px 14px;
-          border-radius: 8px;
-          background: rgba(37, 99, 235, 0.15);
-          border: 1px solid var(--accent, #2563eb);
-          color: #93c5fd;
+          padding: 7px 16px;
+          border-radius: 9999px;
+          background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+          border: 1.5px solid #bfdbfe;
+          color: #ffffff;
           font-size: 12.5px;
-          font-weight: 700;
+          font-weight: 800;
           cursor: pointer;
-          transition: all 0.15s;
+          box-shadow: 0 3px 10px rgba(37, 99, 235, 0.4);
+          transition: all 0.15s ease;
         }
         .btn-add-mini:hover {
-          background: var(--accent);
-          color: #ffffff;
+          background: #3b82f6;
+          transform: translateY(-1px);
+          box-shadow: 0 5px 14px rgba(37, 99, 235, 0.6);
         }
         .btn-del-mini {
-          padding: 4px 10px;
-          border-radius: 6px;
-          background: rgba(239, 68, 68, 0.12);
-          border: 1px solid rgba(239, 68, 68, 0.3);
-          color: #f87171;
+          padding: 5px 12px;
+          border-radius: 9999px;
+          background: rgba(239, 68, 68, 0.15);
+          border: 1px solid rgba(239, 68, 68, 0.4);
+          color: #fca5a5;
           font-size: 11.5px;
           font-weight: 700;
           cursor: pointer;
+          transition: all 0.15s ease;
+        }
+        .btn-del-mini:hover {
+          background: #ef4444;
+          color: #ffffff;
         }
 
         /* ── Nested items inside subgroups (แต่ละวงจรเมน, แผงย่อย, บริภัณฑ์) ── */
         .nested-item-box {
-          background: var(--bg-surface-raised, #172340);
-          border: 1px solid var(--border-strong, #2d3f5e);
-          border-radius: 12px;
-          padding: 14px;
-          margin-bottom: 12px;
+          background: linear-gradient(145deg, rgba(37, 50, 78, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+          border: 1.5px solid rgba(96, 165, 250, 0.35);
+          border-radius: 16px;
+          padding: 16px;
+          margin-bottom: 14px;
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
         }
         .nested-item-hdr {
           display: flex;
@@ -5832,12 +5919,12 @@ function ElectricalAnnualInner() {
           justify-content: space-between;
           margin-bottom: 10px;
           padding-bottom: 8px;
-          border-bottom: 1px solid var(--border-hairline);
+          border-bottom: 1px dashed rgba(96, 165, 250, 0.3);
         }
         .nested-item-badge {
-          font-size: 12.5px;
+          font-size: 13px;
           font-weight: 800;
-          color: var(--ink-primary);
+          color: #93c5fd;
         }
 
         /* ── Category bottom nav buttons ── */
@@ -5848,7 +5935,7 @@ function ElectricalAnnualInner() {
           gap: 12px;
           margin-top: 24px;
           padding-top: 16px;
-          border-top: 1px solid var(--border-hairline);
+          border-top: 1px solid rgba(59, 130, 246, 0.25);
         }
 
         /* ── Mobile enhancements ── */
