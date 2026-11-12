@@ -15,6 +15,17 @@ const getBuildingLabel = (val) => {
   return found ? found.label : val;
 };
 
+const getTransformerDisplayName = (tf, idx = 0) => {
+  const name = tf?.no?.trim();
+  return name || `หม้อแปลง #${idx + 1}`;
+};
+
+const getMdbDisplayName = (msb) => {
+  const raw = msb?.building === '__other__' ? (msb?.customBuilding || '') : (msb?.building || '');
+  const bld = getBuildingLabel(raw) || raw;
+  return bld ? `ตู้ MDB ${bld}` : 'ตู้ MDB (ยังไม่ระบุอาคาร)';
+};
+
 // ── Default Initial Form Data ────────────────────────────────────────────────
 const createDefaultHighVoltage = (idx = 1) => ({
   id: `hv_${Date.now()}_${idx}`,
@@ -2252,7 +2263,7 @@ function ElectricalAnnualInner() {
 
         return (
         <section className="form-section">
-          {/* ══ Category Sub-Tabs Navigation (3 หมวดหลัก — 3D Bubble Balloon Capsules) ══ */}
+          {/* ══ Category Sub-Tabs Navigation (3 หมวดหลัก) ══ */}
           <div className="cat-subnav-box">
             <div className="cat-subnav-pills">
               <button
@@ -2260,7 +2271,6 @@ function ElectricalAnnualInner() {
                 className={`cat-tab-btn cat-tab-btn--hv ${catTab === 'hv' ? 'cat-tab-btn--active' : ''}`}
                 onClick={() => setCatTab('hv')}
               >
-                <span className="cat-tab-icon">⚡</span>
                 <span className="cat-tab-title">ระบบแรงสูง</span>
                 <span className="cat-tab-balloon-badge">{data.highVoltageSystems?.length || 0}</span>
               </button>
@@ -2270,8 +2280,7 @@ function ElectricalAnnualInner() {
                 className={`cat-tab-btn cat-tab-btn--tf ${catTab === 'transformer' ? 'cat-tab-btn--active' : ''}`}
                 onClick={() => setCatTab('transformer')}
               >
-                <span className="cat-tab-icon">🔌</span>
-                <span className="cat-tab-title">หม้อแปลงไฟฟ้า</span>
+                <span className="cat-tab-title">หม้อแปลง</span>
                 <span className="cat-tab-balloon-badge">{data.transformers?.length || 0}</span>
               </button>
 
@@ -2280,8 +2289,7 @@ function ElectricalAnnualInner() {
                 className={`cat-tab-btn cat-tab-btn--mdb ${catTab === 'mdb' ? 'cat-tab-btn--active' : ''}`}
                 onClick={() => setCatTab('mdb')}
               >
-                <span className="cat-tab-icon">🏢</span>
-                <span className="cat-tab-title">ตู้เมนสวิตช์ & อาคาร</span>
+                <span className="cat-tab-title">ตู้เมนสวิตช์</span>
                 <span className="cat-tab-balloon-badge">{data.mainSwitchboards?.length || 0}</span>
               </button>
             </div>
@@ -2454,7 +2462,7 @@ function ElectricalAnnualInner() {
                 deleteLabel="ลบหม้อแปลงลูกนี้"
                 canDelete={data.transformers.length > 1}
                 badgeText={`ลูกที่ ${curTf + 1} จาก ${data.transformers.length}`}
-                renderOptionLabel={(tf, i) => `หม้อแปลงลูกที่ ${tf.no || i + 1}${tf.kva ? ' (' + tf.kva + ' kVA)' : ''}${tf.installType ? ' - ' + (tf.installType === 'sitting' ? 'นั่งร้าน' : tf.installType === 'hanging' ? 'แขวน' : tf.installType === 'yard' ? 'ลาน' : tf.installType === 'room' ? 'ในห้อง' : tf.installType) : ''}`}
+                renderOptionLabel={(tf, i) => `${getTransformerDisplayName(tf, i)}${tf.kva ? ' (' + tf.kva + ' kVA)' : ''}${tf.installType ? ' - ' + (tf.installType === 'sitting' ? 'นั่งร้าน' : tf.installType === 'hanging' ? 'แขวน' : tf.installType === 'yard' ? 'ลาน' : tf.installType === 'room' ? 'ในห้อง' : tf.installType) : ''}`}
               />
 
               {(() => {
@@ -2464,7 +2472,7 @@ function ElectricalAnnualInner() {
                 return (
                   <div key={tf.id || idx} className="card-box card-box--nested">
                     <div className="card-box__sub-hdr">
-                      <span className="card-box__item-num">หม้อแปลงลูกที่ {tf.no || idx + 1}</span>
+                      <span className="card-box__item-num">{getTransformerDisplayName(tf, idx)}</span>
                       {data.transformers.length > 1 && (
                         <button type="button" className="btn-del-item" onClick={() => removeTransformer(idx)}>
                           🗑 ลบหม้อแปลงลูกนี้
@@ -2474,7 +2482,7 @@ function ElectricalAnnualInner() {
 
                     <div className="field-grid field-grid--3">
                       <div className="field">
-                        <label>หม้อแปลงลูกที่</label>
+                        <label>ชื่อหม้อแปลง</label>
                         <input
                           type="text"
                           value={tf.no}
@@ -2817,7 +2825,7 @@ function ElectricalAnnualInner() {
                                   const count = data.mainSwitchboards.filter(m => String(m.sourceTransformer || '1') === String(tNo)).length;
                                   return (
                                     <option key={tf.id || tIdx} value={tNo}>
-                                      หม้อแปลงลูกที่ {tNo}{tf.kva ? ` (${tf.kva} kVA)` : ''} — [มี {count} ตู้เมน/อาคาร]
+                                      {getTransformerDisplayName(tf, tIdx)}{tf.kva ? ` (${tf.kva} kVA)` : ''} — [มี {count} ตู้ MDB]
                                     </option>
                                   );
                                 })}
@@ -2878,14 +2886,11 @@ function ElectricalAnnualInner() {
                                     setActiveEquipIdx(0);
                                   }}
                                 >
-                                  {mdbsForCurrentTf.map((m, fIdx) => {
-                                    const bldLabel = getBuildingLabel(m.building) || m.building || 'ยังไม่ระบุอาคาร';
-                                    return (
-                                      <option key={m.id || m.originalIdx} value={m.originalIdx}>
-                                        ตู้เมนสวิตช์ที่ {m.no || fIdx + 1} — อาคาร: {bldLabel}
-                                      </option>
-                                    );
-                                  })}
+                                  {mdbsForCurrentTf.map((m) => (
+                                    <option key={m.id || m.originalIdx} value={m.originalIdx}>
+                                      {getMdbDisplayName(m)}
+                                    </option>
+                                  ))}
                                 </select>
                               </div>
 
@@ -2911,9 +2916,9 @@ function ElectricalAnnualInner() {
                                 type="button"
                                 className="mcs-btn-action"
                                 onClick={() => addMainSwitchboardForTransformer(selectedTfForMdb)}
-                                title={`เพิ่มตู้เมนสวิตช์/อาคาร สำหรับหม้อแปลงลูกที่ ${selectedTfForMdb}`}
+                                title={`เพิ่มตู้ MDB สำหรับ ${selectedTfForMdb}`}
                               >
-                                + เพิ่มตู้เมน/อาคาร
+                                + เพิ่มตู้ MDB
                               </button>
 
                               {data.mainSwitchboards.length > 1 && (
@@ -2931,15 +2936,15 @@ function ElectricalAnnualInner() {
                             <div className="mcs-empty-balloon">
                               <span className="mcs-empty-icon">⚠️</span>
                               <div className="mcs-empty-text">
-                                <span>หม้อแปลงลูกที่ {selectedTfForMdb} ยังไม่มีตู้เมนสวิตช์ / อาคาร</span>
-                                <small>กดปุ่มด้านขวาเพื่อเพิ่มตู้เมนสวิตช์และเลือกว่าอยู่อาคารใด</small>
+                                <span>{selectedTfForMdb} ยังไม่มีตู้ MDB / อาคาร</span>
+                                <small>กดปุ่มด้านขวาเพื่อเพิ่มตู้ MDB และเลือกว่าอยู่อาคารใด</small>
                               </div>
                               <button
                                 type="button"
                                 className="mcs-btn-create-first"
                                 onClick={() => addMainSwitchboardForTransformer(selectedTfForMdb)}
                               >
-                                + เพิ่มตู้เมนสวิตช์สำหรับหม้อแปลงลูกที่ {selectedTfForMdb}
+                                + เพิ่มตู้ MDB สำหรับ {selectedTfForMdb}
                               </button>
                             </div>
                           )}
@@ -2969,11 +2974,8 @@ function ElectricalAnnualInner() {
                     {/* MDB Header Banner */}
                     <div className="card-box__sub-hdr mdb-sub-hdr">
                       <div className="mdb-tag-group">
-                        <span className="card-box__item-num">ตู้เมนสวิตช์ที่ {msb.no || mIdx + 1}</span>
-                        {msb.building && (
-                          <span className="mdb-badge-bld">🏢 {msb.building}</span>
-                        )}
-                        <span className="mdb-badge-tf">⚡ รับจากหม้อแปลงลูกที่ {msb.sourceTransformer || '1'}</span>
+                        <span className="card-box__item-num">{getMdbDisplayName(msb)}</span>
+                        <span className="mdb-badge-tf">⚡ รับจาก {msb.sourceTransformer || (data.transformers[0]?.no || 'หม้อแปลง')}</span>
                       </div>
                       {data.mainSwitchboards.length > 1 && (
                         <button type="button" className="btn-del-item" onClick={() => removeMainSwitchboard(mIdx)}>
@@ -2986,7 +2988,7 @@ function ElectricalAnnualInner() {
                     <div className="mdb-banner-grid">
                       <div className="field">
                         <label className="field-label-highlight">
-                          ⚡ รับไฟจากหม้อแปลงลูกที่ <span className="req">*</span>
+                          ⚡ รับไฟจากหม้อแปลง <span className="req">*</span>
                         </label>
                         <select
                           className="select-highlight"
@@ -2995,11 +2997,12 @@ function ElectricalAnnualInner() {
                         >
                           {data.transformers.map((tf, tIdx) => {
                             const val = tf.no || `${tIdx + 1}`;
-                            const label = tf.kva ? `หม้อแปลงลูกที่ ${val} (${tf.kva} kVA)` : `หม้อแปลงลูกที่ ${val}`;
+                            const name = getTransformerDisplayName(tf, tIdx);
+                            const label = tf.kva ? `${name} (${tf.kva} kVA)` : name;
                             return <option key={tf.id || tIdx} value={val}>{label}</option>;
                           })}
                           {msb.sourceTransformer && !data.transformers.some((tf, tIdx) => (tf.no || `${tIdx + 1}`) === String(msb.sourceTransformer)) && (
-                            <option value={msb.sourceTransformer}>หม้อแปลงลูกที่ {msb.sourceTransformer}</option>
+                            <option value={msb.sourceTransformer}>{msb.sourceTransformer}</option>
                           )}
                         </select>
                       </div>
@@ -3061,7 +3064,7 @@ function ElectricalAnnualInner() {
                       </h3>
                       <div className="field-grid field-grid--2">
                         <div className="field">
-                          <label>ตู้เมนสวิตช์ที่</label>
+                          <label>ชื่อ / รหัสตู้ MDB</label>
                           <input
                             type="text"
                             value={msb.no}
@@ -3336,7 +3339,7 @@ function ElectricalAnnualInner() {
                       <div className="subgroup-hdr-flex">
                         <div>
                           <h3 className="subgroup-title">แผงย่อย (Distribution Board - DB)</h3>
-                          <p className="subgroup-desc">แผงวงจรย่อยที่ต่อแยกจากตู้เมนสวิตช์ที่ {msb.no || mIdx + 1}</p>
+                          <p className="subgroup-desc">แผงวงจรย่อยที่ต่อแยกจาก {getMdbDisplayName(msb)}</p>
                         </div>
                         <button type="button" className="btn-add-mini" onClick={() => addSubPanelToMdb(mIdx)}>
                           + เพิ่มแผงย่อย (DB)
@@ -3599,7 +3602,7 @@ function ElectricalAnnualInner() {
                         className="btn-add-item-bottom"
                         onClick={() => addMainSwitchboardForTransformer(selectedTfForMdb)}
                       >
-                        + เพิ่มตู้เมนสวิตช์ / อาคาร สำหรับหม้อแปลงลูกที่ {selectedTfForMdb}
+                        + เพิ่มตู้ MDB / อาคาร สำหรับ {selectedTfForMdb}
                       </button>
                     </div>
                   </>
@@ -4493,34 +4496,29 @@ function ElectricalAnnualInner() {
             padding: 5px;
           }
           .cat-subnav-pills {
-            display: flex;
-            gap: 6px;
-            overflow-x: auto;
-            flex-wrap: nowrap;
-            scrollbar-width: none;
-          }
-          .cat-subnav-pills::-webkit-scrollbar {
-            display: none;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 5px;
           }
           .cat-tab-btn {
-            flex: 1 1 0;
+            width: 100%;
             min-width: 0;
-            padding: 9px 8px;
+            padding: 8px 6px;
             border-radius: 10px;
             gap: 5px;
           }
-          .cat-tab-icon {
-            font-size: 15px;
-          }
           .cat-tab-title {
-            font-size: 11.5px;
+            font-size: 12px;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
           .cat-tab-balloon-badge {
             min-width: 18px;
             height: 18px;
             font-size: 10px;
             padding: 0 5px;
+            flex-shrink: 0;
           }
           .year-bubble-grid {
             grid-template-columns: repeat(2, 1fr);
@@ -5582,31 +5580,26 @@ function ElectricalAnnualInner() {
           box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
         }
         .cat-subnav-pills {
-          display: flex;
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 6px;
-          overflow-x: auto;
-          flex-wrap: nowrap;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
-        }
-        .cat-subnav-pills::-webkit-scrollbar {
-          display: none;
         }
         .cat-tab-btn {
           position: relative;
-          flex: 1;
+          width: 100%;
+          min-width: 0;
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 7px;
-          padding: 10px 14px;
+          padding: 10px 10px;
           border-radius: 12px;
           cursor: pointer;
           font-family: inherit;
           transition: all 0.16s ease;
           text-align: center;
           white-space: nowrap;
-          flex-shrink: 0;
+          overflow: hidden;
           -webkit-tap-highlight-color: transparent;
         }
         .cat-tab-btn:active {
