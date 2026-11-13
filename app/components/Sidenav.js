@@ -61,13 +61,20 @@ export default function Sidenav({ notifProps = null }) {
         <span className="sn-item-label">หน้าแรก (เมนูลัด)</span>
       </button>
 
-      {/* Admin overview */}
+      {/* Admin overview & settings */}
       {isAdmin && (
-        <button className={`sn-item${pathname === '/admin' ? ' sn-item--active' : ''}`}
-          onClick={() => router.push('/admin')}>
-          <span className="sn-item-icon">📈</span>
-          <span className="sn-item-label">ภาพรวมระบบ</span>
-        </button>
+        <>
+          <button className={`sn-item${pathname === '/admin' && !searchParams.get('tab') ? ' sn-item--active' : ''}`}
+            onClick={() => router.push('/admin')}>
+            <span className="sn-item-icon">📈</span>
+            <span className="sn-item-label">ภาพรวมระบบ</span>
+          </button>
+          <button className={`sn-item${pathname === '/admin' && (searchParams.get('tab') === 'delete-reports' || searchParams.get('tab') === 'settings') ? ' sn-item--active' : ''}`}
+            onClick={() => router.push('/admin?tab=delete-reports')}>
+            <span className="sn-item-icon">⚙️</span>
+            <span className="sn-item-label">ตั้งค่า / ลบรายงาน</span>
+          </button>
+        </>
       )}
 
       <div className="sn-divider" />

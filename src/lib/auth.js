@@ -1,4 +1,5 @@
 import GoogleProvider from 'next-auth/providers/google';
+import CredentialsProvider from 'next-auth/providers/credentials';
 import { getServerSession } from 'next-auth';
 import { getRoleForEmail } from './usersStore';
 
@@ -7,6 +8,26 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '')
 
 export const authOptions = {
   providers: [
+    CredentialsProvider({
+      id: 'pin',
+      name: 'PIN 8888 Admin',
+      credentials: {
+        pin: { label: 'PIN', type: 'password' },
+      },
+      async authorize(credentials) {
+        const pin = credentials?.pin?.trim();
+        if (pin === '8888') {
+          return {
+            id: 'admin-8888',
+            name: 'ผู้ดูแลระบบ (Admin 8888)',
+            email: 'admin8888@egat.co.th',
+            image: null,
+            role: 'admin',
+          };
+        }
+        return null;
+      },
+    }),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -19,8 +40,12 @@ export const authOptions = {
     // ดึง role ครั้งเดียวตอน sign-in แล้วฝังใน JWT (เปลี่ยน role ต้อง login ใหม่)
     async jwt({ token, user }) {
       if (user) {
-        const email = (user.email || '').toLowerCase();
-        token.role = ADMIN_EMAILS.includes(email) ? 'admin' : await getRoleForEmail(email);
+        if (user.role === 'admin') {
+          token.role = 'admin';
+        } else {
+          const email = (user.email || '').toLowerCase();
+          token.role = ADMIN_EMAILS.includes(email) ? 'admin' : await getRoleForEmail(email);
+        }
       }
       return token;
     },

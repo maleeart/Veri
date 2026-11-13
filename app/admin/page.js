@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useMemo, Fragment } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useMemo, Fragment, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Sidenav from '../components/Sidenav';
 import SystemTrends from '../components/SystemTrends';
@@ -95,14 +95,46 @@ const PM_TYPES = [
   { type: 'exit',      icon: '🚪', label: 'Exit Sign' },
 ];
 
-export default function AdminPage() {
+const MENU_OPTIONS = [
+  { value: 'all', label: 'ทั้งหมดทุกระบบ', icon: '📁' },
+  { value: 'fpg', label: 'Fire Pump & Generator', icon: '🚒' },
+  { value: 'emergency', label: 'Emergency Light', icon: '💡' },
+  { value: 'smoke', label: 'Smoke Detector', icon: '🚨' },
+  { value: 'exit', label: 'Exit Sign', icon: '🚪' },
+  { value: 'elec', label: 'บริภัณฑ์ไฟฟ้าประจำปี', icon: '📑' },
+  { value: 'other', label: 'อื่นๆ', icon: '📦' },
+];
+
+function getMenuInfo(type) {
+  const t = String(type || '').toLowerCase();
+  if (t === 'fpg') return { icon: '🚒', label: 'Fire Pump & Generator', tagClass: 'tag-fpg' };
+  if (t === 'emergency') return { icon: '💡', label: 'Emergency Light', tagClass: 'tag-emerg' };
+  if (t === 'smoke') return { icon: '🚨', label: 'Smoke Detector', tagClass: 'tag-smoke' };
+  if (t === 'exit') return { icon: '🚪', label: 'Exit Sign', tagClass: 'tag-exit' };
+  if (t === 'elec' || t.includes('annual') || t.includes('electrical')) return { icon: '📑', label: 'บริภัณฑ์ไฟฟ้าประจำปี', tagClass: 'tag-elec' };
+  return { icon: '📦', label: type ? type.toUpperCase() : 'ไม่ระบุ', tagClass: 'tag-other' };
+}
+
+function AdminInner() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const isAdmin = session?.user?.role === 'admin';
   const today = new Date().toISOString().slice(0, 10);
 
-  const [view, setView] = useState('dashboard');
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get('tab');
+  const [view, setView] = useState(initialTab === 'delete-reports' || initialTab === 'settings' ? 'delete-reports' : 'dashboard');
   const [expandedPM, setExpandedPM] = useState(new Set());
+
+  // Delete reports state & filters
+  const [reportsLoading, setReportsLoading] = useState(false);
+  const [allReports, setAllReports] = useState([]);
+  const [filterMenu, setFilterMenu] = useState('all');
+  const [filterYear, setFilterYear] = useState('all');
+  const [filterBuilding, setFilterBuilding] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [deletingPath, setDeletingPath] = useState(null);
+  const [confirmDelModal, setConfirmDelModal] = useState(null);
 
   // Dashboard state
   const [dates, setDates]         = useState(null);
@@ -120,6 +152,52 @@ export default function AdminPage() {
   const [email, setEmail]   = useState('');
   const [busy, setBusy]     = useState(false);
   const [err, setErr]       = useState('');
+
+  const loadAllReports = async () => {
+    setReportsLoading(true);
+    try {
+      const res = await fetch('/api/inspections');
+      const data = await res.json();
+      const list = data.dates || [];
+      setAllReports(list);
+    } catch (e) {
+      console.error('Failed to load reports:', e);
+    } finally {
+      setReportsLoading(false);
+    }
+  };
+
+  const handleDeleteReport = async (rep) => {
+    setDeletingPath(rep._path || rep.filename || rep.date);
+    try {
+      const res = await fetch('/api/delete-inspection', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: rep.date,
+          type: rep.type,
+          filename: rep.filename,
+          building: rep.building,
+          floor: rep.floor,
+          _path: rep._path,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'ลบรายงานไม่สำเร็จ');
+      } else {
+        setAllReports(prev => prev.filter(r => (r._path || r.filename || r.date) !== (rep._path || rep.filename || rep.date)));
+        if (dates) {
+          setDates(prev => prev.filter(r => (r._path || r.filename || r.date) !== (rep._path || rep.filename || rep.date)));
+        }
+        setConfirmDelModal(null);
+      }
+    } catch (e) {
+      alert(String(e.message || e));
+    } finally {
+      setDeletingPath(null);
+    }
+  };
 
   const loadDashboard = async () => {
     if (dashLoading) return;
@@ -162,6 +240,17 @@ export default function AdminPage() {
   useEffect(() => {
     if (isAdmin && view === 'users' && users === null) loadUsers();
   }, [isAdmin, view]);
+
+  useEffect(() => {
+    if (isAdmin && view === 'delete-reports' && allReports.length === 0 && !reportsLoading) loadAllReports();
+  }, [isAdmin, view]);
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'delete-reports' || tab === 'settings') {
+      setView('delete-reports');
+    }
+  }, [searchParams]);
 
   const setRole = async (targetEmail, role) => {
     if (!targetEmail) return;
@@ -242,6 +331,57 @@ export default function AdminPage() {
 
   const totalOverdue = pmData ? PM_TYPES.reduce((s, { type }) => s + pmData[type].overdue, 0) : 0;
 
+  const availableYears = useMemo(() => {
+    const s = new Set();
+    for (const r of allReports) {
+      if (r.date && r.date.length >= 4) {
+        s.add(r.date.slice(0, 4));
+      }
+    }
+    return Array.from(s).sort().reverse();
+  }, [allReports]);
+
+  const availableBuildings = useMemo(() => {
+    const s = new Set(BUILDINGS);
+    for (const r of allReports) {
+      if (r.building) s.add(r.building);
+    }
+    return Array.from(s).sort();
+  }, [allReports]);
+
+  const filteredReports = useMemo(() => {
+    return allReports.filter(rep => {
+      // Menu filter
+      if (filterMenu !== 'all') {
+        const t = (rep.type || '').toLowerCase();
+        if (filterMenu === 'other') {
+          const known = ['fpg', 'emergency', 'smoke', 'exit', 'elec'];
+          if (known.some(k => t.includes(k))) return false;
+        } else if (filterMenu === 'elec') {
+          if (!t.includes('elec') && !t.includes('annual') && !t.includes('electrical')) return false;
+        } else {
+          if (!t.includes(filterMenu)) return false;
+        }
+      }
+      // Year filter
+      if (filterYear !== 'all') {
+        const y = (rep.date || '').slice(0, 4);
+        if (y !== filterYear) return false;
+      }
+      // Building filter
+      if (filterBuilding !== 'all') {
+        if ((rep.building || '').trim() !== filterBuilding.trim()) return false;
+      }
+      // Search query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const text = `${rep.date || ''} ${rep.building || ''} ${rep.floor || ''} ${rep.label || ''} ${rep.type || ''} ${rep.filename || ''} ${rep._path || ''}`.toLowerCase();
+        if (!text.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [allReports, filterMenu, filterYear, filterBuilding, searchQuery]);
+
   if (status === 'loading') return <main className="msg">กำลังโหลด...</main>;
   if (!isAdmin) return (
     <main className="msg">
@@ -256,6 +396,7 @@ export default function AdminPage() {
 
   const QUICK = [
     { icon: '🏠',   label: 'หน้าแรก (เมนูลัด)',       href: '/' },
+    { icon: '⚙️',   label: 'ตั้งค่า / ลบรายงาน',     href: null, action: () => setView('delete-reports') },
     { icon: '🚒',   label: 'Fire Pump & Generator', href: '/session' },
     { icon: '💡',   label: 'Emergency Light',        href: `/form/emergency?date=${today}` },
     { icon: '🚨',   label: 'Smoke Detector',         href: `/form/smoke?date=${today}` },
@@ -325,20 +466,50 @@ export default function AdminPage() {
               <h1 className="adm-title">
                 {view === 'dashboard' && '🏠 ภาพรวมระบบ'}
                 {view === 'users' && '👥 จัดการผู้ใช้'}
+                {view === 'delete-reports' && '⚙️ ตั้งค่าระบบ / ลบรายงาน'}
               </h1>
               <p className="adm-sub">
                 {view === 'dashboard' && 'Admin Dashboard · Facility Inspection'}
                 {view === 'users' && 'กำหนดสิทธิ์การใช้งาน'}
+                {view === 'delete-reports' && 'ค้นหา ตัวกรอง และลบรายงานที่ไม่ต้องการ (เฉพาะ Admin 8888)'}
               </p>
             </div>
           </div>
           <div className="adm-hdr-actions">
+            <div className="adm-tabs-pills">
+              <button
+                type="button"
+                className={`tab-pill ${view === 'dashboard' ? 'active' : ''}`}
+                onClick={() => setView('dashboard')}
+              >
+                🏠 ภาพรวม
+              </button>
+              <button
+                type="button"
+                className={`tab-pill ${view === 'delete-reports' ? 'active' : ''}`}
+                onClick={() => setView('delete-reports')}
+              >
+                ⚙️ ลบรายงาน
+              </button>
+              <button
+                type="button"
+                className={`tab-pill ${view === 'users' ? 'active' : ''}`}
+                onClick={() => setView('users')}
+              >
+                👥 จัดการผู้ใช้
+              </button>
+            </div>
             <button className="adm-btn-home" onClick={() => router.push('/')} title="ไปหน้าแรก (เมนูลัด)">
-              <span>🏠</span> หน้าแรก (เมนูลัด)
+              <span>🏠</span> หน้าแรก
             </button>
             {view === 'dashboard' && (
               <button className="adm-refresh" onClick={loadDashboard} disabled={dashLoading} title="รีเฟรชข้อมูล">
                 <span style={{ display:'inline-block', animation: dashLoading ? 'spin 1s linear infinite' : 'none' }}>🔄</span>
+              </button>
+            )}
+            {view === 'delete-reports' && (
+              <button className="adm-refresh" onClick={loadAllReports} disabled={reportsLoading} title="รีเฟรชรายการรายงาน">
+                <span style={{ display:'inline-block', animation: reportsLoading ? 'spin 1s linear infinite' : 'none' }}>🔄</span>
               </button>
             )}
           </div>
@@ -576,6 +747,250 @@ export default function AdminPage() {
           </div>
         )}
 
+        {/* Delete Reports Management */}
+        {view === 'delete-reports' && (
+          <div className="del-view">
+            {/* Top overview stats */}
+            <div className="del-overview-card">
+              <div className="doc-left">
+                <div className="doc-title">🗑️ จัดการลบรายงานในระบบ</div>
+                <div className="doc-desc">
+                  ค้นหา กรองตามหมวดหมู่/ปี/อาคาร และลบรายงานที่ไม่ต้องการออกจากฐานข้อมูลถาวร
+                </div>
+              </div>
+              <div className="doc-stats">
+                <div className="stat-pill">
+                  <span className="sp-val">{allReports.length}</span>
+                  <span className="sp-lbl">รายงานทั้งหมด</span>
+                </div>
+                <div className="stat-pill stat-pill--highlight">
+                  <span className="sp-val">{filteredReports.length}</span>
+                  <span className="sp-lbl">ตรงตามตัวกรอง</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Filter controls box */}
+            <div className="filter-box">
+              <div className="fb-hd">
+                <span>🔍 ตัวกรองค้นหารายงาน</span>
+                {(filterMenu !== 'all' || filterYear !== 'all' || filterBuilding !== 'all' || searchQuery) && (
+                  <button
+                    type="button"
+                    className="fb-reset-btn"
+                    onClick={() => {
+                      setFilterMenu('all');
+                      setFilterYear('all');
+                      setFilterBuilding('all');
+                      setSearchQuery('');
+                    }}
+                  >
+                    ↺ ล้างตัวกรองทั้งหมด
+                  </button>
+                )}
+              </div>
+
+              <div className="fb-grid">
+                {/* 1. Menu Filter */}
+                <div className="fb-field">
+                  <label className="fb-label">หมวดหมู่ / เมนูระบบ</label>
+                  <select
+                    className="fb-select"
+                    value={filterMenu}
+                    onChange={e => setFilterMenu(e.target.value)}
+                  >
+                    {MENU_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.icon} {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 2. Year Filter */}
+                <div className="fb-field">
+                  <label className="fb-label">ปี (พ.ศ. / ค.ศ.)</label>
+                  <select
+                    className="fb-select"
+                    value={filterYear}
+                    onChange={e => setFilterYear(e.target.value)}
+                  >
+                    <option value="all">📅 ทุกปี</option>
+                    {availableYears.map(y => {
+                      const num = parseInt(y, 10);
+                      const thYear = isNaN(num) ? y : num + 543;
+                      return (
+                        <option key={y} value={y}>
+                          พ.ศ. {thYear} ({y})
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                {/* 3. Building Filter */}
+                <div className="fb-field">
+                  <label className="fb-label">อาคาร / สถานที่</label>
+                  <select
+                    className="fb-select"
+                    value={filterBuilding}
+                    onChange={e => setFilterBuilding(e.target.value)}
+                  >
+                    <option value="all">🏢 ทุกอาคาร</option>
+                    {availableBuildings.map(b => (
+                      <option key={b} value={b}>
+                        อาคาร {b}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 4. Search Filter */}
+                <div className="fb-field fb-field--search">
+                  <label className="fb-label">ค้นหาคำสำคัญ</label>
+                  <div className="fb-input-wrap">
+                    <input
+                      type="text"
+                      className="fb-input"
+                      placeholder="พิมพ์วันที่, อาคาร, ชั้น, ชื่อไฟล์..."
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                    />
+                    {searchQuery && (
+                      <button type="button" className="fb-clear-text" onClick={() => setSearchQuery('')}>×</button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Reports List */}
+            {reportsLoading ? (
+              <div className="del-loading-state">
+                <span className="loading-spinner">🔄</span>
+                <p>กำลังโหลดรายการรายงานทั้งหมดจากระบบ...</p>
+              </div>
+            ) : filteredReports.length === 0 ? (
+              <div className="del-empty-state">
+                <span className="empty-emoji">🔍</span>
+                <div className="empty-title">ไม่พบรายงานที่ตรงตามเงื่อนไข</div>
+                <div className="empty-sub">ลองเปลี่ยนตัวกรอง หรือกดปุ่ม &quot;ล้างตัวกรองทั้งหมด&quot;</div>
+              </div>
+            ) : (
+              <div className="del-list-wrap">
+                <div className="del-list-header">
+                  <span>พบรายงานทั้งหมด {filteredReports.length} รายการ</span>
+                </div>
+                <div className="del-table">
+                  <div className="del-th-row">
+                    <div className="del-th col-date">วันที่บันทึก</div>
+                    <div className="del-th col-menu">หมวดหมู่ / เมนู</div>
+                    <div className="del-th col-bldg">อาคาร / ชั้น</div>
+                    <div className="del-th col-file">ชื่อไฟล์ / ที่จัดเก็บ</div>
+                    <div className="del-th col-act">การจัดการ</div>
+                  </div>
+                  {filteredReports.map((rep, idx) => {
+                    const info = getMenuInfo(rep.type);
+                    const isDeleting = deletingPath === (rep._path || rep.filename || rep.date);
+                    return (
+                      <div key={rep._path || rep.filename || idx} className="del-tr-row">
+                        <div className="del-td col-date">
+                          <span className="dt-primary">{fmtDate(rep.date)}</span>
+                          <span className="dt-sub">{rep.date}</span>
+                        </div>
+                        <div className="del-td col-menu">
+                          <span className={`menu-tag ${info.tagClass}`}>
+                            {info.icon} {info.label}
+                          </span>
+                        </div>
+                        <div className="del-td col-bldg">
+                          {rep.building ? (
+                            <div className="bldg-badge">
+                              <span className="bldg-icon">🏢</span>
+                              <span className="bldg-name">{rep.building}</span>
+                              {rep.floor && <span className="bldg-floor">ชั้น {rep.floor}</span>}
+                            </div>
+                          ) : (
+                            <span className="text-muted">—</span>
+                          )}
+                        </div>
+                        <div className="del-td col-file">
+                          <div className="file-info" title={rep._path || rep.filename}>
+                            <span className="file-name">{rep.filename || rep._path}</span>
+                            {rep._path && <span className="file-path">{rep._path}</span>}
+                          </div>
+                        </div>
+                        <div className="del-td col-act">
+                          <button
+                            type="button"
+                            className="btn-del-action"
+                            disabled={isDeleting}
+                            onClick={() => setConfirmDelModal(rep)}
+                            title="ลบรายงานนี้ออกจากระบบ"
+                          >
+                            {isDeleting ? 'กำลังลบ...' : '🗑️ ลบรายงาน'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Confirm Delete Modal */}
+            {confirmDelModal && (
+              <div className="del-modal-backdrop" onClick={() => !deletingPath && setConfirmDelModal(null)}>
+                <div className="del-modal-card" onClick={e => e.stopPropagation()}>
+                  <div className="dm-icon">⚠️</div>
+                  <h3 className="dm-title">ยืนยันการลบรายงาน</h3>
+                  <p className="dm-warning">
+                    คุณแน่ใจหรือไม่ว่าต้องการลบรายงานนี้? การกระทำนี้ไม่สามารถย้อนกลับได้ และไฟล์จะถูกลบออกจากฐานข้อมูลถาวร
+                  </p>
+                  <div className="dm-details">
+                    <div className="dm-row">
+                      <span className="dm-k">หมวดหมู่ระบบ:</span>
+                      <span className="dm-v">{getMenuInfo(confirmDelModal.type).icon} {getMenuInfo(confirmDelModal.type).label}</span>
+                    </div>
+                    <div className="dm-row">
+                      <span className="dm-k">วันที่บันทึก:</span>
+                      <span className="dm-v">{fmtDate(confirmDelModal.date)} ({confirmDelModal.date})</span>
+                    </div>
+                    {confirmDelModal.building && (
+                      <div className="dm-row">
+                        <span className="dm-k">สถานที่:</span>
+                        <span className="dm-v">อาคาร {confirmDelModal.building} {confirmDelModal.floor ? `ชั้น ${confirmDelModal.floor}` : ''}</span>
+                      </div>
+                    )}
+                    <div className="dm-row">
+                      <span className="dm-k">ชื่อไฟล์:</span>
+                      <span className="dm-v"><code className="dm-code">{confirmDelModal.filename || confirmDelModal._path}</code></span>
+                    </div>
+                  </div>
+                  <div className="dm-actions">
+                    <button
+                      type="button"
+                      className="dm-btn-cancel"
+                      disabled={deletingPath != null}
+                      onClick={() => setConfirmDelModal(null)}
+                    >
+                      ยกเลิก
+                    </button>
+                    <button
+                      type="button"
+                      className="dm-btn-confirm"
+                      disabled={deletingPath != null}
+                      onClick={() => handleDeleteReport(confirmDelModal)}
+                    >
+                      {deletingPath ? 'กำลังลบ...' : '🗑️ ยืนยันลบถาวร'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
       </main>
 
       <style jsx>{`
@@ -598,7 +1013,15 @@ export default function AdminPage() {
         .adm-back  { background: none; border: none; font-size: 28px; color: var(--ink-muted); cursor: pointer; padding: 0 6px 0 0; line-height: 1; }
         .adm-title { font-size: 20px; font-weight: 800; color: var(--ink-primary); margin: 0; }
         .adm-sub   { font-size: 12px; color: var(--ink-muted); margin: 2px 0 0; }
-        .adm-hdr-actions { display: flex; align-items: center; gap: 8px; }
+        .adm-hdr-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .adm-tabs-pills { display: flex; align-items: center; background: var(--bg-surface-raised); padding: 3px; border-radius: 12px; border: 1px solid var(--border-hairline); gap: 4px; }
+        .tab-pill {
+          background: transparent; border: none; color: var(--ink-secondary);
+          padding: 6px 12px; border-radius: 9px; font-size: 13px; font-weight: 700;
+          cursor: pointer; transition: all .15s; font-family: inherit; display: flex; align-items: center; gap: 4px;
+        }
+        .tab-pill:hover { color: var(--ink-primary); background: rgba(255,255,255,0.04); }
+        .tab-pill.active { background: var(--accent); color: #fff; box-shadow: 0 2px 6px rgba(37,99,235,0.3); }
         .adm-btn-home {
           display: flex; align-items: center; gap: 6px;
           background: rgba(37,99,235,0.14); border: 1px solid rgba(59,130,246,0.35);
@@ -794,7 +1217,339 @@ export default function AdminPage() {
         .btn-sm { background: var(--bg-surface-raised); border: 1px solid var(--border-strong); color: var(--ink-secondary); border-radius: 8px; padding: 5px 10px; font-size: 12px; cursor: pointer; white-space: nowrap; }
         .btn-sm--promote { background: rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.4); color: #4ade80; }
         .btn-sm:disabled { opacity: .5; }
+
+        /* ── Delete Reports View ── */
+        .del-view {
+          padding: 24px 32px 48px;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        .del-overview-card {
+          background: var(--bg-surface);
+          border: 1px solid var(--border-hairline);
+          border-radius: 16px;
+          padding: 20px 24px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        @media (max-width: 768px) {
+          .del-overview-card { flex-direction: column; align-items: flex-start; }
+        }
+        .doc-left { display: flex; flex-direction: column; gap: 4px; }
+        .doc-title { font-size: 18px; font-weight: 800; color: var(--ink-primary); }
+        .doc-desc  { font-size: 13px; color: var(--ink-secondary); }
+        .doc-stats { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+        .stat-pill {
+          background: var(--bg-surface-raised);
+          border: 1px solid var(--border-hairline);
+          border-radius: 12px;
+          padding: 8px 16px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          min-width: 90px;
+        }
+        .stat-pill--highlight {
+          background: rgba(37,99,235,0.12);
+          border-color: rgba(59,130,246,0.35);
+        }
+        .stat-pill--highlight .sp-val { color: #60a5fa; }
+        .sp-val { font-size: 20px; font-weight: 800; color: var(--ink-primary); line-height: 1.1; }
+        .sp-lbl { font-size: 11px; font-weight: 600; color: var(--ink-muted); margin-top: 2px; }
+
+        /* Filter Box */
+        .filter-box {
+          background: var(--bg-surface);
+          border: 1px solid var(--border-hairline);
+          border-radius: 16px;
+          padding: 18px 22px;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .fb-hd {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 14px;
+          font-weight: 800;
+          color: var(--ink-primary);
+        }
+        .fb-reset-btn {
+          background: var(--bg-surface-raised);
+          border: 1px solid var(--border-strong);
+          color: var(--ink-secondary);
+          border-radius: 8px;
+          padding: 4px 10px;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all .12s;
+        }
+        .fb-reset-btn:hover { background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.4); }
+
+        .fb-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr) 1.5fr;
+          gap: 14px;
+          align-items: flex-end;
+        }
+        @media (max-width: 900px) {
+          .fb-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 600px) {
+          .fb-grid { grid-template-columns: 1fr; }
+        }
+        .fb-field { display: flex; flex-direction: column; gap: 6px; }
+        .fb-label { font-size: 12px; font-weight: 700; color: var(--ink-secondary); }
+        .fb-select, .fb-input {
+          width: 100%;
+          padding: 9px 12px;
+          border-radius: 10px;
+          border: 1.5px solid var(--border-strong);
+          background: var(--bg-input, var(--bg-surface-raised));
+          color: var(--ink-primary);
+          font-size: 13px;
+          font-family: inherit;
+          box-sizing: border-box;
+          outline: none;
+          transition: border-color .15s;
+        }
+        .fb-select:focus, .fb-input:focus { border-color: var(--accent); }
+        .fb-input-wrap { position: relative; display: flex; align-items: center; }
+        .fb-clear-text {
+          position: absolute; right: 10px;
+          background: none; border: none; color: var(--ink-muted);
+          cursor: pointer; font-size: 18px; line-height: 1; padding: 2px 4px;
+        }
+
+        /* States */
+        .del-loading-state, .del-empty-state {
+          padding: 60px 20px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-hairline);
+          border-radius: 16px;
+          color: var(--ink-muted);
+          text-align: center;
+        }
+        .loading-spinner { font-size: 32px; animation: spin 1s linear infinite; display: inline-block; }
+        .empty-emoji { font-size: 38px; }
+        .empty-title { font-size: 16px; font-weight: 700; color: var(--ink-secondary); }
+        .empty-sub { font-size: 13px; color: var(--ink-muted); }
+
+        /* Report List Table */
+        .del-list-wrap {
+          background: var(--bg-surface);
+          border: 1px solid var(--border-hairline);
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .del-list-header {
+          padding: 12px 20px;
+          background: var(--bg-surface-raised);
+          border-bottom: 1px solid var(--border-hairline);
+          font-size: 12px;
+          font-weight: 700;
+          color: var(--ink-secondary);
+        }
+        .del-table { display: flex; flex-direction: column; }
+        .del-th-row {
+          display: grid;
+          grid-template-columns: 140px 180px 140px 1fr 120px;
+          padding: 12px 18px;
+          background: rgba(0,0,0,0.08);
+          border-bottom: 1px solid var(--border-hairline);
+          font-size: 12px;
+          font-weight: 800;
+          color: var(--ink-muted);
+          align-items: center;
+        }
+        .del-tr-row {
+          display: grid;
+          grid-template-columns: 140px 180px 140px 1fr 120px;
+          padding: 14px 18px;
+          border-bottom: 1px solid var(--border-hairline);
+          align-items: center;
+          transition: background .12s;
+        }
+        .del-tr-row:last-child { border-bottom: none; }
+        .del-tr-row:hover { background: var(--bg-surface-raised); }
+
+        @media (max-width: 860px) {
+          .del-th-row { display: none; }
+          .del-tr-row {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 16px 18px;
+          }
+          .del-td.col-act { width: 100%; }
+          .btn-del-action { width: 100%; justify-content: center; }
+        }
+
+        .del-td { font-size: 13px; color: var(--ink-primary); }
+        .col-date { display: flex; flex-direction: column; gap: 2px; }
+        .dt-primary { font-weight: 700; font-size: 13px; color: var(--ink-primary); }
+        .dt-sub { font-size: 11px; color: var(--ink-muted); }
+
+        .menu-tag {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 10px;
+          border-radius: 8px;
+          font-size: 12px;
+          font-weight: 700;
+          white-space: nowrap;
+          border: 1px solid transparent;
+        }
+        .tag-fpg   { background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.35); }
+        .tag-emerg { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.35); }
+        .tag-smoke { background: rgba(220, 38, 38, 0.15); color: #fca5a5; border-color: rgba(220, 38, 38, 0.35); }
+        .tag-exit  { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border-color: rgba(59, 130, 246, 0.35); }
+        .tag-elec  { background: rgba(168, 85, 247, 0.15); color: #c084fc; border-color: rgba(168, 85, 247, 0.35); }
+        .tag-other { background: var(--bg-surface-raised); color: var(--ink-secondary); border-color: var(--border-strong); }
+
+        .bldg-badge { display: flex; align-items: center; gap: 6px; }
+        .bldg-icon { font-size: 14px; opacity: .7; }
+        .bldg-name { font-weight: 700; font-size: 13px; color: var(--ink-primary); }
+        .bldg-floor { font-size: 11px; color: var(--ink-muted); background: var(--bg-surface-raised); padding: 2px 6px; border-radius: 6px; }
+        .text-muted { color: var(--ink-muted); }
+
+        .file-info { display: flex; flex-direction: column; gap: 2px; overflow: hidden; padding-right: 12px; }
+        .file-name { font-weight: 600; font-size: 12px; color: var(--ink-secondary); word-break: break-all; }
+        .file-path { font-size: 10px; color: var(--ink-muted); word-break: break-all; font-family: monospace; }
+
+        .btn-del-action {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: rgba(239, 68, 68, 0.12);
+          border: 1px solid rgba(239, 68, 68, 0.35);
+          color: #f87171;
+          border-radius: 9px;
+          padding: 6px 12px;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all .15s;
+          white-space: nowrap;
+          font-family: inherit;
+        }
+        .btn-del-action:hover:not(:disabled) {
+          background: rgba(239, 68, 68, 0.25);
+          border-color: #ef4444;
+          color: #fca5a5;
+        }
+        .btn-del-action:disabled { opacity: .5; cursor: default; }
+
+        /* Modal Backdrop & Card */
+        .del-modal-backdrop {
+          position: fixed;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background: rgba(0,0,0,0.65);
+          backdrop-filter: blur(4px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          z-index: 1000;
+        }
+        .del-modal-card {
+          background: var(--bg-surface);
+          border: 1px solid var(--border-hairline);
+          border-radius: 18px;
+          width: 100%;
+          max-width: 480px;
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+          animation: popIn .18s ease-out;
+        }
+        @keyframes popIn {
+          from { transform: scale(0.95); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+        .dm-icon { font-size: 36px; text-align: center; }
+        .dm-title { font-size: 18px; font-weight: 800; color: #f87171; text-align: center; margin: 0; }
+        .dm-warning {
+          font-size: 13px;
+          color: var(--ink-secondary);
+          text-align: center;
+          background: rgba(239, 68, 68, 0.08);
+          border: 1px solid rgba(239, 68, 68, 0.25);
+          border-radius: 10px;
+          padding: 10px 14px;
+          margin: 0;
+          line-height: 1.5;
+        }
+        .dm-details {
+          background: var(--bg-surface-raised);
+          border: 1px solid var(--border-hairline);
+          border-radius: 12px;
+          padding: 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          font-size: 13px;
+        }
+        .dm-row { display: flex; gap: 8px; }
+        .dm-k { font-weight: 700; color: var(--ink-muted); min-width: 90px; }
+        .dm-v { color: var(--ink-primary); word-break: break-all; }
+        .dm-code { font-size: 11px; background: rgba(0,0,0,0.25); padding: 2px 6px; border-radius: 6px; font-family: monospace; }
+        .dm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px; }
+        .dm-btn-cancel {
+          background: var(--bg-surface-raised);
+          border: 1px solid var(--border-strong);
+          color: var(--ink-secondary);
+          border-radius: 10px;
+          padding: 10px 16px;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          font-family: inherit;
+        }
+        .dm-btn-cancel:hover:not(:disabled) { background: var(--border-strong); color: var(--ink-primary); }
+        .dm-btn-confirm {
+          background: #dc2626;
+          border: none;
+          color: #fff;
+          border-radius: 10px;
+          padding: 10px 16px;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 4px 12px rgba(220,38,38,0.35);
+          font-family: inherit;
+        }
+        .dm-btn-confirm:hover:not(:disabled) { background: #ef4444; }
+        .dm-btn-confirm:disabled, .dm-btn-cancel:disabled { opacity: .5; cursor: default; }
       `}</style>
     </div>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <Suspense fallback={<main className="msg">กำลังโหลด...</main>}>
+      <AdminInner />
+    </Suspense>
   );
 }

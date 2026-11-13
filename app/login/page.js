@@ -11,10 +11,30 @@ function LoginInner() {
   const error = params.get('error');
   const [loading, setLoading] = useState(false);
   const [dark, setDark] = useState(true);
+  const [pin, setPin] = useState('');
+  const [pinErr, setPinErr] = useState('');
+  const [showPinModal, setShowPinModal] = useState(false);
 
   const handleSignIn = () => {
     setLoading(true);
     signIn('google', { callbackUrl }, { prompt: 'select_account' });
+  };
+
+  const handlePinSignIn = async (e) => {
+    if (e) e.preventDefault();
+    if (pin.trim() !== '8888') {
+      setPinErr('รหัสผ่าน PIN ไม่ถูกต้อง');
+      return;
+    }
+    setLoading(true);
+    setPinErr('');
+    const res = await signIn('pin', { pin: pin.trim(), callbackUrl, redirect: false });
+    if (res?.error) {
+      setPinErr('เข้าสู่ระบบไม่สำเร็จ');
+      setLoading(false);
+    } else {
+      window.location.href = callbackUrl;
+    }
   };
 
   return (
@@ -85,7 +105,50 @@ function LoginInner() {
           <span>{loading ? 'กำลังเข้าสู่ระบบ…' : 'Sign in with Google'}</span>
         </button>
 
-        <p className="note">ผู้ใช้ใหม่จะได้สิทธิ์ &ldquo;ผู้เยี่ยมชม&rdquo; จนกว่าผู้ดูแลจะกำหนดสิทธิ์</p>
+        {/* PIN 8888 Admin Quick Login Toggle */}
+        <div className="admin-pin-sec">
+          {!showPinModal ? (
+            <button
+              type="button"
+              className="btn-pin-toggle"
+              onClick={() => { setShowPinModal(true); setPinErr(''); }}
+            >
+              🔒 เข้าสู่ระบบด้วยรหัส Admin (PIN)
+            </button>
+          ) : (
+            <form className="pin-form" onSubmit={handlePinSignIn}>
+              <div className="pin-input-wrap">
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={6}
+                  placeholder="ใส่ PIN 8888"
+                  value={pin}
+                  onChange={(e) => { setPin(e.target.value); setPinErr(''); }}
+                  className="pin-input"
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  disabled={loading || !pin.trim()}
+                  className="btn-pin-submit"
+                >
+                  {loading ? '…' : 'เข้าสู่ระบบ'}
+                </button>
+              </div>
+              {pinErr && <span className="pin-err-msg">{pinErr}</span>}
+              <button
+                type="button"
+                className="btn-pin-cancel"
+                onClick={() => { setShowPinModal(false); setPin(''); setPinErr(''); }}
+              >
+                ✕ ปิดช่องใส่ PIN
+              </button>
+            </form>
+          )}
+        </div>
+
+        <p className="note">ผู้ใช้ใหม่จะได้สิทธิ์ &ldquo;ผู้เยี่ยมชม&rdquo; หรือเข้าสู่ระบบด้วย PIN 8888 สำหรับ Admin</p>
         <p className="admin-line">ผู้ดูแลระบบ : นายตวงเพชร ชัยยานนท์ &middot; วศ.4 หบท-ธ. กบห-ธ. ชธธ.</p>
       </div>
 
@@ -253,6 +316,105 @@ function LoginInner() {
           animation: spin 0.65s linear infinite; flex-shrink: 0;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* admin pin */
+        .admin-pin-sec {
+          width: 100%;
+          margin-top: 14px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .btn-pin-toggle {
+          background: rgba(37,99,235,0.12);
+          border: 1px solid rgba(59,130,246,0.3);
+          color: #60a5fa;
+          font-size: 12.5px;
+          font-weight: 700;
+          padding: 8px 16px;
+          border-radius: 9999px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          font-family: inherit;
+        }
+        .btn-pin-toggle:hover {
+          background: rgba(37,99,235,0.22);
+          color: #93c5fd;
+          border-color: #60a5fa;
+        }
+        .pin-form {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          background: rgba(15,23,42,0.6);
+          border: 1.5px solid rgba(59,130,246,0.35);
+          border-radius: 16px;
+          padding: 12px;
+          box-sizing: border-box;
+        }
+        .pin-input-wrap {
+          display: flex;
+          gap: 8px;
+          width: 100%;
+        }
+        .pin-input {
+          flex: 1;
+          padding: 10px 14px;
+          border-radius: 10px;
+          border: 1px solid rgba(59,130,246,0.4);
+          background: #080e1a;
+          color: #ffffff;
+          font-size: 15px;
+          font-weight: 700;
+          letter-spacing: 2px;
+          text-align: center;
+          font-family: inherit;
+        }
+        .pin-input:focus {
+          outline: none;
+          border-color: #60a5fa;
+          box-shadow: 0 0 0 3px rgba(37,99,235,0.3);
+        }
+        .btn-pin-submit {
+          padding: 10px 18px;
+          background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+          border: 1px solid rgba(147,197,253,0.4);
+          color: #ffffff;
+          font-weight: 700;
+          font-size: 13px;
+          border-radius: 10px;
+          cursor: pointer;
+          white-space: nowrap;
+          font-family: inherit;
+          transition: filter 0.15s ease;
+        }
+        .btn-pin-submit:hover:not(:disabled) {
+          filter: brightness(1.1);
+        }
+        .btn-pin-submit:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+        .btn-pin-cancel {
+          background: none;
+          border: none;
+          color: #94a3b8;
+          font-size: 11px;
+          cursor: pointer;
+          padding: 4px;
+          text-align: center;
+          font-family: inherit;
+        }
+        .btn-pin-cancel:hover {
+          color: #cbd5e1;
+        }
+        .pin-err-msg {
+          color: #f87171;
+          font-size: 11.5px;
+          font-weight: 600;
+          text-align: center;
+        }
 
         /* note & admin */
         .note { margin: 20px 0 0; font-size: 12px; text-align: center; line-height: 1.7; transition: color 0.3s; }

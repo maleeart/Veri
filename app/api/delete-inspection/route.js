@@ -87,29 +87,29 @@ export async function DELETE(request) {
 
     const { filename, type = 'fpg', date, building = '', floor = '', _path } = await request.json();
 
-    if (!date || !type) {
-      return NextResponse.json({ error: 'ต้องระบุ date และ type' }, { status: 400 });
-    }
-
     const { owner, repo } = cfg();
 
     // ใช้ _path จาก Trees API ถ้ามี ไม่งั้น construct ใหม่
     let filePath = _path;
     if (!filePath) {
-      const safeDate = String(date).replace(/[^0-9-]/g, '');
-      const safeType = String(type).replace(/[^a-z]/g, '');
-      const yearMonth = safeDate.slice(0, 7);
-      if (filename) {
-        filePath = `data/inspections/${safeType}/${yearMonth}/${filename}.json`;
+      if (filename && filename.startsWith('data/')) {
+        filePath = filename.endsWith('.json') ? filename : `${filename}.json`;
       } else {
-        const san = s => String(s || '').replace(/[/\\:*?"<>|]/g, '').replace(/\s+/g, '-').replace(/_/g, '-').slice(0, 30);
-        const extra = [san(building), san(floor)].filter(Boolean).join('_');
-        filePath = `data/inspections/${safeType}/${yearMonth}/${safeType}_${safeDate}${extra ? '_' + extra : ''}.json`;
+        const safeDate = String(date || '').replace(/[^0-9-]/g, '');
+        const safeType = String(type || 'fpg');
+        const yearMonth = safeDate.slice(0, 7);
+        if (filename) {
+          filePath = `data/inspections/${safeType}/${yearMonth}/${filename}.json`;
+        } else {
+          const san = s => String(s || '').replace(/[/\\:*?"<>|]/g, '').replace(/\s+/g, '-').replace(/_/g, '-').slice(0, 30);
+          const extra = [san(building), san(floor)].filter(Boolean).join('_');
+          filePath = `data/inspections/${safeType}/${yearMonth}/${safeType}_${safeDate}${extra ? '_' + extra : ''}.json`;
+        }
       }
     }
 
-    await deleteViaGitTrees(owner, repo, BRANCH, filePath, `ลบรายงาน [${type}] วันที่ ${date}`);
-    return NextResponse.json({ ok: true });
+    await deleteViaGitTrees(owner, repo, BRANCH, filePath, `ลบรายงาน [${type}] วันที่ ${date || filePath}`);
+    return NextResponse.json({ ok: true, deletedPath: filePath });
   } catch (err) {
     return NextResponse.json({ error: String(err?.message || err) }, { status: 500 });
   }

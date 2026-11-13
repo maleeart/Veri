@@ -1031,6 +1031,11 @@ function HomePageInner() {
             <p className="dh-sub">Facility Inspection · ระบบบันทึกและตรวจสอบอุปกรณ์ประจำอาคาร</p>
           </div>
           <div className="dh-actions">
+            {isAdmin && (
+              <button className="dh-btn-dash" onClick={() => router.push('/admin?tab=delete-reports')} title="ไปหน้าตั้งค่าและลบรายงาน" style={{ background: 'rgba(239,68,68,0.15)', borderColor: 'rgba(239,68,68,0.4)', color: '#f87171' }}>
+                <span>⚙️</span> ตั้งค่า / ลบรายงาน
+              </button>
+            )}
             <button className="dh-btn-dash" onClick={() => router.push('/admin')} title="ไปหน้าภาพรวมระบบ">
               <span>📈</span> ภาพรวมระบบ
             </button>
