@@ -396,7 +396,7 @@ function AdminInner() {
 
   const QUICK = [
     { icon: '🏠',   label: 'หน้าแรก (เมนูลัด)',       href: '/' },
-    { icon: '⚙️',   label: 'ตั้งค่า / ลบรายงาน',     href: null, action: () => setView('delete-reports') },
+    { icon: '⚙️',   label: 'ตั้งค่าระบบ',             href: null, action: () => setView('delete-reports') },
     { icon: '🚒',   label: 'Fire Pump & Generator', href: '/session' },
     { icon: '💡',   label: 'Emergency Light',        href: `/form/emergency?date=${today}` },
     { icon: '🚨',   label: 'Smoke Detector',         href: `/form/smoke?date=${today}` },
@@ -466,7 +466,7 @@ function AdminInner() {
               <h1 className="adm-title">
                 {view === 'dashboard' && '🏠 ภาพรวมระบบ'}
                 {view === 'users' && '👥 จัดการผู้ใช้'}
-                {view === 'delete-reports' && '⚙️ ตั้งค่าระบบ / ลบรายงาน'}
+                {view === 'delete-reports' && '⚙️ ตั้งค่าระบบ (Admin Settings)'}
               </h1>
               <p className="adm-sub">
                 {view === 'dashboard' && 'Admin Dashboard · Facility Inspection'}
@@ -489,7 +489,7 @@ function AdminInner() {
                 className={`tab-pill ${view === 'delete-reports' ? 'active' : ''}`}
                 onClick={() => setView('delete-reports')}
               >
-                ⚙️ ลบรายงาน
+                ⚙️ ตั้งค่าระบบ
               </button>
               <button
                 type="button"
@@ -753,7 +753,7 @@ function AdminInner() {
             {/* Top overview stats */}
             <div className="del-overview-card">
               <div className="doc-left">
-                <div className="doc-title">🗑️ จัดการลบรายงานในระบบ</div>
+                <div className="doc-title">⚙️ ตั้งค่าระบบและจัดการรายงาน</div>
                 <div className="doc-desc">
                   ค้นหา กรองตามหมวดหมู่/ปี/อาคาร และลบรายงานที่ไม่ต้องการออกจากฐานข้อมูลถาวร
                 </div>

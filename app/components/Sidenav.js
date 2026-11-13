@@ -72,7 +72,7 @@ export default function Sidenav({ notifProps = null }) {
           <button className={`sn-item${pathname === '/admin' && (searchParams.get('tab') === 'delete-reports' || searchParams.get('tab') === 'settings') ? ' sn-item--active' : ''}`}
             onClick={() => router.push('/admin?tab=delete-reports')}>
             <span className="sn-item-icon">⚙️</span>
-            <span className="sn-item-label">ตั้งค่า / ลบรายงาน</span>
+            <span className="sn-item-label">ตั้งค่าระบบ</span>
           </button>
         </>
       )}
@@ -127,7 +127,7 @@ export default function Sidenav({ notifProps = null }) {
             </button>
           )}
           {isAdmin && (
-            <button className="sn-icon-btn" title="จัดการผู้ใช้" onClick={() => router.push('/admin')}>⚙️</button>
+            <button className="sn-icon-btn" title="ตั้งค่าระบบ / ลบรายงาน" onClick={() => router.push('/admin?tab=delete-reports')}>⚙️</button>
           )}
           <button className="sn-icon-btn" title="ออกจากระบบ"
             onClick={() => signOut({ callbackUrl: '/login' })}>🚪</button>

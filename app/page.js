@@ -569,7 +569,7 @@ function HomePageInner() {
             </button>
           )}
           {isAdmin && (
-            <button className="icon-btn" title="จัดการผู้ใช้" onClick={() => router.push('/admin')}>⚙️</button>
+            <button className="icon-btn" title="ตั้งค่าระบบ / ลบรายงาน" onClick={() => router.push('/admin?tab=delete-reports')}>⚙️</button>
           )}
           <div className="profile-wrap">
             <button className="avatar-btn" onClick={() => setShowProfile(p => !p)}>
@@ -1032,8 +1032,8 @@ function HomePageInner() {
           </div>
           <div className="dh-actions">
             {isAdmin && (
-              <button className="dh-btn-dash" onClick={() => router.push('/admin?tab=delete-reports')} title="ไปหน้าตั้งค่าและลบรายงาน" style={{ background: 'rgba(239,68,68,0.15)', borderColor: 'rgba(239,68,68,0.4)', color: '#f87171' }}>
-                <span>⚙️</span> ตั้งค่า / ลบรายงาน
+              <button className="dh-btn-dash" onClick={() => router.push('/admin?tab=delete-reports')} title="ไปหน้าตั้งค่าระบบและจัดการรายงาน">
+                <span>⚙️</span> ตั้งค่าระบบ
               </button>
             )}
             <button className="dh-btn-dash" onClick={() => router.push('/admin')} title="ไปหน้าภาพรวมระบบ">
