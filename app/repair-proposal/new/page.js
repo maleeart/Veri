@@ -403,6 +403,9 @@ function RepairProposalFormInner() {
           const s = data.settings;
           const isServerCustomized = s.isCustomized === true || Boolean(s.header?.bannerImageUrl || (s.approver?.name && s.approver.name !== defaultAdminSettings.approver.name));
 
+          // Safe banner resolution: Never let empty string from server wipe out an existing local banner
+          const bestBannerImageUrl = (s.header?.bannerImageUrl) || (loaded.header?.bannerImageUrl) || '';
+
           if (isServerCustomized || !hasLocalCustom) {
             loaded = { 
               ...loaded, 
@@ -410,15 +413,32 @@ function RepairProposalFormInner() {
               header: { 
                 ...loaded.header, 
                 ...(s.header || {}),
-                bannerImageUrl: s.header?.bannerImageUrl !== undefined
-                  ? (isServerCustomized ? s.header.bannerImageUrl : (loaded.header?.bannerImageUrl || ''))
-                  : (loaded.header?.bannerImageUrl || '')
+                bannerImageUrl: bestBannerImageUrl
               },
               approver: { ...loaded.approver, ...(s.approver || {}) },
               runningNumber: { ...loaded.runningNumber, ...(s.runningNumber || {}) },
               defaults: { ...loaded.defaults, ...(s.defaults || {}) },
-              isCustomized: isServerCustomized || hasLocalCustom
+              isCustomized: isServerCustomized || hasLocalCustom || Boolean(bestBannerImageUrl)
             };
+          } else {
+            loaded = {
+              ...s,
+              ...loaded,
+              header: {
+                ...(s.header || {}),
+                ...(loaded.header || {}),
+                bannerImageUrl: bestBannerImageUrl
+              }
+            };
+          }
+
+          // If local has banner image but server didn't, auto-sync back to server in background
+          if (!s.header?.bannerImageUrl && loaded.header?.bannerImageUrl) {
+            fetch('/api/repair-proposals/settings', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ pin: '8888', settings: loaded })
+            }).catch(() => {});
           }
         }
       } catch (e) {}
@@ -490,6 +510,16 @@ function RepairProposalFormInner() {
             if (data.signatures?.approver?.role) setApproverRole(data.signatures.approver.role);
             if (data.signatures?.approver?.image) setSig2Image(data.signatures.approver.image);
             if (data.signatures?.surveyor?.image) setSig1Image(data.signatures.surveyor.image);
+            if (data.header?.bannerImageUrl) {
+              setAdminSettings(prev => ({
+                ...prev,
+                header: {
+                  ...prev.header,
+                  bannerImageUrl: data.header.bannerImageUrl,
+                  bannerLayout: data.header.bannerLayout || prev.header?.bannerLayout || 'bleed',
+                }
+              }));
+            }
           }
         })
         .catch(err => console.error('Failed to load proposal:', err));
@@ -719,6 +749,11 @@ function RepairProposalFormInner() {
         role: inspectorRole,
         department
       },
+      header: {
+        bannerImageUrl: adminSettings.header?.bannerImageUrl || '',
+        bannerLayout: adminSettings.header?.bannerLayout || 'bleed',
+        showLetterhead: adminSettings.header?.showLetterhead ?? true,
+      },
       surveyPoints: surveyPoints.map(sp => {
         const photos = Array.isArray(sp.photos) && sp.photos.length > 0
           ? sp.photos
@@ -826,21 +861,28 @@ function RepairProposalFormInner() {
     }
 
     // 4. Save to Server Database (data/repair-proposals/settings.json + GitHub storage)
+    let syncError = null;
     try {
       const res = await fetch('/api/repair-proposals/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pin: '8888', settings: customized })
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) {
-        console.warn('Server settings sync issue:', data.error);
+        syncError = data?.error || res.statusText || 'Sync issue';
+        console.warn('Server settings sync issue:', syncError);
       }
     } catch (e) {
+      syncError = e.message;
       console.warn('Settings API sync warning:', e);
     }
 
-    alert('บันทึกการตั้งค่าระบบเรียบร้อยแล้ว!\n(รูปภาพหัวกระดาษและค่าเริ่มต้นทั้งหมดถูกบันทึกเป็นค่าเริ่มต้นหลักของระบบแล้ว)');
+    if (syncError) {
+      alert(`บันทึกลงเบราว์เซอร์แล้ว แต่ระบบซิงค์ขึ้น GitHub แจ้งเตือน: ${syncError}\n(กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต)`);
+    } else {
+      alert('บันทึกการตั้งค่าระบบเรียบร้อยแล้ว!\n(รูปภาพหัวกระดาษและค่าเริ่มต้นทั้งหมดถูกบันทึกขึ้น GitHub เป็นค่าเริ่มต้นถาวรของระบบแล้ว ไม่ต้องตั้งค่าใหม่ทุกรอบ)');
+    }
     setShowSettingsModal(false);
   };
 

@@ -757,11 +757,14 @@ async function loadRepairSettings() {
   try {
     const data = await loadJsonFile('data/repair-proposals/settings.json');
     if (data) {
-      if (!loaded || (data.updatedAt && data.updatedAt > (loaded.updatedAt || ''))) {
-        loaded = data;
+      const banner = data.header?.bannerImageUrl || loaded?.header?.bannerImageUrl || '';
+      if (!loaded || (data.updatedAt && data.updatedAt > (loaded.updatedAt || '')) || !loaded.header?.bannerImageUrl) {
+        loaded = { ...data, header: { ...(data.header || {}), bannerImageUrl: banner } };
       }
     }
-  } catch {}
+  } catch (err) {
+    console.warn('loadRepairSettings github error:', err.message);
+  }
 
   if (loaded) {
     return {
@@ -790,17 +793,46 @@ async function saveRepairSettings(settings) {
   const localFile = path.join(localDir, 'settings.json');
   fs.writeFileSync(localFile, JSON.stringify(toSave, null, 2), 'utf-8');
 
+  let githubSaved = false;
+  let githubError = null;
+
   try {
     const { owner, repo, branch } = cfg();
-    await saveFileViaGitTrees(owner, repo, branch, 'data/repair-proposals/settings.json', toSave, 'Update repair proposals admin settings');
+    const jsonStr = JSON.stringify(toSave, null, 2);
+    const byteLen = Buffer.byteLength(jsonStr, 'utf-8');
+
+    if (byteLen < 950000) {
+      try {
+        await saveJsonFile('data/repair-proposals/settings.json', toSave, 'Update repair proposals admin settings');
+        githubSaved = true;
+      } catch (eContents) {
+        console.warn('saveRepairSettings saveJsonFile warning:', eContents.message);
+        await saveFileViaGitTrees(owner, repo, branch, 'data/repair-proposals/settings.json', toSave, 'Update repair proposals admin settings');
+        githubSaved = true;
+      }
+    } else {
+      await saveFileViaGitTrees(owner, repo, branch, 'data/repair-proposals/settings.json', toSave, 'Update repair proposals admin settings');
+      githubSaved = true;
+    }
   } catch (err) {
-    console.warn('saveRepairSettings github warning:', err.message);
-    try {
-      await saveJsonFile('data/repair-proposals/settings.json', toSave, 'Update repair proposals admin settings');
-    } catch (e2) {}
+    console.error('saveRepairSettings github error:', err.message);
+    githubError = err;
   }
 
-  return { ok: true, settings: toSave };
+  if (!githubSaved && githubError) {
+    try {
+      const { token } = cfg();
+      if (token) {
+        throw new Error(`บันทึกลง GitHub ไม่สำเร็จ: ${githubError.message || githubError}`);
+      }
+    } catch (cfgErr) {
+      if (!cfgErr.message.includes('ตั้งค่า GitHub ENV ไม่ครบ')) {
+        throw githubError;
+      }
+    }
+  }
+
+  return { ok: true, settings: toSave, githubSaved };
 }
 
 module.exports = {
