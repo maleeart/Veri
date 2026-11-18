@@ -81,15 +81,15 @@ const defaultAdminSettings = {
 
 // Preset sample data (TP019-69 Digital Meter)
 const sampleSurveyData = [
-  { id: 1, building: "ท.0006", location: "Main MDB", symptom: "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", qty: 1, action: "เปลี่ยนทดแทน", photo: null },
-  { id: 2, building: "ท.0009", location: "Main MDB", symptom: "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", qty: 1, action: "เปลี่ยนทดแทน", photo: null },
-  { id: 3, building: "ท.0011", location: "Main MDB", symptom: "Digital Meter ชำรุด / ระบบ Error ข้อมูลไม่ตรง", qty: 1, action: "เปลี่ยนทดแทน", photo: "/images/repair/survey_T0011.jpeg" },
-  { id: 4, building: "ท.0012", location: "Main MDB", symptom: "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", qty: 1, action: "เปลี่ยนทดแทน", photo: "/images/repair/survey_T0012.jpeg" },
-  { id: 5, building: "ท.0017", location: "Main MDB", symptom: "Digital Meter ชำรุด / ระบบสื่อสารขัดข้อง (ไม่ขึ้นระบบ)", qty: 1, action: "เปลี่ยนทดแทน", photo: "/images/repair/survey_T0017.jpeg" },
-  { id: 6, building: "ต.0017", location: "Main MDB", symptom: "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", qty: 1, action: "เปลี่ยนทดแทน", photo: "/images/repair/survey_TO0017.jpeg" },
-  { id: 7, building: "ต.0019", location: "Main MDB", symptom: "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", qty: 1, action: "เปลี่ยนทดแทน", photo: "/images/repair/survey_TO0019.jpeg" },
-  { id: 8, building: "ท.0020", location: "Main MDB", symptom: "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", qty: 1, action: "เปลี่ยนทดแทน", photo: null },
-  { id: 9, building: "ต.0026", location: "Main MDB", symptom: "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", qty: 1, action: "เปลี่ยนทดแทน", photo: null }
+  { id: 1, building: "ท.0006", location: "Main MDB", symptom: "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", qty: 1, action: "เปลี่ยนทดแทน", photos: [], photo: null },
+  { id: 2, building: "ท.0009", location: "Main MDB", symptom: "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", qty: 1, action: "เปลี่ยนทดแทน", photos: [], photo: null },
+  { id: 3, building: "ท.0011", location: "Main MDB", symptom: "Digital Meter ชำรุด / ระบบ Error ข้อมูลไม่ตรง", qty: 1, action: "เปลี่ยนทดแทน", photos: ["/images/repair/survey_T0011.jpeg"], photo: "/images/repair/survey_T0011.jpeg" },
+  { id: 4, building: "ท.0012", location: "Main MDB", symptom: "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", qty: 1, action: "เปลี่ยนทดแทน", photos: ["/images/repair/survey_T0012.jpeg"], photo: "/images/repair/survey_T0012.jpeg" },
+  { id: 5, building: "ท.0017", location: "Main MDB", symptom: "Digital Meter ชำรุด / ระบบสื่อสารขัดข้อง (ไม่ขึ้นระบบ)", qty: 1, action: "เปลี่ยนทดแทน", photos: ["/images/repair/survey_T0017.jpeg"], photo: "/images/repair/survey_T0017.jpeg" },
+  { id: 6, building: "ต.0017", location: "Main MDB", symptom: "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", qty: 1, action: "เปลี่ยนทดแทน", photos: ["/images/repair/survey_TO0017.jpeg"], photo: "/images/repair/survey_TO0017.jpeg" },
+  { id: 7, building: "ต.0019", location: "Main MDB", symptom: "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", qty: 1, action: "เปลี่ยนทดแทน", photos: ["/images/repair/survey_TO0019.jpeg"], photo: "/images/repair/survey_TO0019.jpeg" },
+  { id: 8, building: "ท.0020", location: "Main MDB", symptom: "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", qty: 1, action: "เปลี่ยนทดแทน", photos: [], photo: null },
+  { id: 9, building: "ต.0026", location: "Main MDB", symptom: "Digital Meter ชำรุด / หน้าจอดับ ไม่แสดงผล", qty: 1, action: "เปลี่ยนทดแทน", photos: [], photo: null }
 ];
 
 const sampleItemsRequested = [
@@ -298,7 +298,7 @@ function RepairProposalFormInner() {
 
   // Step 2: Survey Defect Points (Blank by default!)
   const [surveyPoints, setSurveyPoints] = useState([
-    { id: 1, building: '', location: '', symptom: '', qty: 1, action: 'เปลี่ยนทดแทน', photo: null }
+    { id: 1, building: '', location: '', symptom: '', qty: 1, action: 'เปลี่ยนทดแทน', photos: [], photo: null }
   ]);
 
   // Step 3: Requested Items (Blank by default!)
@@ -468,7 +468,18 @@ function RepairProposalFormInner() {
               setDepartment(data.inspector.department || '');
             }
             if (data.surveyPoints && data.surveyPoints.length > 0) {
-              setSurveyPoints(data.surveyPoints);
+              const mapped = data.surveyPoints.map((sp, idx) => {
+                const photos = Array.isArray(sp.photos) && sp.photos.length > 0
+                  ? sp.photos
+                  : (sp.photo ? [sp.photo] : []);
+                return {
+                  ...sp,
+                  id: sp.id || idx + 1,
+                  photos,
+                  photo: photos[0] || null
+                };
+              });
+              setSurveyPoints(mapped);
             }
             if (data.itemsRequested && data.itemsRequested.length > 0) {
               setItemsRequested(data.itemsRequested);
@@ -496,7 +507,7 @@ function RepairProposalFormInner() {
     setInspectorRole(adminSettings.defaults?.inspectorRole || 'วิศวกรระบบไฟฟ้าและบำรุงรักษา');
     setDepartment(adminSettings.defaults?.department || 'หบท-ธ. ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร');
     setSurveyPoints([
-      { id: 1, building: '', location: '', symptom: '', qty: 1, action: 'เปลี่ยนทดแทน', photo: null }
+      { id: 1, building: '', location: '', symptom: '', qty: 1, action: 'เปลี่ยนทดแทน', photos: [], photo: null }
     ]);
     setItemsRequested([
       { id: 1, name: '', modelPart: '', qty: 1, unit: 'ตัว', purpose: '' }
@@ -551,7 +562,7 @@ function RepairProposalFormInner() {
     const nextId = surveyPoints.length + 1;
     setSurveyPoints([
       ...surveyPoints,
-      { id: nextId, building: '', location: '', symptom: '', qty: 1, action: 'เปลี่ยนทดแทน', photo: null }
+      { id: nextId, building: '', location: '', symptom: '', qty: 1, action: 'เปลี่ยนทดแทน', photos: [], photo: null }
     ]);
   };
 
@@ -560,14 +571,60 @@ function RepairProposalFormInner() {
     setSurveyPoints(surveyPoints.filter((_, i) => i !== index));
   };
 
-  const handlePhotoUpload = (index, e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (uploadEvent) => {
-      handlePointChange(index, 'photo', uploadEvent.target.result);
+  const [uploadingPhotoIdx, setUploadingPhotoIdx] = useState(null);
+
+  const handlePhotoUpload = async (index, e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const currentItem = surveyPoints[index];
+    const currentPhotos = Array.isArray(currentItem.photos) 
+      ? [...currentItem.photos] 
+      : (currentItem.photo ? [currentItem.photo] : []);
+
+    const availableSlots = 3 - currentPhotos.length;
+    if (availableSlots <= 0) {
+      alert('สามารถแนบรูปภาพได้สูงสุด 3 รูปต่อรายการ');
+      e.target.value = '';
+      return;
+    }
+
+    const filesToProcess = files.slice(0, availableSlots);
+    setUploadingPhotoIdx(index);
+    try {
+      const compressedList = await Promise.all(
+        filesToProcess.map(file => compressImageFile(file, 1000, 1000, 0.72, true))
+      );
+      const nextPhotos = [...currentPhotos, ...compressedList];
+      const next = [...surveyPoints];
+      next[index] = {
+        ...next[index],
+        photos: nextPhotos,
+        photo: nextPhotos[0] || null
+      };
+      setSurveyPoints(next);
+    } catch (err) {
+      console.error('Photo compression/upload error:', err);
+      alert('เกิดข้อผิดพลาดในการโหลดรูปภาพ: ' + (err.message || 'กรุณาลองใหม่อีกครั้ง'));
+    } finally {
+      setUploadingPhotoIdx(null);
+      e.target.value = '';
+    }
+  };
+
+  const handleRemovePhoto = (pointIndex, photoIndex) => {
+    const currentItem = surveyPoints[pointIndex];
+    const currentPhotos = Array.isArray(currentItem.photos) 
+      ? [...currentItem.photos] 
+      : (currentItem.photo ? [currentItem.photo] : []);
+    const nextPhotos = currentPhotos.filter((_, i) => i !== photoIndex);
+    const next = [...surveyPoints];
+    next[pointIndex] = {
+      ...next[pointIndex],
+      photos: nextPhotos,
+      photo: nextPhotos[0] || null
     };
-    reader.readAsDataURL(file);
+    setSurveyPoints(next);
   };
 
   // Requested Items Handlers
@@ -662,7 +719,16 @@ function RepairProposalFormInner() {
         role: inspectorRole,
         department
       },
-      surveyPoints,
+      surveyPoints: surveyPoints.map(sp => {
+        const photos = Array.isArray(sp.photos) && sp.photos.length > 0
+          ? sp.photos
+          : (sp.photo ? [sp.photo] : []);
+        return {
+          ...sp,
+          photos,
+          photo: photos[0] || null
+        };
+      }),
       itemsRequested,
       substitutionSpecs,
       justification,
@@ -678,12 +744,12 @@ function RepairProposalFormInner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (res.ok && data.ok) {
         alert(`บันทึกใบเสนอแจ้งซ่อม ${refNo} ลงระบบออนไลน์เรียบร้อยแล้ว!`);
         router.push('/repair-proposal');
       } else {
-        alert(`บันทึกไม่สำเร็จ: ${data.error || 'กรุณาลองใหม่อีกครั้ง'}`);
+        alert(`บันทึกไม่สำเร็จ: ${data.error || `HTTP ${res.status} ${res.statusText}` || 'กรุณาลองใหม่อีกครั้ง'}`);
       }
     } catch (err) {
       alert(`เกิดข้อผิดพลาดในการเชื่อมต่อ: ${err.message}`);
@@ -787,7 +853,7 @@ function RepairProposalFormInner() {
     return null;
   }, [adminSettings.header]);
 
-  const hasAnnex = useMemo(() => surveyPoints.some(p => Boolean(p.photo)), [surveyPoints]);
+  const hasAnnex = useMemo(() => surveyPoints.some(p => Boolean((p.photos && p.photos.length > 0) || p.photo)), [surveyPoints]);
 
   const steps = [
     { title: 'ข้อมูลงาน', icon: '1' },
@@ -1277,27 +1343,89 @@ function RepairProposalFormInner() {
                         </div>
                       </div>
 
-                      {/* Photo Attachment Section */}
-                      <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-input, #080e1a)', padding: '8px 10px', borderRadius: 6, border: '1px dashed var(--border-strong, #2d3f5e)' }}>
-                        {item.photo ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <img src={item.photo} alt="Defect" style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4, border: '1px solid var(--border-strong, #2d3f5e)' }} />
-                            <div>
-                              <div style={{ fontSize: 11.5, fontWeight: 700, color: '#60a5fa' }}>✓ มีรูปถ่ายแนบแล้ว</div>
-                              <button 
-                                onClick={() => handlePointChange(idx, 'photo', null)}
-                                style={{ background: 'none', border: 'none', color: '#f87171', fontSize: 11, cursor: 'pointer', padding: 0 }}>
-                                ลบรูปถ่าย
-                              </button>
+                      {/* Photo Attachment Section (Up to 3 Photos) */}
+                      {(() => {
+                        const itemPhotos = Array.isArray(item.photos) && item.photos.length > 0
+                          ? item.photos
+                          : (item.photo ? [item.photo] : []);
+                        const isUploadingThis = uploadingPhotoIdx === idx;
+
+                        return (
+                          <div style={{ marginTop: 10, background: 'var(--bg-input, #080e1a)', padding: '10px 12px', borderRadius: 8, border: '1px dashed var(--border-strong, #2d3f5e)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: itemPhotos.length > 0 ? 8 : 0 }}>
+                              <div style={{ fontSize: 12, fontWeight: 700, color: itemPhotos.length > 0 ? '#60a5fa' : 'var(--ink-secondary, #94a3c4)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <span>📷 รูปภาพหน้างาน ({itemPhotos.length}/3 รูป)</span>
+                                {itemPhotos.length >= 3 && (
+                                  <span style={{ fontSize: 10.5, color: '#34d399', background: 'rgba(52, 211, 153, 0.12)', padding: '1px 6px', borderRadius: 4 }}>
+                                    ครบ 3 รูปแล้ว
+                                  </span>
+                                )}
+                              </div>
+                              {itemPhotos.length < 3 && (
+                                <label style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 6,
+                                  fontSize: 11.5,
+                                  color: '#ffffff',
+                                  background: 'var(--accent, #2563eb)',
+                                  padding: '4px 10px',
+                                  borderRadius: 5,
+                                  cursor: isUploadingThis ? 'wait' : 'pointer',
+                                  fontWeight: 600,
+                                  opacity: isUploadingThis ? 0.6 : 1
+                                }}>
+                                  {isUploadingThis ? 'กำลังย่อขนาด...' : '+ แนบรูปภาพ (เลือกได้หลายรูป)'}
+                                  <input 
+                                    type="file" 
+                                    accept="image/*" 
+                                    multiple 
+                                    disabled={isUploadingThis}
+                                    onChange={(e) => handlePhotoUpload(idx, e)} 
+                                    style={{ display: 'none' }} 
+                                  />
+                                </label>
+                              )}
                             </div>
+
+                            {itemPhotos.length > 0 && (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                                {itemPhotos.map((photoSrc, pIdx) => (
+                                  <div key={pIdx} style={{ position: 'relative', width: 68, height: 68, borderRadius: 6, overflow: 'hidden', border: '1.5px solid var(--border-strong, #2d3f5e)', background: '#000' }}>
+                                    <img src={photoSrc} alt={`Defect ${pIdx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <button 
+                                      type="button"
+                                      onClick={() => handleRemovePhoto(idx, pIdx)}
+                                      title="ลบรูปนี้"
+                                      style={{
+                                        position: 'absolute',
+                                        top: 2,
+                                        right: 2,
+                                        width: 18,
+                                        height: 18,
+                                        borderRadius: '50%',
+                                        background: 'rgba(239, 68, 68, 0.9)',
+                                        color: '#ffffff',
+                                        border: 'none',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: 11,
+                                        cursor: 'pointer',
+                                        lineHeight: 1
+                                      }}>
+                                      ✕
+                                    </button>
+                                    <div style={{ position: 'absolute', bottom: 2, left: 3, background: 'rgba(0,0,0,0.65)', color: '#fff', fontSize: 9.5, padding: '1px 4px', borderRadius: 3, fontWeight: 700 }}>
+                                      #{pIdx + 1}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                        ) : (
-                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#60a5fa', cursor: 'pointer', fontWeight: 600 }}>
-                            📷 แนบรูปภาพหน้างาน
-                            <input type="file" accept="image/*" onChange={(e) => handlePhotoUpload(idx, e)} style={{ display: 'none' }} />
-                          </label>
-                        )}
-                      </div>
+                        );
+                      })()}
                     </div>
                   ))}
                 </div>
@@ -1409,12 +1537,12 @@ function RepairProposalFormInner() {
 
                       <div>
                         <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
-                          วัตถุประสงค์ / ตำแหน่งติดตั้งทดแทนสำหรับแก้ไขงาน *
+                          ตำแหน่งติดตั้ง / พื้นที่ใช้งาน (ระบุตำแหน่ง เช่น ตู้ Main MDB อาคาร... หรือเว้นว่างได้):
                         </label>
-                        <textarea 
-                          rows="2" 
+                        <input 
+                          type="text"
                           value={item.purpose || ''} 
-                          placeholder="ระบุตำแหน่งและหน้าที่ที่นำไปติดตั้งทดแทนของเดิม เช่น ติดตั้งในตู้ Main MDB อาคาร" 
+                          placeholder="เช่น ตู้ Main MDB ประจำอาคาร หรือตำแหน่งจุดติดตั้ง (เว้นว่างได้)" 
                           onChange={e => handleItemChange(idx, 'purpose', e.target.value)} 
                           className="wizard-dark-input"
                           style={{ width: '100%', padding: '7px 10px', fontSize: 12.5 }} 
@@ -1476,9 +1604,12 @@ function RepairProposalFormInner() {
                 </h3>
 
                 <div style={{ marginBottom: 18 }}>
-                  <label style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
-                    เหตุผลความจำเป็นในการจัดซื้อเปลี่ยนทดแทน:
+                  <label style={{ fontSize: 13, fontWeight: 800, color: '#93c5fd', display: 'block', marginBottom: 4 }}>
+                    เหตุผลและความจำเป็นในการจัดซื้อเปลี่ยนทดแทน (สรุปภาพรวมความจำเป็นของโครงการ/งาน):
                   </label>
+                  <p style={{ fontSize: 11.5, color: 'var(--ink-secondary, #94a3c4)', margin: '0 0 6px' }}>
+                    ระบุผลกระทบหากไม่เปลี่ยนทดแทน และเหตุผลความจำเป็นในการขออนุมัติจัดซื้อ
+                  </p>
                   <textarea 
                     rows="4" 
                     value={justification} 
@@ -1923,7 +2054,7 @@ function RepairProposalFormInner() {
                     <th style={{ padding: '6px 8px', textAlign: 'left', border: '1.5px solid #0f2e5a' }}>ยี่ห้อ / รุ่น / รหัสอะไหล่ที่ต้องการ (หรือเทียบเท่า)</th>
                     <th style={{ padding: '6px 6px', width: 55, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>จำนวน</th>
                     <th style={{ padding: '6px 6px', width: 50, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>หน่วย</th>
-                    <th style={{ padding: '6px 8px', width: 160, textAlign: 'left', border: '1.5px solid #0f2e5a' }}>วัตถุประสงค์ / ตำแหน่งติดตั้งทดแทน</th>
+                    <th style={{ padding: '6px 8px', width: 160, textAlign: 'left', border: '1.5px solid #0f2e5a' }}>ตำแหน่งติดตั้ง / วัตถุประสงค์</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2031,20 +2162,30 @@ function RepairProposalFormInner() {
                 </p>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                  {surveyPoints.filter(p => p.photo).map((p, idx) => (
-                    <div key={idx} style={{ border: '1.5px solid #475569', borderRadius: 6, overflow: 'hidden', background: '#ffffff' }}>
-                      <div style={{ width: '100%', height: 140, background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <img src={p.photo} alt={p.building} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  {surveyPoints.map((p, pIdx) => {
+                    const pointPhotos = (Array.isArray(p.photos) && p.photos.length > 0) ? p.photos : (p.photo ? [p.photo] : []);
+                    return pointPhotos.map((photoSrc, phIdx) => (
+                      <div key={`${pIdx}-${phIdx}`} style={{ border: '1.5px solid #475569', borderRadius: 6, overflow: 'hidden', background: '#ffffff' }}>
+                        <div style={{ width: '100%', height: 140, background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <img src={photoSrc} alt={p.building} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                        <div style={{ padding: '8px 10px', fontSize: 11 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                            <span style={{ fontWeight: 800, color: '#ffffff', background: '#0284c7', padding: '2px 7px', borderRadius: 4, fontSize: 10.5 }}>
+                              {p.building || `จุดที่ ${pIdx + 1}`}
+                            </span>
+                            {pointPhotos.length > 1 && (
+                              <span style={{ fontSize: 10, color: '#64748b', fontWeight: 700 }}>
+                                รูปที่ {phIdx + 1}/{pointPhotos.length}
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ color: '#0f172a', fontWeight: 700, marginTop: 4 }}>{p.symptom || '-'}</div>
+                          <div style={{ color: '#334155', fontSize: 10, fontWeight: 600, marginTop: 2 }}>ตำแหน่ง: {p.location || 'Main MDB'}</div>
+                        </div>
                       </div>
-                      <div style={{ padding: '8px 10px', fontSize: 11 }}>
-                        <span style={{ fontWeight: 800, color: '#ffffff', background: '#0284c7', padding: '2px 7px', borderRadius: 4, fontSize: 10.5 }}>
-                          {p.building || `จุดที่ ${idx + 1}`}
-                        </span>
-                        <div style={{ color: '#0f172a', fontWeight: 700, marginTop: 4 }}>{p.symptom}</div>
-                        <div style={{ color: '#334155', fontSize: 10, fontWeight: 600, marginTop: 2 }}>ตำแหน่ง: {p.location || 'Main MDB'}</div>
-                      </div>
-                    </div>
-                  ))}
+                    ));
+                  })}
                 </div>
               </div>
             )}

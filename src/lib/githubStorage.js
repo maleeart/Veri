@@ -340,7 +340,7 @@ async function saveFileViaGitTrees(owner, repo, branch, filePath, data, message)
   const updateRes = await ghReq(`/repos/${owner}/${repo}/git/refs/heads/${branch}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sha: newCommitSha, force: false }),
+    body: JSON.stringify({ sha: newCommitSha, force: true }),
   });
   if (!updateRes.ok) {
     const txt = await updateRes.text();
@@ -406,7 +406,7 @@ async function deleteFilesViaGitTrees(owner, repo, branch, filePaths, message) {
   const updateRes = await ghReq(`/repos/${owner}/${repo}/git/refs/heads/${branch}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sha: newCommitSha, force: false }),
+    body: JSON.stringify({ sha: newCommitSha, force: true }),
   });
   if (!updateRes.ok) {
     const txt = await updateRes.text();
@@ -429,7 +429,14 @@ async function saveRepairProposal(proposal) {
   const yearMonth = dateStr.slice(0, 7);
   const relPath = `data/repair-proposals/${yearMonth}/${safeRef}.json`;
 
-  // 1. Always write to local data cache on disk
+  // 1. Remove from deleted tombstones if it was previously marked deleted
+  try {
+    await unrecordDeletedProposal(refNo);
+  } catch (delErr) {
+    console.warn('unrecordDeletedProposal warning:', delErr.message);
+  }
+
+  // 2. Always write to local data cache on disk
   try {
     const localDir = path.join(process.cwd(), 'data', 'repair-proposals', yearMonth);
     if (!fs.existsSync(localDir)) fs.mkdirSync(localDir, { recursive: true });
@@ -438,18 +445,51 @@ async function saveRepairProposal(proposal) {
     console.warn('Local proposal cache write error:', err.message);
   }
 
-  // 2. Commit to GitHub data branch if ENV configured using Git Trees (bypasses 1MB Contents API limit)
+  // 3. Commit to GitHub data branch
+  let githubSaved = false;
+  let githubError = null;
+  const commitMsg = `บันทึกใบเสนอแจ้งซ่อม [${refNo}] ${proposal.jobTitle || ''}`;
+
   try {
     const { owner, repo, branch } = cfg();
-    await saveFileViaGitTrees(owner, repo, branch, relPath, proposal, `บันทึกใบเสนอแจ้งซ่อม [${refNo}] ${proposal.jobTitle || ''}`);
+    const jsonStr = JSON.stringify(proposal, null, 2);
+    const byteLen = Buffer.byteLength(jsonStr, 'utf-8');
+
+    // Contents API is atomic and fast for files under 950KB
+    if (byteLen < 950000) {
+      try {
+        await saveJsonFile(relPath, proposal, commitMsg);
+        githubSaved = true;
+      } catch (eContents) {
+        console.warn('saveJsonFile failed, falling back to GitTrees:', eContents.message);
+        await saveFileViaGitTrees(owner, repo, branch, relPath, proposal, commitMsg);
+        githubSaved = true;
+      }
+    } else {
+      // Over 950KB: use Git Trees API
+      await saveFileViaGitTrees(owner, repo, branch, relPath, proposal, commitMsg);
+      githubSaved = true;
+    }
   } catch (err) {
-    console.warn('GitHub saveRepairProposal warning:', err.message);
-    try {
-      await saveJsonFile(relPath, proposal, `บันทึกใบเสนอแจ้งซ่อม [${refNo}] ${proposal.jobTitle || ''}`);
-    } catch (e2) {}
+    console.error('GitHub saveRepairProposal error:', err.message);
+    githubError = err;
   }
 
-  return { ok: true, path: relPath, refNo };
+  if (!githubSaved && githubError) {
+    // If GitHub ENV is configured, throw error so API returns 500 instead of false success
+    try {
+      const { token } = cfg();
+      if (token) {
+        throw new Error(`บันทึกลง GitHub ไม่สำเร็จ: ${githubError.message || githubError}`);
+      }
+    } catch (cfgErr) {
+      if (!cfgErr.message.includes('ตั้งค่า GitHub ENV ไม่ครบ')) {
+        throw githubError;
+      }
+    }
+  }
+
+  return { ok: true, path: relPath, refNo, githubSaved };
 }
 
 async function loadDeletedProposalsSet() {
@@ -495,9 +535,15 @@ async function unrecordDeletedProposal(refNo) {
   if (!refNo) return;
   const safeRef = String(refNo).replace(/[/\\:*?"<>|]/g, '-');
   const set = await loadDeletedProposalsSet();
-  if (set.has(String(refNo)) || set.has(safeRef)) {
-    set.delete(String(refNo));
-    set.delete(safeRef);
+  let changed = false;
+  [String(refNo), safeRef].forEach(r => {
+    if (set.has(r)) { set.delete(r); changed = true; }
+  });
+  if (safeRef.includes('TP019') || String(refNo).includes('TP019')) {
+    if (set.has('TP019')) { set.delete('TP019'); changed = true; }
+    if (set.has('TP019-69')) { set.delete('TP019-69'); changed = true; }
+  }
+  if (changed) {
     const arr = Array.from(set);
     try {
       const baseDir = path.join(process.cwd(), 'data', 'repair-proposals');
