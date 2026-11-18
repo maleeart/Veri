@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-03",
+  "type": "smoke",
+  "records": {
+    "general": {
+      "inspectionDate": "2026-11-03",
+      "building": "ท.0009",
+      "floor": "1",
+      "inspector": "ธนวิชญ์",
+      "model": "SD-651",
+      "serial": "",
+      "mfg": "Notifier ",
+      "lotYear": ""
+    },
+    "devices": [
+      {
+        "location": "ห้องเก็บอุปกรณ์เครื่องมือ",
+        "remarks": "",
+        "zone": "1",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      },
+      {
+        "location": "ห้องสำนักงาน",
+        "remarks": "",
+        "zone": "2",
+        "externalCondition": "normal",
+        "cleaned": "yes",
+        "workingCondition": "normal"
+      }
+    ]
+  }
+}
