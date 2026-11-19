@@ -1,0 +1,34 @@
+{
+  "header": {
+    "bannerImageUrl": "",
+    "bannerLayout": "bleed",
+    "bannerTheme": "white",
+    "logoSize": "large",
+    "companyTitle": "การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย (กฟผ.)",
+    "companySubtitle": "ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร (หบท-ธ.)",
+    "companyAddress": "โทรศัพท์ 02-436-0000 | อาคาร ท.102 สำนักงานกลาง กฟผ.",
+    "logoType": "egat",
+    "customLogoUrl": "",
+    "showLetterhead": true
+  },
+  "approver": {
+    "name": "นายตวงเพชร ชัยยานนท์",
+    "role": "วศ.4 หบท-ธ.",
+    "signatureType": "image",
+    "signatureUrl": "/assets/shared/signature-approver.png"
+  },
+  "runningNumber": {
+    "prefix": "REP-",
+    "yearType": "buddhist",
+    "nextNumber": 6,
+    "digits": 3
+  },
+  "defaults": {
+    "department": "หบท-ธ. ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร",
+    "inspectorRole": "วิศวกรระบบไฟฟ้าและบำรุงรักษา",
+    "priority": "high"
+  },
+  "isCustomized": true,
+  "settingsVersion": 3,
+  "updatedAt": "2026-11-19T01:45:00.000Z"
+}

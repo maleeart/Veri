@@ -78,7 +78,8 @@ const defaultAdminSettings = {
     department: 'หบท-ธ. ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร',
     inspectorRole: 'วิศวกรระบบไฟฟ้าและบำรุงรักษา'
   },
-  isCustomized: false
+  isCustomized: false,
+  settingsVersion: 3
 };
 
 // Preset sample data (TP019-69 Digital Meter)
@@ -385,21 +386,35 @@ function RepairProposalFormInner() {
           if (parsed && (parsed.isCustomized || parsed.header?.bannerImageUrl || parsed.approver?.name)) {
             hasLocalCustom = true;
           }
+          // Auto-migrate legacy client cache so outdated browsers don't stay locked into small logo or contained layout
+          const isLegacy = !parsed.settingsVersion || parsed.settingsVersion < 3;
+          const localHeader = parsed.header || {};
+          const migratedHeader = {
+            ...defaultAdminSettings.header,
+            ...localHeader,
+            bannerLayout: isLegacy ? 'bleed' : (localHeader.bannerLayout || 'bleed'),
+            bannerTheme: isLegacy ? 'white' : (localHeader.bannerTheme || 'white'),
+            logoSize: isLegacy ? 'large' : (localHeader.logoSize || 'large'),
+          };
           loaded = { 
             ...defaultAdminSettings, 
             ...parsed,
-            header: { ...defaultAdminSettings.header, ...(parsed.header || {}) },
+            header: migratedHeader,
             approver: { ...defaultAdminSettings.approver, ...(parsed.approver || {}) },
             runningNumber: { ...defaultAdminSettings.runningNumber, ...(parsed.runningNumber || {}) },
             defaults: { ...defaultAdminSettings.defaults, ...(parsed.defaults || {}) },
-            isCustomized: Boolean(parsed.isCustomized || hasLocalCustom)
+            isCustomized: Boolean(parsed.isCustomized || hasLocalCustom),
+            settingsVersion: 3
           };
         }
       } catch (e) {}
 
-      // 2. Try Server API
+      // 2. Try Server API with timestamp cache-busting
       try {
-        const res = await fetch('/api/repair-proposals/settings', { cache: 'no-store' });
+        const res = await fetch(`/api/repair-proposals/settings?t=${Date.now()}`, { 
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+        });
         const data = await res.json();
         if (data && data.ok && data.settings) {
           const s = data.settings;
@@ -408,31 +423,26 @@ function RepairProposalFormInner() {
           // Safe banner resolution: Never let empty string from server wipe out an existing local banner
           const bestBannerImageUrl = (s.header?.bannerImageUrl) || (loaded.header?.bannerImageUrl) || '';
 
-          if (isServerCustomized || !hasLocalCustom) {
-            loaded = { 
-              ...loaded, 
-              ...s,
-              header: { 
-                ...loaded.header, 
-                ...(s.header || {}),
-                bannerImageUrl: bestBannerImageUrl
-              },
-              approver: { ...loaded.approver, ...(s.approver || {}) },
-              runningNumber: { ...loaded.runningNumber, ...(s.runningNumber || {}) },
-              defaults: { ...loaded.defaults, ...(s.defaults || {}) },
-              isCustomized: isServerCustomized || hasLocalCustom || Boolean(bestBannerImageUrl)
-            };
-          } else {
-            loaded = {
-              ...s,
-              ...loaded,
-              header: {
-                ...(s.header || {}),
-                ...(loaded.header || {}),
-                bannerImageUrl: bestBannerImageUrl
-              }
-            };
-          }
+          // Merge: Server settings take precedence for global layout/theme/approver, local keeps custom banner if server didn't have it
+          loaded = { 
+            ...defaultAdminSettings,
+            ...loaded, 
+            ...s,
+            header: { 
+              ...defaultAdminSettings.header,
+              ...(loaded.header || {}), 
+              ...(s.header || {}),
+              bannerImageUrl: bestBannerImageUrl,
+              bannerLayout: s.header?.bannerLayout || loaded.header?.bannerLayout || 'bleed',
+              bannerTheme: s.header?.bannerTheme || loaded.header?.bannerTheme || 'white',
+              logoSize: s.header?.logoSize || loaded.header?.logoSize || 'large',
+            },
+            approver: { ...defaultAdminSettings.approver, ...loaded.approver, ...(s.approver || {}) },
+            runningNumber: { ...defaultAdminSettings.runningNumber, ...loaded.runningNumber, ...(s.runningNumber || {}) },
+            defaults: { ...defaultAdminSettings.defaults, ...loaded.defaults, ...(s.defaults || {}) },
+            isCustomized: isServerCustomized || hasLocalCustom || Boolean(bestBannerImageUrl),
+            settingsVersion: 3
+          };
 
           // If local has banner image but server didn't, auto-sync back to server in background
           if (!s.header?.bannerImageUrl && loaded.header?.bannerImageUrl) {
@@ -447,11 +457,9 @@ function RepairProposalFormInner() {
 
       setAdminSettings(loaded);
 
-      // Re-save to local storage if customized
+      // Re-save to local storage so any machine is upgraded immediately
       try {
-        if (loaded.isCustomized) {
-          localStorage.setItem('repair_proposal_admin_settings', JSON.stringify(loaded));
-        }
+        localStorage.setItem('repair_proposal_admin_settings', JSON.stringify(loaded));
       } catch (e) {}
 
       // If not editing, apply defaults & auto running refNo
@@ -475,7 +483,7 @@ function RepairProposalFormInner() {
   // Load Existing Proposal if editRefNo present
   useEffect(() => {
     if (editRefNo) {
-      fetch(`/api/repair-proposals?refNo=${encodeURIComponent(editRefNo)}`)
+      fetch(`/api/repair-proposals?refNo=${encodeURIComponent(editRefNo)}&t=${Date.now()}`, { cache: 'no-store' })
         .then(res => res.json())
         .then(data => {
           if (data && data.refNo) {
@@ -512,13 +520,16 @@ function RepairProposalFormInner() {
             if (data.signatures?.approver?.role) setApproverRole(data.signatures.approver.role);
             if (data.signatures?.approver?.image) setSig2Image(data.signatures.approver.image);
             if (data.signatures?.surveyor?.image) setSig1Image(data.signatures.surveyor.image);
-            if (data.header?.bannerImageUrl) {
+            if (data.header) {
               setAdminSettings(prev => ({
                 ...prev,
                 header: {
                   ...prev.header,
-                  bannerImageUrl: data.header.bannerImageUrl,
+                  ...data.header,
+                  bannerImageUrl: data.header.bannerImageUrl || prev.header?.bannerImageUrl || '',
                   bannerLayout: data.header.bannerLayout || prev.header?.bannerLayout || 'bleed',
+                  bannerTheme: data.header.bannerTheme || prev.header?.bannerTheme || 'white',
+                  logoSize: data.header.logoSize || prev.header?.logoSize || 'large',
                 }
               }));
             }
@@ -2528,14 +2539,27 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
           {/* TAB 1: Header & Letterhead */}
           {activeTab === 'header' && (
             <div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, fontWeight: 700, fontSize: 13, color: 'var(--ink-primary, #eef2ff)', cursor: 'pointer' }}>
-                <input 
-                  type="checkbox" 
-                  checked={form.header?.showLetterhead} 
-                  onChange={e => handleHeaderChange('showLetterhead', e.target.checked)} 
-                />
-                เปิดแสดงหัวกระดาษทางการ (Official Letterhead Banner)
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 13, color: 'var(--ink-primary, #eef2ff)', cursor: 'pointer' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={form.header?.showLetterhead} 
+                    onChange={e => handleHeaderChange('showLetterhead', e.target.checked)} 
+                  />
+                  เปิดแสดงหัวกระดาษทางการ (Official Letterhead Banner)
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleHeaderChange('bannerLayout', 'bleed');
+                    handleHeaderChange('bannerTheme', 'white');
+                    handleHeaderChange('logoSize', 'large');
+                    handleHeaderChange('logoType', 'egat');
+                  }}
+                  style={{ background: 'rgba(59, 130, 246, 0.15)', border: '1px solid rgba(59, 130, 246, 0.35)', color: '#60a5fa', padding: '4px 10px', borderRadius: 6, fontSize: 11.5, cursor: 'pointer', fontWeight: 700 }}>
+                  🔄 ใช้ค่ามาตรฐาน (เต็ม A4 / โลโก้ใหญ่)
+                </button>
+              </div>
 
               {form.header?.showLetterhead && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>

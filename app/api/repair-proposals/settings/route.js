@@ -3,11 +3,21 @@ import { loadRepairSettings, saveRepairSettings } from '../../../../src/lib/gith
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET() {
   try {
     const settings = await loadRepairSettings();
-    return NextResponse.json({ ok: true, settings });
+    return NextResponse.json(
+      { ok: true, settings },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }
+    );
   } catch (err) {
     console.error('repair-proposals/settings GET error:', err);
     return NextResponse.json({ ok: false, error: String(err?.message || err) }, { status: 500 });

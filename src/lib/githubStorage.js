@@ -772,7 +772,13 @@ async function loadRepairSettings() {
     return {
       ...defaultSettings,
       ...loaded,
-      header: { ...defaultSettings.header, ...(loaded.header || {}) },
+      header: {
+        ...defaultSettings.header,
+        ...(loaded.header || {}),
+        bannerLayout: loaded.header?.bannerLayout || 'bleed',
+        bannerTheme: loaded.header?.bannerTheme || 'white',
+        logoSize: loaded.header?.logoSize || 'large',
+      },
       approver: { ...defaultSettings.approver, ...(loaded.approver || {}) },
       runningNumber: { ...defaultSettings.runningNumber, ...(loaded.runningNumber || {}) },
       defaults: { ...defaultSettings.defaults, ...(loaded.defaults || {}) },
