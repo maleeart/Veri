@@ -222,7 +222,17 @@ async function loadInspectionByPath(filePath) {
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`โหลดไม่สำเร็จ HTTP ${res.status}`);
   const json = await res.json();
-  return JSON.parse(Buffer.from(json.content, 'base64').toString('utf-8'));
+  if (json.content) {
+    return JSON.parse(Buffer.from(json.content, 'base64').toString('utf-8'));
+  }
+  if (json.sha) {
+    const blobRes = await ghReq(`/repos/${owner}/${repo}/git/blobs/${json.sha}`);
+    if (blobRes.ok) {
+      const blobJson = await blobRes.json();
+      return JSON.parse(Buffer.from(blobJson.content, 'base64').toString('utf-8'));
+    }
+  }
+  return null;
 }
 
 /** ดึงข้อมูลจาก filename โดยตรง — รองรับทั้ง path เก่าและใหม่ */
@@ -756,6 +766,17 @@ async function loadRepairSettings() {
     console.warn('loadRepairSettings local error:', err.message);
   }
 
+  // Also check /tmp if running on serverless
+  try {
+    const tmpFile = path.join('/tmp', 'repair-proposals', 'settings.json');
+    if (fs.existsSync(tmpFile)) {
+      const data = JSON.parse(fs.readFileSync(tmpFile, 'utf-8'));
+      if (data && (!loaded || (data.updatedAt && data.updatedAt > (loaded.updatedAt || '')))) {
+        loaded = data;
+      }
+    }
+  } catch {}
+
   try {
     const data = await loadJsonFile('data/repair-proposals/settings.json');
     if (data) {
@@ -796,10 +817,20 @@ async function saveRepairSettings(settings) {
     updatedAt: new Date().toISOString()
   };
 
-  const localDir = path.join(process.cwd(), 'data', 'repair-proposals');
-  if (!fs.existsSync(localDir)) fs.mkdirSync(localDir, { recursive: true });
-  const localFile = path.join(localDir, 'settings.json');
-  fs.writeFileSync(localFile, JSON.stringify(toSave, null, 2), 'utf-8');
+  // 1. Best-effort local file write (works in local dev, safe on Vercel/serverless read-only filesystem)
+  try {
+    const localDir = path.join(process.cwd(), 'data', 'repair-proposals');
+    if (!fs.existsSync(localDir)) fs.mkdirSync(localDir, { recursive: true });
+    const localFile = path.join(localDir, 'settings.json');
+    fs.writeFileSync(localFile, JSON.stringify(toSave, null, 2), 'utf-8');
+  } catch (localErr) {
+    // Expected on Vercel serverless where /var/task is read-only; fallback to writable /tmp
+    try {
+      const tmpDir = path.join('/tmp', 'repair-proposals');
+      if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+      fs.writeFileSync(path.join(tmpDir, 'settings.json'), JSON.stringify(toSave, null, 2), 'utf-8');
+    } catch {}
+  }
 
   let githubSaved = false;
   let githubError = null;
