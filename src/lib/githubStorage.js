@@ -809,7 +809,7 @@ async function saveRepairSettings(settings) {
     const jsonStr = JSON.stringify(toSave, null, 2);
     const byteLen = Buffer.byteLength(jsonStr, 'utf-8');
 
-    if (byteLen < 950000) {
+    if (byteLen < 300000 && !toSave.header?.bannerImageUrl) {
       try {
         await saveJsonFile('data/repair-proposals/settings.json', toSave, 'Update repair proposals admin settings');
         githubSaved = true;

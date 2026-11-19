@@ -322,6 +322,7 @@ function RepairProposalFormInner() {
   const [sig1Image, setSig1Image] = useState(null); // Inspector
   const [sig2Image, setSig2Image] = useState('/assets/shared/signature-approver.png'); // Approver Tuangpetch
   const [approverSigMode, setApproverSigMode] = useState('image'); // 'image' | 'draw'
+  const [syncingCloud, setSyncingCloud] = useState(false);
 
   // Compute Today Thai Date
   const getTodayThaiDate = () => {
@@ -423,7 +424,14 @@ function RepairProposalFormInner() {
           // Safe banner resolution: Never let empty string from server wipe out an existing local banner
           const bestBannerImageUrl = (s.header?.bannerImageUrl) || (loaded.header?.bannerImageUrl) || '';
 
-          // Merge: Server settings take precedence for global layout/theme/approver, local keeps custom banner if server didn't have it
+          const isServerDefaultTitle = !s.header?.companyTitle || s.header?.companyTitle === defaultAdminSettings.header.companyTitle;
+          const bestCompanyTitle = (!isServerDefaultTitle && s.header?.companyTitle) || loaded.header?.companyTitle || defaultAdminSettings.header.companyTitle;
+          const bestCompanySubtitle = (!isServerDefaultTitle && s.header?.companySubtitle) || loaded.header?.companySubtitle || defaultAdminSettings.header.companySubtitle;
+          const bestCompanyAddress = (!isServerDefaultTitle && s.header?.companyAddress) || loaded.header?.companyAddress || defaultAdminSettings.header.companyAddress;
+          const bestLogoType = (s.header?.logoType && s.header.logoType !== 'egat') ? s.header.logoType : (loaded.header?.logoType || s.header?.logoType || 'egat');
+          const bestCustomLogoUrl = s.header?.customLogoUrl || loaded.header?.customLogoUrl || '';
+
+          // Merge: Server settings take precedence for global layout/theme/approver, local keeps custom banner/company if server didn't have it
           loaded = { 
             ...defaultAdminSettings,
             ...loaded, 
@@ -432,10 +440,16 @@ function RepairProposalFormInner() {
               ...defaultAdminSettings.header,
               ...(loaded.header || {}), 
               ...(s.header || {}),
+              companyTitle: bestCompanyTitle,
+              companySubtitle: bestCompanySubtitle,
+              companyAddress: bestCompanyAddress,
+              logoType: bestLogoType,
+              customLogoUrl: bestCustomLogoUrl,
               bannerImageUrl: bestBannerImageUrl,
               bannerLayout: s.header?.bannerLayout || loaded.header?.bannerLayout || 'bleed',
               bannerTheme: s.header?.bannerTheme || loaded.header?.bannerTheme || 'white',
               logoSize: s.header?.logoSize || loaded.header?.logoSize || 'large',
+              showLetterhead: s.header?.showLetterhead !== undefined ? s.header.showLetterhead : (loaded.header?.showLetterhead !== undefined ? loaded.header.showLetterhead : true),
             },
             approver: { ...defaultAdminSettings.approver, ...loaded.approver, ...(s.approver || {}) },
             runningNumber: { ...defaultAdminSettings.runningNumber, ...loaded.runningNumber, ...(s.runningNumber || {}) },
@@ -444,13 +458,15 @@ function RepairProposalFormInner() {
             settingsVersion: 3
           };
 
-          // If local has banner image but server didn't, auto-sync back to server in background
-          if (!s.header?.bannerImageUrl && loaded.header?.bannerImageUrl) {
+          // If local has banner image or custom logo but server didn't, auto-sync back to server in background
+          if ((!s.header?.bannerImageUrl && loaded.header?.bannerImageUrl) || (!s.header?.customLogoUrl && loaded.header?.customLogoUrl)) {
             fetch('/api/repair-proposals/settings', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ pin: '8888', settings: loaded })
-            }).catch(() => {});
+            }).then(r => r.json()).then(res => {
+              if (res.ok) console.log('Auto-synced settings to cloud successfully');
+            }).catch(e => console.warn('Auto-sync settings failed:', e));
           }
         }
       } catch (e) {}
@@ -899,6 +915,68 @@ function RepairProposalFormInner() {
     setShowSettingsModal(false);
   };
 
+  // Cross-Device Cloud Sync Handlers
+  const handleSyncToCloud = async () => {
+    try {
+      setSyncingCloud(true);
+      const res = await fetch('/api/repair-proposals/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: '8888', settings: adminSettings })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) {
+        alert('✅ ส่งรูปภาพหัวกระดาษและการตั้งค่าขึ้น Cloud เรียบร้อยแล้ว!\n\nคอมพิวเตอร์และอุปกรณ์เครื่องอื่นจะเห็นรูปหัวกระดาษบริษัทนี้เหมือนกันทันที\n(หากเครื่องอื่นเปิดค้างไว้ เพียงกดปุ่ม "🔄 ดึงรูปบริษัทจาก Cloud" หรือกดรีเฟรชหน้าเว็บ)');
+      } else {
+        alert('⚠️ เกิดข้อผิดพลาดในการส่งขึ้น Cloud: ' + (data?.error || res.statusText || 'ไม่สามารถบันทึกได้'));
+      }
+    } catch (err) {
+      alert('⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + err.message);
+    } finally {
+      setSyncingCloud(false);
+    }
+  };
+
+  const handlePullFromCloud = async () => {
+    try {
+      setSyncingCloud(true);
+      const res = await fetch(`/api/repair-proposals/settings?t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data && data.ok && data.settings) {
+        const s = data.settings;
+        if (s.header?.bannerImageUrl || s.header?.customLogoUrl || (s.header?.companyTitle && s.header.companyTitle !== defaultAdminSettings.header.companyTitle)) {
+          const merged = {
+            ...adminSettings,
+            ...s,
+            header: {
+              ...adminSettings.header,
+              ...(s.header || {})
+            },
+            approver: { ...adminSettings.approver, ...(s.approver || {}) },
+            runningNumber: { ...adminSettings.runningNumber, ...(s.runningNumber || {}) },
+            defaults: { ...adminSettings.defaults, ...(s.defaults || {}) }
+          };
+          setAdminSettings(merged);
+          try {
+            localStorage.setItem('repair_proposal_admin_settings', JSON.stringify(merged));
+          } catch (e) {}
+          alert('✅ ดึงรูปภาพหัวกระดาษบริษัทจาก Cloud สำเร็จแล้ว!\nเอกสารปรับเป็นหัวกระดาษบริษัทเต็มหน้า A4 ให้เรียบร้อยแล้วครับ');
+        } else {
+          alert('ℹ️ ตรวจสอบบน Cloud แล้ว พบว่ายังไม่มีการบันทึกรูปหัวกระดาษบริษัทขึ้นมา\n\nคำแนะนำ:\n1. กรุณาเปิดคอมพิวเตอร์เครื่องที่แสดงรูปบริษัทอยู่\n2. ที่คอมเครื่องนั้น กดปุ่ม "☁️ ซิงค์รูปนี้ไปทุกเครื่อง"\n3. กลับมากด "🔄 ดึงรูปบริษัทจาก Cloud" ที่เครื่องนี้อีกครั้ง');
+        }
+      } else {
+        alert('⚠️ ไม่สามารถดึงข้อมูลจาก Cloud ได้: ' + (data?.error || 'เซิร์ฟเวอร์ไม่ตอบสนอง'));
+      }
+    } catch (err) {
+      alert('⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + err.message);
+    } finally {
+      setSyncingCloud(false);
+    }
+  };
+
   // Logo URL Resolver
   const currentLogoUrl = useMemo(() => {
     const type = adminSettings.header?.logoType;
@@ -1135,6 +1213,49 @@ function RepairProposalFormInner() {
           </div>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+            {/* Cross-Device Cloud Sync Button */}
+            {adminSettings.header?.bannerImageUrl ? (
+              <button 
+                onClick={handleSyncToCloud}
+                disabled={syncingCloud}
+                title="ส่งรูปหัวกระดาษบริษัทนี้ขึ้น Cloud เพื่อให้คอมทุกเครื่องเห็นตรงกัน"
+                style={{ 
+                  background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.3) 100%)', 
+                  border: '1px solid #10b981', 
+                  borderRadius: 8, 
+                  padding: '7px 12px', 
+                  fontSize: 12.5, 
+                  fontWeight: 800, 
+                  cursor: 'pointer', 
+                  color: '#34d399',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5
+                }}>
+                <span>☁️</span> {syncingCloud ? 'กำลังส่งขึ้น Cloud...' : 'ซิงค์รูปนี้ไปทุกเครื่อง'}
+              </button>
+            ) : (
+              <button 
+                onClick={handlePullFromCloud}
+                disabled={syncingCloud}
+                title="ดึงรูปภาพหัวกระดาษบริษัทที่ตั้งค่าไว้จาก Cloud มาใช้กับเครื่องนี้"
+                style={{ 
+                  background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.18) 0%, rgba(37, 99, 235, 0.25) 100%)', 
+                  border: '1px solid #38bdf8', 
+                  borderRadius: 8, 
+                  padding: '7px 12px', 
+                  fontSize: 12.5, 
+                  fontWeight: 800, 
+                  cursor: 'pointer', 
+                  color: '#7dd3fc',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5
+                }}>
+                <span>🔄</span> {syncingCloud ? 'กำลังดึงจาก Cloud...' : 'ดึงรูปบริษัทจาก Cloud'}
+              </button>
+            )}
+
             <button 
               onClick={openAdminPanel}
               style={{ background: 'rgba(245, 158, 11, 0.18)', border: '1px solid rgba(245, 158, 11, 0.35)', borderRadius: 8, padding: '7px 12px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', color: '#fbbf24' }}>
@@ -2460,6 +2581,97 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
     }));
   };
 
+  const [modalSyncing, setModalSyncing] = useState(false);
+
+  const handleModalPushToCloud = async () => {
+    try {
+      setModalSyncing(true);
+      const res = await fetch('/api/repair-proposals/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: '8888', settings: form })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) {
+        alert('✅ บันทึกและส่งรูปภาพหัวกระดาษขึ้น Cloud สำเร็จแล้ว!\nคอมพิวเตอร์และอุปกรณ์เครื่องอื่นจะเห็นหัวกระดาษนี้เหมือนกันทันที');
+        onSave(form);
+      } else {
+        alert('⚠️ ส่งขึ้น Cloud ไม่สำเร็จ: ' + (data?.error || res.statusText || 'เกิดข้อผิดพลาด'));
+      }
+    } catch (err) {
+      alert('⚠️ เกิดข้อผิดพลาด: ' + err.message);
+    } finally {
+      setModalSyncing(false);
+    }
+  };
+
+  const handleModalPullFromCloud = async () => {
+    try {
+      setModalSyncing(true);
+      const res = await fetch(`/api/repair-proposals/settings?t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data && data.ok && data.settings) {
+        setForm(data.settings);
+        alert('✅ ดึงการตั้งค่าล่าสุดจาก Cloud สำเร็จแล้ว!\nรูปภาพและหัวกระดาษพร้อมใช้งาน');
+      } else {
+        alert('⚠️ ไม่พบข้อมูลการตั้งค่าบน Cloud: ' + (data?.error || 'เซิร์ฟเวอร์ไม่ตอบสนอง'));
+      }
+    } catch (err) {
+      alert('⚠️ เกิดข้อผิดพลาด: ' + err.message);
+    } finally {
+      setModalSyncing(false);
+    }
+  };
+
+  const handleExportHeaderCode = () => {
+    try {
+      const exportData = {
+        type: 'repair_header_export',
+        v: 1,
+        exportedAt: new Date().toISOString(),
+        header: form.header
+      };
+      const code = JSON.stringify(exportData);
+      if (navigator?.clipboard?.writeText) {
+        navigator.clipboard.writeText(code).then(() => {
+          alert('📋 คัดลอกโค้ดหัวกระดาษเรียบร้อยแล้ว!\n\nท่านสามารถนำโค้ดนี้ส่งทาง LINE / Chat / Email เพื่อเปิดบนคอมอีกเครื่อง แล้วกดปุ่ม "📥 วางโค้ดหัวกระดาษ" เพื่อใช้งานได้ทันที');
+        }).catch(() => {
+          prompt('คัดลอกโค้ดหัวกระดาษด้านล่างนี้ (กด Ctrl+C):', code);
+        });
+      } else {
+        prompt('คัดลอกโค้ดหัวกระดาษด้านล่างนี้ (กด Ctrl+C):', code);
+      }
+    } catch (e) {
+      alert('ไม่สามารถส่งออกโค้ดได้: ' + e.message);
+    }
+  };
+
+  const handleImportHeaderCode = () => {
+    const raw = prompt('วางโค้ดหัวกระดาษที่คัดลอกมาจากคอมอีกเครื่องที่นี่ (กด Ctrl+V):');
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw.trim());
+      if (parsed && (parsed.header || parsed.bannerImageUrl)) {
+        const importedHeader = parsed.header || parsed;
+        setForm(prev => ({
+          ...prev,
+          header: {
+            ...prev.header,
+            ...importedHeader
+          }
+        }));
+        alert('✅ นำเข้าหัวกระดาษสำเร็จแล้ว!\nรูปภาพและการตั้งค่าถูกแสดงในกล่อง Live Preview แล้ว\nกรุณากดปุ่ม "💾 บันทึกการตั้งค่า" ด้านล่างเพื่อบันทึกใช้งานถาวร');
+      } else {
+        alert('⚠️ รูปแบบโค้ดไม่ถูกต้อง กรุณาตรวจสอบโค้ดที่คัดลอกมา');
+      }
+    } catch (err) {
+      alert('⚠️ โค้ดไม่ถูกต้อง: ' + err.message);
+    }
+  };
+
   // Preview generated refNo
   const previewRef = useMemo(() => {
     const thaiYear = new Date().getFullYear() + 543;
@@ -2669,6 +2881,49 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                         />
                         เต็มขอบเนื้อหาเอกสาร (Contained เสมอเท่าขอบตารางและกรอบฟอร์ม)
                       </label>
+                    </div>
+                  </div>
+
+                  {/* Cross-Device Sync & Transfer Box */}
+                  <div style={{ background: 'linear-gradient(135deg, rgba(17, 29, 50, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)', border: '1px solid rgba(56, 189, 248, 0.4)', borderRadius: 8, padding: 14 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, flexWrap: 'wrap', gap: 6 }}>
+                      <div style={{ fontWeight: 800, fontSize: 13, color: '#38bdf8', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>📡</span> ซิงค์และถ่ายโอนรูปหัวกระดาษข้ามเครื่อง (Cross-Device Sync & Transfer)
+                      </div>
+                      <span style={{ fontSize: 11, color: '#94a3b8' }}>
+                        แก้ปัญหาเปิดคนละเครื่องแล้วรูปไม่ขึ้น
+                      </span>
+                    </div>
+                    <p style={{ fontSize: 11.5, color: 'var(--ink-secondary, #94a3c4)', margin: '0 0 10px 0', lineHeight: 1.45 }}>
+                      ใช้เมื่อต้องการให้คอมพิวเตอร์เครื่องอื่นเห็นรูปหัวกระดาษบริษัทเหมือนกัน โดยไม่ต้องอัปโหลดซ้ำทีละเครื่อง:
+                    </p>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={handleModalPushToCloud}
+                        disabled={modalSyncing}
+                        style={{ background: 'rgba(16, 185, 129, 0.2)', border: '1px solid #10b981', color: '#34d399', padding: '6px 12px', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                        <span>📤</span> {modalSyncing ? 'กำลังบันทึก...' : 'ส่งหัวกระดาษเครื่องนี้ขึ้น Cloud'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleModalPullFromCloud}
+                        disabled={modalSyncing}
+                        style={{ background: 'rgba(56, 189, 248, 0.2)', border: '1px solid #38bdf8', color: '#7dd3fc', padding: '6px 12px', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                        <span>📥</span> {modalSyncing ? 'กำลังดึง...' : 'ดึงหัวกระดาษจาก Cloud'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleExportHeaderCode}
+                        style={{ background: 'rgba(245, 158, 11, 0.2)', border: '1px solid #f59e0b', color: '#fbbf24', padding: '6px 12px', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                        <span>📋</span> คัดลอกโค้ดหัวกระดาษ (Export)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleImportHeaderCode}
+                        style={{ background: 'rgba(168, 85, 247, 0.2)', border: '1px solid #a855f7', color: '#c084fc', padding: '6px 12px', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                        <span>📥</span> วางโค้ดหัวกระดาษ (Import)
+                      </button>
                     </div>
                   </div>
 
