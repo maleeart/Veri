@@ -2605,12 +2605,19 @@ function RepairProposalFormInner() {
                 </div>
 
                 {/* Step 2 Graphic */}
-                <div style={{ background: '#1e293b', borderRadius: 8, padding: '10px 12px', border: '1px solid #334155', display: 'flex', justifyContent: 'flex-end', gap: 8, alignItems: 'center' }}>
-                  <span style={{ fontSize: 11.5, color: '#94a3b8', marginRight: 'auto' }}>2. ปุ่มขวาล่างจะกลายเป็น:</span>
-                  <span style={{ background: '#334155', color: '#94a3b8', padding: '4px 10px', borderRadius: 5, fontSize: 11.5 }}>ยกเลิก</span>
-                  <span style={{ background: '#2563eb', color: '#ffffff', padding: '4px 14px', borderRadius: 5, fontSize: 12, fontWeight: 800, boxShadow: '0 0 10px rgba(37,99,235,0.5)' }}>
-                    💾 บันทึก (Save)
-                  </span>
+                <div style={{ background: '#1e293b', borderRadius: 8, padding: '10px 12px', border: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 11.5, color: '#94a3b8' }}>2. ปุ่มขวาล่างจะกลายเป็น:</span>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <span style={{ background: '#334155', color: '#94a3b8', padding: '3px 8px', borderRadius: 4, fontSize: 11 }}>ยกเลิก</span>
+                    <span style={{ background: '#2563eb', color: '#ffffff', padding: '3px 12px', borderRadius: 4, fontSize: 11.5, fontWeight: 800, boxShadow: '0 0 10px rgba(37,99,235,0.5)' }}>
+                      💾 บันทึก (Save)
+                    </span>
+                  </div>
+                </div>
+
+                {/* Helpful Note about Microsoft Print to PDF */}
+                <div style={{ marginTop: 10, padding: '8px 10px', background: 'rgba(234, 179, 8, 0.1)', border: '1px dashed rgba(234, 179, 8, 0.4)', borderRadius: 6, fontSize: 11, color: '#fef08a', lineHeight: 1.45 }}>
+                  📌 <strong>ข้อควรรู้:</strong> หากปลายทางของท่านขึ้นว่า <strong>"Microsoft Print to PDF"</strong> ท่านสามารถกดปุ่ม <strong>"พิมพ์"</strong> ได้ทันทีเช่นกัน! ระบบจะเปิดหน้าต่างเซฟไฟล์ PDF ลงเครื่องให้ (ไม่ได้ส่งกระดาษออกเครื่องพิมพ์)
                 </div>
               </div>
 
