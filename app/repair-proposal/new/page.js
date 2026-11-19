@@ -289,6 +289,8 @@ function RepairProposalFormInner() {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [skipPdfGuide, setSkipPdfGuide] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [exportProgress, setExportProgress] = useState('');
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState('');
 
@@ -1036,19 +1038,132 @@ function RepairProposalFormInner() {
     };
   }, [refNo, jobTitle]);
 
-  // Open Save/Export Modal
-  const handleOpenExportModal = () => {
-    const targetFileName = getPdfFileName();
-    document.title = targetFileName;
-    const skipGuide = typeof window !== 'undefined' && localStorage.getItem('repair_skip_pdf_guide') === '1';
-    if (skipGuide) {
-      handleBrowserPrint();
-    } else {
-      setShowExportModal(true);
+  // Direct Download PDF (Page-by-Page Vector/High-res A4 PDF generator)
+  const handleDirectDownloadPdf = async () => {
+    if (isExportingPdf) return;
+    setIsExportingPdf(true);
+    setExportProgress('กำลังเตรียมข้อมูลเอกสาร...');
+
+    try {
+      // 1. Ensure document container is rendered and visible in DOM
+      const origView = activeView;
+      if (origView !== 'document') {
+        setActiveView('document');
+        await new Promise(r => setTimeout(r, 220));
+      }
+
+      // 2. Wait for web fonts (Sarabun / Noto Sans Thai) to be ready
+      if (typeof document !== 'undefined' && document.fonts?.ready) {
+        await document.fonts.ready;
+      }
+
+      const printArea = document.getElementById('repair-proposal-print-area');
+      if (!printArea) {
+        throw new Error('ไม่พบข้อมูลเอกสารสำหรับสร้าง PDF');
+      }
+
+      // 3. Ensure all images in print area are fully loaded
+      const imgs = Array.from(printArea.querySelectorAll('img'));
+      await Promise.all(imgs.map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(res => {
+          img.onload = res;
+          img.onerror = res;
+        });
+      }));
+
+      const pageElements = Array.from(printArea.querySelectorAll('.a4-print-page'));
+      if (pageElements.length === 0) {
+        throw new Error('ไม่พบหน้าเอกสาร A4');
+      }
+
+      setExportProgress('กำลังโหลดโมดูล PDF...');
+      const { default: jsPDF } = await import('jspdf');
+      const { default: html2canvas } = await import('html2canvas');
+
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true
+      });
+
+      for (let i = 0; i < pageElements.length; i++) {
+        setExportProgress(`กำลังสร้างหน้าที่ ${i + 1} จาก ${pageElements.length} หน้า...`);
+        const pageEl = pageElements[i];
+
+        // Temporarily reset screen decorations (shadow, rounded corners, margins)
+        const origRadius = pageEl.style.borderRadius;
+        const origShadow = pageEl.style.boxShadow;
+        const origMargin = pageEl.style.marginBottom;
+        pageEl.style.borderRadius = '0px';
+        pageEl.style.boxShadow = 'none';
+        pageEl.style.marginBottom = '0px';
+
+        const bleedBanners = Array.from(pageEl.querySelectorAll('.doc-banner-bleed'));
+        const origBannerRadii = bleedBanners.map(b => ({
+          topLeft: b.style.borderTopLeftRadius,
+          topRight: b.style.borderTopRightRadius
+        }));
+        bleedBanners.forEach(b => {
+          b.style.borderTopLeftRadius = '0px';
+          b.style.borderTopRightRadius = '0px';
+        });
+
+        let canvas;
+        try {
+          canvas = await html2canvas(pageEl, {
+            scale: 2, // High 2x DPI for crystal clear text & images
+            useCORS: true,
+            allowTaint: true,
+            logging: false,
+            backgroundColor: '#ffffff'
+          });
+        } finally {
+          // Restore screen decorations
+          pageEl.style.borderRadius = origRadius;
+          pageEl.style.boxShadow = origShadow;
+          pageEl.style.marginBottom = origMargin;
+          bleedBanners.forEach((b, idx) => {
+            if (origBannerRadii[idx]) {
+              b.style.borderTopLeftRadius = origBannerRadii[idx].topLeft;
+              b.style.borderTopRightRadius = origBannerRadii[idx].topRight;
+            }
+          });
+        }
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.98);
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const imgWidth = pageWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        if (i > 0) {
+          pdf.addPage('a4', 'portrait');
+        }
+
+        if (imgHeight > pageHeight) {
+          const fitWidth = (pageHeight * canvas.width) / canvas.height;
+          const xOffset = (pageWidth - fitWidth) / 2;
+          pdf.addImage(imgData, 'JPEG', xOffset, 0, fitWidth, pageHeight, undefined, 'FAST');
+        } else {
+          pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight, undefined, 'FAST');
+        }
+      }
+
+      setExportProgress('กำลังบันทึกไฟล์...');
+      const targetFileName = `${getPdfFileName()}.pdf`;
+      pdf.save(targetFileName);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      alert('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF: ' + (err?.message || err));
+    } finally {
+      setIsExportingPdf(false);
+      setExportProgress('');
     }
   };
 
-  // Browser Native Print / Save as PDF (Produces 100% vector crisp A4 document identical to preview)
+  // Browser Native Print / Fallback
   const handleBrowserPrint = () => {
     const targetFileName = getPdfFileName();
     document.title = targetFileName;
@@ -1063,7 +1178,7 @@ function RepairProposalFormInner() {
     }, 180);
   };
 
-  const handleExportPdf = handleOpenExportModal;
+  const handleExportPdf = handleDirectDownloadPdf;
 
   const steps = [
     { title: 'ข้อมูลงาน', icon: '1' },
@@ -1341,10 +1456,11 @@ function RepairProposalFormInner() {
               {saving ? '⏳ กำลังบันทึก...' : '💾 บันทึกออนไลน์ (GitHub)'}
             </button>
             <button 
-              onClick={handleOpenExportModal}
-              title={`บันทึกเป็นไฟล์ PDF (${getPdfFileName()}.pdf)`}
-              style={{ background: '#16a34a', border: 'none', borderRadius: 8, padding: '7px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: 'white', boxShadow: '0 2px 8px rgba(22,163,74,0.3)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <span>📥</span> บันทึก PDF (Save)
+              onClick={handleDirectDownloadPdf}
+              disabled={isExportingPdf}
+              title={`ดาวน์โหลดเป็นไฟล์ PDF ลงเครื่องทันที (${getPdfFileName()}.pdf)`}
+              style={{ background: '#16a34a', border: 'none', borderRadius: 8, padding: '7px 16px', fontSize: 13, fontWeight: 700, cursor: isExportingPdf ? 'wait' : 'pointer', color: 'white', boxShadow: '0 2px 8px rgba(22,163,74,0.3)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <span>📥</span> {isExportingPdf ? 'กำลังดาวน์โหลด...' : 'ดาวน์โหลด PDF (Save)'}
             </button>
           </div>
         </div>
@@ -2086,8 +2202,9 @@ function RepairProposalFormInner() {
                   </button>
 
                   <button 
-                    onClick={handleOpenExportModal}
-                    title={`บันทึกเป็นไฟล์ PDF (${getPdfFileName()}.pdf)`}
+                    onClick={handleDirectDownloadPdf}
+                    disabled={isExportingPdf}
+                    title={`ดาวน์โหลดเป็นไฟล์ PDF ลงเครื่องทันที (${getPdfFileName()}.pdf)`}
                     style={{
                       background: '#16a34a',
                       color: 'white',
@@ -2096,13 +2213,13 @@ function RepairProposalFormInner() {
                       padding: '11px 20px',
                       borderRadius: 8,
                       border: 'none',
-                      cursor: 'pointer',
+                      cursor: isExportingPdf ? 'wait' : 'pointer',
                       boxShadow: '0 4px 12px rgba(22,163,74,0.35)',
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: 6
                     }}>
-                    <span>📥</span> บันทึกเป็นไฟล์ PDF (Save PDF) / สั่งพิมพ์
+                    <span>📥</span> {isExportingPdf ? 'กำลังสร้าง PDF...' : 'ดาวน์โหลดไฟล์ PDF ทันที (Direct Save)'}
                   </button>
 
                   <button 
@@ -2205,16 +2322,17 @@ function RepairProposalFormInner() {
                   ✏️ กลับไปโหมดแก้ไข
                 </button>
                 <button 
-                  onClick={handleOpenExportModal}
-                  title={`บันทึกเป็นไฟล์ PDF คมชัด 100% (${getPdfFileName()}.pdf)`}
-                  style={{ background: '#16a34a', color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(22,163,74,0.3)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <span>📥</span> บันทึกเป็น PDF (Save as PDF)
+                  onClick={handleDirectDownloadPdf}
+                  disabled={isExportingPdf}
+                  title={`ดาวน์โหลดเป็นไฟล์ PDF ลงเครื่องทันที (${getPdfFileName()}.pdf)`}
+                  style={{ background: '#16a34a', color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 700, cursor: isExportingPdf ? 'wait' : 'pointer', boxShadow: '0 4px 12px rgba(22,163,74,0.3)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <span>📥</span> {isExportingPdf ? 'กำลังดาวน์โหลด...' : 'ดาวน์โหลดไฟล์ PDF ทันที (Direct Save)'}
                 </button>
                 <button 
                   onClick={handleBrowserPrint}
-                  title="เปิดหน้าต่างพิมพ์โดยตรง"
+                  title="เปิดหน้าต่างสั่งพิมพ์ออกเครื่องพิมพ์"
                   style={{ background: 'var(--accent, #2563eb)', color: 'white', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(37,99,235,0.35)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <span>🖨️</span> สั่งพิมพ์ด่วน
+                  <span>🖨️</span> สั่งพิมพ์ (Print)
                 </button>
               </div>
             </div>
@@ -2621,8 +2739,32 @@ function RepairProposalFormInner() {
                 </div>
               </div>
 
-              {/* Main Action Button */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
+              {/* Action Buttons: Direct Download + Print options */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14 }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowExportModal(false);
+                    handleDirectDownloadPdf();
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 10,
+                    background: 'linear-gradient(135deg, #15803d 0%, #16a34a 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: 10,
+                    padding: '13px 18px',
+                    fontSize: 14.5,
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(22, 163, 74, 0.4)'
+                  }}>
+                  <span>📥</span> ดาวน์โหลดไฟล์ PDF ลงเครื่องทันที (Direct Download)
+                </button>
+
                 <button
                   type="button"
                   onClick={() => {
@@ -2635,18 +2777,17 @@ function RepairProposalFormInner() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 10,
-                    background: 'linear-gradient(135deg, #15803d 0%, #16a34a 100%)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: 10,
-                    padding: '12px 18px',
-                    fontSize: 14.5,
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 14px rgba(22, 163, 74, 0.4)'
+                    gap: 8,
+                    background: 'var(--bg-surface-raised, #172340)',
+                    color: '#93c5fd',
+                    border: '1px solid var(--border-strong, #2d3f5e)',
+                    borderRadius: 8,
+                    padding: '9px 14px',
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: 'pointer'
                   }}>
-                  <span>▶</span> เปิดหน้าต่างบันทึก PDF ทันที (คมชัด 100% ตรงตามตัวอย่าง)
+                  <span>🖨️</span> เปิดหน้าต่างสั่งพิมพ์ (Print Dialog)
                 </button>
               </div>
 
@@ -2668,6 +2809,22 @@ function RepairProposalFormInner() {
                 </button>
               </div>
 
+            </div>
+          </div>
+        )}
+
+        {/* PDF Generating Loading Overlay */}
+        {isExportingPdf && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(5px)', zIndex: 10001, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+            <div style={{ background: '#111d32', border: '1.5px solid #2563eb', borderRadius: 16, padding: '28px 36px', textAlign: 'center', maxWidth: 460, width: '100%', boxShadow: '0 16px 50px rgba(0,0,0,0.6)' }}>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>⚡</div>
+              <h3 style={{ fontSize: 17, fontWeight: 800, color: '#eef2ff', margin: '0 0 10px 0' }}>กำลังสร้างและดาวน์โหลดไฟล์ PDF ลงเครื่อง...</h3>
+              <div style={{ fontSize: 13.5, color: '#93c5fd', fontWeight: 600, marginBottom: 14 }}>
+                {exportProgress || 'กรุณารอสักครู่...'}
+              </div>
+              <div style={{ background: 'rgba(37, 99, 235, 0.15)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: '#60a5fa', wordBreak: 'break-all' }}>
+                📁 {getPdfFileName()}.pdf
+              </div>
             </div>
           </div>
         )}
