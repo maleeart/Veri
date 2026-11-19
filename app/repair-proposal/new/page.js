@@ -287,6 +287,8 @@ function RepairProposalFormInner() {
   const [isAdminAuth, setIsAdminAuth] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [downloadingDirectPdf, setDownloadingDirectPdf] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState('');
 
@@ -1034,21 +1036,73 @@ function RepairProposalFormInner() {
     };
   }, [refNo, jobTitle]);
 
-  // Dedicated PDF Export / Print Handler
-  const handleExportPdf = () => {
+  // Open Save/Export Modal
+  const handleOpenExportModal = () => {
     const targetFileName = getPdfFileName();
     document.title = targetFileName;
+    setShowExportModal(true);
+  };
 
-    // Switch to document view if currently in wizard
+  // Browser Native Print / Save as PDF
+  const handleBrowserPrint = () => {
+    const targetFileName = getPdfFileName();
+    document.title = targetFileName;
+    setShowExportModal(false);
+
     if (activeView !== 'document') {
       setActiveView('document');
     }
 
-    // Allow DOM update and title change to register with browser before opening print dialog
     setTimeout(() => {
       window.print();
-    }, 150);
+    }, 180);
   };
+
+  // Direct PDF File Download (No printer dialog needed!)
+  const handleDownloadDirectPdf = async () => {
+    try {
+      setDownloadingDirectPdf(true);
+      if (activeView !== 'document') {
+        setActiveView('document');
+      }
+      await new Promise(r => setTimeout(r, 200));
+
+      const element = document.getElementById('repair-proposal-print-area') || document.querySelector('.doc-print-wrapper');
+      if (!element) throw new Error('ไม่พบข้อมูลเอกสาร');
+
+      if (!window.html2pdf) {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+          s.onload = resolve;
+          s.onerror = () => reject(new Error('ไม่สามารถโหลดตัวดาวน์โหลด PDF ได้'));
+          document.head.appendChild(s);
+        });
+      }
+
+      const fileName = `${getPdfFileName()}.pdf`;
+      const opt = {
+        margin: [4, 4, 4, 4],
+        filename: fileName,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] }
+      };
+
+      await window.html2pdf().set(opt).from(element).save();
+      setShowExportModal(false);
+    } catch (err) {
+      console.warn('Direct PDF download failed:', err);
+      alert('การดาวน์โหลดตรงมีข้อขัดข้อง: ' + err.message + '\nระบบจะเปิดหน้าต่างพิมพ์ให้แทนครับ');
+      handleBrowserPrint();
+    } finally {
+      setDownloadingDirectPdf(false);
+    }
+  };
+
+  // Default export action opens the modal so user can choose direct save or browser print
+  const handleExportPdf = handleOpenExportModal;
 
   const steps = [
     { title: 'ข้อมูลงาน', icon: '1' },
@@ -1326,10 +1380,10 @@ function RepairProposalFormInner() {
               {saving ? '⏳ กำลังบันทึก...' : '💾 บันทึกออนไลน์ (GitHub)'}
             </button>
             <button 
-              onClick={handleExportPdf}
-              title={`สั่งพิมพ์หรือบันทึกเป็นไฟล์ PDF (ชื่อไฟล์: ${getPdfFileName()}.pdf)`}
+              onClick={handleOpenExportModal}
+              title={`บันทึกเป็นไฟล์ PDF (${getPdfFileName()}.pdf)`}
               style={{ background: '#16a34a', border: 'none', borderRadius: 8, padding: '7px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: 'white', boxShadow: '0 2px 8px rgba(22,163,74,0.3)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <span>🖨️</span> Export PDF
+              <span>📥</span> บันทึก PDF (Save)
             </button>
           </div>
         </div>
@@ -2071,8 +2125,8 @@ function RepairProposalFormInner() {
                   </button>
 
                   <button 
-                    onClick={handleExportPdf}
-                    title={`สั่งพิมพ์หรือส่งออกเป็นไฟล์ PDF (ชื่อไฟล์: ${getPdfFileName()}.pdf)`}
+                    onClick={handleOpenExportModal}
+                    title={`บันทึกเป็นไฟล์ PDF (${getPdfFileName()}.pdf)`}
                     style={{
                       background: '#16a34a',
                       color: 'white',
@@ -2082,9 +2136,12 @@ function RepairProposalFormInner() {
                       borderRadius: 8,
                       border: 'none',
                       cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(22,163,74,0.35)'
+                      boxShadow: '0 4px 12px rgba(22,163,74,0.35)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6
                     }}>
-                    🖨️ สั่งพิมพ์ / ส่งออก PDF (A4 สำหรับแนบ)
+                    <span>📥</span> บันทึกเป็นไฟล์ PDF (Save PDF) / สั่งพิมพ์
                   </button>
 
                   <button 
@@ -2180,20 +2237,29 @@ function RepairProposalFormInner() {
               <div style={{ fontSize: 13, color: 'var(--ink-secondary, #94a3c4)' }}>
                 📄 มุมมองตัวอย่างพิมพ์ A4 เสมือนจริง (ปรับสไตล์ให้คมชัด สีเข้ม ไม่ซีดจางเมื่อพิมพ์หรือ Export PDF)
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button 
                   onClick={() => setActiveView('wizard')}
-                  style={{ background: 'var(--bg-surface-raised, #172340)', color: 'var(--ink-primary, #eef2ff)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                  style={{ background: 'var(--bg-surface-raised, #172340)', color: 'var(--ink-primary, #eef2ff)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                   ✏️ กลับไปโหมดแก้ไข
                 </button>
                 <button 
-                  onClick={handleExportPdf}
-                  title={`สั่งพิมพ์หรือบันทึกเป็นไฟล์ PDF (ชื่อไฟล์: ${getPdfFileName()}.pdf)`}
-                  style={{ background: 'var(--accent, #2563eb)', color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(37,99,235,0.35)' }}>
-                  🖨️ สั่งพิมพ์ / Export PDF
+                  onClick={handleDownloadDirectPdf}
+                  disabled={downloadingDirectPdf}
+                  title={`บันทึกไฟล์ PDF ลงเครื่องทันที (${getPdfFileName()}.pdf)`}
+                  style={{ background: '#16a34a', color: 'white', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: downloadingDirectPdf ? 'wait' : 'pointer', boxShadow: '0 4px 12px rgba(22,163,74,0.3)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <span>📥</span> {downloadingDirectPdf ? 'กำลังสร้างไฟล์ PDF...' : 'บันทึก PDF ลงเครื่อง (Save Direct)'}
+                </button>
+                <button 
+                  onClick={handleOpenExportModal}
+                  style={{ background: 'var(--accent, #2563eb)', color: 'white', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(37,99,235,0.35)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <span>🖨️</span> ตัวเลือกบันทึก / พิมพ์
                 </button>
               </div>
             </div>
+
+            {/* Printable Container for PDF Engine */}
+            <div id="repair-proposal-print-area">
 
             {/* PAGE 1: Header, Letterhead, Info, Survey Table, Requested Items */}
             <div className="a4-print-page" style={{ background: '#ffffff', borderRadius: 8, padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.4)', marginBottom: 20, color: '#0f172a' }}>
@@ -2523,7 +2589,122 @@ function RepairProposalFormInner() {
               </div>
             )}
 
+            </div> {/* end repair-proposal-print-area */}
+
           </div>
+
+        {/* Export / Save PDF Modal Dialog */}
+        {showExportModal && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(5px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 16, padding: 24, maxWidth: 540, width: '100%', boxShadow: '0 16px 50px rgba(0,0,0,0.6)' }}>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 24 }}>📄</span>
+                  <h3 style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink-primary, #eef2ff)', margin: 0 }}>
+                    บันทึกเอกสารเป็นไฟล์ PDF (Save as PDF)
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowExportModal(false)}
+                  style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: 20, cursor: 'pointer', padding: 4 }}>
+                  ✕
+                </button>
+              </div>
+
+              {/* Target Filename Card */}
+              <div style={{ background: 'rgba(37, 99, 235, 0.12)', border: '1px solid rgba(59, 130, 246, 0.35)', borderRadius: 10, padding: '12px 16px', marginBottom: 18 }}>
+                <div style={{ fontSize: 11.5, color: '#93c5fd', fontWeight: 600 }}>📁 ชื่อไฟล์ที่จะได้รับ:</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#60a5fa', wordBreak: 'break-all', marginTop: 3 }}>
+                  {getPdfFileName()}.pdf
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 18 }}>
+                {/* Method 1: Direct Download */}
+                <button
+                  type="button"
+                  onClick={handleDownloadDirectPdf}
+                  disabled={downloadingDirectPdf}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 14,
+                    background: 'linear-gradient(135deg, #15803d 0%, #16a34a 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: 10,
+                    padding: '14px 18px',
+                    cursor: downloadingDirectPdf ? 'wait' : 'pointer',
+                    textAlign: 'left',
+                    boxShadow: '0 4px 14px rgba(22, 163, 74, 0.35)',
+                    opacity: downloadingDirectPdf ? 0.7 : 1
+                  }}>
+                  <span style={{ fontSize: 28 }}>📥</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14.5, fontWeight: 800 }}>
+                      {downloadingDirectPdf ? '⏳ กำลังสร้างไฟล์ PDF...' : '1. ดาวน์โหลดไฟล์ PDF ลงเครื่องทันที (Save Direct)'}
+                    </div>
+                    <div style={{ fontSize: 12, opacity: 0.9, marginTop: 2 }}>
+                      เซฟไฟล์ PDF ลงเครื่องทันที ไม่ต้องเปิดหน้าต่างพิมพ์
+                    </div>
+                  </div>
+                </button>
+
+                {/* Method 2: Browser Print Dialog */}
+                <button
+                  type="button"
+                  onClick={handleBrowserPrint}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 14,
+                    background: 'var(--bg-surface-raised, #172340)',
+                    color: 'var(--ink-primary, #eef2ff)',
+                    border: '1px solid var(--border-strong, #2d3f5e)',
+                    borderRadius: 10,
+                    padding: '14px 18px',
+                    cursor: 'pointer',
+                    textAlign: 'left'
+                  }}>
+                  <span style={{ fontSize: 28 }}>🖨️</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14.5, fontWeight: 800, color: '#38bdf8' }}>
+                      2. เปิดหน้าต่างพิมพ์ของเบราว์เซอร์ (Print / Save as PDF)
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)', marginTop: 2 }}>
+                      สำหรับบันทึกผ่านระบบ Chrome หรือสั่งพิมพ์ออกเครื่องพิมพ์กระดาษ
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              {/* Educational Explanation Box */}
+              <div style={{ background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.35)', borderRadius: 10, padding: '12px 14px', marginBottom: 16 }}>
+                <div style={{ fontSize: 12.5, color: '#fef3c7', fontWeight: 800, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span>💡</span> ทำไมในหน้าต่างพิมพ์ไม่มีปุ่ม Save (มีแต่ปุ่ม Print)?
+                </div>
+                <div style={{ fontSize: 12, color: '#fde68a', lineHeight: 1.6 }}>
+                  <div>1. เมื่อหน้าต่างพิมพ์เปิดขึ้นมา ให้ดูที่ช่อง <strong>"ปลายทาง" (Destination)</strong> ทางขวาบน</div>
+                  <div>2. คลิกแล้วเปลี่ยนจากชื่อเครื่องพิมพ์ เป็น <strong>"บันทึกเป็น PDF" (Save as PDF)</strong></div>
+                  <div>3. <strong>ปุ่มด้านล่างจะเปลี่ยนจากคำว่า "พิมพ์ (Print)" กลายเป็น "บันทึก (Save)" ทันที!</strong></div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowExportModal(false)}
+                  style={{ background: 'transparent', border: '1px solid var(--border-strong, #2d3f5e)', color: 'var(--ink-secondary, #94a3c4)', padding: '7px 18px', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                  ปิด
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
 
         {/* PIN Verification Modal */}
         {showPinModal && (
