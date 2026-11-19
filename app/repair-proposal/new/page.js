@@ -276,8 +276,9 @@ function RepairProposalFormInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editRefNo = searchParams.get('refNo') || searchParams.get('edit');
+  const initialView = (searchParams.get('view') === 'document' || (searchParams.get('refNo') && !searchParams.get('edit'))) ? 'document' : 'wizard';
 
-  const [activeView, setActiveView] = useState('wizard'); // 'wizard' | 'document'
+  const [activeView, setActiveView] = useState(initialView); // 'wizard' | 'document'
   const [currentStep, setCurrentStep] = useState(0);
   const [saving, setSaving] = useState(false);
 
@@ -1002,6 +1003,53 @@ function RepairProposalFormInner() {
 
   const hasAnnex = useMemo(() => surveyPoints.some(p => Boolean((p.photos && p.photos.length > 0) || p.photo)), [surveyPoints]);
 
+  // Helper to generate sanitized PDF filename: <refNo>_<jobTitle>
+  const getPdfFileName = () => {
+    const cleanRef = String(refNo || 'REP-TEMP').trim().replace(/[/\\:*?"<>|]/g, '-').replace(/\s+/g, ' ');
+    const cleanTitle = String(jobTitle || '').trim().replace(/[/\\:*?"<>|]/g, '-').replace(/\s+/g, ' ');
+    if (cleanTitle) {
+      return `${cleanRef}_${cleanTitle}`;
+    }
+    return cleanRef;
+  };
+
+  // Synchronize document.title with <refNo>_<jobTitle> so browser "Save as PDF" automatically defaults to this name
+  useEffect(() => {
+    const origTitle = document.title;
+    const updateTitle = () => {
+      if (refNo || jobTitle) {
+        document.title = getPdfFileName();
+      }
+    };
+    updateTitle();
+
+    const onBeforePrint = () => {
+      document.title = getPdfFileName();
+    };
+    window.addEventListener('beforeprint', onBeforePrint);
+
+    return () => {
+      window.removeEventListener('beforeprint', onBeforePrint);
+      document.title = origTitle;
+    };
+  }, [refNo, jobTitle]);
+
+  // Dedicated PDF Export / Print Handler
+  const handleExportPdf = () => {
+    const targetFileName = getPdfFileName();
+    document.title = targetFileName;
+
+    // Switch to document view if currently in wizard
+    if (activeView !== 'document') {
+      setActiveView('document');
+    }
+
+    // Allow DOM update and title change to register with browser before opening print dialog
+    setTimeout(() => {
+      window.print();
+    }, 150);
+  };
+
   const steps = [
     { title: 'ข้อมูลงาน', icon: '1' },
     { title: `จุดที่ชำรุด (${surveyPoints.length})`, icon: '2' },
@@ -1276,6 +1324,12 @@ function RepairProposalFormInner() {
               disabled={saving}
               style={{ background: 'var(--accent, #2563eb)', border: 'none', borderRadius: 8, padding: '7px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: 'white', boxShadow: '0 2px 8px rgba(37,99,235,0.3)' }}>
               {saving ? '⏳ กำลังบันทึก...' : '💾 บันทึกออนไลน์ (GitHub)'}
+            </button>
+            <button 
+              onClick={handleExportPdf}
+              title={`สั่งพิมพ์หรือบันทึกเป็นไฟล์ PDF (ชื่อไฟล์: ${getPdfFileName()}.pdf)`}
+              style={{ background: '#16a34a', border: 'none', borderRadius: 8, padding: '7px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: 'white', boxShadow: '0 2px 8px rgba(22,163,74,0.3)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <span>🖨️</span> Export PDF
             </button>
           </div>
         </div>
@@ -2017,10 +2071,8 @@ function RepairProposalFormInner() {
                   </button>
 
                   <button 
-                    onClick={() => {
-                      setActiveView('document');
-                      setTimeout(() => window.print(), 100);
-                    }}
+                    onClick={handleExportPdf}
+                    title={`สั่งพิมพ์หรือส่งออกเป็นไฟล์ PDF (ชื่อไฟล์: ${getPdfFileName()}.pdf)`}
                     style={{
                       background: '#16a34a',
                       color: 'white',
@@ -2135,7 +2187,8 @@ function RepairProposalFormInner() {
                   ✏️ กลับไปโหมดแก้ไข
                 </button>
                 <button 
-                  onClick={() => window.print()}
+                  onClick={handleExportPdf}
+                  title={`สั่งพิมพ์หรือบันทึกเป็นไฟล์ PDF (ชื่อไฟล์: ${getPdfFileName()}.pdf)`}
                   style={{ background: 'var(--accent, #2563eb)', color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(37,99,235,0.35)' }}>
                   🖨️ สั่งพิมพ์ / Export PDF
                 </button>
