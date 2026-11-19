@@ -605,9 +605,7 @@ function RepairProposalFormInner() {
     setSurveyPoints(sampleSurveyData);
     setItemsRequested(sampleItemsRequested);
     setSubstitutionSpecs(sampleMeterSpecs);
-    setJustification(
-      'เนื่องจากตู้ควบคุมไฟฟ้าหลัก (Main MDB) ประจำอาคารดังกล่าว มี Digital Meter ชำรุดเสียหาย หน้าจอดับ ข้อมูลคลาดเคลื่อน และระบบสื่อสารขัดข้อง ส่งผลกระทบโดยตรงทำให้ไม่สามารถอ่านค่าปริมาณการใช้ไฟฟ้า ตรวจวัดคุณภาพไฟฟ้า และเชื่อมโยงข้อมูลเข้าสู่ระบบบริหารจัดการพลังงาน (Energy Management System / SCADA) ได้อย่างถูกต้องแม่นยำ จึงมีความจำเป็นอย่างยิ่งที่จะต้องจัดซื้ออุปกรณ์ Digital Power Meter เพื่อเปลี่ยนทดแทนอุปกรณ์เดิมที่ชำรุดทั้ง 9 จุด ให้ระบบตรวจวัดและบริหารจัดการพลังงานสามารถกลับมาทำงานได้อย่างต่อเนื่อง มีประสิทธิภาพ และปลอดภัยตามมาตรฐานวิศวกรรม'
-    );
+    setJustification('');
     setApproverName('นายตวงเพชร ชัยยานนท์');
     setApproverRole('วศ.4 หบท-ธ.');
     setSig2Image('/assets/shared/signature-approver.png');
@@ -1185,7 +1183,7 @@ function RepairProposalFormInner() {
     { title: `จุดที่ชำรุด (${surveyPoints.length})`, icon: '2' },
     { title: `อุปกรณ์ที่ขอซื้อ (${itemsRequested.length})`, icon: '3' },
     { title: 'สเปกเบื้องต้น', icon: '4' },
-    { title: 'เหตุผล & ลงนาม', icon: '5' },
+    { title: 'ส่วนลงนาม', icon: '5' },
     { title: 'สรุป & ส่งออก', icon: '6' }
   ];
 
@@ -2000,31 +1998,14 @@ function RepairProposalFormInner() {
               </div>
             )}
 
-            {/* STEP 5: Justification & 2 Signatories */}
+            {/* STEP 5: Signatures (with optional justification) */}
             {currentStep === 4 && (
               <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 12, padding: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', marginBottom: 14 }}>
-                  ✍️ เหตุผลความจำเป็น และส่วนลงนาม (ผู้สำรวจและวิเคราะห์ / ผู้ตรวจสอบและรับรอง)
+                  ✍️ ส่วนลงนาม (ผู้สำรวจและวิเคราะห์ / ผู้ตรวจสอบและรับรอง)
                 </h3>
 
-                <div style={{ marginBottom: 18 }}>
-                  <label style={{ fontSize: 13, fontWeight: 800, color: '#93c5fd', display: 'block', marginBottom: 4 }}>
-                    เหตุผลและความจำเป็นในการจัดซื้อเปลี่ยนทดแทน (สรุปภาพรวมความจำเป็นของโครงการ/งาน):
-                  </label>
-                  <p style={{ fontSize: 11.5, color: 'var(--ink-secondary, #94a3c4)', margin: '0 0 6px' }}>
-                    ระบุผลกระทบหากไม่เปลี่ยนทดแทน และเหตุผลความจำเป็นในการขออนุมัติจัดซื้อ
-                  </p>
-                  <textarea 
-                    rows="4" 
-                    value={justification} 
-                    placeholder="พิมพ์เหตุผลความจำเป็น เช่น เนื่องจากอุปกรณ์เดิมชำรุดเสียหาย หน้าจอดับ ส่งผลทำให้ไม่สามารถอ่านค่าปริมาณการใช้ไฟฟ้าได้ จึงจำเป็นต้องจัดซื้ออุปกรณ์เพื่อเปลี่ยนทดแทน..."
-                    onChange={e => setJustification(e.target.value)} 
-                    className="wizard-dark-input"
-                    style={{ width: '100%', padding: '10px 12px', fontSize: 13, lineHeight: 1.45 }} 
-                  />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 14 }}>
                   {/* Sign 1: Surveyor & Analyst */}
                   <div style={{ border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: 14, textAlign: 'center', background: 'var(--bg-surface-raised, #172340)' }}>
                     <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink-primary, #eef2ff)', marginBottom: 8 }}>
@@ -2160,6 +2141,26 @@ function RepairProposalFormInner() {
                     </div>
                   </div>
                 </div>
+
+                {/* Optional justification: hidden/collapsed by default, not required */}
+                <details style={{ background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: '10px 14px', marginTop: 14 }}>
+                  <summary style={{ fontSize: 12.5, fontWeight: 700, color: '#93c5fd', cursor: 'pointer', userSelect: 'none' }}>
+                    📝 ระบุเหตุผลความจำเป็นเพิ่มเติม (ไม่จำเป็นต้องใส่ — หากเว้นว่างไว้จะไม่ออกในเอกสารเพื่อไม่ให้ซ้ำซ้อนกับอาการชำรุด)
+                  </summary>
+                  <div style={{ marginTop: 10 }}>
+                    <p style={{ fontSize: 11.5, color: 'var(--ink-secondary, #94a3c4)', margin: '0 0 6px' }}>
+                      หากไม่ระบุ ระบบจะใช้ข้อมูลอาการชำรุดจากขั้นตอนที่ 2 เป็นหลัก และจะไม่มีหัวข้อนี้ในเอกสาร
+                    </p>
+                    <textarea 
+                      rows="3" 
+                      value={justification} 
+                      placeholder="(เว้นว่างได้) พิมพ์เหตุผลเพิ่มเติมเฉพาะกรณีที่มีเงื่อนไขพิเศษ..."
+                      onChange={e => setJustification(e.target.value)} 
+                      className="wizard-dark-input"
+                      style={{ width: '100%', padding: '8px 12px', fontSize: 12.5, lineHeight: 1.45 }} 
+                    />
+                  </div>
+                </details>
               </div>
             )}
 
@@ -2497,11 +2498,10 @@ function RepairProposalFormInner() {
                 <thead>
                   <tr style={{ background: '#0f2e5a', color: '#ffffff' }}>
                     <th style={{ padding: '6px 4px', width: 35, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>ลำดับ</th>
-                    <th style={{ padding: '6px 6px', width: 85, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>รหัสอาคาร</th>
-                    <th style={{ padding: '6px 6px', width: 90, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>จุดติดตั้ง</th>
+                    <th style={{ padding: '6px 6px', width: 95, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>รหัสอาคาร</th>
+                    <th style={{ padding: '6px 6px', width: 115, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>จุดติดตั้ง</th>
                     <th style={{ padding: '6px 8px', textAlign: 'left', border: '1.5px solid #0f2e5a' }}>อาการชำรุด / ผลการสำรวจทางเทคนิค</th>
-                    <th style={{ padding: '6px 6px', width: 60, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>จำนวน</th>
-                    <th style={{ padding: '6px 6px', width: 90, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>ข้อเสนอแนะ</th>
+                    <th style={{ padding: '6px 6px', width: 95, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>ข้อเสนอแนะ</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2513,7 +2513,6 @@ function RepairProposalFormInner() {
                       <td style={{ padding: 6, border: '1.5px solid #475569', color: '#0f172a', fontWeight: 600 }}>
                         {sp.symptom || '-'}
                       </td>
-                      <td style={{ padding: 6, textAlign: 'center', fontWeight: 700, color: '#0f172a', border: '1.5px solid #475569' }}>{sp.qty || 1} ตัว</td>
                       <td style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#b91c1c', border: '1.5px solid #475569' }}>{sp.action || 'เปลี่ยนทดแทน'}</td>
                     </tr>
                   ))}
@@ -2573,17 +2572,21 @@ function RepairProposalFormInner() {
                 {substitutionSpecs || 'ไม่มีข้อกำหนดเพิ่มเติม (จัดหาตามรุ่นที่ระบุหรือเทียบเท่า)'}
               </div>
 
-              {/* Section 4: Justification */}
-              <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a', borderBottom: '2.5px solid #0f2e5a', paddingBottom: 4, marginBottom: 8 }}>
-                4. เหตุผลความจำเป็นในการจัดซื้อจัดจ้างเพื่อเปลี่ยนทดแทน
-              </div>
-              <div style={{ background: '#f8fafc', border: '1.5px solid #475569', borderRadius: 4, padding: '10px 14px', fontSize: 11, marginBottom: 18, lineHeight: 1.6, textAlign: 'justify', color: '#0f172a', fontWeight: 500 }}>
-                {justification || '(ยังไม่ระบุเหตุผลความจำเป็น)'}
-              </div>
+              {/* Section 4: Justification (Optional - Only rendered if custom justification is provided) */}
+              {justification && justification.trim() !== '' && (
+                <>
+                  <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a', borderBottom: '2.5px solid #0f2e5a', paddingBottom: 4, marginBottom: 8 }}>
+                    4. เหตุผลความจำเป็นในการจัดซื้อจัดจ้างเพื่อเปลี่ยนทดแทน
+                  </div>
+                  <div style={{ background: '#f8fafc', border: '1.5px solid #475569', borderRadius: 4, padding: '10px 14px', fontSize: 11, marginBottom: 16, lineHeight: 1.6, textAlign: 'justify', color: '#0f172a', fontWeight: 500 }}>
+                    {justification}
+                  </div>
+                </>
+              )}
 
-              {/* Section 5: Signatures (2 Signatories: Surveyor/Analyst & Certifier) */}
+              {/* Signatures (Dynamically numbered: 4 if no justification, 5 if justification exists) */}
               <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a', borderBottom: '2.5px solid #0f2e5a', paddingBottom: 4, marginBottom: 10 }}>
-                5. ส่วนลงนามผู้สำรวจและวิเคราะห์ และผู้ตรวจสอบและรับรอง
+                {justification && justification.trim() !== '' ? '5.' : '4.'} ส่วนลงนามผู้สำรวจและวิเคราะห์ และผู้ตรวจสอบและรับรอง
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 {/* Sig 1: Surveyor & Analyst */}
