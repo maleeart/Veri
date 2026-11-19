@@ -53,10 +53,12 @@ const defaultAdminSettings = {
   header: {
     bannerImageUrl: '', // Data URL หรือ URL ของรูปภาพหัวกระดาษแบบเต็ม A4
     bannerLayout: 'bleed', // 'bleed' (ชิดขอบกระดาษ A4 ทุกด้าน) | 'contained' (เต็มขอบเนื้อหาเอกสาร)
+    bannerTheme: 'white', // 'white' (พื้นหลังขาวทางการ ขอบกรมท่าทอง) | 'navy' (สีกรมท่าทอง)
+    logoSize: 'large', // 'normal' (60px) | 'large' (80px) | 'xlarge' (96px)
     companyTitle: 'การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย (กฟผ.)',
     companySubtitle: 'ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร (หบท-ธ.)',
     companyAddress: 'โทรศัพท์ 02-436-0000 | อาคาร ท.102 สำนักงานกลาง กฟผ.',
-    logoType: 'egat', // 'egat' | 'veri' | 'none'
+    logoType: 'egat', // 'egat' | 'veri' | 'custom' | 'none'
     customLogoUrl: '',
     showLetterhead: true
   },
@@ -895,6 +897,20 @@ function RepairProposalFormInner() {
     return null;
   }, [adminSettings.header]);
 
+  const logoHeight = useMemo(() => {
+    const size = adminSettings.header?.logoSize;
+    if (size === 'xlarge') return 96;
+    if (size === 'normal') return 60;
+    return 80; // default 'large'
+  }, [adminSettings.header?.logoSize]);
+
+  const logoMaxWidth = useMemo(() => {
+    const size = adminSettings.header?.logoSize;
+    if (size === 'xlarge') return 180;
+    if (size === 'normal') return 120;
+    return 150; // default 'large'
+  }, [adminSettings.header?.logoSize]);
+
   const hasAnnex = useMemo(() => surveyPoints.some(p => Boolean((p.photos && p.photos.length > 0) || p.photo)), [surveyPoints]);
 
   const steps = [
@@ -1044,11 +1060,40 @@ function RepairProposalFormInner() {
               width: 100% !important;
               margin: 0 0 14px 0 !important;
             }
-            .doc-banner-bleed img, .doc-banner-contained img {
+            .doc-banner-bleed > img, .doc-banner-contained > img {
               width: 100% !important;
               height: auto !important;
               max-height: none !important;
               display: block !important;
+            }
+            .doc-header-banner {
+              box-sizing: border-box !important;
+            }
+            .doc-header-banner.doc-banner-bleed {
+              padding: 5mm 15mm 4mm 15mm !important;
+            }
+            .doc-header-banner.doc-banner-contained {
+              padding: 0 0 4mm 0 !important;
+            }
+            .doc-header-banner .doc-header-logo {
+              width: auto !important;
+              display: block !important;
+              object-fit: contain !important;
+            }
+            .doc-header-logo-normal {
+              height: 18mm !important;
+              max-height: 20mm !important;
+              max-width: 38mm !important;
+            }
+            .doc-header-logo-large {
+              height: 24mm !important;
+              max-height: 26mm !important;
+              max-width: 48mm !important;
+            }
+            .doc-header-logo-xlarge {
+              height: 28mm !important;
+              max-height: 30mm !important;
+              max-width: 58mm !important;
             }
             table, th, td, div, span, strong, p {
               -webkit-print-color-adjust: exact !important;
@@ -1994,24 +2039,85 @@ function RepairProposalFormInner() {
                     />
                   </div>
                 ) : (
-                  /* MODE B: ข้อความชื่อองค์กร + โลโก้ (ไว้ใช้ตอนที่ไม่มีรูปหัวกระดาษเท่านั้น) */
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 16, borderBottom: '2.5px solid #0f2e5a', paddingBottom: 12, marginBottom: 14 }}>
+                  /* MODE B: หัวกระดาษทางการแบบเต็ม A4 (โลโก้คมชัดขนาดใหญ่ + ข้อความหน่วยงาน) */
+                  <div 
+                    className={`doc-header-banner ${adminSettings.header?.bannerLayout === 'contained' ? 'doc-banner-contained' : 'doc-banner-bleed'}`}
+                    style={adminSettings.header?.bannerLayout === 'contained' ? {
+                      width: '100%',
+                      background: adminSettings.header?.bannerTheme === 'navy'
+                        ? 'linear-gradient(135deg, #0a2540 0%, #0f3d68 100%)'
+                        : '#ffffff',
+                      borderBottom: adminSettings.header?.bannerTheme === 'navy'
+                        ? '3.5px solid #d97706'
+                        : '3.5px solid #0f2e5a',
+                      padding: adminSettings.header?.bannerTheme === 'navy' ? '12px 16px' : '0 0 12px 0',
+                      borderRadius: 6,
+                      marginBottom: 14,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 18
+                    } : {
+                      width: 'calc(100% + 64px)',
+                      margin: '-32px -32px 16px -32px',
+                      background: adminSettings.header?.bannerTheme === 'navy'
+                        ? 'linear-gradient(135deg, #0a2540 0%, #0f3d68 100%)'
+                        : '#ffffff',
+                      borderBottom: adminSettings.header?.bannerTheme === 'navy'
+                        ? '3.5px solid #d97706'
+                        : '3.5px solid #0f2e5a',
+                      boxShadow: adminSettings.header?.bannerTheme === 'navy'
+                        ? 'none'
+                        : '0 3px 0 #d97706',
+                      padding: '16px 32px 14px 32px',
+                      borderTopLeftRadius: 8,
+                      borderTopRightRadius: 8,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 22
+                    }}>
                     {currentLogoUrl && (
-                      <img 
-                        src={currentLogoUrl} 
-                        alt="Logo" 
-                        style={{ maxHeight: 60, maxWidth: 90, objectFit: 'contain' }} 
-                      />
+                      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <img 
+                          src={currentLogoUrl} 
+                          alt="Logo" 
+                          className={`doc-header-logo doc-header-logo-${adminSettings.header?.logoSize || 'large'}`}
+                          style={{ 
+                            height: logoHeight, 
+                            maxWidth: logoMaxWidth, 
+                            objectFit: 'contain', 
+                            display: 'block',
+                            background: adminSettings.header?.bannerTheme === 'navy' ? '#ffffff' : 'transparent',
+                            padding: adminSettings.header?.bannerTheme === 'navy' ? 4 : 0,
+                            borderRadius: adminSettings.header?.bannerTheme === 'navy' ? 6 : 0
+                          }} 
+                        />
+                      </div>
                     )}
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 17, fontWeight: 800, color: '#0f2e5a', lineHeight: 1.25 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ 
+                        fontSize: (adminSettings.header?.logoSize === 'xlarge' ? 20 : adminSettings.header?.logoSize === 'normal' ? 17 : 18.5), 
+                        fontWeight: 900, 
+                        color: adminSettings.header?.bannerTheme === 'navy' ? '#ffffff' : '#0f2e5a', 
+                        lineHeight: 1.25, 
+                        letterSpacing: 0.2 
+                      }}>
                         {adminSettings.header?.companyTitle}
                       </div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', marginTop: 2 }}>
+                      <div style={{ 
+                        fontSize: (adminSettings.header?.logoSize === 'xlarge' ? 14.5 : adminSettings.header?.logoSize === 'normal' ? 12.5 : 13.5), 
+                        fontWeight: 700, 
+                        color: adminSettings.header?.bannerTheme === 'navy' ? '#e2e8f0' : '#1e293b', 
+                        marginTop: 3 
+                      }}>
                         {adminSettings.header?.companySubtitle}
                       </div>
                       {adminSettings.header?.companyAddress && (
-                        <div style={{ fontSize: 11, color: '#334155', fontWeight: 600, marginTop: 2 }}>
+                        <div style={{ 
+                          fontSize: 11.5, 
+                          color: adminSettings.header?.bannerTheme === 'navy' ? '#94a3b8' : '#475569', 
+                          fontWeight: 600, 
+                          marginTop: 3 
+                        }}>
                           {adminSettings.header?.companyAddress}
                         </div>
                       )}
@@ -2357,6 +2463,21 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
     return `${prefix}${yearPart}${String(nextNum).padStart(digits, '0')}`;
   }, [form.runningNumber]);
 
+  const modalLogoUrl = useMemo(() => {
+    const type = form.header?.logoType;
+    if (type === 'egat') return '/assets/shared/egat-logo.jpg';
+    if (type === 'veri') return '/logo.png';
+    if (type === 'custom') return form.header?.customLogoUrl || '';
+    return null;
+  }, [form.header?.logoType, form.header?.customLogoUrl]);
+
+  const modalLogoHeight = useMemo(() => {
+    const size = form.header?.logoSize;
+    if (size === 'xlarge') return 68;
+    if (size === 'normal') return 46;
+    return 56; // default 'large'
+  }, [form.header?.logoSize]);
+
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 14, maxWidth: 660, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 16px 50px rgba(0,0,0,0.6)', display: 'flex', flexDirection: 'column' }}>
@@ -2419,46 +2540,135 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
               {form.header?.showLetterhead && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   
+                  {/* Live Preview Box */}
+                  <div style={{ border: '1px solid rgba(59, 130, 246, 0.4)', borderRadius: 8, padding: 12, background: 'var(--bg-input, #080e1a)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: '#93c5fd', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>👁️</span> ตัวอย่างการแสดงผลบนกระดาษ A4 (Live Preview)
+                      </div>
+                      <span style={{ fontSize: 10.5, color: '#38bdf8', background: 'rgba(56, 189, 248, 0.12)', border: '1px solid rgba(56, 189, 248, 0.3)', padding: '2px 8px', borderRadius: 10, fontWeight: 700 }}>
+                        {form.header?.bannerImageUrl ? 'โหมดรูปภาพสำเร็จรูป' : `โหมดข้อความ + โลโก้ (${form.header?.logoSize || 'large'})`}
+                      </span>
+                    </div>
+
+                    {/* Preview canvas */}
+                    <div style={{ background: '#ffffff', borderRadius: 6, overflow: 'hidden', padding: form.header?.bannerLayout === 'contained' ? '8px 12px' : '0', border: '1px solid #cbd5e1' }}>
+                      {form.header?.bannerImageUrl ? (
+                        <img 
+                          src={form.header.bannerImageUrl} 
+                          alt="Banner Live Preview" 
+                          style={{ width: '100%', height: 'auto', display: 'block' }} 
+                        />
+                      ) : (
+                        <div style={{
+                          background: form.header?.bannerTheme === 'navy' 
+                            ? 'linear-gradient(135deg, #0a2540 0%, #0f3d68 100%)' 
+                            : '#ffffff',
+                          padding: '12px 18px 10px 18px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 14,
+                          borderBottom: form.header?.bannerTheme === 'navy' ? '3px solid #d97706' : '3px solid #0f2e5a',
+                          boxShadow: form.header?.bannerTheme === 'navy' ? 'none' : '0 2px 0 #d97706'
+                        }}>
+                          {modalLogoUrl && (
+                            <div style={{ flexShrink: 0 }}>
+                              <img 
+                                src={modalLogoUrl} 
+                                alt="Logo Preview" 
+                                style={{ 
+                                  height: modalLogoHeight, 
+                                  maxWidth: 120, 
+                                  objectFit: 'contain', 
+                                  display: 'block',
+                                  background: form.header?.bannerTheme === 'navy' ? '#ffffff' : 'transparent',
+                                  padding: form.header?.bannerTheme === 'navy' ? 3 : 0,
+                                  borderRadius: form.header?.bannerTheme === 'navy' ? 4 : 0
+                                }} 
+                              />
+                            </div>
+                          )}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ 
+                              fontSize: form.header?.logoSize === 'xlarge' ? 14 : 13, 
+                              fontWeight: 900, 
+                              color: form.header?.bannerTheme === 'navy' ? '#ffffff' : '#0f2e5a', 
+                              lineHeight: 1.25 
+                            }}>
+                              {form.header?.companyTitle || 'การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย (กฟผ.)'}
+                            </div>
+                            <div style={{ 
+                              fontSize: 11, 
+                              fontWeight: 700, 
+                              color: form.header?.bannerTheme === 'navy' ? '#e2e8f0' : '#1e293b', 
+                              marginTop: 2 
+                            }}>
+                              {form.header?.companySubtitle || 'ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร (หบท-ธ.)'}
+                            </div>
+                            {form.header?.companyAddress && (
+                              <div style={{ 
+                                fontSize: 9.5, 
+                                color: form.header?.bannerTheme === 'navy' ? '#94a3b8' : '#64748b', 
+                                fontWeight: 600, 
+                                marginTop: 2 
+                              }}>
+                                {form.header?.companyAddress}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Layout Selector for Banner Width */}
+                  <div style={{ background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 8, padding: '12px 14px' }}>
+                    <label style={{ fontSize: 12.5, fontWeight: 700, color: '#93c5fd', display: 'block', marginBottom: 6 }}>
+                      📐 รูปแบบความกว้างการแสดงผลบนกระดาษ A4 (Layout Width):
+                    </label>
+                    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                      <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontWeight: form.header?.bannerLayout !== 'contained' ? 700 : 500, color: 'var(--ink-primary, #eef2ff)' }}>
+                        <input 
+                          type="radio" 
+                          name="bannerLayout" 
+                          checked={form.header?.bannerLayout !== 'contained'} 
+                          onChange={() => handleHeaderChange('bannerLayout', 'bleed')} 
+                        />
+                        เต็มแผ่นกระดาษ A4 (ชิดขอบกระดาษทุกด้าน Bleed Edge-to-Edge) ⭐ แนะนำ
+                      </label>
+                      <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontWeight: form.header?.bannerLayout === 'contained' ? 700 : 500, color: 'var(--ink-secondary, #94a3c4)' }}>
+                        <input 
+                          type="radio" 
+                          name="bannerLayout" 
+                          checked={form.header?.bannerLayout === 'contained'} 
+                          onChange={() => handleHeaderChange('bannerLayout', 'contained')} 
+                        />
+                        เต็มขอบเนื้อหาเอกสาร (Contained เสมอเท่าขอบตารางและกรอบฟอร์ม)
+                      </label>
+                    </div>
+                  </div>
+
                   {/* Section A: Full-width A4 Banner Image */}
                   <div style={{ border: '1px solid rgba(59, 130, 246, 0.35)', borderRadius: 8, padding: 14, background: 'var(--bg-surface-raised, #172340)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                       <div style={{ fontWeight: 800, fontSize: 13.5, color: '#93c5fd', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span>🖼️</span> รูปภาพหัวกระดาษแบบเต็ม A4 (Full Banner Image)
+                        <span>🖼️</span> อัปโหลดรูปภาพหัวกระดาษสำเร็จรูปเต็มแผ่น A4 (Full Banner Image)
                       </div>
                       {form.header?.bannerImageUrl && (
                         <button
                           type="button"
                           onClick={() => handleHeaderChange('bannerImageUrl', '')}
                           style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', padding: '3px 8px', borderRadius: 4, fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
-                          ✕ นำรูปออก (กลับไปใช้ข้อความ)
+                          ✕ นำรูปออก (กลับไปใช้โลโก้+ข้อความ)
                         </button>
                       )}
                     </div>
 
                     <p style={{ fontSize: 11.5, color: 'var(--ink-secondary, #94a3c4)', margin: '0 0 10px 0', lineHeight: 1.45 }}>
-                      เมื่ออัปโหลดรูปภาพหัวกระดาษแบบเต็ม ระบบจะแสดงภาพเต็มความกว้าง A4 ในเอกสารทันที และ <strong style={{ color: 'var(--ink-primary, #eef2ff)' }}>ไม่แสดงข้อความชื่อองค์กร/ที่อยู่ซ้ำซ้อน</strong> (เหมาะสำหรับหน่วยงานที่มีภาพหัวกระดาษสำเร็จรูป)
+                      เมื่ออัปโหลดรูปภาพหัวกระดาษสำเร็จรูป ระบบจะแสดงภาพเต็มความกว้าง A4 ในเอกสารทันที และ <strong style={{ color: 'var(--ink-primary, #eef2ff)' }}>ไม่แสดงข้อความชื่อองค์กร/ที่อยู่ซ้ำซ้อน</strong> (เหมาะสำหรับหน่วยงานที่มีภาพหัวกระดาษสำเร็จรูป)
                     </p>
 
-                    {form.header?.bannerImageUrl ? (
-                      <div style={{ border: '1px dashed var(--border-strong, #2d3f5e)', borderRadius: 6, padding: 10, background: 'var(--bg-input, #080e1a)', textAlign: 'center', marginBottom: 12 }}>
-                        <div style={{ maxHeight: 150, overflow: 'hidden', borderRadius: 4, background: '#ffffff' }}>
-                          <img 
-                            src={form.header.bannerImageUrl} 
-                            alt="Banner Preview" 
-                            style={{ width: '100%', height: 'auto', display: 'block', margin: '0 auto' }} 
-                          />
-                        </div>
-                        <div style={{ fontSize: 11.5, color: '#4ade80', fontWeight: 700, marginTop: 6 }}>
-                          ✓ รูปภาพหัวกระดาษแบบเต็ม A4 พร้อมใช้งาน (จะถูกใช้เป็นค่าเริ่มต้นทันทีเมื่อบันทึก)
-                        </div>
-                      </div>
-                    ) : (
-                      <div style={{ border: '1px dashed var(--border-strong, #2d3f5e)', borderRadius: 6, padding: 16, background: 'var(--bg-input, #080e1a)', textAlign: 'center', marginBottom: 12, color: 'var(--ink-muted, #5a6a8a)', fontSize: 12 }}>
-                        ยังไม่มีการอัปโหลดรูปหัวกระดาษแบบเต็ม (ระบบจะใช้ข้อความด้านล่างแทน)
-                      </div>
-                    )}
-
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                       <label style={{ background: 'var(--accent, #2563eb)', color: 'white', padding: '7px 16px', borderRadius: 6, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                         📁 {form.header?.bannerImageUrl ? 'เปลี่ยนรูปหัวกระดาษใหม่' : 'อัปโหลดรูปหัวกระดาษแบบเต็ม A4'}
                         <input 
@@ -2478,47 +2688,18 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                         />
                       </label>
                       {form.header?.bannerImageUrl && (
-                        <span style={{ fontSize: 11.5, color: '#60a5fa', fontWeight: 600 }}>
-                          ✓ อัปเดตรูปเรียบร้อย
+                        <span style={{ fontSize: 11.5, color: '#4ade80', fontWeight: 600 }}>
+                          ✓ มีรูปภาพหัวกระดาษสำเร็จรูปพร้อมใช้งาน
                         </span>
                       )}
                     </div>
-
-                    {/* Layout Selector for Banner Width */}
-                    {form.header?.bannerImageUrl && (
-                      <div style={{ background: 'var(--bg-input, #080e1a)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 6, padding: '10px 12px' }}>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: '#93c5fd', display: 'block', marginBottom: 6 }}>
-                          📐 รูปแบบความกว้างการแสดงผลบนกระดาษ A4:
-                        </label>
-                        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontWeight: form.header?.bannerLayout !== 'contained' ? 700 : 500, color: 'var(--ink-primary, #eef2ff)' }}>
-                            <input 
-                              type="radio" 
-                              name="bannerLayout" 
-                              checked={form.header?.bannerLayout !== 'contained'} 
-                              onChange={() => handleHeaderChange('bannerLayout', 'bleed')} 
-                            />
-                            เต็มแผ่นกระดาษ A4 (ชิดขอบกระดาษทุกด้าน) ⭐ แนะนำ
-                          </label>
-                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontWeight: form.header?.bannerLayout === 'contained' ? 700 : 500, color: 'var(--ink-secondary, #94a3c4)' }}>
-                            <input 
-                              type="radio" 
-                              name="bannerLayout" 
-                              checked={form.header?.bannerLayout === 'contained'} 
-                              onChange={() => handleHeaderChange('bannerLayout', 'contained')} 
-                            />
-                            เต็มขอบเนื้อหาเอกสาร (เสมอเท่าขอบตารางและกรอบฟอร์ม)
-                          </label>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
-                  {/* Section B: Text Header Fallback */}
+                  {/* Section B: Text & Logo Header */}
                   <div style={{ border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: 14, background: form.header?.bannerImageUrl ? 'rgba(15, 23, 42, 0.4)' : 'var(--bg-surface-raised, #172340)', opacity: form.header?.bannerImageUrl ? 0.65 : 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                       <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink-primary, #eef2ff)' }}>
-                        📝 ข้อมูลข้อความหัวกระดาษ (ไว้ใช้ตอนที่ไม่มีรูปหัวกระดาษเท่านั้น)
+                        🏢 ตั้งค่าหัวกระดาษทางการและโลโก้ (เมื่อไม่ใช้ภาพหัวกระดาษสำเร็จรูป)
                       </div>
                       {form.header?.bannerImageUrl && (
                         <span style={{ fontSize: 11, background: 'var(--bg-input, #080e1a)', color: 'var(--ink-secondary, #94a3c4)', border: '1px solid var(--border-strong, #2d3f5e)', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>
@@ -2527,7 +2708,7 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                       )}
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                       <div>
                         <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 3 }}>
                           ชื่อองค์กร / บริษัทหลัก:
@@ -2567,16 +2748,80 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                         />
                       </div>
 
+                      {/* Logo Size Selector */}
+                      <div style={{ background: 'var(--bg-input, #080e1a)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 6, padding: '10px 12px' }}>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: '#93c5fd', display: 'block', marginBottom: 6 }}>
+                          🔍 ขนาดความใหญ่ของโลโก้ (Logo Size):
+                        </label>
+                        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', color: 'var(--ink-secondary, #94a3c4)' }}>
+                            <input 
+                              type="radio" 
+                              name="logoSize" 
+                              checked={form.header?.logoSize === 'normal'} 
+                              onChange={() => handleHeaderChange('logoSize', 'normal')} 
+                            />
+                            ปกติ (60px)
+                          </label>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontWeight: 700, color: 'var(--ink-primary, #eef2ff)' }}>
+                            <input 
+                              type="radio" 
+                              name="logoSize" 
+                              checked={!form.header?.logoSize || form.header?.logoSize === 'large'} 
+                              onChange={() => handleHeaderChange('logoSize', 'large')} 
+                            />
+                            ใหญ่เต็มตา (80px) ⭐ แนะนำ
+                          </label>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontWeight: 700, color: '#38bdf8' }}>
+                            <input 
+                              type="radio" 
+                              name="logoSize" 
+                              checked={form.header?.logoSize === 'xlarge'} 
+                              onChange={() => handleHeaderChange('logoSize', 'xlarge')} 
+                            />
+                            ใหญ่พิเศษ (96px)
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Header Theme Selector */}
+                      <div style={{ background: 'var(--bg-input, #080e1a)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 6, padding: '10px 12px' }}>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: '#93c5fd', display: 'block', marginBottom: 6 }}>
+                          🎨 ธีมสีหัวกระดาษ (Header Theme):
+                        </label>
+                        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontWeight: (!form.header?.bannerTheme || form.header?.bannerTheme === 'white') ? 700 : 500, color: 'var(--ink-primary, #eef2ff)' }}>
+                            <input 
+                              type="radio" 
+                              name="bannerTheme" 
+                              checked={!form.header?.bannerTheme || form.header?.bannerTheme === 'white'} 
+                              onChange={() => handleHeaderChange('bannerTheme', 'white')} 
+                            />
+                            สีขาวทางการ (White & Navy/Gold Line) ⭐ แนะนำ
+                          </label>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontWeight: form.header?.bannerTheme === 'navy' ? 700 : 500, color: '#60a5fa' }}>
+                            <input 
+                              type="radio" 
+                              name="bannerTheme" 
+                              checked={form.header?.bannerTheme === 'navy'} 
+                              onChange={() => handleHeaderChange('bannerTheme', 'navy')} 
+                            />
+                            สีกรมท่าพรีเมียม (Navy Gradient)
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Logo Source Selector */}
                       <div>
                         <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
-                          โลโก้ประกอบข้อความ (ขนาดเล็ก):
+                          เลือกรูปภาพโลโก้:
                         </label>
-                        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
                           <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: 'var(--ink-primary, #eef2ff)' }}>
                             <input 
                               type="radio" 
                               name="logoType" 
-                              checked={form.header?.logoType === 'egat'} 
+                              checked={!form.header?.logoType || form.header?.logoType === 'egat'} 
                               onChange={() => handleHeaderChange('logoType', 'egat')} 
                             />
                             โลโก้ กฟผ. (EGAT)
@@ -2590,6 +2835,15 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                             />
                             โลโก้ Veri
                           </label>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: 'var(--ink-primary, #eef2ff)' }}>
+                            <input 
+                              type="radio" 
+                              name="logoType" 
+                              checked={form.header?.logoType === 'custom'} 
+                              onChange={() => handleHeaderChange('logoType', 'custom')} 
+                            />
+                            อัปโหลดโลโก้เอง (Custom Logo)
+                          </label>
                           <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: 'var(--ink-secondary, #94a3c4)' }}>
                             <input 
                               type="radio" 
@@ -2600,6 +2854,32 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
                             ไม่แสดงโลโก้
                           </label>
                         </div>
+
+                        {form.header?.logoType === 'custom' && (
+                          <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <label style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-strong, #2d3f5e)', color: 'var(--ink-primary, #eef2ff)', padding: '5px 12px', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                              📁 เลือกไฟล์โลโก้
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                onChange={async (e) => {
+                                  const f = e.target.files[0];
+                                  if (!f) return;
+                                  try {
+                                    const compressed = await compressImageFile(f, 600, 400, 0.85, true);
+                                    handleHeaderChange('customLogoUrl', compressed);
+                                  } catch (err) {
+                                    alert('ไม่สามารถโหลดรูปโลโก้ได้: ' + err.message);
+                                  }
+                                }} 
+                                style={{ display: 'none' }} 
+                              />
+                            </label>
+                            {form.header?.customLogoUrl && (
+                              <span style={{ fontSize: 11.5, color: '#4ade80', fontWeight: 600 }}>✓ โหลดโลโก้เรียบร้อย</span>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                     </div>

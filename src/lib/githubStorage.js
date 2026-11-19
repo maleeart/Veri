@@ -716,6 +716,8 @@ async function loadRepairSettings() {
     header: {
       bannerImageUrl: '',
       bannerLayout: 'bleed', // 'bleed' (เต็มแผ่นกระดาษ A4) | 'contained' (เต็มขอบเนื้อหาเอกสาร)
+      bannerTheme: 'white', // 'white' (พื้นหลังขาว เส้นน้ำเงินเต็ม A4) | 'navy' (แถบสีกรมท่าทอง)
+      logoSize: 'large', // 'normal' (65px) | 'large' (82px) | 'xlarge' (98px)
       companyTitle: 'การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย (กฟผ.)',
       companySubtitle: 'ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร (หบท-ธ.)',
       companyAddress: 'โทรศัพท์ 02-436-0000 | อาคาร ท.102 สำนักงานกลาง กฟผ.',
