@@ -37,7 +37,7 @@
       "id": 1,
       "name": "Safety breaker 2P 32 A ",
       "modelPart": "Mitsubishi NF32-SV (32A) แบบ ยึด screw กับ mounting plate",
-      "qty": 2,
+      "qty": 1,
       "unit": "ตัว",
       "purpose": "ในตู้กันน้ำ"
     },
@@ -53,7 +53,7 @@
       "id": 3,
       "name": "Solid type terminal block  6 pole 60A (16 sq.mm.)",
       "modelPart": "TB-6004 (60A / 600V) แต่เพิ่มจำนวนช่องเป็น 6 ช่อง (6 Pole) ความยาว 126 มม.",
-      "qty": 1,
+      "qty": 5,
       "unit": "ตัว",
       "purpose": "ในตู้กันน้ำ"
     },
