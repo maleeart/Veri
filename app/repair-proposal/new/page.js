@@ -3434,7 +3434,7 @@ function RepairProposalFormInner() {
                   }}>
                     <div>
                       <div>ผู้จัดทำคุณลักษณะ: <strong>{inspectorName || '-'}</strong> ({inspectorRole || 'ช่างเทคนิค/ผู้สำรวจ'})</div>
-                      <div style={{ fontSize: 9.5, color: '#64748b', marginTop: 1 }}>วันที่ตรวจสำรวจ: {surveyDate || '-'}</div>
+                      <div style={{ fontSize: 9.5, color: '#64748b', marginTop: 1 }}>วันที่ตรวจสำรวจ: {docDate || '-'}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <div>ผู้ตรวจสอบรับรอง: <strong>{approverName || '-'}</strong> ({approverRole || 'วศ.4 หบท-ธ.'})</div>
