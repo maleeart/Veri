@@ -1,10 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 
-const BASE_DIR = path.join(process.cwd(), 'data', 'inspection-sheets');
-const TEMPLATES_FILE = path.join(BASE_DIR, 'templates.json');
-const SETTINGS_FILE = path.join(BASE_DIR, 'settings.json');
-const RECORDS_DIR = path.join(BASE_DIR, 'records');
+// In-memory fallbacks for serverless environments
+let memoryTemplates = null;
+let memorySettings = null;
+const memoryRecordsMap = new Map();
 
 // Default initial settings
 export const defaultInspectionSettings = {
@@ -110,35 +111,110 @@ export const defaultTemplates = [
   }
 ];
 
-// Ensure storage directories exist
-function ensureDirs() {
-  if (!fs.existsSync(BASE_DIR)) fs.mkdirSync(BASE_DIR, { recursive: true });
-  if (!fs.existsSync(RECORDS_DIR)) fs.mkdirSync(RECORDS_DIR, { recursive: true });
+/**
+ * Determine a safe, writable base directory.
+ * If running in a read-only serverless environment (like Vercel /var/task),
+ * fall back gracefully to /tmp/veri-data/inspection-sheets.
+ */
+function getStorageDir() {
+  const localDir = path.join(process.cwd(), 'data', 'inspection-sheets');
+  try {
+    if (!fs.existsSync(localDir)) {
+      fs.mkdirSync(localDir, { recursive: true });
+    }
+    const testFile = path.join(localDir, '.write-test');
+    fs.writeFileSync(testFile, '1');
+    fs.unlinkSync(testFile);
+    return localDir;
+  } catch {
+    // Read-only filesystem detected (e.g. Vercel Lambda /var/task)
+    const tmpDir = path.join(os.tmpdir(), 'veri-data', 'inspection-sheets');
+    try {
+      if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir, { recursive: true });
+      }
+    } catch {}
+    return tmpDir;
+  }
 }
 
-// Load Settings
-export async function loadInspectionSettings() {
-  ensureDirs();
+function getRecordsDir() {
+  const base = getStorageDir();
+  const dir = path.join(base, 'records');
   try {
-    if (fs.existsSync(SETTINGS_FILE)) {
-      const data = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'));
-      return {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  } catch {}
+  return dir;
+}
+
+// GitHub Storage Integration (Optional)
+async function getGitHubHelpers() {
+  try {
+    const gh = await import('./githubStorage.js');
+    return {
+      loadJsonFile: gh.loadJsonFile,
+      saveJsonFile: gh.saveJsonFile
+    };
+  } catch {
+    return { loadJsonFile: null, saveJsonFile: null };
+  }
+}
+
+// ==========================================
+// SETTINGS
+// ==========================================
+
+export async function loadInspectionSettings() {
+  // 1. Try memory
+  if (memorySettings) return memorySettings;
+
+  // 2. Try disk / tmp
+  const baseDir = getStorageDir();
+  const settingsFile = path.join(baseDir, 'settings.json');
+  try {
+    if (fs.existsSync(settingsFile)) {
+      const data = JSON.parse(fs.readFileSync(settingsFile, 'utf-8'));
+      const merged = {
         ...defaultInspectionSettings,
         ...data,
         header: { ...defaultInspectionSettings.header, ...(data.header || {}) },
         surveyor: { ...defaultInspectionSettings.surveyor, ...(data.surveyor || {}) },
         runningNumber: { ...defaultInspectionSettings.runningNumber, ...(data.runningNumber || {}) }
       };
+      memorySettings = merged;
+      return merged;
     }
   } catch (err) {
-    console.warn('loadInspectionSettings error:', err.message);
+    console.warn('loadInspectionSettings disk warning:', err.message);
   }
-  return { ...defaultInspectionSettings };
+
+  // 3. Try GitHub
+  try {
+    const { loadJsonFile } = await getGitHubHelpers();
+    if (loadJsonFile) {
+      const ghData = await loadJsonFile('data/inspection-sheets/settings.json');
+      if (ghData) {
+        const merged = {
+          ...defaultInspectionSettings,
+          ...ghData,
+          header: { ...defaultInspectionSettings.header, ...(ghData.header || {}) },
+          surveyor: { ...defaultInspectionSettings.surveyor, ...(ghData.surveyor || {}) },
+          runningNumber: { ...defaultInspectionSettings.runningNumber, ...(ghData.runningNumber || {}) }
+        };
+        memorySettings = merged;
+        try {
+          fs.writeFileSync(settingsFile, JSON.stringify(merged, null, 2), 'utf-8');
+        } catch {}
+        return merged;
+      }
+    }
+  } catch {}
+
+  memorySettings = { ...defaultInspectionSettings };
+  return memorySettings;
 }
 
-// Save Settings
 export async function saveInspectionSettings(settings) {
-  ensureDirs();
   const current = await loadInspectionSettings();
   const updated = {
     ...current,
@@ -148,31 +224,88 @@ export async function saveInspectionSettings(settings) {
     runningNumber: { ...current.runningNumber, ...(settings.runningNumber || {}) },
     updatedAt: new Date().toISOString()
   };
-  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(updated, null, 2), 'utf-8');
+
+  memorySettings = updated;
+
+  // Save to disk / tmp
+  try {
+    const baseDir = getStorageDir();
+    const settingsFile = path.join(baseDir, 'settings.json');
+    fs.writeFileSync(settingsFile, JSON.stringify(updated, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('saveInspectionSettings disk warning:', err.message);
+  }
+
+  // Save to GitHub
+  try {
+    const { saveJsonFile } = await getGitHubHelpers();
+    if (saveJsonFile) {
+      await saveJsonFile('data/inspection-sheets/settings.json', updated, 'Update inspection sheets settings');
+    }
+  } catch (err) {
+    console.warn('saveInspectionSettings GitHub warning:', err.message);
+  }
+
   return updated;
 }
 
-// Load Templates
+// ==========================================
+// TEMPLATES
+// ==========================================
+
 export async function loadInspectionTemplates() {
-  ensureDirs();
+  // 1. Try memory
+  if (Array.isArray(memoryTemplates) && memoryTemplates.length > 0) {
+    return memoryTemplates;
+  }
+
+  // 2. Try disk / tmp
+  const baseDir = getStorageDir();
+  const templatesFile = path.join(baseDir, 'templates.json');
   try {
-    if (fs.existsSync(TEMPLATES_FILE)) {
-      const data = JSON.parse(fs.readFileSync(TEMPLATES_FILE, 'utf-8'));
+    if (fs.existsSync(templatesFile)) {
+      const data = JSON.parse(fs.readFileSync(templatesFile, 'utf-8'));
       if (Array.isArray(data) && data.length > 0) {
+        memoryTemplates = data;
         return data;
       }
     }
   } catch (err) {
-    console.warn('loadInspectionTemplates error:', err.message);
+    console.warn('loadInspectionTemplates disk warning:', err.message);
   }
-  // Initialize with default templates
-  fs.writeFileSync(TEMPLATES_FILE, JSON.stringify(defaultTemplates, null, 2), 'utf-8');
+
+  // 3. Try GitHub
+  try {
+    const { loadJsonFile } = await getGitHubHelpers();
+    if (loadJsonFile) {
+      const ghData = await loadJsonFile('data/inspection-sheets/templates.json');
+      if (Array.isArray(ghData) && ghData.length > 0) {
+        memoryTemplates = ghData;
+        try {
+          fs.writeFileSync(templatesFile, JSON.stringify(ghData, null, 2), 'utf-8');
+        } catch {}
+        return ghData;
+      }
+    }
+  } catch {}
+
+  // 4. Fallback to default presets and persist
+  memoryTemplates = [...defaultTemplates];
+  try {
+    fs.writeFileSync(templatesFile, JSON.stringify(defaultTemplates, null, 2), 'utf-8');
+  } catch {}
+
+  try {
+    const { saveJsonFile } = await getGitHubHelpers();
+    if (saveJsonFile) {
+      saveJsonFile('data/inspection-sheets/templates.json', defaultTemplates, 'Seed default inspection templates').catch(() => {});
+    }
+  } catch {}
+
   return defaultTemplates;
 }
 
-// Save or Update Template
 export async function saveInspectionTemplate(template) {
-  ensureDirs();
   const templates = await loadInspectionTemplates();
   const now = new Date().toISOString();
 
@@ -197,20 +330,59 @@ export async function saveInspectionTemplate(template) {
     templates.unshift(updatedTemplate);
   }
 
-  fs.writeFileSync(TEMPLATES_FILE, JSON.stringify(templates, null, 2), 'utf-8');
+  memoryTemplates = templates;
+
+  // Save to disk / tmp
+  try {
+    const baseDir = getStorageDir();
+    const templatesFile = path.join(baseDir, 'templates.json');
+    fs.writeFileSync(templatesFile, JSON.stringify(templates, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('saveInspectionTemplate disk warning:', err.message);
+  }
+
+  // Save to GitHub
+  try {
+    const { saveJsonFile } = await getGitHubHelpers();
+    if (saveJsonFile) {
+      await saveJsonFile('data/inspection-sheets/templates.json', templates, `บันทึกแบบฟอร์มตรวจเช็ค [${updatedTemplate.name}]`);
+    }
+  } catch (err) {
+    console.warn('saveInspectionTemplate GitHub warning:', err.message);
+  }
+
   return updatedTemplate;
 }
 
-// Delete Template
 export async function deleteInspectionTemplate(templateId) {
-  ensureDirs();
   const templates = await loadInspectionTemplates();
   const filtered = templates.filter(t => t.id !== templateId);
-  fs.writeFileSync(TEMPLATES_FILE, JSON.stringify(filtered, null, 2), 'utf-8');
+  memoryTemplates = filtered;
+
+  try {
+    const baseDir = getStorageDir();
+    const templatesFile = path.join(baseDir, 'templates.json');
+    fs.writeFileSync(templatesFile, JSON.stringify(filtered, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('deleteInspectionTemplate disk warning:', err.message);
+  }
+
+  try {
+    const { saveJsonFile } = await getGitHubHelpers();
+    if (saveJsonFile) {
+      await saveJsonFile('data/inspection-sheets/templates.json', filtered, `ลบแบบฟอร์มตรวจเช็ค [${templateId}]`);
+    }
+  } catch (err) {
+    console.warn('deleteInspectionTemplate GitHub warning:', err.message);
+  }
+
   return { ok: true, id: templateId };
 }
 
-// Generate Auto Running Record Number
+// ==========================================
+// RECORDS
+// ==========================================
+
 export async function generateInspectionRecordNo(settings) {
   const currentSettings = settings || (await loadInspectionSettings());
   const run = currentSettings.runningNumber || defaultInspectionSettings.runningNumber;
@@ -219,7 +391,6 @@ export async function generateInspectionRecordNo(settings) {
   const year = run.yearType === 'buddhist' ? (now.getFullYear() + 543) : now.getFullYear();
   const digits = run.digits || 3;
 
-  // Scan existing records to find highest number for this year
   const records = await listInspectionRecords();
   let maxNum = run.nextNumber || 1;
 
@@ -236,54 +407,59 @@ export async function generateInspectionRecordNo(settings) {
   return `${prefix}${year}-${String(maxNum).padStart(digits, '0')}`;
 }
 
-// List Inspection Records
 export async function listInspectionRecords() {
-  ensureDirs();
-  const records = [];
+  const recordsMap = new Map();
 
+  // 1. Load from memory map
+  memoryRecordsMap.forEach((rec, key) => {
+    recordsMap.set(key, rec);
+  });
+
+  // 2. Scan disk / tmp
   try {
-    const yms = fs.readdirSync(RECORDS_DIR);
-    for (const ym of yms) {
-      const ymPath = path.join(RECORDS_DIR, ym);
-      if (fs.existsSync(ymPath) && fs.statSync(ymPath).isDirectory()) {
-        const files = fs.readdirSync(ymPath);
-        for (const f of files) {
-          if (f.endsWith('.json')) {
-            try {
-              const content = JSON.parse(fs.readFileSync(path.join(ymPath, f), 'utf-8'));
-              records.push(content);
-            } catch {}
+    const recordsDir = getRecordsDir();
+    if (fs.existsSync(recordsDir)) {
+      const yms = fs.readdirSync(recordsDir);
+      for (const ym of yms) {
+        const ymPath = path.join(recordsDir, ym);
+        if (fs.existsSync(ymPath) && fs.statSync(ymPath).isDirectory()) {
+          const files = fs.readdirSync(ymPath);
+          for (const f of files) {
+            if (f.endsWith('.json')) {
+              try {
+                const content = JSON.parse(fs.readFileSync(path.join(ymPath, f), 'utf-8'));
+                if (content && (content.id || content.recordNo)) {
+                  const key = content.id || content.recordNo;
+                  recordsMap.set(key, content);
+                  memoryRecordsMap.set(key, content);
+                }
+              } catch {}
+            }
           }
         }
       }
     }
   } catch (err) {
-    console.warn('listInspectionRecords error:', err.message);
+    console.warn('listInspectionRecords disk warning:', err.message);
   }
 
-  // Sort newest first
-  return records.sort((a, b) => {
+  const list = Array.from(recordsMap.values());
+  return list.sort((a, b) => {
     const da = a.createdAt || a.inspectionDate || '';
     const db = b.createdAt || b.inspectionDate || '';
     return db.localeCompare(da);
   });
 }
 
-// Load Single Record by RecordNo or ID
 export async function loadInspectionRecord(idOrRecordNo) {
   const records = await listInspectionRecords();
   return records.find(r => r.id === idOrRecordNo || r.recordNo === idOrRecordNo) || null;
 }
 
-// Save or Update Inspection Record
 export async function saveInspectionRecord(record) {
-  ensureDirs();
   const now = new Date();
   const dateStr = record.inspectionDate || now.toISOString().slice(0, 10);
-  const ym = dateStr.slice(0, 7); // e.g. "2026-06"
-  const ymDir = path.join(RECORDS_DIR, ym);
-
-  if (!fs.existsSync(ymDir)) fs.mkdirSync(ymDir, { recursive: true });
+  const ym = dateStr.slice(0, 7);
 
   const settings = await loadInspectionSettings();
   let recordNo = record.recordNo;
@@ -294,7 +470,6 @@ export async function saveInspectionRecord(record) {
 
   const id = record.id || `rec-${Date.now()}`;
   const safeRecordNo = String(recordNo).replace(/[/\\:*?"<>|]/g, '-');
-  const filePath = path.join(ymDir, `${safeRecordNo}.json`);
 
   const fullRecord = {
     ...record,
@@ -304,9 +479,32 @@ export async function saveInspectionRecord(record) {
     createdAt: record.createdAt || now.toISOString()
   };
 
-  fs.writeFileSync(filePath, JSON.stringify(fullRecord, null, 2), 'utf-8');
+  // Update memory
+  memoryRecordsMap.set(id, fullRecord);
+  memoryRecordsMap.set(recordNo, fullRecord);
 
-  // Increment running nextNumber in settings
+  // Write to disk / tmp
+  try {
+    const recordsDir = getRecordsDir();
+    const ymDir = path.join(recordsDir, ym);
+    if (!fs.existsSync(ymDir)) fs.mkdirSync(ymDir, { recursive: true });
+    const filePath = path.join(ymDir, `${safeRecordNo}.json`);
+    fs.writeFileSync(filePath, JSON.stringify(fullRecord, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('saveInspectionRecord disk warning:', err.message);
+  }
+
+  // Write to GitHub
+  try {
+    const { saveJsonFile } = await getGitHubHelpers();
+    if (saveJsonFile) {
+      await saveJsonFile(`data/inspection-sheets/records/${ym}/${safeRecordNo}.json`, fullRecord, `บันทึกผลการตรวจเช็ค [${recordNo}] ${fullRecord.location || ''}`);
+    }
+  } catch (err) {
+    console.warn('saveInspectionRecord GitHub warning:', err.message);
+  }
+
+  // Increment running nextNumber
   try {
     const match = recordNo.match(/-(\d+)$/);
     if (match) {
@@ -326,30 +524,33 @@ export async function saveInspectionRecord(record) {
   return fullRecord;
 }
 
-// Delete Inspection Record
 export async function deleteInspectionRecord(idOrRecordNo) {
-  ensureDirs();
   const safe = String(idOrRecordNo).replace(/[/\\:*?"<>|]/g, '-');
-  let deleted = false;
+  memoryRecordsMap.delete(idOrRecordNo);
+  memoryRecordsMap.delete(safe);
 
+  let deleted = false;
   try {
-    const yms = fs.readdirSync(RECORDS_DIR);
-    for (const ym of yms) {
-      const ymPath = path.join(RECORDS_DIR, ym);
-      if (fs.existsSync(ymPath) && fs.statSync(ymPath).isDirectory()) {
-        const files = fs.readdirSync(ymPath);
-        for (const f of files) {
-          if (f === `${safe}.json` || f.includes(safe)) {
-            try {
-              fs.unlinkSync(path.join(ymPath, f));
-              deleted = true;
-            } catch {}
+    const recordsDir = getRecordsDir();
+    if (fs.existsSync(recordsDir)) {
+      const yms = fs.readdirSync(recordsDir);
+      for (const ym of yms) {
+        const ymPath = path.join(recordsDir, ym);
+        if (fs.existsSync(ymPath) && fs.statSync(ymPath).isDirectory()) {
+          const files = fs.readdirSync(ymPath);
+          for (const f of files) {
+            if (f === `${safe}.json` || f.includes(safe)) {
+              try {
+                fs.unlinkSync(path.join(ymPath, f));
+                deleted = true;
+              } catch {}
+            }
           }
         }
       }
     }
   } catch (err) {
-    console.warn('deleteInspectionRecord error:', err.message);
+    console.warn('deleteInspectionRecord disk warning:', err.message);
   }
 
   return { ok: deleted, id: idOrRecordNo };
