@@ -39,7 +39,7 @@ export const defaultTemplates = [
   {
     id: 'tpl-mdb-monthly',
     name: 'แบบฟอร์มตรวจสอบตู้ควบคุมไฟฟ้า MDB และตู้ย่อย DB ประจำเดือน',
-    code: 'FM-ENG-MDB-01',
+    code: 'INS-MDB-',
     department: 'หบท-ธ. ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร',
     frequency: 'รายเดือน',
     description: 'สำหรับตรวจสอบสภาพทั่วไป ความร้อน สภาพสายไฟ และมิเตอร์วัดของตู้สวิตช์บอร์ด MDB และ DB ย่อย',
@@ -64,7 +64,7 @@ export const defaultTemplates = [
   {
     id: 'tpl-booster-pump',
     name: 'แบบฟอร์มตรวจเช็คระบบสุขาภิบาลและปั๊มน้ำ (Sanitary & Booster Pump)',
-    code: 'FM-ENG-PMP-02',
+    code: 'INS-PMP-',
     department: 'หบท-ธ. ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร',
     frequency: 'รายสัปดาห์',
     description: 'บันทึกการตรวจสอบแรงดันปั๊มน้ำ สภาพการทำงาน เสียงผิดปกติ และการรั่วซึม',
@@ -89,7 +89,7 @@ export const defaultTemplates = [
   {
     id: 'tpl-general-safety',
     name: 'แบบฟอร์มตรวจเช็คความปลอดภัยทั่วไปและสภาพพื้นที่ (General Safety Inspection)',
-    code: 'FM-SAF-001',
+    code: 'INS-SAF-',
     department: 'หบท-ธ. ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร',
     frequency: 'ตามรอบสำรวจ',
     description: 'ตรวจประเมินความปลอดภัย สภาพทางหนีไฟ ป้ายเตือน และความชำรุดเสียหายทั่วไป',
@@ -387,28 +387,54 @@ export async function deleteInspectionTemplate(templateId) {
 // RECORDS
 // ==========================================
 
-export async function generateInspectionRecordNo(settings) {
+export async function generateInspectionRecordNo(settings, customPrefix = null) {
   const currentSettings = settings || (await loadInspectionSettings());
   const run = currentSettings.runningNumber || defaultInspectionSettings.runningNumber;
-  const prefix = run.prefix || 'INS-';
+  let rawPrefix = (customPrefix && customPrefix.trim()) ? customPrefix.trim() : (run.prefix || 'INS-');
+
+  // Strip trailing numbers/dashes to get the clean prefix
+  let prefix = rawPrefix;
+  if (/-\d+$/.test(prefix)) {
+    prefix = prefix.replace(/-\d+$/, '-');
+  }
+  if (!prefix.endsWith('-') && !prefix.endsWith('/')) {
+    prefix = `${prefix}-`;
+  }
+
   const now = new Date();
   const year = run.yearType === 'buddhist' ? (now.getFullYear() + 543) : now.getFullYear();
   const digits = run.digits || 3;
+
+  let fullPrefix = prefix;
+  if (!fullPrefix.includes(String(year))) {
+    fullPrefix = `${prefix}${year}-`;
+  }
 
   const records = await listInspectionRecords();
   let maxNum = run.nextNumber || 1;
 
   records.forEach(r => {
-    if (r.recordNo && r.recordNo.startsWith(`${prefix}${year}-`)) {
-      const part = r.recordNo.replace(`${prefix}${year}-`, '');
-      const num = parseInt(part, 10);
-      if (!isNaN(num) && num >= maxNum) {
-        maxNum = num + 1;
+    if (r.recordNo) {
+      if (r.recordNo.startsWith(fullPrefix)) {
+        const part = r.recordNo.slice(fullPrefix.length);
+        const num = parseInt(part, 10);
+        if (!isNaN(num) && num >= maxNum) {
+          maxNum = num + 1;
+        }
+      } else if (r.recordNo.startsWith(prefix)) {
+        const part = r.recordNo.slice(prefix.length);
+        const match = part.match(/(\d+)$/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (!isNaN(num) && num >= maxNum) {
+            maxNum = num + 1;
+          }
+        }
       }
     }
   });
 
-  return `${prefix}${year}-${String(maxNum).padStart(digits, '0')}`;
+  return `${fullPrefix}${String(maxNum).padStart(digits, '0')}`;
 }
 
 export async function listInspectionRecords() {

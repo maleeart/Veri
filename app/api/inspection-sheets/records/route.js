@@ -17,7 +17,8 @@ export async function GET(request) {
     const getNextRef = searchParams.get('getNextRef');
 
     if (getNextRef === '1') {
-      const nextRef = await generateInspectionRecordNo();
+      const prefix = searchParams.get('prefix');
+      const nextRef = await generateInspectionRecordNo(null, prefix);
       return NextResponse.json({ ok: true, nextRef });
     }
 

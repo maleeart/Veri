@@ -374,9 +374,10 @@ function InspectionSheetsInner() {
 
   // Open Template Builder
   const handleCreateTemplate = () => {
+    const curYear = new Date().getFullYear() + 543;
     setEditingTemplate({
       name: '',
-      code: `FM-ENG-${Math.floor(100 + Math.random() * 900)}`,
+      code: `INS-${curYear}-`,
       department: settings?.header?.companySubtitle || 'หบท-ธ. ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร',
       frequency: 'รายเดือน',
       description: '',
@@ -436,7 +437,8 @@ function InspectionSheetsInner() {
     } else {
       let nextRef = 'INS-2569-001';
       try {
-        const res = await fetch('/api/inspection-sheets/records?getNextRef=1');
+        const prefix = (template.code || '').trim();
+        const res = await fetch(`/api/inspection-sheets/records?getNextRef=1${prefix ? `&prefix=${encodeURIComponent(prefix)}` : ''}`);
         const json = await res.json();
         if (json.ok && json.nextRef) nextRef = json.nextRef;
       } catch {}
@@ -818,7 +820,7 @@ function InspectionSheetsInner() {
                             {rec.recordNo || 'INS-RECORD'}
                           </span>
                           <span style={{ fontSize: 11, background: 'rgba(59, 130, 246, 0.15)', color: '#93c5fd', padding: '1px 7px', borderRadius: 4, fontWeight: 600 }}>
-                            {rec.templateCode || tpl?.code || 'FM-INSPECT'}
+                            {rec.templateName || tpl?.name || 'แบบฟอร์มตรวจเช็ค'}
                           </span>
                           <span style={{
                             fontSize: 11,
@@ -945,7 +947,7 @@ function InspectionSheetsInner() {
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 8 }}>
                         <span style={{ fontSize: 11, background: 'rgba(59, 130, 246, 0.15)', color: '#93c5fd', padding: '2px 8px', borderRadius: 4, fontWeight: 700 }}>
-                          {tpl.code || 'FM-XXX'}
+                          เลขรัน: {tpl.code || 'INS-'}
                         </span>
                         <div style={{ display: 'flex', gap: 6 }}>
                           {hasPhotoCol && (
@@ -1095,15 +1097,18 @@ function InspectionSheetsInner() {
 
                   <div>
                     <label style={{ fontSize: 12, fontWeight: 700, color: '#93c5fd', display: 'block', marginBottom: 4 }}>
-                      รหัสแบบฟอร์ม (FM Ref)
+                      เลขรันเอกสาร / คำนำหน้ารหัสรัน *
                     </label>
                     <input 
                       type="text" 
-                      placeholder="เช่น FM-ENG-001"
-                      value={editingTemplate.code}
+                      placeholder="เช่น INS- หรือ INS-2569- หรือ MDB-"
+                      value={editingTemplate.code || ''}
                       onChange={e => setEditingTemplate({ ...editingTemplate, code: e.target.value })}
                       style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-input, #080e1a)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 6, color: 'white', fontSize: 13 }}
                     />
+                    <div style={{ fontSize: 11, color: '#94a3c4', marginTop: 3 }}>
+                      กำหนดรหัสเลขรันของแบบฟอร์มนี้ (เช่น INS-, MDB-, PMP-)
+                    </div>
                   </div>
 
                   <div>
@@ -1319,7 +1324,7 @@ function InspectionSheetsInner() {
                     📝 บันทึกผลการตรวจเช็ค: {activeTemplateForFill.name}
                   </h3>
                   <div style={{ fontSize: 11.5, color: '#93c5fd', marginTop: 2 }}>
-                    รหัสแบบฟอร์ม: {activeTemplateForFill.code || 'FM-XXX'} • เลขที่บันทึก: {editingRecord.recordNo}
+                    แบบฟอร์ม: {activeTemplateForFill.name} • เลขที่เอกสาร: {editingRecord.recordNo}
                   </div>
                 </div>
                 <button
@@ -1335,6 +1340,19 @@ function InspectionSheetsInner() {
                 {/* Record Meta Box */}
                 <div style={{ background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 10, padding: 14 }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+                    <div>
+                      <label style={{ fontSize: 12, fontWeight: 700, color: '#93c5fd', display: 'block', marginBottom: 4 }}>
+                        เลขที่เอกสาร (เลขรัน) *
+                      </label>
+                      <input 
+                        type="text" 
+                        value={editingRecord.recordNo || ''}
+                        onChange={e => setEditingRecord({ ...editingRecord, recordNo: e.target.value })}
+                        placeholder="เช่น INS-2569-001"
+                        style={{ width: '100%', padding: '7px 10px', background: '#080e1a', border: '1px solid #3b82f6', borderRadius: 6, color: '#60a5fa', fontWeight: 700, fontSize: 12.5 }}
+                      />
+                    </div>
+
                     <div>
                       <label style={{ fontSize: 12, fontWeight: 700, color: '#93c5fd', display: 'block', marginBottom: 4 }}>
                         วันที่ตรวจสอบ *
@@ -1743,10 +1761,12 @@ function InspectionSheetsInner() {
                     </div>
 
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ border: '1.5px solid #0f2e5a', borderRadius: 5, padding: '3px 8px', background: '#f8fafc', display: 'inline-block' }}>
-                        <div style={{ fontSize: 9.5, color: '#64748b', fontWeight: 600 }}>รหัสแบบฟอร์ม (FM Ref)</div>
-                        <div style={{ fontSize: 12, fontWeight: 800, color: '#0f2e5a' }}>
-                          {viewingRecord?.recordNo || viewingTemplate.code || 'FM-ENG-001'}
+                      <div style={{ border: '1.5px solid #0f2e5a', borderRadius: 5, padding: '4px 10px', background: '#f8fafc', display: 'inline-block' }}>
+                        <div style={{ fontSize: 9.5, color: '#64748b', fontWeight: 600 }}>เลขที่เอกสาร</div>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: '#0f2e5a' }}>
+                          {isBlankView
+                            ? (viewingTemplate.code ? `${viewingTemplate.code.replace(/-\d+$/, '')}-..........` : 'INS-..........')
+                            : (viewingRecord?.recordNo || viewingTemplate.code || 'INS-001')}
                         </div>
                       </div>
                     </div>
