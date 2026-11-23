@@ -5,7 +5,6 @@
   "docDate": "23 พฤศจิกายน 2569",
   "docDateISO": "2026-11-23",
   "priority": "high",
-  "status": "approved",
   "inspector": {
     "name": "",
     "role": "ช่างไฟฟ้า",
@@ -59,9 +58,11 @@
     "approver": {
       "name": "นายตวงเพชร ชัยยานนท์",
       "role": "วศ.4 หบท-ธ.",
-      "signed": true,
-      "decision": "approved",
-      "image": "/assets/shared/signature-approver.png"
+      "signed": false,
+      "decision": "pending",
+      "image": null,
+      "unapprovedAt": "2026-11-23T03:44:55.333Z"
     }
-  }
+  },
+  "status": "pending_approval"
 }
