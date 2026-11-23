@@ -1151,6 +1151,19 @@ function HomePageInner() {
           <span className="card__arrow">›</span>
         </button>
 
+        {/* Card 6 — แบบฟอร์มตรวจเช็ค (Inspection Sheets) */}
+        <button
+          className="card card--repair"
+          onClick={() => router.push('/inspection-sheets')}
+          style={{ borderLeft: '4px solid #3b82f6' }}>
+          <span className="card__icon">📋</span>
+          <div className="card__body">
+            <span className="card__title">แบบฟอร์มตรวจเช็ค</span>
+            <span className="card__sub">สร้างฟอร์ม & บันทึกผล</span>
+          </div>
+          <span className="card__arrow">›</span>
+        </button>
+
       </main>
           </div>
 

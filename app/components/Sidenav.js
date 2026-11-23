@@ -27,6 +27,7 @@ export default function Sidenav({ notifProps = null }) {
     : pathname === '/admin' ? 'admin'
     : pathname.startsWith('/form/') ? `form:${pathname.split('/')[2]}`
     : pathname === '/electrical-annual' ? 'elec'
+    : pathname.startsWith('/inspection-sheets') ? 'inspection-sheets'
     : pathname.startsWith('/repair-proposal') ? 'repair-proposal'
     : pathname;
 
@@ -39,6 +40,7 @@ export default function Sidenav({ notifProps = null }) {
     { icon: '⚡', label: 'Meter กฟน.',             key: 'meter',  href: '/meter' },
     { icon: '🏢', label: 'Meter อาคาร',            key: 'bmeter', href: '/building-meter' },
     { icon: '🔧', label: 'สถานะ PM',               key: 'pm',     href: '/pm' },
+    { icon: '📋', label: 'แบบฟอร์มตรวจเช็ค',       key: 'inspection-sheets', href: '/inspection-sheets' },
     { icon: '📝', label: 'ใบเสนอแจ้งซ่อม',         key: 'repair-proposal', href: '/repair-proposal' },
   ];
 
@@ -82,7 +84,7 @@ export default function Sidenav({ notifProps = null }) {
       {/* Nav items */}
       <div className="sn-section-label">บันทึกข้อมูล</div>
       {navItems.map(({ icon, label, key, href, badge }) => {
-        const isActive = active === `form:${key}` || (key === 'fpg' && active === '/session') || (key === 'pm' && active === '/pm') || (key === 'repair-proposal' && active === 'repair-proposal');
+        const isActive = active === `form:${key}` || (key === 'fpg' && active === '/session') || (key === 'pm' && active === '/pm') || (key === 'inspection-sheets' && active === 'inspection-sheets') || (key === 'repair-proposal' && active === 'repair-proposal');
         return (
           <button key={key} className={`sn-item${isActive ? ' sn-item--active' : ''}`}
             onClick={() => router.push(href)}>
