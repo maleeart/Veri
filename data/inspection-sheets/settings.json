@@ -17,9 +17,9 @@
   "runningNumber": {
     "prefix": "GNM-",
     "yearType": "buddhist",
-    "nextNumber": 1,
+    "nextNumber": 2,
     "digits": 3
   },
   "adminPin": "8888",
-  "updatedAt": "2026-11-23T07:02:02.801Z"
+  "updatedAt": "2026-11-23T07:29:40.001Z"
 }
