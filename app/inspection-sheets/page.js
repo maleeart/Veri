@@ -261,6 +261,21 @@ function InspectionSheetsInner() {
   const [viewingTemplate, setViewingTemplate] = useState(null);
   const [isBlankView, setIsBlankView] = useState(false);
 
+  // Guarantee valid non-empty document running number
+  const docRefNumber = useMemo(() => {
+    if (isBlankView) {
+      return viewingTemplate?.code 
+        ? `${viewingTemplate.code.replace(/-\d+$/, '').replace(/-+$/, '')}-..........` 
+        : 'INS-..........';
+    }
+    const num = viewingRecord?.recordNo || viewingRecord?.docNo || viewingRecord?.refNo;
+    if (num && String(num).trim()) return String(num).trim();
+    if (viewingTemplate?.code && String(viewingTemplate.code).trim()) {
+      return `${String(viewingTemplate.code).trim().replace(/-+$/, '')}-001`;
+    }
+    return `INS-${new Date().getFullYear() + 543}-001`;
+  }, [isBlankView, viewingTemplate, viewingRecord]);
+
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [pinInput, setPinInput] = useState('');
@@ -599,6 +614,11 @@ function InspectionSheetsInner() {
       const printArea = document.getElementById(elemId);
       if (!printArea) throw new Error('ไม่พบข้อมูลเอกสาร');
 
+      // Ensure scroll container is at top before capturing to avoid clipping
+      const scrollParent = printArea.parentElement;
+      const origScrollTop = scrollParent ? scrollParent.scrollTop : 0;
+      if (scrollParent) scrollParent.scrollTop = 0;
+
       // Ensure images loaded
       const imgs = Array.from(printArea.querySelectorAll('img'));
       await Promise.all(imgs.map(img => {
@@ -611,8 +631,12 @@ function InspectionSheetsInner() {
         useCORS: true,
         allowTaint: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: 0
       });
+
+      if (scrollParent) scrollParent.scrollTop = origScrollTop;
 
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -1752,7 +1776,7 @@ function InspectionSheetsInner() {
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(5px)', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 12 }}>
             <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 12, padding: '10px 18px', width: '100%', maxWidth: '210mm', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <div style={{ color: 'white', fontSize: 14, fontWeight: 700 }}>
-                {isBlankView ? '📄 ฟอร์มเปล่าสำหรับพิมพ์ (Blank Sheet)' : `📄 ${viewingRecord?.recordNo || 'เอกสารผลการตรวจเช็ค'}`}
+                {isBlankView ? '📄 ฟอร์มเปล่าสำหรับพิมพ์ (Blank Sheet)' : `📄 ${docRefNumber} - ${viewingTemplate?.name || 'เอกสารผลการตรวจเช็ค'}`}
               </div>
 
               <div style={{ display: 'flex', gap: 8 }}>
@@ -1764,7 +1788,7 @@ function InspectionSheetsInner() {
 
                 <button
                   disabled={exportingPdf}
-                  onClick={() => handleDownloadPdf('inspection-doc-print-area', `${viewingRecord?.recordNo || viewingTemplate.code || 'Inspection'}_${isBlankView ? 'Blank' : 'Result'}`)}
+                  onClick={() => handleDownloadPdf('inspection-doc-print-area', `${docRefNumber}_${isBlankView ? 'Blank' : 'Result'}`)}
                   style={{ background: '#2563eb', color: 'white', border: 'none', padding: '6px 14px', borderRadius: 6, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                   <span>📥</span> {exportingPdf ? 'กำลังสร้าง PDF...' : 'บันทึกเป็น PDF'}
                 </button>
@@ -1833,6 +1857,7 @@ function InspectionSheetsInner() {
                       <div 
                         style={settings?.header?.bannerLayout === 'contained' ? {
                           width: '100%',
+                          backgroundColor: settings?.header?.bannerTheme === 'navy' ? '#0a2540' : '#ffffff',
                           background: settings?.header?.bannerTheme === 'navy'
                             ? 'linear-gradient(135deg, #0a2540 0%, #0f3d68 100%)'
                             : '#ffffff',
@@ -1849,6 +1874,7 @@ function InspectionSheetsInner() {
                         } : {
                           width: 'calc(100% + 40mm)',
                           margin: '-18mm -20mm 14mm -20mm',
+                          backgroundColor: settings?.header?.bannerTheme === 'navy' ? '#0a2540' : '#ffffff',
                           background: settings?.header?.bannerTheme === 'navy'
                             ? 'linear-gradient(135deg, #0a2540 0%, #0f3d68 100%)'
                             : '#ffffff',
@@ -1913,17 +1939,16 @@ function InspectionSheetsInner() {
                         {/* Document Running No in Header */}
                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
                           <div style={{ 
-                            border: settings?.header?.bannerTheme === 'navy' ? '1.5px solid rgba(255,255,255,0.3)' : '1.5px solid #0f2e5a', 
+                            border: settings?.header?.bannerTheme === 'navy' ? '1.5px solid #fbbf24' : '1.5px solid #0f2e5a', 
                             borderRadius: 6, 
-                            padding: '4px 10px', 
-                            background: settings?.header?.bannerTheme === 'navy' ? 'rgba(255,255,255,0.1)' : '#f8fafc', 
-                            display: 'inline-block' 
+                            padding: '4px 12px', 
+                            backgroundColor: settings?.header?.bannerTheme === 'navy' ? '#0f3d68' : '#f8fafc', 
+                            display: 'inline-block',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.08)'
                           }}>
-                            <div style={{ fontSize: 9.5, color: settings?.header?.bannerTheme === 'navy' ? '#cbd5e1' : '#64748b', fontWeight: 600 }}>เลขที่เอกสาร</div>
-                            <div style={{ fontSize: 13, fontWeight: 800, color: settings?.header?.bannerTheme === 'navy' ? '#ffffff' : '#0f2e5a' }}>
-                              {isBlankView
-                                ? (viewingTemplate.code ? `${viewingTemplate.code.replace(/-\d+$/, '')}-..........` : 'INS-..........')
-                                : (viewingRecord?.recordNo || viewingTemplate.code || 'INS-001')}
+                            <div style={{ fontSize: 9.5, color: settings?.header?.bannerTheme === 'navy' ? '#e2e8f0' : '#475569', fontWeight: 700 }}>เลขที่เอกสาร</div>
+                            <div style={{ fontSize: 13, fontWeight: 900, color: settings?.header?.bannerTheme === 'navy' ? '#fbbf24' : '#0f2e5a', letterSpacing: 0.3 }}>
+                              {docRefNumber}
                             </div>
                           </div>
                         </div>
@@ -1932,18 +1957,14 @@ function InspectionSheetsInner() {
                   )}
 
                   {/* Form Title Banner */}
-                  <div style={{ background: '#f8fafc', border: '1.5px solid #0f2e5a', borderRadius: 6, padding: '8px 12px', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ background: '#f8fafc', border: '1.5px solid #0f2e5a', borderRadius: 6, padding: '8px 12px', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                     <div style={{ fontSize: 14, fontWeight: 800, color: '#0f2e5a' }}>
                       {viewingTemplate.name} {isBlankView ? '(ฟอร์มเปล่า)' : ''}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      {settings?.header?.bannerImageUrl && (
-                        <span style={{ fontSize: 11, fontWeight: 800, color: '#0f2e5a', border: '1.5px solid #0f2e5a', background: '#e2e8f0', padding: '2px 8px', borderRadius: 4 }}>
-                          เลขที่: {isBlankView
-                            ? (viewingTemplate.code ? `${viewingTemplate.code.replace(/-\d+$/, '')}-..........` : 'INS-..........')
-                            : (viewingRecord?.recordNo || viewingTemplate.code || 'INS-001')}
-                        </span>
-                      )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 11.5, fontWeight: 800, color: '#0f2e5a', border: '1.5px solid #0f2e5a', background: '#ffffff', padding: '2px 10px', borderRadius: 4, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <span>เลขที่:</span> <strong style={{ color: '#b91c1c' }}>{docRefNumber}</strong>
+                      </span>
                       <span style={{ fontSize: 10.5, color: '#ffffff', background: '#0f2e5a', padding: '2px 8px', borderRadius: 4, fontWeight: 700 }}>
                         รอบตรวจ: {viewingTemplate.frequency || 'ประจำเดือน'}
                       </span>
@@ -1955,16 +1976,30 @@ function InspectionSheetsInner() {
                     <tbody>
                       <tr>
                         <td style={{ width: '16%', background: '#f1f5f9', padding: '5px 8px', fontWeight: 700, border: '1px solid #cbd5e1', color: '#334155' }}>
-                          สถานที่/อาคาร:
+                          เลขที่เอกสาร:
                         </td>
-                        <td style={{ width: '44%', padding: '5px 8px', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 600 }}>
-                          {viewingRecord?.location || (isBlankView ? '....................................................................' : '-')}
+                        <td style={{ width: '44%', padding: '5px 8px', border: '1px solid #cbd5e1', color: '#b91c1c', fontWeight: 800, fontSize: 11.5 }}>
+                          {docRefNumber}
                         </td>
                         <td style={{ width: '18%', background: '#f1f5f9', padding: '5px 8px', fontWeight: 700, border: '1px solid #cbd5e1', color: '#334155' }}>
                           วันที่ตรวจสอบ:
                         </td>
                         <td style={{ width: '22%', padding: '5px 8px', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 600 }}>
                           {viewingRecord?.inspectionDate || (isBlankView ? '........../........../..........' : '-')}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style={{ background: '#f1f5f9', padding: '5px 8px', fontWeight: 700, border: '1px solid #cbd5e1', color: '#334155' }}>
+                          สถานที่/อาคาร:
+                        </td>
+                        <td style={{ padding: '5px 8px', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 600 }}>
+                          {viewingRecord?.location || (isBlankView ? '....................................................................' : '-')}
+                        </td>
+                        <td style={{ background: '#f1f5f9', padding: '5px 8px', fontWeight: 700, border: '1px solid #cbd5e1', color: '#334155' }}>
+                          รอบการตรวจ:
+                        </td>
+                        <td style={{ padding: '5px 8px', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 600 }}>
+                          {viewingTemplate.frequency || 'ประจำเดือน'}
                         </td>
                       </tr>
                       <tr>
