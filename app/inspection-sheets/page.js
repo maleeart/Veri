@@ -68,14 +68,20 @@ const compressImageFile = (file, maxWidth = 900, maxHeight = 900, quality = 0.75
 const getHeaderLogoUrl = (header) => {
   if (!header || header.logoType === 'none') return null;
   if (header.logoType === 'custom') return header.customLogoUrl || null;
-  if (header.logoType === 'veri') return '/icon-192x192.png';
-  return '/logo.png'; // default egat
+  if (header.logoType === 'veri') return '/logo.png';
+  return '/assets/shared/egat-logo.jpg'; // default egat (ดึงจากเมนูใบเสนอซ่อม)
 };
 
 const getHeaderLogoHeight = (logoSize) => {
-  if (logoSize === 'xlarge') return 90;
-  if (logoSize === 'large') return 75;
-  return 55; // normal
+  if (logoSize === 'xlarge') return 96;
+  if (logoSize === 'normal') return 60;
+  return 80; // default large (ตรงกับใบเสนอซ่อม)
+};
+
+const getHeaderLogoMaxWidth = (logoSize) => {
+  if (logoSize === 'xlarge') return 180;
+  if (logoSize === 'normal') return 120;
+  return 150; // default large (ตรงกับใบเสนอซ่อม)
 };
 
 // Interactive Canvas Signature Pad Component
@@ -1866,7 +1872,7 @@ function InspectionSheetsInner() {
                                 alt="Logo" 
                                 style={{ 
                                   height: getHeaderLogoHeight(settings?.header?.logoSize), 
-                                  maxWidth: 130, 
+                                  maxWidth: getHeaderLogoMaxWidth(settings?.header?.logoSize), 
                                   objectFit: 'contain', 
                                   display: 'block',
                                   background: settings?.header?.bannerTheme === 'navy' ? '#ffffff' : 'transparent',
@@ -2183,7 +2189,7 @@ function InspectionSheetsInner() {
                                   alt="Logo Preview" 
                                   style={{ 
                                     height: getHeaderLogoHeight(settings.header?.logoSize) * 0.7, 
-                                    maxWidth: 110, 
+                                    maxWidth: getHeaderLogoMaxWidth(settings.header?.logoSize) * 0.7, 
                                     objectFit: 'contain', 
                                     display: 'block',
                                     background: settings.header?.bannerTheme === 'navy' ? '#ffffff' : 'transparent',
@@ -2437,42 +2443,44 @@ function InspectionSheetsInner() {
                         <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
                           เลือกรูปภาพโลโก้:
                         </label>
-                        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
-                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: 'var(--ink-primary, #eef2ff)' }}>
+                        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', color: 'var(--ink-primary, #eef2ff)', background: (!settings.header?.logoType || settings.header?.logoType === 'egat') ? 'rgba(37,99,235,0.18)' : '#111d32', padding: '4px 8px', borderRadius: 6, border: (!settings.header?.logoType || settings.header?.logoType === 'egat') ? '1px solid #3b82f6' : '1px solid #2d3f5e' }}>
                             <input 
                               type="radio" 
                               name="inspectLogoType" 
                               checked={!settings.header?.logoType || settings.header?.logoType === 'egat'} 
                               onChange={() => setSettings({ ...settings, header: { ...(settings.header || {}), logoType: 'egat' } })} 
                             />
-                            โลโก้ กฟผ. (EGAT)
+                            <img src="/assets/shared/egat-logo.jpg" alt="EGAT" style={{ height: 20, width: 'auto', background: '#ffffff', borderRadius: 2, padding: 1 }} />
+                            <span>โลโก้ กฟผ. (EGAT)</span>
                           </label>
-                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: 'var(--ink-primary, #eef2ff)' }}>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', color: 'var(--ink-primary, #eef2ff)', background: settings.header?.logoType === 'veri' ? 'rgba(37,99,235,0.18)' : '#111d32', padding: '4px 8px', borderRadius: 6, border: settings.header?.logoType === 'veri' ? '1px solid #3b82f6' : '1px solid #2d3f5e' }}>
                             <input 
                               type="radio" 
                               name="inspectLogoType" 
                               checked={settings.header?.logoType === 'veri'} 
                               onChange={() => setSettings({ ...settings, header: { ...(settings.header || {}), logoType: 'veri' } })} 
                             />
-                            โลโก้ Veri
+                            <img src="/logo.png" alt="Veri" style={{ height: 20, width: 'auto' }} />
+                            <span>โลโก้ Veri</span>
                           </label>
-                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: 'var(--ink-primary, #eef2ff)' }}>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', color: 'var(--ink-primary, #eef2ff)', background: settings.header?.logoType === 'custom' ? 'rgba(37,99,235,0.18)' : '#111d32', padding: '4px 8px', borderRadius: 6, border: settings.header?.logoType === 'custom' ? '1px solid #3b82f6' : '1px solid #2d3f5e' }}>
                             <input 
                               type="radio" 
                               name="inspectLogoType" 
                               checked={settings.header?.logoType === 'custom'} 
                               onChange={() => setSettings({ ...settings, header: { ...(settings.header || {}), logoType: 'custom' } })} 
                             />
-                            อัปโหลดโลโก้เอง (Custom Logo)
+                            <span>📁 อัปโหลดเอง (Custom)</span>
                           </label>
-                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: 'var(--ink-secondary, #94a3c4)' }}>
+                          <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', color: 'var(--ink-secondary, #94a3c4)', background: settings.header?.logoType === 'none' ? 'rgba(37,99,235,0.18)' : '#111d32', padding: '4px 8px', borderRadius: 6, border: settings.header?.logoType === 'none' ? '1px solid #3b82f6' : '1px solid #2d3f5e' }}>
                             <input 
                               type="radio" 
                               name="inspectLogoType" 
                               checked={settings.header?.logoType === 'none'} 
                               onChange={() => setSettings({ ...settings, header: { ...(settings.header || {}), logoType: 'none' } })} 
                             />
-                            ไม่แสดงโลโก้
+                            <span>🚫 ไม่แสดงโลโก้</span>
                           </label>
                         </div>
 
