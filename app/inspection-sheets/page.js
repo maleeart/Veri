@@ -211,18 +211,41 @@ function InspectionSheetsInner() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [tplRes, recRes, setRes] = useState();
       const resTpl = await fetch('/api/inspection-sheets/templates', { cache: 'no-store' });
       const jsonTpl = await resTpl.json();
-      if (jsonTpl.ok) setTemplates(jsonTpl.templates || []);
+      if (jsonTpl.ok && Array.isArray(jsonTpl.templates)) {
+        let finalTemplates = jsonTpl.templates;
+        // Merge with locally stored templates if any
+        try {
+          const cached = localStorage.getItem('veri_inspection_templates');
+          if (cached) {
+            const localList = JSON.parse(cached);
+            if (Array.isArray(localList)) {
+              const serverIds = new Set(finalTemplates.map(t => t.id));
+              const missingOnServer = localList.filter(t => !serverIds.has(t.id));
+              if (missingOnServer.length > 0) {
+                finalTemplates = [...missingOnServer, ...finalTemplates];
+              }
+            }
+          }
+        } catch {}
+        setTemplates(finalTemplates);
+        try {
+          localStorage.setItem('veri_inspection_templates', JSON.stringify(finalTemplates));
+        } catch {}
+      }
 
       const resRec = await fetch('/api/inspection-sheets/records', { cache: 'no-store' });
       const jsonRec = await resRec.json();
-      if (jsonRec.ok) setRecords(jsonRec.records || []);
+      if (jsonRec.ok && Array.isArray(jsonRec.records)) {
+        setRecords(jsonRec.records);
+      }
 
       const resSet = await fetch('/api/inspection-sheets/settings', { cache: 'no-store' });
       const jsonSet = await resSet.json();
-      if (jsonSet.ok) setSettings(jsonSet.settings);
+      if (jsonSet.ok && jsonSet.settings) {
+        setSettings(jsonSet.settings);
+      }
     } catch (err) {
       console.error('loadData error:', err);
     } finally {
@@ -307,7 +330,13 @@ function InspectionSheetsInner() {
       const res = await fetch(`/api/inspection-sheets/templates?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
       const data = await res.json();
       if (res.ok && data.ok) {
-        setTemplates(prev => prev.filter(t => t.id !== id));
+        setTemplates(prev => {
+          const updated = prev.filter(t => t.id !== id);
+          try {
+            localStorage.setItem('veri_inspection_templates', JSON.stringify(updated));
+          } catch {}
+          return updated;
+        });
       } else {
         alert('ลบไม่สำเร็จ: ' + (data?.error || 'เกิดข้อผิดพลาด'));
       }
@@ -1153,8 +1182,21 @@ function InspectionSheetsInner() {
                       });
                       const json = await res.json();
                       if (res.ok && json.ok) {
+                        const savedTpl = json.template || { ...editingTemplate, id: editingTemplate.id || `tpl-${Date.now()}` };
+                        setTemplates(prev => {
+                          const exists = prev.some(t => t.id === savedTpl.id);
+                          const nextList = exists
+                            ? prev.map(t => t.id === savedTpl.id ? savedTpl : t)
+                            : [savedTpl, ...prev];
+                          try {
+                            localStorage.setItem('veri_inspection_templates', JSON.stringify(nextList));
+                          } catch {}
+                          return nextList;
+                        });
+
                         alert('บันทึกแบบฟอร์มสำเร็จ');
                         setShowBuilderModal(false);
+                        setActiveTab('templates');
                         loadData();
                       } else {
                         alert('บันทึกไม่สำเร็จ: ' + (json?.error || 'เกิดข้อผิดพลาด'));
@@ -1483,11 +1525,18 @@ function InspectionSheetsInner() {
                       });
                       const json = await res.json();
                       if (res.ok && json.ok) {
-                        alert(`บันทึกผลการตรวจเช็คเลขที่ ${json.record?.recordNo} เรียบร้อยแล้ว`);
+                        const savedRec = json.record || editingRecord;
+                        setRecords(prev => {
+                          const exists = prev.some(r => (savedRec.id && r.id === savedRec.id) || (savedRec.recordNo && r.recordNo === savedRec.recordNo));
+                          return exists
+                            ? prev.map(r => ((savedRec.id && r.id === savedRec.id) || (savedRec.recordNo && r.recordNo === savedRec.recordNo)) ? savedRec : r)
+                            : [savedRec, ...prev];
+                        });
+                        alert(`บันทึกผลการตรวจเช็คเลขที่ ${savedRec.recordNo || ''} เรียบร้อยแล้ว`);
                         setShowFillerModal(false);
                         loadData();
                         // Open view directly
-                        handleViewRecord(json.record);
+                        handleViewRecord(savedRec);
                       } else {
                         alert('บันทึกไม่สำเร็จ: ' + (json?.error || 'เกิดข้อผิดพลาด'));
                       }
