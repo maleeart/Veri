@@ -4054,52 +4054,188 @@ function AdminSettingsModal({ settings, currentProposal, onCertifyCurrent, onClo
   }, [form.header?.logoSize]);
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 14, maxWidth: 750, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 16px 50px rgba(0,0,0,0.6)', display: 'flex', flexDirection: 'column' }}>
-        
-        {/* Modal Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid var(--border-hairline, #1e2e4a)', background: 'var(--bg-surface-raised, #172340)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 20 }}>⚙️</span>
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      width: '100vw',
+      height: '100vh',
+      zIndex: 9999,
+      background: 'var(--bg-base, #0c1220)',
+      color: 'var(--ink-primary, #eef2ff)',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden'
+    }}>
+      {/* Fullscreen Top Header */}
+      <header style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '12px 24px',
+        borderBottom: '1px solid var(--border-hairline, #1e2e4a)',
+        background: 'var(--bg-surface-raised, #172340)',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
+        flexShrink: 0,
+        gap: 16,
+        flexWrap: 'wrap'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'var(--bg-surface, #111d32)',
+              border: '1px solid var(--border-strong, #2d3f5e)',
+              borderRadius: 8,
+              padding: '8px 14px',
+              fontSize: 13,
+              fontWeight: 700,
+              color: 'var(--ink-primary, #eef2ff)',
+              cursor: 'pointer'
+            }}>
+            <span>◀</span> กลับสู่หน้าใบเสนอซ่อม
+          </button>
+
+          <div style={{ height: 26, width: 1, background: 'var(--border-strong, #2d3f5e)' }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 26 }}>⚙️</span>
             <div>
-              <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink-primary, #eef2ff)', margin: 0 }}>ตั้งค่าระบบแอดมิน (Admin Settings)</h2>
-              <div style={{ fontSize: 11.5, color: 'var(--ink-secondary, #94a3c4)' }}>รับรองเอกสารแจ้งซ่อม, จัดการผู้ตรวจสอบและรับรอง, หัวกระดาษ, และการรันเลขที่ใบเสนอซ่อม</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <h1 style={{ fontSize: 18, fontWeight: 800, color: 'var(--ink-primary, #eef2ff)', margin: 0 }}>
+                  ศูนย์ตั้งค่าระบบผู้ดูแล (Admin Control Panel)
+                </h1>
+                <span style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  padding: '2px 8px',
+                  borderRadius: 12,
+                  background: 'rgba(245, 158, 11, 0.2)',
+                  color: '#fbbf24',
+                  border: '1px solid rgba(245, 158, 11, 0.4)'
+                }}>
+                  ใบเสนอแจ้งซ่อม
+                </span>
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)', marginTop: 2 }}>
+                ตรวจสอบรับรองเอกสารแจ้งซ่อม, จัดการรายชื่อผู้รับรอง & ลายเซ็นต์, กำหนดหัวกระดาษ A4, และการรันเลขที่ใบงาน
+              </div>
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--ink-secondary, #94a3c4)' }}>✕</button>
         </div>
 
-        {/* Tab Switcher */}
-        <div style={{ display: 'flex', borderBottom: '1px solid var(--border-hairline, #1e2e4a)', background: 'var(--bg-surface, #111d32)', overflowX: 'auto' }}>
-          {[
-            { id: 'approval', label: '🛡️ รับรองเอกสารแจ้งซ่อม' },
-            { id: 'approver', label: '✍️ ผู้ตรวจสอบและรับรอง & ลายเซ็นต์' },
-            { id: 'header', label: '🏢 หัวกระดาษ & โลโก้' },
-            { id: 'ref', label: '🔢 การรันเลขที่ใบงาน' },
-            { id: 'defaults', label: '⚙️ ค่าเริ่มต้นอื่นๆ' }
-          ].map(tab => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm('ต้องการคืนค่าเริ่มต้นระบบทั้งหมดใช่หรือไม่?')) {
+                setForm(JSON.parse(JSON.stringify(defaultAdminSettings)));
+              }
+            }}
+            style={{
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.35)',
+              color: '#f87171',
+              padding: '8px 14px',
+              borderRadius: 8,
+              fontSize: 12.5,
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}>
+            คืนค่าเริ่มต้น
+          </button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: 'var(--bg-surface, #111d32)',
+              border: '1px solid var(--border-strong, #2d3f5e)',
+              color: 'var(--ink-secondary, #94a3c4)',
+              padding: '8px 16px',
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}>
+            ✕ ปิดหน้าต่าง
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onSave(form)}
+            style={{
+              background: 'var(--accent, #2563eb)',
+              color: 'white',
+              border: 'none',
+              padding: '8px 22px',
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              boxShadow: '0 2px 10px rgba(37,99,235,0.4)'
+            }}>
+            <span>💾</span> บันทึกการตั้งค่า
+          </button>
+        </div>
+      </header>
+
+      {/* Navigation Tab Bar */}
+      <nav style={{
+        display: 'flex',
+        padding: '0 24px',
+        borderBottom: '1px solid var(--border-hairline, #1e2e4a)',
+        background: 'var(--bg-surface, #111d32)',
+        overflowX: 'auto',
+        gap: 6,
+        flexShrink: 0
+      }}>
+        {[
+          { id: 'approval', label: '🛡️ 1. รับรองเอกสารแจ้งซ่อม (Approval Queue)' },
+          { id: 'approver', label: '✍️ 2. ผู้ตรวจสอบและรับรอง & ลายเซ็นต์ (Signatories)' },
+          { id: 'header', label: '🏢 3. หัวกระดาษ & โลโก้ (Letterhead)' },
+          { id: 'ref', label: '🔢 4. การรันเลขที่ใบงาน (Running RefNo)' },
+          { id: 'defaults', label: '⚙️ 5. ค่าเริ่มต้นระบบ (Defaults)' }
+        ].map(tab => {
+          const isActive = activeTab === tab.id;
+          return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               style={{
-                flex: 1,
-                padding: '11px 12px',
+                padding: '12px 18px',
                 border: 'none',
-                borderBottom: activeTab === tab.id ? '2.5px solid #2563eb' : '2.5px solid transparent',
-                background: 'transparent',
-                fontWeight: 700,
-                fontSize: 12.5,
-                color: activeTab === tab.id ? '#60a5fa' : 'var(--ink-secondary, #94a3c4)',
+                borderBottom: isActive ? '3px solid #3b82f6' : '3px solid transparent',
+                background: isActive ? 'rgba(59, 130, 246, 0.08)' : 'transparent',
+                fontWeight: isActive ? 800 : 600,
+                fontSize: 13,
+                color: isActive ? '#60a5fa' : 'var(--ink-secondary, #94a3c4)',
                 cursor: 'pointer',
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s'
               }}>
               {tab.label}
             </button>
-          ))}
-        </div>
+          );
+        })}
+      </nav>
 
-        {/* Tab Content */}
-        <div style={{ padding: 20, flex: 1, overflowY: 'auto' }}>
+      {/* Fullscreen Scrollable Content Area */}
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '24px 28px 40px 28px',
+        maxWidth: 1380,
+        width: '100%',
+        margin: '0 auto',
+        boxSizing: 'border-box'
+      }}>
 
           {/* TAB 0: Document Approval Queue */}
           {activeTab === 'approval' && (
@@ -4277,7 +4413,7 @@ function AdminSettingsModal({ settings, currentProposal, onCertifyCurrent, onClo
                     ⏳ กำลังโหลดรายการเอกสาร...
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 320, overflowY: 'auto' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 560, overflowY: 'auto' }}>
                     {proposalsList
                       .filter(p => approvalStatusFilter === 'all' || (approvalStatusFilter === 'approved' ? p.status === 'approved' : p.status !== 'approved'))
                       .map(p => {
@@ -5147,8 +5283,20 @@ function AdminSettingsModal({ settings, currentProposal, onCertifyCurrent, onClo
 
         </div>
 
-        {/* Modal Footer */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '14px 20px', borderTop: '1px solid var(--border-hairline, #1e2e4a)', background: 'var(--bg-surface-raised, #172340)' }}>
+      {/* Fullscreen Sticky Bottom Footer */}
+      <footer style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '12px 24px',
+        borderTop: '1px solid var(--border-hairline, #1e2e4a)',
+        background: 'var(--bg-surface-raised, #172340)',
+        flexShrink: 0,
+        boxShadow: '0 -2px 10px rgba(0,0,0,0.2)',
+        flexWrap: 'wrap',
+        gap: 12
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button
             type="button"
             onClick={() => {
@@ -5156,26 +5304,60 @@ function AdminSettingsModal({ settings, currentProposal, onCertifyCurrent, onClo
                 setForm(JSON.parse(JSON.stringify(defaultAdminSettings)));
               }
             }}
-            style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.35)', color: '#f87171', padding: '7px 14px', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+            style={{
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.35)',
+              color: '#f87171',
+              padding: '8px 14px',
+              borderRadius: 6,
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}>
             คืนค่าเริ่มต้นระบบ
           </button>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              type="button"
-              onClick={onClose}
-              style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-strong, #2d3f5e)', color: 'var(--ink-primary, #eef2ff)', padding: '7px 16px', borderRadius: 6, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-              ยกเลิก
-            </button>
-            <button
-              type="button"
-              onClick={() => onSave(form)}
-              style={{ background: 'var(--accent, #2563eb)', color: 'white', border: 'none', padding: '7px 20px', borderRadius: 6, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-              💾 บันทึกการตั้งค่า
-            </button>
-          </div>
+          <span style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)' }}>
+            💡 ข้อมูลการตั้งค่าและรูปภาพจะถูกบันทึกขึ้น Cloud และเบราว์เซอร์อัตโนมัติ
+          </span>
         </div>
 
-      </div>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: 'var(--bg-surface, #111d32)',
+              border: '1px solid var(--border-strong, #2d3f5e)',
+              color: 'var(--ink-secondary, #94a3c4)',
+              padding: '8px 18px',
+              borderRadius: 6,
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}>
+            ยกเลิก / ปิดหน้าต่าง
+          </button>
+          <button
+            type="button"
+            onClick={() => onSave(form)}
+            style={{
+              background: 'var(--accent, #2563eb)',
+              color: 'white',
+              border: 'none',
+              padding: '8px 24px',
+              borderRadius: 6,
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              boxShadow: '0 2px 8px rgba(37,99,235,0.4)'
+            }}>
+            <span>💾</span> บันทึกการตั้งค่าทั้งหมด
+          </button>
+        </div>
+      </footer>
     </div>
   );
 }
