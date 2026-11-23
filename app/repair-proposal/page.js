@@ -95,7 +95,37 @@ function RepairProposalListInner() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <button 
+              onClick={() => router.push('/repair-proposal/new?admin=1')}
+              title="ตั้งค่าระบบแอดมิน (หัวกระดาษบริษัท, ลายเซ็นผู้อนุมัติ, รหัสเอกสาร และรับรองเอกสาร)"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: 'rgba(245, 158, 11, 0.14)',
+                border: '1.5px solid rgba(245, 158, 11, 0.45)',
+                color: '#fbbf24',
+                fontWeight: 700,
+                fontSize: 14,
+                padding: '9.5px 16px',
+                borderRadius: 8,
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(245, 158, 11, 0.15)',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(245, 158, 11, 0.25)';
+                e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.65)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(245, 158, 11, 0.14)';
+                e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.45)';
+              }}>
+              <span style={{ fontSize: 16 }}>⚙️</span>
+              <span>ตั้งค่าระบบแอดมิน</span>
+            </button>
+
             <button 
               onClick={() => router.push('/repair-proposal/new')}
               style={{

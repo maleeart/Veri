@@ -3772,7 +3772,13 @@ function RepairProposalFormInner() {
                 <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                   <button
                     type="button"
-                    onClick={() => { setShowPinModal(false); setPinError(''); }}
+                    onClick={() => {
+                      setShowPinModal(false);
+                      setPinError('');
+                      if (searchParams.get('admin') === '1') {
+                        router.push('/repair-proposal');
+                      }
+                    }}
                     style={{ flex: 1, padding: '9px 12px', background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 6, fontWeight: 700, fontSize: 13, color: 'var(--ink-primary, #eef2ff)', cursor: 'pointer' }}>
                     ยกเลิก
                   </button>
@@ -3806,7 +3812,12 @@ function RepairProposalFormInner() {
               }
             }}
             onCertifyCurrent={handleCertifyDocument}
-            onClose={() => setShowSettingsModal(false)}
+            onClose={() => {
+              setShowSettingsModal(false);
+              if (searchParams.get('admin') === '1') {
+                router.push('/repair-proposal');
+              }
+            }}
             onSave={handleSaveAdminSettings}
           />
         )}
