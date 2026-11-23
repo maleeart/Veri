@@ -3132,7 +3132,7 @@ function RepairProposalFormInner() {
                         </td>
                         <td style={{ padding: '6px 4px', textAlign: 'center', border: '1.5px solid #475569' }}>
                           <span style={{ fontSize: 10, background: '#e0f2fe', color: '#0369a1', padding: '2px 6px', borderRadius: 4, fontWeight: 700, display: 'inline-block' }}>
-                            แนบท้าย แผ่นที่ {idx + 1} {hasPhotos ? '📷' : ''}
+                            เอกสารแนบท้าย 3.{idx + 1} {hasPhotos ? '📷' : ''}
                           </span>
                         </td>
                       </tr>
@@ -3209,6 +3209,7 @@ function RepairProposalFormInner() {
             {itemsRequested.map((it, itIdx) => {
               const itPhotos = (Array.isArray(it.photos) && it.photos.length > 0) ? it.photos : (it.photo ? [it.photo] : []);
               const pageNum = 3 + itIdx;
+              const itemSpecText = it.specs?.trim() || (itIdx === 0 && substitutionSpecs?.trim() ? substitutionSpecs.trim() : '');
 
               return (
                 <div 
@@ -3217,7 +3218,7 @@ function RepairProposalFormInner() {
                   style={{ 
                     background: '#ffffff', 
                     borderRadius: 8, 
-                    padding: '28px 32px', 
+                    padding: '26px 30px', 
                     boxShadow: '0 8px 30px rgba(0,0,0,0.4)', 
                     color: '#0f172a',
                     display: 'flex',
@@ -3231,15 +3232,15 @@ function RepairProposalFormInner() {
                     {/* Header Bar */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid #cbd5e1', paddingBottom: 4, marginBottom: 12, fontSize: 11, color: '#475569', fontWeight: 700 }}>
                       <span>เอกสารแนบใบเสนอแจ้งซ่อมเลขที่: <strong style={{ color: '#0f2e5a' }}>{refNo || '-'}</strong>{fmRefNo ? ` (FM: ${fmRefNo})` : ''}</span>
-                      <span>หน้า {pageNum} / {totalDocPages}</span>
+                      <span>เอกสารแนบท้าย 3.{itIdx + 1} | หน้า {pageNum} / {totalDocPages}</span>
                     </div>
 
                     {/* Section Title */}
-                    <div style={{ background: '#f8fafc', border: '1.5px solid #0f2e5a', borderRadius: 6, padding: '8px 14px', marginBottom: 14 }}>
+                    <div style={{ background: '#f8fafc', border: '1.5px solid #0f2e5a', borderRadius: 6, padding: '8px 14px', marginBottom: 12 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
                           <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a' }}>
-                            เอกสารแนบท้าย 3.{itIdx + 1}: ข้อกำหนดคุณลักษณะเฉพาะและภาพถ่ายตัวอย่างอุปกรณ์
+                            เอกสารแนบท้าย 3.{itIdx + 1}: คุณลักษณะเฉพาะและภาพตัวอย่างอุปกรณ์
                           </div>
                           <div style={{ fontSize: 11, color: '#475569', marginTop: 2 }}>
                             โครงการ/งาน: <strong style={{ color: '#1e293b' }}>{jobTitle || '-'}</strong>
@@ -3251,8 +3252,8 @@ function RepairProposalFormInner() {
                       </div>
                     </div>
 
-                    {/* Equipment Information Summary Table */}
-                    <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 14, fontSize: 11.5 }}>
+                    {/* Combined Equipment Info Table */}
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 12, fontSize: 11.5 }}>
                       <tbody>
                         <tr>
                           <td style={{ width: '22%', background: '#f1f5f9', padding: '6px 10px', fontWeight: 700, border: '1px solid #cbd5e1', color: '#334155' }}>
@@ -3285,49 +3286,39 @@ function RepairProposalFormInner() {
                       </tbody>
                     </table>
 
-                    {/* Section 1: Detailed Technical Specifications */}
-                    <div style={{ marginBottom: 14 }}>
-                      <div style={{ fontSize: 12, fontWeight: 800, color: '#0f2e5a', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span>📋</span> 1. ข้อกำหนดและคุณลักษณะเฉพาะทางเทคนิค (Technical Specifications):
-                      </div>
+                    {/* Unified Specification & Photo Container: Photo FIRST, then Specs */}
+                    <div style={{ border: '1.5px solid #0f2e5a', borderRadius: 6, overflow: 'hidden', marginBottom: 12 }}>
+                      
+                      {/* Sub-Header 1: Reference Photos (Shown FIRST) */}
                       <div style={{ 
-                        border: '1.5px solid #cbd5e1', 
-                        borderRadius: 6, 
-                        padding: '10px 14px', 
-                        background: '#f8fafc', 
-                        fontSize: 11, 
-                        lineHeight: 1.6, 
-                        color: '#1e293b',
-                        whiteSpace: 'pre-wrap',
-                        minHeight: 80
+                        background: '#0f2e5a', 
+                        color: '#ffffff', 
+                        padding: '6px 12px', 
+                        fontSize: 11.5, 
+                        fontWeight: 800, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'space-between' 
                       }}>
-                        {it.specs?.trim() ? it.specs : (
-                          <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>
-                            (ไม่ได้ระบุข้อกำหนดคุณลักษณะเฉพาะเพิ่มเติม - ให้อิงตามมาตรฐานผู้ผลิตและรุ่นอุปกรณ์ข้างต้น)
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span>📷</span> 1. ภาพถ่ายตัวอย่างอุปกรณ์ / แคตตาล็อก / เนมเพลท (Reference Photo / Nameplate):
+                        </div>
+                        {itPhotos.length > 0 && (
+                          <span style={{ fontSize: 10, background: 'rgba(255,255,255,0.2)', padding: '1px 7px', borderRadius: 3 }}>
+                            {itPhotos.length} รูปภาพ
                           </span>
                         )}
                       </div>
-                    </div>
 
-                    {/* Section 2: Reference Photos, Catalog, or Nameplate */}
-                    <div style={{ marginBottom: 12 }}>
-                      <div style={{ fontSize: 12, fontWeight: 800, color: '#15803d', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span>📷</span> 2. ภาพถ่ายตัวอย่างอุปกรณ์ / แคตตาล็อก / เนมเพลท (Reference Photos / Nameplate):
-                      </div>
-
-                      {itPhotos.length > 0 ? (
-                        <div style={{ 
-                          border: '1.5px solid #bbf7d0', 
-                          borderRadius: 6, 
-                          padding: 10, 
-                          background: '#f0fdf4' 
-                        }}>
-                          {itPhotos.length === 1 ? (
+                      {/* Photos Area */}
+                      <div style={{ padding: 10, background: '#f8fafc', borderBottom: '1.5px solid #0f2e5a' }}>
+                        {itPhotos.length > 0 ? (
+                          itPhotos.length === 1 ? (
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                               <div style={{ 
                                 width: '100%', 
-                                maxHeight: 310, 
-                                height: 300, 
+                                maxHeight: 270, 
+                                height: 260, 
                                 background: '#ffffff', 
                                 border: '1px solid #cbd5e1', 
                                 borderRadius: 6, 
@@ -3353,7 +3344,7 @@ function RepairProposalFormInner() {
                                 <div key={phIdx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                   <div style={{ 
                                     width: '100%', 
-                                    height: 260, 
+                                    height: 220, 
                                     background: '#ffffff', 
                                     border: '1px solid #cbd5e1', 
                                     borderRadius: 6, 
@@ -3381,7 +3372,7 @@ function RepairProposalFormInner() {
                                 <div key={phIdx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                   <div style={{ 
                                     width: '100%', 
-                                    height: 220, 
+                                    height: 180, 
                                     background: '#ffffff', 
                                     border: '1px solid #cbd5e1', 
                                     borderRadius: 6, 
@@ -3403,21 +3394,57 @@ function RepairProposalFormInner() {
                                 </div>
                               ))}
                             </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div style={{ 
-                          border: '1.5px dashed #cbd5e1', 
-                          borderRadius: 6, 
-                          padding: '24px 16px', 
-                          textAlign: 'center', 
-                          background: '#f8fafc',
-                          color: '#94a3b8',
-                          fontSize: 11
-                        }}>
-                          (ไม่มีการแนบรูปถ่ายตัวอย่างอุปกรณ์สำหรับรายการนี้ - กำหนดให้เป็นไปตามรุ่นและมาตรฐานทางวิศวกรรม)
-                        </div>
-                      )}
+                          )
+                        ) : (
+                          <div style={{ 
+                            border: '1.5px dashed #cbd5e1', 
+                            borderRadius: 6, 
+                            padding: '16px', 
+                            textAlign: 'center', 
+                            background: '#ffffff',
+                            color: '#94a3b8',
+                            fontSize: 11
+                          }}>
+                            (ไม่มีการแนบรูปถ่ายตัวอย่างอุปกรณ์สำหรับรายการนี้ - กำหนดให้เป็นไปตามรุ่นและมาตรฐานทางวิศวกรรม)
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Sub-Header 2: Technical Specifications (Shown NEXT) */}
+                      <div style={{ 
+                        background: '#0f2e5a', 
+                        color: '#ffffff', 
+                        padding: '6px 12px', 
+                        fontSize: 11.5, 
+                        fontWeight: 800, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 6 
+                      }}>
+                        <span>📋</span> 2. รายละเอียดข้อกำหนดคุณลักษณะเฉพาะทางเทคนิค (Technical Specifications):
+                      </div>
+
+                      {/* Technical Specs Text Box */}
+                      <div style={{ 
+                        padding: '12px 14px', 
+                        background: '#ffffff', 
+                        fontSize: 11.5, 
+                        lineHeight: 1.6, 
+                        color: '#1e293b',
+                        whiteSpace: 'pre-wrap',
+                        minHeight: 100
+                      }}>
+                        {itemSpecText ? itemSpecText : (
+                          <span style={{ color: '#64748b' }}>
+                            จัดหาอุปกรณ์และอะไหล่ตามยี่ห้อ/รุ่นที่ระบุข้างต้น หรือรุ่นเทียบเท่าที่มีคุณสมบัติทางเทคนิค ขนาดมิติ และคุณลักษณะทางไฟฟ้าเข้ากันได้กับตู้สวิตช์บอร์ดและระบบเดิมตามมาตรฐานวิศวกรรม
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Engineering Note Box */}
+                    <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 4, padding: '6px 10px', fontSize: 10.5, color: '#92400e', fontWeight: 600 }}>
+                      <strong>** หมายเหตุทางวิศวกรรม:</strong> ข้อกำหนดคุณลักษณะเฉพาะข้างต้นเป็นเกณฑ์ขั้นต่ำสำหรับการจัดหา ทั้งนี้ฝ่ายจัดหาสามารถเสนออุปกรณ์ที่มีคุณสมบัติทางเทคนิคเทียบเท่าหรือดีกว่าได้
                     </div>
                   </div>
 
@@ -3434,7 +3461,7 @@ function RepairProposalFormInner() {
                   }}>
                     <div>
                       <div>ผู้จัดทำคุณลักษณะ: <strong>{inspectorName || '-'}</strong> ({inspectorRole || 'ช่างเทคนิค/ผู้สำรวจ'})</div>
-                      <div style={{ fontSize: 9.5, color: '#64748b', marginTop: 1 }}>วันที่ตรวจสำรวจ: {docDate || '-'}</div>
+                      <div style={{ fontSize: 9.5, color: '#64748b', marginTop: 1 }}>วันที่ตรวจสำรวจและจัดทำ: {docDate || '-'}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <div>ผู้ตรวจสอบรับรอง: <strong>{approverName || '-'}</strong> ({approverRole || 'วศ.4 หบท-ธ.'})</div>
