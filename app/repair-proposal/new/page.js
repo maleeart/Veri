@@ -1249,11 +1249,18 @@ function RepairProposalFormInner() {
     return 150; // default 'large'
   }, [adminSettings.header?.logoSize]);
 
+  const hasDefectPhotos = useMemo(() => {
+    return surveyPoints.some(p => Boolean((p.photos && p.photos.length > 0) || p.photo));
+  }, [surveyPoints]);
+
   const hasAnnex = useMemo(() => {
-    const hasDefectPhotos = surveyPoints.some(p => Boolean((p.photos && p.photos.length > 0) || p.photo));
-    const hasItemPhotos = itemsRequested.some(it => Boolean((it.photos && it.photos.length > 0) || it.photo));
-    return hasDefectPhotos || hasItemPhotos;
-  }, [surveyPoints, itemsRequested]);
+    return hasDefectPhotos;
+  }, [hasDefectPhotos]);
+
+  const totalDocPages = useMemo(() => {
+    const specsPageCount = itemsRequested?.length || 1;
+    return 2 + specsPageCount + (hasDefectPhotos ? 1 : 0);
+  }, [itemsRequested, hasDefectPhotos]);
 
   // Helper to generate sanitized PDF filename: <refNo>_<jobTitle>
   const getPdfFileName = () => {
@@ -2996,7 +3003,7 @@ function RepairProposalFormInner() {
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', fontSize: 11.5 }}>
-                  <div style={{ fontSize: 10.5, fontWeight: 800, color: '#0369a1', marginBottom: 3 }}>เอกสารแนบ - หน้า 1 / {hasAnnex ? 3 : 2}</div>
+                  <div style={{ fontSize: 10.5, fontWeight: 800, color: '#0369a1', marginBottom: 3 }}>เอกสารหลัก - หน้า 1 / {totalDocPages}</div>
                   <div><strong style={{ color: '#0f172a' }}>เลขที่ใบแจ้งซ่อม:</strong> <strong style={{ color: '#b91c1c' }}>{refNo || '-'}</strong></div>
                   <div><strong style={{ color: '#0f172a' }}>วันที่เสนอ:</strong> <strong style={{ color: '#0f172a' }}>{docDate || '-'}</strong></div>
                   <div><strong style={{ color: '#0f172a' }}>ใบแจ้งซ่อม FM:</strong> <strong style={{ color: fmRefNo ? '#0369a1' : '#64748b' }}>{fmRefNo || '-'}</strong></div>
@@ -3090,34 +3097,49 @@ function RepairProposalFormInner() {
               {/* Official Page 2 Header for Attachment Document */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid #cbd5e1', paddingBottom: 4, marginBottom: 12, fontSize: 11, color: '#475569', fontWeight: 700 }}>
                 <span>เอกสารแนบใบเสนอแจ้งซ่อมเลขที่: <strong style={{ color: '#0f2e5a' }}>{refNo || '-'}</strong>{fmRefNo ? ` (FM: ${fmRefNo})` : ''}</span>
-                <span>หน้า 2 / {hasAnnex ? 3 : 2}</span>
+                <span>เอกสารหลัก - หน้า 2 / {totalDocPages}</span>
               </div>
 
-              {/* Section 3: Technical Specifications & Substitution Criteria (Per-item specifications) */}
-              <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a', borderBottom: '2.5px solid #0f2e5a', paddingBottom: 4, marginBottom: 8 }}>
-                3. ข้อกำหนดคุณลักษณะเฉพาะและเงื่อนไขสำคัญที่ต้องใช้แทนได้ (กรณีใช้ยี่ห้อ/รุ่นอื่นทดแทน)
+              {/* Section 3: Technical Specifications Summary Table */}
+              <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a', borderBottom: '2.5px solid #0f2e5a', paddingBottom: 4, marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <span>3. สรุปข้อกำหนดคุณลักษณะเฉพาะและเงื่อนไขสำคัญในการจัดหา</span>
+                <span style={{ fontSize: 10.5, color: '#0369a1', fontWeight: 700 }}>(รายละเอียดคุณลักษณะเฉพาะและรูปถ่ายประกอบฉบับเต็ม ดูเอกสารแนบท้าย)</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14 }}>
-                {itemsRequested.map((it, idx) => {
-                  const itemSpecText = it.specs?.trim() || (idx === 0 ? substitutionSpecs?.trim() : '') || 'จัดหาตามรุ่นที่ระบุหรือเทียบเท่าที่มีคุณสมบัติทางเทคนิคเข้ากันได้กับระบบเดิม';
-                  return (
-                    <div key={idx} style={{ background: '#f8fafc', border: '1.5px solid #475569', borderRadius: 4, padding: '9px 12px', fontSize: 11, lineHeight: 1.6, color: '#0f172a' }}>
-                      <div style={{ fontWeight: 800, color: '#0f2e5a', marginBottom: 4, fontSize: 11.5, display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span>3.{idx + 1}</span>
-                        <span>{it.name || `รายการที่ ${idx + 1}`}</span>
-                        {it.modelPart && (
-                          <span style={{ fontWeight: 600, color: '#475569' }}>
-                            (รุ่นอ้างอิง: {it.modelPart})
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, marginBottom: 14, border: '1.5px solid #475569' }}>
+                <thead>
+                  <tr style={{ background: '#0f2e5a', color: '#ffffff' }}>
+                    <th style={{ padding: '6px 4px', width: 35, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>ลำดับ</th>
+                    <th style={{ padding: '6px 8px', width: 170, textAlign: 'left', border: '1.5px solid #0f2e5a' }}>รายการอุปกรณ์ / รุ่นที่ต้องการ</th>
+                    <th style={{ padding: '6px 8px', textAlign: 'left', border: '1.5px solid #0f2e5a' }}>สรุปสาระสำคัญคุณลักษณะเฉพาะ</th>
+                    <th style={{ padding: '6px 6px', width: 115, textAlign: 'center', border: '1.5px solid #0f2e5a' }}>เอกสารแนบท้าย</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {itemsRequested.map((it, idx) => {
+                    const itemSpecText = it.specs?.trim() || (idx === 0 ? substitutionSpecs?.trim() : '') || 'จัดหาตามรุ่นที่ระบุหรือเทียบเท่าที่มีคุณสมบัติทางเทคนิคเข้ากันได้กับระบบเดิม';
+                    const hasPhotos = (Array.isArray(it.photos) && it.photos.length > 0) || it.photo;
+                    return (
+                      <tr key={idx} style={{ background: idx % 2 === 1 ? '#f8fafc' : '#ffffff' }}>
+                        <td style={{ padding: '6px 4px', textAlign: 'center', fontWeight: 700, border: '1.5px solid #475569' }}>3.{idx + 1}</td>
+                        <td style={{ padding: '6px 8px', border: '1.5px solid #475569' }}>
+                          <strong style={{ color: '#0f2e5a' }}>{it.name || `รายการที่ ${idx + 1}`}</strong>
+                          {it.modelPart && <div style={{ fontSize: 10, color: '#475569', fontWeight: 600 }}>รุ่น: {it.modelPart}</div>}
+                        </td>
+                        <td style={{ padding: '6px 8px', border: '1.5px solid #475569', color: '#1e293b', fontSize: 10.5 }}>
+                          <div style={{ maxHeight: 52, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>
+                            {itemSpecText}
+                          </div>
+                        </td>
+                        <td style={{ padding: '6px 4px', textAlign: 'center', border: '1.5px solid #475569' }}>
+                          <span style={{ fontSize: 10, background: '#e0f2fe', color: '#0369a1', padding: '2px 6px', borderRadius: 4, fontWeight: 700, display: 'inline-block' }}>
+                            แนบท้าย แผ่นที่ {idx + 1} {hasPhotos ? '📷' : ''}
                           </span>
-                        )}
-                      </div>
-                      <div style={{ whiteSpace: 'pre-line', fontWeight: 500, paddingLeft: 6, color: '#1e293b' }}>
-                        {itemSpecText}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
 
               {/* Section 4: Justification (Optional - Only rendered if custom justification is provided) */}
               {justification && justification.trim() !== '' && (
@@ -3183,238 +3205,368 @@ function RepairProposalFormInner() {
               </div>
             </div>
 
-            {/* PAGE 3: Annex Photos (Only if photos exist) */}
-            {hasAnnex && (
-              <div className="a4-print-page" style={{ background: '#ffffff', borderRadius: 8, padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.4)', color: '#0f172a' }}>
-                {/* Official Page 3 Header for Attachment Document */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid #cbd5e1', paddingBottom: 4, marginBottom: 12, fontSize: 11, color: '#475569', fontWeight: 700 }}>
-                  <span>เอกสารแนบใบเสนอแจ้งซ่อมเลขที่: <strong style={{ color: '#0f2e5a' }}>{refNo || '-'}</strong>{fmRefNo ? ` (FM: ${fmRefNo})` : ''} (ภาคผนวกภาพถ่ายประกอบ)</span>
-                  <span>หน้า 3 / 3</span>
-                </div>
+            {/* ATTACHMENT PAGES: Specification Sheet & Photos (1 page per requested item) */}
+            {itemsRequested.map((it, itIdx) => {
+              const itPhotos = (Array.isArray(it.photos) && it.photos.length > 0) ? it.photos : (it.photo ? [it.photo] : []);
+              const pageNum = 3 + itIdx;
 
-                <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a', borderBottom: '2.5px solid #0f2e5a', paddingBottom: 4, marginBottom: 8 }}>
-                  ภาคผนวก: ภาพถ่ายประกอบการสำรวจสภาพหน้างาน และตัวอย่างอุปกรณ์ที่ขอเสนอซื้อ
-                </div>
-
-                {/* Annex Part A: Defect Points Photos */}
-                {surveyPoints.some(p => Boolean((p.photos && p.photos.length > 0) || p.photo)) && (
-                  <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: '#0369a1', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span>📷</span> 1. ภาพถ่ายสภาพตู้สวิตช์บอร์ดและอุปกรณ์เดิม ณ จุดติดตั้งที่ตรวจพบความชำรุดเสียหาย:
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                      {surveyPoints
-                        .filter(p => Boolean((p.photos && p.photos.length > 0) || p.photo))
-                        .map((p, pIdx) => {
-                          const pointPhotos = (Array.isArray(p.photos) && p.photos.length > 0) ? p.photos : (p.photo ? [p.photo] : []);
-                          const colSpan = pointPhotos.length >= 3 ? 'span 3' : (pointPhotos.length === 2 ? 'span 2' : 'span 1');
-
-                          return (
-                            <div 
-                              key={p.id || pIdx} 
-                              style={{ 
-                                border: '1.5px solid #475569', 
-                                borderRadius: 6, 
-                                overflow: 'hidden', 
-                                background: '#ffffff',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gridColumn: colSpan
-                              }}>
-                              {/* Card Header Info */}
-                              <div style={{ padding: '6px 9px', background: '#f8fafc', borderBottom: '1.5px solid #cbd5e1' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3, flexWrap: 'wrap', gap: 4 }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                                    <span style={{ fontWeight: 800, color: '#ffffff', background: '#0284c7', padding: '1px 6px', borderRadius: 3, fontSize: 10.5 }}>
-                                      {p.building || `จุดที่ ${pIdx + 1}`}
-                                    </span>
-                                    <span style={{ fontSize: 10, color: '#334155', fontWeight: 700, background: '#e2e8f0', padding: '1px 5px', borderRadius: 3 }}>
-                                      {p.location || 'Main MDB'}
-                                    </span>
-                                  </div>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                    {p.action && (
-                                      <span style={{ 
-                                        fontSize: 9.5, 
-                                        fontWeight: 800, 
-                                        padding: '1px 5px', 
-                                        borderRadius: 3, 
-                                        background: p.action === 'จัดหาเพิ่มจากเดิม' ? '#fef3c7' : (p.action === 'ซ่อมแซม/แก้ไข' ? '#dbeafe' : '#fee2e2'),
-                                        color: p.action === 'จัดหาเพิ่มจากเดิม' ? '#92400e' : (p.action === 'ซ่อมแซม/แก้ไข' ? '#1e40af' : '#b91c1c'),
-                                        border: `1px solid ${p.action === 'จัดหาเพิ่มจากเดิม' ? '#fde68a' : (p.action === 'ซ่อมแซม/แก้ไข' ? '#bfdbfe' : '#fecaca')}`
-                                      }}>
-                                        {p.action}
-                                      </span>
-                                    )}
-                                    {pointPhotos.length > 1 && (
-                                      <span style={{ fontSize: 9.5, color: '#0369a1', fontWeight: 800, background: '#e0f2fe', padding: '1px 5px', borderRadius: 3 }}>
-                                        📷 {pointPhotos.length} รูป
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                                <div style={{ color: '#0f172a', fontWeight: 700, fontSize: 10.5, lineHeight: 1.35, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {p.symptom || '-'}
-                                </div>
-                              </div>
-
-                              {/* Photos Container inside this single cell (White background, natural scale preserved) */}
-                              <div style={{ padding: 6, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
-                                {pointPhotos.length === 1 ? (
-                                  <div style={{ width: '100%', height: 140, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                                    <img 
-                                      src={pointPhotos[0]} 
-                                      alt={p.building} 
-                                      style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto' }} 
-                                    />
-                                  </div>
-                                ) : pointPhotos.length === 2 ? (
-                                  <div style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-                                    {pointPhotos.map((photoSrc, phIdx) => (
-                                      <div key={phIdx} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                        <div style={{ width: '100%', height: 135, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                                          <img 
-                                            src={photoSrc} 
-                                            alt={`${p.building}-${phIdx + 1}`} 
-                                            style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto' }} 
-                                          />
-                                        </div>
-                                        <div style={{ fontSize: 9, color: '#475569', textAlign: 'center', fontWeight: 700 }}>
-                                          รูปที่ {phIdx + 1}
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <div style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
-                                    {pointPhotos.map((photoSrc, phIdx) => (
-                                      <div key={phIdx} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                        <div style={{ width: '100%', height: 130, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                                          <img 
-                                            src={photoSrc} 
-                                            alt={`${p.building}-${phIdx + 1}`} 
-                                            style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto' }} 
-                                          />
-                                        </div>
-                                        <div style={{ fontSize: 9, color: '#475569', textAlign: 'center', fontWeight: 700 }}>
-                                          รูปที่ {phIdx + 1}
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Annex Part B: Equipment Reference & Model Photos */}
-                {itemsRequested.some(it => Boolean((it.photos && it.photos.length > 0) || it.photo)) && (
+              return (
+                <div 
+                  key={it.id || itIdx} 
+                  className="a4-print-page" 
+                  style={{ 
+                    background: '#ffffff', 
+                    borderRadius: 8, 
+                    padding: '28px 32px', 
+                    boxShadow: '0 8px 30px rgba(0,0,0,0.4)', 
+                    color: '#0f172a',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    minHeight: '297mm',
+                    boxSizing: 'border-box'
+                  }}
+                >
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: '#15803d', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6, borderTop: surveyPoints.some(p => Boolean((p.photos && p.photos.length > 0) || p.photo)) ? '1.5px dashed #cbd5e1' : 'none', paddingTop: surveyPoints.some(p => Boolean((p.photos && p.photos.length > 0) || p.photo)) ? 14 : 0 }}>
-                      <span>📦</span> 2. ภาพถ่ายตัวอย่างอุปกรณ์, แคตตาล็อก หรือเนมเพลทของรุ่นที่ขอเสนอซื้อ:
+                    {/* Header Bar */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid #cbd5e1', paddingBottom: 4, marginBottom: 12, fontSize: 11, color: '#475569', fontWeight: 700 }}>
+                      <span>เอกสารแนบใบเสนอแจ้งซ่อมเลขที่: <strong style={{ color: '#0f2e5a' }}>{refNo || '-'}</strong>{fmRefNo ? ` (FM: ${fmRefNo})` : ''}</span>
+                      <span>หน้า {pageNum} / {totalDocPages}</span>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                      {itemsRequested
-                        .filter(it => Boolean((it.photos && it.photos.length > 0) || it.photo))
-                        .map((it, itIdx) => {
-                          const itPhotos = (Array.isArray(it.photos) && it.photos.length > 0) ? it.photos : (it.photo ? [it.photo] : []);
-                          const colSpan = itPhotos.length >= 3 ? 'span 3' : (itPhotos.length === 2 ? 'span 2' : 'span 1');
 
-                          return (
-                            <div 
-                              key={it.id || itIdx} 
-                              style={{ 
-                                border: '1.5px solid #475569', 
+                    {/* Section Title */}
+                    <div style={{ background: '#f8fafc', border: '1.5px solid #0f2e5a', borderRadius: 6, padding: '8px 14px', marginBottom: 14 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a' }}>
+                            เอกสารแนบท้าย 3.{itIdx + 1}: ข้อกำหนดคุณลักษณะเฉพาะและภาพถ่ายตัวอย่างอุปกรณ์
+                          </div>
+                          <div style={{ fontSize: 11, color: '#475569', marginTop: 2 }}>
+                            โครงการ/งาน: <strong style={{ color: '#1e293b' }}>{jobTitle || '-'}</strong>
+                          </div>
+                        </div>
+                        <span style={{ background: '#0f2e5a', color: '#ffffff', padding: '3px 10px', borderRadius: 4, fontSize: 11, fontWeight: 700 }}>
+                          รายการที่ {itIdx + 1} จาก {itemsRequested.length || 1}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Equipment Information Summary Table */}
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 14, fontSize: 11.5 }}>
+                      <tbody>
+                        <tr>
+                          <td style={{ width: '22%', background: '#f1f5f9', padding: '6px 10px', fontWeight: 700, border: '1px solid #cbd5e1', color: '#334155' }}>
+                            ชื่ออุปกรณ์/พัสดุ:
+                          </td>
+                          <td style={{ width: '45%', padding: '6px 10px', fontWeight: 800, border: '1px solid #cbd5e1', color: '#0f172a' }}>
+                            {it.name || '-'}
+                          </td>
+                          <td style={{ width: '15%', background: '#f1f5f9', padding: '6px 10px', fontWeight: 700, border: '1px solid #cbd5e1', color: '#334155' }}>
+                            จำนวนที่ขอซื้อ:
+                          </td>
+                          <td style={{ width: '18%', padding: '6px 10px', fontWeight: 800, border: '1px solid #cbd5e1', color: '#0369a1' }}>
+                            {it.qty || 1} {it.unit || 'ตัว'}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ background: '#f1f5f9', padding: '6px 10px', fontWeight: 700, border: '1px solid #cbd5e1', color: '#334155' }}>
+                            ยี่ห้อ / รุ่น / Part No.:
+                          </td>
+                          <td style={{ padding: '6px 10px', fontWeight: 700, border: '1px solid #cbd5e1', color: '#1e293b' }}>
+                            {it.modelPart || '-'}
+                          </td>
+                          <td style={{ background: '#f1f5f9', padding: '6px 10px', fontWeight: 700, border: '1px solid #cbd5e1', color: '#334155' }}>
+                            จุดติดตั้ง / วัตถุประสงค์:
+                          </td>
+                          <td style={{ padding: '6px 10px', border: '1px solid #cbd5e1', color: '#1e293b' }}>
+                            {it.purpose || it.targetBuilding || '-'}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    {/* Section 1: Detailed Technical Specifications */}
+                    <div style={{ marginBottom: 14 }}>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: '#0f2e5a', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>📋</span> 1. ข้อกำหนดและคุณลักษณะเฉพาะทางเทคนิค (Technical Specifications):
+                      </div>
+                      <div style={{ 
+                        border: '1.5px solid #cbd5e1', 
+                        borderRadius: 6, 
+                        padding: '10px 14px', 
+                        background: '#f8fafc', 
+                        fontSize: 11, 
+                        lineHeight: 1.6, 
+                        color: '#1e293b',
+                        whiteSpace: 'pre-wrap',
+                        minHeight: 80
+                      }}>
+                        {it.specs?.trim() ? it.specs : (
+                          <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>
+                            (ไม่ได้ระบุข้อกำหนดคุณลักษณะเฉพาะเพิ่มเติม - ให้อิงตามมาตรฐานผู้ผลิตและรุ่นอุปกรณ์ข้างต้น)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Section 2: Reference Photos, Catalog, or Nameplate */}
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: '#15803d', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>📷</span> 2. ภาพถ่ายตัวอย่างอุปกรณ์ / แคตตาล็อก / เนมเพลท (Reference Photos / Nameplate):
+                      </div>
+
+                      {itPhotos.length > 0 ? (
+                        <div style={{ 
+                          border: '1.5px solid #bbf7d0', 
+                          borderRadius: 6, 
+                          padding: 10, 
+                          background: '#f0fdf4' 
+                        }}>
+                          {itPhotos.length === 1 ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                              <div style={{ 
+                                width: '100%', 
+                                maxHeight: 310, 
+                                height: 300, 
+                                background: '#ffffff', 
+                                border: '1px solid #cbd5e1', 
                                 borderRadius: 6, 
-                                overflow: 'hidden', 
-                                background: '#ffffff',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gridColumn: colSpan
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                overflow: 'hidden',
+                                padding: 6
                               }}>
-                              {/* Card Header Info */}
-                              <div style={{ padding: '6px 9px', background: '#f0fdf4', borderBottom: '1.5px solid #bbf7d0' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3, flexWrap: 'wrap', gap: 4 }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                                    <span style={{ fontWeight: 800, color: '#ffffff', background: '#15803d', padding: '1px 6px', borderRadius: 3, fontSize: 10.5 }}>
-                                      รายการที่ {itIdx + 1}
-                                    </span>
-                                    <span style={{ fontSize: 10, color: '#166534', fontWeight: 700, background: '#dcfce7', padding: '1px 5px', borderRadius: 3 }}>
-                                      {it.qty || 1} {it.unit || 'ตัว'}
-                                    </span>
-                                  </div>
-                                  {itPhotos.length > 1 && (
-                                    <span style={{ fontSize: 9.5, color: '#15803d', fontWeight: 800, background: '#dcfce7', padding: '1px 5px', borderRadius: 3 }}>
-                                      📷 {itPhotos.length} รูป
-                                    </span>
-                                  )}
-                                </div>
-                                <div style={{ color: '#0f172a', fontWeight: 700, fontSize: 10.5, lineHeight: 1.35, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {it.name || '-'}
-                                </div>
-                                {it.modelPart && (
-                                  <div style={{ color: '#334155', fontSize: 9.5, fontWeight: 600, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    รุ่น: {it.modelPart}
-                                  </div>
-                                )}
+                                <img 
+                                  src={itPhotos[0]} 
+                                  alt={it.name} 
+                                  style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto' }} 
+                                />
                               </div>
-
-                              {/* Photos Container inside this single cell (White background, natural scale preserved) */}
-                              <div style={{ padding: 6, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
-                                {itPhotos.length === 1 ? (
-                                  <div style={{ width: '100%', height: 140, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                              <div style={{ fontSize: 10, color: '#475569', marginTop: 4, fontWeight: 700 }}>
+                                รูปภาพประกอบ: {it.name} {it.modelPart ? `(รุ่น ${it.modelPart})` : ''}
+                              </div>
+                            </div>
+                          ) : itPhotos.length === 2 ? (
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                              {itPhotos.map((photoSrc, phIdx) => (
+                                <div key={phIdx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                  <div style={{ 
+                                    width: '100%', 
+                                    height: 260, 
+                                    background: '#ffffff', 
+                                    border: '1px solid #cbd5e1', 
+                                    borderRadius: 6, 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center', 
+                                    overflow: 'hidden',
+                                    padding: 6
+                                  }}>
                                     <img 
-                                      src={itPhotos[0]} 
-                                      alt={it.name} 
+                                      src={photoSrc} 
+                                      alt={`${it.name}-${phIdx + 1}`} 
                                       style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto' }} 
                                     />
                                   </div>
-                                ) : itPhotos.length === 2 ? (
-                                  <div style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-                                    {itPhotos.map((photoSrc, phIdx) => (
-                                      <div key={phIdx} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                        <div style={{ width: '100%', height: 135, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                                          <img 
-                                            src={photoSrc} 
-                                            alt={`${it.name}-${phIdx + 1}`} 
-                                            style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto' }} 
-                                          />
-                                        </div>
-                                        <div style={{ fontSize: 9, color: '#475569', textAlign: 'center', fontWeight: 700 }}>
-                                          รูปที่ {phIdx + 1}
-                                        </div>
-                                      </div>
-                                    ))}
+                                  <div style={{ fontSize: 9.5, color: '#475569', marginTop: 4, fontWeight: 700 }}>
+                                    รูปที่ {phIdx + 1}
                                   </div>
-                                ) : (
-                                  <div style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
-                                    {itPhotos.map((photoSrc, phIdx) => (
-                                      <div key={phIdx} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                        <div style={{ width: '100%', height: 130, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                                          <img 
-                                            src={photoSrc} 
-                                            alt={`${it.name}-${phIdx + 1}`} 
-                                            style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto' }} 
-                                          />
-                                        </div>
-                                        <div style={{ fontSize: 9, color: '#475569', textAlign: 'center', fontWeight: 700 }}>
-                                          รูปที่ {phIdx + 1}
-                                        </div>
-                                      </div>
-                                    ))}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                              {itPhotos.map((photoSrc, phIdx) => (
+                                <div key={phIdx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                  <div style={{ 
+                                    width: '100%', 
+                                    height: 220, 
+                                    background: '#ffffff', 
+                                    border: '1px solid #cbd5e1', 
+                                    borderRadius: 6, 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center', 
+                                    overflow: 'hidden',
+                                    padding: 6
+                                  }}>
+                                    <img 
+                                      src={photoSrc} 
+                                      alt={`${it.name}-${phIdx + 1}`} 
+                                      style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto' }} 
+                                    />
                                   </div>
+                                  <div style={{ fontSize: 9, color: '#475569', marginTop: 4, fontWeight: 700 }}>
+                                    รูปที่ {phIdx + 1}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div style={{ 
+                          border: '1.5px dashed #cbd5e1', 
+                          borderRadius: 6, 
+                          padding: '24px 16px', 
+                          textAlign: 'center', 
+                          background: '#f8fafc',
+                          color: '#94a3b8',
+                          fontSize: 11
+                        }}>
+                          (ไม่มีการแนบรูปถ่ายตัวอย่างอุปกรณ์สำหรับรายการนี้ - กำหนดให้เป็นไปตามรุ่นและมาตรฐานทางวิศวกรรม)
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Attachment Sign-off Footer */}
+                  <div style={{ 
+                    borderTop: '1.5px solid #cbd5e1', 
+                    paddingTop: 10, 
+                    marginTop: 14, 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    fontSize: 10.5,
+                    color: '#475569'
+                  }}>
+                    <div>
+                      <div>ผู้จัดทำคุณลักษณะ: <strong>{inspectorName || '-'}</strong> ({inspectorRole || 'ช่างเทคนิค/ผู้สำรวจ'})</div>
+                      <div style={{ fontSize: 9.5, color: '#64748b', marginTop: 1 }}>วันที่ตรวจสำรวจ: {surveyDate || '-'}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div>ผู้ตรวจสอบรับรอง: <strong>{approverName || '-'}</strong> ({approverRole || 'วศ.4 หบท-ธ.'})</div>
+                      <div style={{ fontSize: 9.5, color: proposalStatus === 'approved' ? '#166534' : '#b45309', fontWeight: 700, marginTop: 1 }}>
+                        {proposalStatus === 'approved' ? '✓ ลงนามรับรองความถูกต้องแล้ว' : '(รอลงนามรับรอง)'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* ANNEX: Defect Points Photos (Field Survey Photos) */}
+            {hasDefectPhotos && (
+              <div className="a4-print-page" style={{ background: '#ffffff', borderRadius: 8, padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.4)', color: '#0f172a' }}>
+                {/* Official Header for Attachment Document */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid #cbd5e1', paddingBottom: 4, marginBottom: 12, fontSize: 11, color: '#475569', fontWeight: 700 }}>
+                  <span>เอกสารแนบใบเสนอแจ้งซ่อมเลขที่: <strong style={{ color: '#0f2e5a' }}>{refNo || '-'}</strong>{fmRefNo ? ` (FM: ${fmRefNo})` : ''} (ภาคผนวกภาพถ่ายสภาพหน้างาน)</span>
+                  <span>หน้า {totalDocPages} / {totalDocPages}</span>
+                </div>
+
+                <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a', borderBottom: '2.5px solid #0f2e5a', paddingBottom: 4, marginBottom: 12 }}>
+                  ภาคผนวก: ภาพถ่ายสภาพหน้างานและจุดที่ตรวจพบความชำรุดเสียหาย
+                </div>
+
+                {/* Defect Points Photos Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                  {surveyPoints
+                    .filter(p => Boolean((p.photos && p.photos.length > 0) || p.photo))
+                    .map((p, pIdx) => {
+                      const pointPhotos = (Array.isArray(p.photos) && p.photos.length > 0) ? p.photos : (p.photo ? [p.photo] : []);
+                      const colSpan = pointPhotos.length >= 3 ? 'span 3' : (pointPhotos.length === 2 ? 'span 2' : 'span 1');
+
+                      return (
+                        <div 
+                          key={p.id || pIdx} 
+                          style={{ 
+                            border: '1.5px solid #475569', 
+                            borderRadius: 6, 
+                            overflow: 'hidden', 
+                            background: '#ffffff',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gridColumn: colSpan
+                          }}>
+                          {/* Card Header Info */}
+                          <div style={{ padding: '6px 9px', background: '#f8fafc', borderBottom: '1.5px solid #cbd5e1' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3, flexWrap: 'wrap', gap: 4 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                                <span style={{ fontWeight: 800, color: '#ffffff', background: '#0284c7', padding: '1px 6px', borderRadius: 3, fontSize: 10.5 }}>
+                                  {p.building || `จุดที่ ${pIdx + 1}`}
+                                </span>
+                                <span style={{ fontSize: 10, color: '#334155', fontWeight: 700, background: '#e2e8f0', padding: '1px 5px', borderRadius: 3 }}>
+                                  {p.location || 'Main MDB'}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                {p.action && (
+                                  <span style={{ 
+                                    fontSize: 9.5, 
+                                    fontWeight: 800, 
+                                    padding: '1px 5px', 
+                                    borderRadius: 3, 
+                                    background: p.action === 'จัดหาเพิ่มจากเดิม' ? '#fef3c7' : (p.action === 'ซ่อมแซม/แก้ไข' ? '#dbeafe' : '#fee2e2'),
+                                    color: p.action === 'จัดหาเพิ่มจากเดิม' ? '#92400e' : (p.action === 'ซ่อมแซม/แก้ไข' ? '#1e40af' : '#b91c1c'),
+                                    border: `1px solid ${p.action === 'จัดหาเพิ่มจากเดิม' ? '#fde68a' : (p.action === 'ซ่อมแซม/แก้ไข' ? '#bfdbfe' : '#fecaca')}`
+                                  }}>
+                                    {p.action}
+                                  </span>
+                                )}
+                                {pointPhotos.length > 1 && (
+                                  <span style={{ fontSize: 9.5, color: '#0369a1', fontWeight: 800, background: '#e0f2fe', padding: '1px 5px', borderRadius: 3 }}>
+                                    📷 {pointPhotos.length} รูป
+                                  </span>
                                 )}
                               </div>
                             </div>
-                          );
-                        })}
-                    </div>
-                  </div>
-                )}
+                            <div style={{ color: '#0f172a', fontWeight: 700, fontSize: 10.5, lineHeight: 1.35, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {p.symptom || '-'}
+                            </div>
+                          </div>
+
+                          {/* Photos Container inside this single cell (White background, natural scale preserved) */}
+                          <div style={{ padding: 6, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
+                            {pointPhotos.length === 1 ? (
+                              <div style={{ width: '100%', height: 140, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                <img 
+                                  src={pointPhotos[0]} 
+                                  alt={p.building} 
+                                  style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto' }} 
+                                />
+                              </div>
+                            ) : pointPhotos.length === 2 ? (
+                              <div style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                                {pointPhotos.map((photoSrc, phIdx) => (
+                                  <div key={phIdx} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                    <div style={{ width: '100%', height: 135, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                      <img 
+                                        src={photoSrc} 
+                                        alt={`${p.building}-${phIdx + 1}`} 
+                                        style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto' }} 
+                                      />
+                                    </div>
+                                    <div style={{ fontSize: 9, color: '#475569', textAlign: 'center', fontWeight: 700 }}>
+                                      รูปที่ {phIdx + 1}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+                                {pointPhotos.map((photoSrc, phIdx) => (
+                                  <div key={phIdx} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                    <div style={{ width: '100%', height: 130, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                      <img 
+                                        src={photoSrc} 
+                                        alt={`${p.building}-${phIdx + 1}`} 
+                                        style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto' }} 
+                                      />
+                                    </div>
+                                    <div style={{ fontSize: 9, color: '#475569', textAlign: 'center', fontWeight: 700 }}>
+                                      รูปที่ {phIdx + 1}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
               </div>
             )}
 
