@@ -3024,30 +3024,110 @@ function RepairProposalFormInner() {
                       <span>📷</span> 1. ภาพถ่ายสภาพตู้สวิตช์บอร์ดและอุปกรณ์เดิม ณ จุดติดตั้งที่ตรวจพบความชำรุดเสียหาย:
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                      {surveyPoints.map((p, pIdx) => {
-                        const pointPhotos = (Array.isArray(p.photos) && p.photos.length > 0) ? p.photos : (p.photo ? [p.photo] : []);
-                        return pointPhotos.map((photoSrc, phIdx) => (
-                          <div key={`${pIdx}-${phIdx}`} style={{ border: '1.5px solid #475569', borderRadius: 6, overflow: 'hidden', background: '#ffffff' }}>
-                            <div style={{ width: '100%', height: 130, background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <img src={photoSrc} alt={p.building} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            </div>
-                            <div style={{ padding: '6px 8px', fontSize: 10.5 }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
-                                <span style={{ fontWeight: 800, color: '#ffffff', background: '#0284c7', padding: '1px 6px', borderRadius: 3, fontSize: 10 }}>
-                                  {p.building || `จุดที่ ${pIdx + 1}`}
-                                </span>
-                                {pointPhotos.length > 1 && (
-                                  <span style={{ fontSize: 9.5, color: '#64748b', fontWeight: 700 }}>
-                                    รูปที่ {phIdx + 1}/{pointPhotos.length}
-                                  </span>
+                      {surveyPoints
+                        .filter(p => Boolean((p.photos && p.photos.length > 0) || p.photo))
+                        .map((p, pIdx) => {
+                          const pointPhotos = (Array.isArray(p.photos) && p.photos.length > 0) ? p.photos : (p.photo ? [p.photo] : []);
+                          const colSpan = pointPhotos.length >= 3 ? 'span 3' : (pointPhotos.length === 2 ? 'span 2' : 'span 1');
+
+                          return (
+                            <div 
+                              key={p.id || pIdx} 
+                              style={{ 
+                                border: '1.5px solid #475569', 
+                                borderRadius: 6, 
+                                overflow: 'hidden', 
+                                background: '#ffffff',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gridColumn: colSpan
+                              }}>
+                              {/* Card Header Info */}
+                              <div style={{ padding: '6px 9px', background: '#f8fafc', borderBottom: '1.5px solid #cbd5e1' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3, flexWrap: 'wrap', gap: 4 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                                    <span style={{ fontWeight: 800, color: '#ffffff', background: '#0284c7', padding: '1px 6px', borderRadius: 3, fontSize: 10.5 }}>
+                                      {p.building || `จุดที่ ${pIdx + 1}`}
+                                    </span>
+                                    <span style={{ fontSize: 10, color: '#334155', fontWeight: 700, background: '#e2e8f0', padding: '1px 5px', borderRadius: 3 }}>
+                                      {p.location || 'Main MDB'}
+                                    </span>
+                                  </div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    {p.action && (
+                                      <span style={{ 
+                                        fontSize: 9.5, 
+                                        fontWeight: 800, 
+                                        padding: '1px 5px', 
+                                        borderRadius: 3, 
+                                        background: p.action === 'จัดหาเพิ่มจากเดิม' ? '#fef3c7' : (p.action === 'ซ่อมแซม/แก้ไข' ? '#dbeafe' : '#fee2e2'),
+                                        color: p.action === 'จัดหาเพิ่มจากเดิม' ? '#92400e' : (p.action === 'ซ่อมแซม/แก้ไข' ? '#1e40af' : '#b91c1c'),
+                                        border: `1px solid ${p.action === 'จัดหาเพิ่มจากเดิม' ? '#fde68a' : (p.action === 'ซ่อมแซม/แก้ไข' ? '#bfdbfe' : '#fecaca')}`
+                                      }}>
+                                        {p.action}
+                                      </span>
+                                    )}
+                                    {pointPhotos.length > 1 && (
+                                      <span style={{ fontSize: 9.5, color: '#0369a1', fontWeight: 800, background: '#e0f2fe', padding: '1px 5px', borderRadius: 3 }}>
+                                        📷 {pointPhotos.length} รูป
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                <div style={{ color: '#0f172a', fontWeight: 700, fontSize: 10.5, lineHeight: 1.35, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {p.symptom || '-'}
+                                </div>
+                              </div>
+
+                              {/* Photos Container inside this single cell (Scale preserved, no squashing) */}
+                              <div style={{ padding: 6, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
+                                {pointPhotos.length === 1 ? (
+                                  <div style={{ width: '100%', height: 140, background: '#0f172a', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                    <img 
+                                      src={pointPhotos[0]} 
+                                      alt={p.building} 
+                                      style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto' }} 
+                                    />
+                                  </div>
+                                ) : pointPhotos.length === 2 ? (
+                                  <div style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                                    {pointPhotos.map((photoSrc, phIdx) => (
+                                      <div key={phIdx} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                        <div style={{ width: '100%', height: 135, background: '#0f172a', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                          <img 
+                                            src={photoSrc} 
+                                            alt={`${p.building}-${phIdx + 1}`} 
+                                            style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto' }} 
+                                          />
+                                        </div>
+                                        <div style={{ fontSize: 9, color: '#475569', textAlign: 'center', fontWeight: 700 }}>
+                                          รูปที่ {phIdx + 1}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+                                    {pointPhotos.map((photoSrc, phIdx) => (
+                                      <div key={phIdx} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                        <div style={{ width: '100%', height: 130, background: '#0f172a', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                          <img 
+                                            src={photoSrc} 
+                                            alt={`${p.building}-${phIdx + 1}`} 
+                                            style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto' }} 
+                                          />
+                                        </div>
+                                        <div style={{ fontSize: 9, color: '#475569', textAlign: 'center', fontWeight: 700 }}>
+                                          รูปที่ {phIdx + 1}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
                                 )}
                               </div>
-                              <div style={{ color: '#0f172a', fontWeight: 700, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.symptom || '-'}</div>
-                              <div style={{ color: '#334155', fontSize: 9.5, fontWeight: 600, marginTop: 1 }}>ตำแหน่ง: {p.location || 'Main MDB'}</div>
                             </div>
-                          </div>
-                        ));
-                      })}
+                          );
+                        })}
                     </div>
                   </div>
                 )}
@@ -3059,30 +3139,100 @@ function RepairProposalFormInner() {
                       <span>📦</span> 2. ภาพถ่ายตัวอย่างอุปกรณ์, แคตตาล็อก หรือเนมเพลทของรุ่นที่ขอเสนอซื้อ:
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                      {itemsRequested.map((it, itIdx) => {
-                        const itPhotos = (Array.isArray(it.photos) && it.photos.length > 0) ? it.photos : (it.photo ? [it.photo] : []);
-                        return itPhotos.map((photoSrc, phIdx) => (
-                          <div key={`it-${itIdx}-${phIdx}`} style={{ border: '1.5px solid #475569', borderRadius: 6, overflow: 'hidden', background: '#ffffff' }}>
-                            <div style={{ width: '100%', height: 130, background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <img src={photoSrc} alt={it.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            </div>
-                            <div style={{ padding: '6px 8px', fontSize: 10.5 }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
-                                <span style={{ fontWeight: 800, color: '#ffffff', background: '#15803d', padding: '1px 6px', borderRadius: 3, fontSize: 10 }}>
-                                  รายการที่ {itIdx + 1}
-                                </span>
-                                {itPhotos.length > 1 && (
-                                  <span style={{ fontSize: 9.5, color: '#64748b', fontWeight: 700 }}>
-                                    รูปที่ {phIdx + 1}/{itPhotos.length}
-                                  </span>
+                      {itemsRequested
+                        .filter(it => Boolean((it.photos && it.photos.length > 0) || it.photo))
+                        .map((it, itIdx) => {
+                          const itPhotos = (Array.isArray(it.photos) && it.photos.length > 0) ? it.photos : (it.photo ? [it.photo] : []);
+                          const colSpan = itPhotos.length >= 3 ? 'span 3' : (itPhotos.length === 2 ? 'span 2' : 'span 1');
+
+                          return (
+                            <div 
+                              key={it.id || itIdx} 
+                              style={{ 
+                                border: '1.5px solid #475569', 
+                                borderRadius: 6, 
+                                overflow: 'hidden', 
+                                background: '#ffffff',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gridColumn: colSpan
+                              }}>
+                              {/* Card Header Info */}
+                              <div style={{ padding: '6px 9px', background: '#f0fdf4', borderBottom: '1.5px solid #bbf7d0' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3, flexWrap: 'wrap', gap: 4 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                                    <span style={{ fontWeight: 800, color: '#ffffff', background: '#15803d', padding: '1px 6px', borderRadius: 3, fontSize: 10.5 }}>
+                                      รายการที่ {itIdx + 1}
+                                    </span>
+                                    <span style={{ fontSize: 10, color: '#166534', fontWeight: 700, background: '#dcfce7', padding: '1px 5px', borderRadius: 3 }}>
+                                      {it.qty || 1} {it.unit || 'ตัว'}
+                                    </span>
+                                  </div>
+                                  {itPhotos.length > 1 && (
+                                    <span style={{ fontSize: 9.5, color: '#15803d', fontWeight: 800, background: '#dcfce7', padding: '1px 5px', borderRadius: 3 }}>
+                                      📷 {itPhotos.length} รูป
+                                    </span>
+                                  )}
+                                </div>
+                                <div style={{ color: '#0f172a', fontWeight: 700, fontSize: 10.5, lineHeight: 1.35, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {it.name || '-'}
+                                </div>
+                                {it.modelPart && (
+                                  <div style={{ color: '#334155', fontSize: 9.5, fontWeight: 600, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    รุ่น: {it.modelPart}
+                                  </div>
                                 )}
                               </div>
-                              <div style={{ color: '#0f172a', fontWeight: 700, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.name || '-'}</div>
-                              <div style={{ color: '#334155', fontSize: 9.5, fontWeight: 600, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>รุ่น: {it.modelPart || '-'}</div>
+
+                              {/* Photos Container inside this single cell (Scale preserved, no squashing) */}
+                              <div style={{ padding: 6, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
+                                {itPhotos.length === 1 ? (
+                                  <div style={{ width: '100%', height: 140, background: '#0f172a', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                    <img 
+                                      src={itPhotos[0]} 
+                                      alt={it.name} 
+                                      style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto' }} 
+                                    />
+                                  </div>
+                                ) : itPhotos.length === 2 ? (
+                                  <div style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                                    {itPhotos.map((photoSrc, phIdx) => (
+                                      <div key={phIdx} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                        <div style={{ width: '100%', height: 135, background: '#0f172a', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                          <img 
+                                            src={photoSrc} 
+                                            alt={`${it.name}-${phIdx + 1}`} 
+                                            style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto' }} 
+                                          />
+                                        </div>
+                                        <div style={{ fontSize: 9, color: '#475569', textAlign: 'center', fontWeight: 700 }}>
+                                          รูปที่ {phIdx + 1}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+                                    {itPhotos.map((photoSrc, phIdx) => (
+                                      <div key={phIdx} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                        <div style={{ width: '100%', height: 130, background: '#0f172a', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                          <img 
+                                            src={photoSrc} 
+                                            alt={`${it.name}-${phIdx + 1}`} 
+                                            style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto' }} 
+                                          />
+                                        </div>
+                                        <div style={{ fontSize: 9, color: '#475569', textAlign: 'center', fontWeight: 700 }}>
+                                          รูปที่ {phIdx + 1}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ));
-                      })}
+                          );
+                        })}
                     </div>
                   </div>
                 )}
