@@ -7,6 +7,7 @@ let memoryTemplates = null;
 let memorySettings = null;
 const memoryRecordsMap = new Map();
 const memoryDeletedRecordKeys = new Set();
+const memoryDeletedTemplateIds = new Set();
 
 // Default initial settings
 export const defaultInspectionSettings = {
@@ -169,6 +170,96 @@ async function getGitHubHelpers() {
 }
 
 // ==========================================
+// TOMBSTONES (Cross-device deletion persistence)
+// ==========================================
+
+export async function loadDeletedTemplateIds() {
+  // 1. Try disk
+  try {
+    const baseDir = getStorageDir();
+    const f = path.join(baseDir, 'deleted_templates.json');
+    if (fs.existsSync(f)) {
+      const arr = JSON.parse(fs.readFileSync(f, 'utf-8'));
+      if (Array.isArray(arr)) {
+        arr.forEach(id => { if (id && typeof id === 'string') memoryDeletedTemplateIds.add(id); });
+      }
+    }
+  } catch {}
+
+  // 2. Try GitHub
+  try {
+    const { loadJsonFile } = await getGitHubHelpers();
+    if (loadJsonFile) {
+      const arr = await loadJsonFile('data/inspection-sheets/deleted_templates.json');
+      if (Array.isArray(arr)) {
+        arr.forEach(id => { if (id && typeof id === 'string') memoryDeletedTemplateIds.add(id); });
+      }
+    }
+  } catch {}
+
+  return memoryDeletedTemplateIds;
+}
+
+export async function persistDeletedTemplateIds() {
+  const arr = Array.from(memoryDeletedTemplateIds).filter(Boolean);
+  try {
+    const baseDir = getStorageDir();
+    const f = path.join(baseDir, 'deleted_templates.json');
+    fs.writeFileSync(f, JSON.stringify(arr, null, 2), 'utf-8');
+  } catch {}
+
+  try {
+    const { saveJsonFile } = await getGitHubHelpers();
+    if (saveJsonFile) {
+      await saveJsonFile('data/inspection-sheets/deleted_templates.json', arr, 'Update deleted inspection templates tombstone');
+    }
+  } catch {}
+}
+
+export async function loadDeletedRecordKeys() {
+  // 1. Try disk
+  try {
+    const baseDir = getStorageDir();
+    const f = path.join(baseDir, 'deleted_records.json');
+    if (fs.existsSync(f)) {
+      const arr = JSON.parse(fs.readFileSync(f, 'utf-8'));
+      if (Array.isArray(arr)) {
+        arr.forEach(k => { if (k && typeof k === 'string' && k !== 'undefined' && k !== 'null') memoryDeletedRecordKeys.add(k); });
+      }
+    }
+  } catch {}
+
+  // 2. Try GitHub
+  try {
+    const { loadJsonFile } = await getGitHubHelpers();
+    if (loadJsonFile) {
+      const arr = await loadJsonFile('data/inspection-sheets/deleted_records.json');
+      if (Array.isArray(arr)) {
+        arr.forEach(k => { if (k && typeof k === 'string' && k !== 'undefined' && k !== 'null') memoryDeletedRecordKeys.add(k); });
+      }
+    }
+  } catch {}
+
+  return memoryDeletedRecordKeys;
+}
+
+export async function persistDeletedRecordKeys() {
+  const arr = Array.from(memoryDeletedRecordKeys).filter(k => k && typeof k === 'string' && k !== 'undefined' && k !== 'null');
+  try {
+    const baseDir = getStorageDir();
+    const f = path.join(baseDir, 'deleted_records.json');
+    fs.writeFileSync(f, JSON.stringify(arr, null, 2), 'utf-8');
+  } catch {}
+
+  try {
+    const { saveJsonFile } = await getGitHubHelpers();
+    if (saveJsonFile) {
+      await saveJsonFile('data/inspection-sheets/deleted_records.json', arr, 'Update deleted inspection records tombstone');
+    }
+  } catch {}
+}
+
+// ==========================================
 // SETTINGS
 // ==========================================
 
@@ -262,58 +353,62 @@ export async function saveInspectionSettings(settings) {
 // ==========================================
 
 export async function loadInspectionTemplates() {
+  await loadDeletedTemplateIds();
+
+  let list = null;
+
   // 1. Try memory
   if (Array.isArray(memoryTemplates)) {
-    return memoryTemplates;
+    list = memoryTemplates;
   }
 
   // 2. Try disk / tmp
-  const baseDir = getStorageDir();
-  const templatesFile = path.join(baseDir, 'templates.json');
-  try {
-    if (fs.existsSync(templatesFile)) {
-      const data = JSON.parse(fs.readFileSync(templatesFile, 'utf-8'));
-      if (Array.isArray(data)) {
-        memoryTemplates = data;
-        return data;
+  if (!list) {
+    const baseDir = getStorageDir();
+    const templatesFile = path.join(baseDir, 'templates.json');
+    try {
+      if (fs.existsSync(templatesFile)) {
+        const data = JSON.parse(fs.readFileSync(templatesFile, 'utf-8'));
+        if (Array.isArray(data)) {
+          list = data;
+        }
       }
+    } catch (err) {
+      console.warn('loadInspectionTemplates disk warning:', err.message);
     }
-  } catch (err) {
-    console.warn('loadInspectionTemplates disk warning:', err.message);
   }
 
   // 3. Try GitHub
-  try {
-    const { loadJsonFile } = await getGitHubHelpers();
-    if (loadJsonFile) {
-      const ghData = await loadJsonFile('data/inspection-sheets/templates.json');
-      if (Array.isArray(ghData)) {
-        memoryTemplates = ghData;
-        try {
-          fs.writeFileSync(templatesFile, JSON.stringify(ghData, null, 2), 'utf-8');
-        } catch {}
-        return ghData;
+  if (!list) {
+    try {
+      const { loadJsonFile } = await getGitHubHelpers();
+      if (loadJsonFile) {
+        const ghData = await loadJsonFile('data/inspection-sheets/templates.json');
+        if (Array.isArray(ghData)) {
+          list = ghData;
+        }
       }
-    }
-  } catch {}
+    } catch {}
+  }
 
-  // 4. Fallback to default presets and persist only if file never existed
-  memoryTemplates = [...defaultTemplates];
-  try {
-    fs.writeFileSync(templatesFile, JSON.stringify(defaultTemplates, null, 2), 'utf-8');
-  } catch {}
+  // 4. Fallback to default presets if no file existed
+  if (!list) {
+    list = [...defaultTemplates];
+  }
 
-  try {
-    const { saveJsonFile } = await getGitHubHelpers();
-    if (saveJsonFile) {
-      saveJsonFile('data/inspection-sheets/templates.json', defaultTemplates, 'Seed default inspection templates').catch(() => {});
-    }
-  } catch {}
-
-  return defaultTemplates;
+  // ALWAYS filter out any tombstoned / deleted template IDs across all machines
+  const filtered = list.filter(t => t && t.id && !memoryDeletedTemplateIds.has(t.id));
+  memoryTemplates = filtered;
+  return filtered;
 }
 
 export async function saveInspectionTemplate(template) {
+  await loadDeletedTemplateIds();
+  if (template.id) {
+    memoryDeletedTemplateIds.delete(template.id);
+    persistDeletedTemplateIds().catch(() => {});
+  }
+
   const templates = await loadInspectionTemplates();
   const now = new Date().toISOString();
 
@@ -363,8 +458,13 @@ export async function saveInspectionTemplate(template) {
 }
 
 export async function deleteInspectionTemplate(templateId) {
+  if (!templateId) return { ok: false };
+  await loadDeletedTemplateIds();
+  memoryDeletedTemplateIds.add(templateId);
+  await persistDeletedTemplateIds();
+
   const templates = await loadInspectionTemplates();
-  const filtered = templates.filter(t => t.id !== templateId);
+  const filtered = templates.filter(t => t && t.id !== templateId);
   memoryTemplates = filtered;
 
   try {
@@ -514,11 +614,15 @@ export async function listInspectionRecords() {
     console.warn('listInspectionRecords GitHub scan warning:', ghErr.message);
   }
 
-  const list = Array.from(recordsMap.values()).filter(r => 
-    !memoryDeletedRecordKeys.has(r.id) && 
-    !memoryDeletedRecordKeys.has(r.recordNo) &&
-    !memoryDeletedRecordKeys.has(String(r.recordNo || '').replace(/[/\\:*?"<>|]/g, '-'))
-  );
+  await loadDeletedRecordKeys();
+
+  const list = Array.from(recordsMap.values()).filter(r => {
+    if (!r) return false;
+    if (r.id && memoryDeletedRecordKeys.has(r.id)) return false;
+    if (r.recordNo && memoryDeletedRecordKeys.has(r.recordNo)) return false;
+    if (r.recordNo && memoryDeletedRecordKeys.has(String(r.recordNo).replace(/[/\\:*?"<>|]/g, '-'))) return false;
+    return true;
+  });
   return list.sort((a, b) => {
     const da = a.createdAt || a.inspectionDate || '';
     const db = b.createdAt || b.inspectionDate || '';
@@ -553,10 +657,13 @@ export async function saveInspectionRecord(record) {
     createdAt: record.createdAt || now.toISOString()
   };
 
-  // Update memory
+  // Untombstone in memory & disk if this record was previously deleted or updated
+  await loadDeletedRecordKeys();
   memoryDeletedRecordKeys.delete(recordNo);
   memoryDeletedRecordKeys.delete(id);
   memoryDeletedRecordKeys.delete(safeRecordNo);
+  persistDeletedRecordKeys().catch(() => {});
+
   memoryRecordsMap.set(recordNo, fullRecord);
   memoryRecordsMap.set(id, fullRecord);
 
@@ -619,14 +726,26 @@ export async function saveInspectionRecord(record) {
 }
 
 export async function deleteInspectionRecord(idOrRecordNo) {
-  const safe = String(idOrRecordNo).replace(/[/\\:*?"<>|]/g, '-');
-  memoryDeletedRecordKeys.add(idOrRecordNo);
+  if (!idOrRecordNo || typeof idOrRecordNo !== 'string') {
+    return { ok: false, error: 'invalid idOrRecordNo' };
+  }
+  const clean = idOrRecordNo.trim();
+  if (!clean || clean === 'undefined' || clean === 'null') {
+    return { ok: false, error: 'invalid idOrRecordNo' };
+  }
+
+  await loadDeletedRecordKeys();
+  const safe = clean.replace(/[/\\:*?"<>|]/g, '-');
+
+  memoryDeletedRecordKeys.add(clean);
   memoryDeletedRecordKeys.add(safe);
-  memoryRecordsMap.delete(idOrRecordNo);
+  await persistDeletedRecordKeys();
+
+  memoryRecordsMap.delete(clean);
   memoryRecordsMap.delete(safe);
 
   let deleted = false;
-  // 1. Delete from disk
+  // 1. Delete from disk: ONLY exact file match `${safe}.json`!
   try {
     const recordsDir = getRecordsDir();
     if (fs.existsSync(recordsDir)) {
@@ -636,7 +755,7 @@ export async function deleteInspectionRecord(idOrRecordNo) {
         if (fs.existsSync(ymPath) && fs.statSync(ymPath).isDirectory()) {
           const files = fs.readdirSync(ymPath);
           for (const f of files) {
-            if (f === `${safe}.json` || f.includes(safe)) {
+            if (f === `${safe}.json`) {
               try {
                 fs.unlinkSync(path.join(ymPath, f));
                 deleted = true;
@@ -650,7 +769,7 @@ export async function deleteInspectionRecord(idOrRecordNo) {
     console.warn('deleteInspectionRecord disk warning:', err.message);
   }
 
-  // 2. Delete from GitHub if available
+  // 2. Delete from GitHub if available: ONLY exact file match `/${safe}.json`!
   try {
     const { ghReq, cfg, deleteFilesViaGitTrees } = await getGitHubHelpers();
     if (ghReq && cfg && deleteFilesViaGitTrees) {
@@ -665,11 +784,11 @@ export async function deleteInspectionRecord(idOrRecordNo) {
             .filter(item =>
               item.type === 'blob' &&
               item.path.startsWith('data/inspection-sheets/records/') &&
-              (item.path.endsWith(`/${safe}.json`) || item.path.includes(`/${safe}.`))
+              item.path.endsWith(`/${safe}.json`)
             )
             .map(item => item.path);
           if (pathsToDelete.length > 0) {
-            await deleteFilesViaGitTrees(owner, repo, branch, pathsToDelete, `ลบผลการตรวจเช็ค [${idOrRecordNo}]`);
+            await deleteFilesViaGitTrees(owner, repo, branch, pathsToDelete, `ลบผลการตรวจเช็ค [${clean}]`);
             deleted = true;
           }
         }
@@ -679,5 +798,5 @@ export async function deleteInspectionRecord(idOrRecordNo) {
     console.warn('deleteInspectionRecord GitHub warning:', err.message);
   }
 
-  return { ok: true, deleted: true, id: idOrRecordNo };
+  return { ok: true, deleted: true, id: clean };
 }

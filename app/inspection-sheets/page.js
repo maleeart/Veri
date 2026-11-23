@@ -268,68 +268,81 @@ function InspectionSheetsInner() {
   const loadData = async () => {
     setLoading(true);
     try {
-      // 1. Templates
+      // 1. Templates (Canonical sync from server + Tombstones)
       const resTpl = await fetch('/api/inspection-sheets/templates', { cache: 'no-store' });
       const jsonTpl = await resTpl.json();
-      let serverTemplates = (jsonTpl.ok && Array.isArray(jsonTpl.templates)) ? jsonTpl.templates : [];
+      
+      const delTplIds = new Set(JSON.parse(localStorage.getItem('veri_deleted_template_ids') || '[]'));
+      if (jsonTpl.ok && Array.isArray(jsonTpl.deletedTemplateIds)) {
+        jsonTpl.deletedTemplateIds.forEach(id => { if (id) delTplIds.add(id); });
+        try {
+          localStorage.setItem('veri_deleted_template_ids', JSON.stringify(Array.from(delTplIds)));
+        } catch {}
+      }
 
-      try {
-        const cachedTpl = localStorage.getItem('veri_inspection_templates');
-        if (cachedTpl) {
-          const localList = JSON.parse(cachedTpl);
-          if (Array.isArray(localList)) {
-            const serverIds = new Set(serverTemplates.map(t => t.id));
-            const missing = localList.filter(t => !serverIds.has(t.id));
-            if (missing.length > 0) {
-              serverTemplates = [...missing, ...serverTemplates];
+      let serverTemplates = [];
+      if (jsonTpl.ok && Array.isArray(jsonTpl.templates)) {
+        serverTemplates = jsonTpl.templates.filter(t => t && t.id && !delTplIds.has(t.id));
+        setTemplates(serverTemplates);
+        try {
+          localStorage.setItem('veri_inspection_templates', JSON.stringify(serverTemplates));
+        } catch {}
+      } else {
+        // Offline fallback only
+        try {
+          const cachedTpl = localStorage.getItem('veri_inspection_templates');
+          if (cachedTpl) {
+            const localList = JSON.parse(cachedTpl);
+            if (Array.isArray(localList)) {
+              serverTemplates = localList.filter(t => t && t.id && !delTplIds.has(t.id));
+              setTemplates(serverTemplates);
             }
           }
-        }
-        // Filter out deleted templates
-        const delTplIds = new Set(JSON.parse(localStorage.getItem('veri_deleted_template_ids') || '[]'));
-        serverTemplates = serverTemplates.filter(t => !delTplIds.has(t.id));
-      } catch {}
+        } catch {}
+      }
 
-      setTemplates(serverTemplates);
-      try {
-        localStorage.setItem('veri_inspection_templates', JSON.stringify(serverTemplates));
-      } catch {}
-
-      // 2. Records
+      // 2. Records (Canonical sync from server + Tombstones)
       const resRec = await fetch('/api/inspection-sheets/records', { cache: 'no-store' });
       const jsonRec = await resRec.json();
-      let serverRecords = (jsonRec.ok && Array.isArray(jsonRec.records)) ? jsonRec.records : [];
 
-      try {
-        const cachedRec = localStorage.getItem('veri_inspection_records');
-        if (cachedRec) {
-          const localRecords = JSON.parse(cachedRec);
-          if (Array.isArray(localRecords)) {
-            const serverKeys = new Set(serverRecords.map(r => r.recordNo || r.id));
-            const missing = localRecords.filter(r => !serverKeys.has(r.recordNo || r.id));
-            if (missing.length > 0) {
-              serverRecords = [...missing, ...serverRecords];
+      const delRecKeys = new Set(JSON.parse(localStorage.getItem('veri_deleted_records') || '[]'));
+      if (jsonRec.ok && Array.isArray(jsonRec.deletedRecordKeys)) {
+        jsonRec.deletedRecordKeys.forEach(k => { if (k && k !== 'undefined' && k !== 'null') delRecKeys.add(k); });
+        try {
+          localStorage.setItem('veri_deleted_records', JSON.stringify(Array.from(delRecKeys)));
+        } catch {}
+      }
+
+      let finalRecords = [];
+      if (jsonRec.ok && Array.isArray(jsonRec.records)) {
+        finalRecords = jsonRec.records.filter(r => {
+          if (!r) return false;
+          if (r.id && delRecKeys.has(r.id)) return false;
+          if (r.recordNo && delRecKeys.has(r.recordNo)) return false;
+          return true;
+        });
+        setRecords(finalRecords);
+        try {
+          localStorage.setItem('veri_inspection_records', JSON.stringify(finalRecords));
+        } catch {}
+      } else {
+        // Offline fallback only
+        try {
+          const cachedRec = localStorage.getItem('veri_inspection_records');
+          if (cachedRec) {
+            const localRecords = JSON.parse(cachedRec);
+            if (Array.isArray(localRecords)) {
+              finalRecords = localRecords.filter(r => {
+                if (!r) return false;
+                if (r.id && delRecKeys.has(r.id)) return false;
+                if (r.recordNo && delRecKeys.has(r.recordNo)) return false;
+                return true;
+              });
+              setRecords(finalRecords);
             }
           }
-        }
-        // Filter out deleted records
-        const delRecKeys = new Set(JSON.parse(localStorage.getItem('veri_deleted_records') || '[]'));
-        serverRecords = serverRecords.filter(r => !delRecKeys.has(r.recordNo) && !delRecKeys.has(r.id));
-      } catch {}
-
-      // Deduplicate records by recordNo / id
-      const uniqueRecordsMap = new Map();
-      serverRecords.forEach(r => {
-        const key = r.recordNo || r.id;
-        if (key && !uniqueRecordsMap.has(key)) {
-          uniqueRecordsMap.set(key, r);
-        }
-      });
-      const finalRecords = Array.from(uniqueRecordsMap.values());
-      setRecords(finalRecords);
-      try {
-        localStorage.setItem('veri_inspection_records', JSON.stringify(finalRecords));
-      } catch {}
+        } catch {}
+      }
 
       // 3. Settings
       const resSet = await fetch('/api/inspection-sheets/settings', { cache: 'no-store' });
@@ -446,7 +459,9 @@ function InspectionSheetsInner() {
   const handleOpenFill = async (template, recordToEdit = null) => {
     setActiveTemplateForFill(template);
     if (recordToEdit) {
-      setEditingRecord(JSON.parse(JSON.stringify(recordToEdit)));
+      const cloned = JSON.parse(JSON.stringify(recordToEdit));
+      if (!cloned.id) cloned.id = `rec-${Date.now()}`;
+      setEditingRecord(cloned);
     } else {
       let nextRef = 'INS-2569-001';
       try {
@@ -457,6 +472,7 @@ function InspectionSheetsInner() {
       } catch {}
 
       setEditingRecord({
+        id: `rec-${Date.now()}`,
         templateId: template.id,
         templateName: template.name,
         templateCode: template.code,
@@ -485,15 +501,26 @@ function InspectionSheetsInner() {
   };
 
   const handleDeleteRecord = async (recordNo, id) => {
-    if (!confirm(`ยืนยันการลบผลการตรวจเช็คเลขที่ ${recordNo || id} ใช่หรือไม่?`)) return;
-    // 1. Optimistic deletion on client
+    const targetLabel = recordNo || id || 'รายการนี้';
+    if (!confirm(`ยืนยันการลบผลการตรวจเช็คเลขที่ ${targetLabel} ใช่หรือไม่?`)) return;
+    
+    // 1. Optimistic deletion on client (Safe exact-match filtering only)
     setRecords(prev => {
-      const updated = prev.filter(r => (r.id !== id && r.recordNo !== recordNo));
+      const updated = prev.filter(r => {
+        if (!r) return false;
+        if (id && id !== 'undefined' && id !== 'null' && r.id && r.id === id) return false;
+        if (recordNo && recordNo !== 'undefined' && recordNo !== 'null' && r.recordNo && r.recordNo === recordNo) return false;
+        return true;
+      });
       try {
         localStorage.setItem('veri_inspection_records', JSON.stringify(updated));
         const delRecs = JSON.parse(localStorage.getItem('veri_deleted_records') || '[]');
-        if (recordNo && !delRecs.includes(recordNo)) delRecs.push(recordNo);
-        if (id && !delRecs.includes(id)) delRecs.push(id);
+        if (recordNo && recordNo !== 'undefined' && recordNo !== 'null' && !delRecs.includes(recordNo)) {
+          delRecs.push(recordNo);
+        }
+        if (id && id !== 'undefined' && id !== 'null' && !delRecs.includes(id)) {
+          delRecs.push(id);
+        }
         localStorage.setItem('veri_deleted_records', JSON.stringify(delRecs));
       } catch {}
       return updated;
@@ -501,9 +528,12 @@ function InspectionSheetsInner() {
 
     // 2. Call server
     try {
-      const param = encodeURIComponent(id || recordNo);
-      const recParam = encodeURIComponent(recordNo || '');
-      await fetch(`/api/inspection-sheets/records?id=${param}&recordNo=${recParam}`, { method: 'DELETE' });
+      const queryParams = [];
+      if (id && id !== 'undefined' && id !== 'null') queryParams.push(`id=${encodeURIComponent(id)}`);
+      if (recordNo && recordNo !== 'undefined' && recordNo !== 'null') queryParams.push(`recordNo=${encodeURIComponent(recordNo)}`);
+      if (queryParams.length > 0) {
+        await fetch(`/api/inspection-sheets/records?${queryParams.join('&')}`, { method: 'DELETE' });
+      }
     } catch (err) {
       console.warn('Delete server warning:', err);
     }
@@ -1650,7 +1680,15 @@ function InspectionSheetsInner() {
                       if (res.ok && json.ok) {
                         const savedRec = json.record || editingRecord;
                         setRecords(prev => {
-                          const updated = [savedRec, ...prev.filter(r => (r.id !== savedRec.id && r.recordNo !== savedRec.recordNo))];
+                          const updated = [
+                            savedRec,
+                            ...prev.filter(r => {
+                              if (!r) return false;
+                              const sameId = savedRec.id && r.id && r.id === savedRec.id;
+                              const sameRecordNo = savedRec.recordNo && r.recordNo && r.recordNo === savedRec.recordNo;
+                              return !(sameId || sameRecordNo);
+                            })
+                          ];
                           try {
                             localStorage.setItem('veri_inspection_records', JSON.stringify(updated));
                           } catch {}
@@ -1672,7 +1710,15 @@ function InspectionSheetsInner() {
                         updatedAt: new Date().toISOString()
                       };
                       setRecords(prev => {
-                        const updated = [localSaved, ...prev.filter(r => (r.id !== localSaved.id && r.recordNo !== localSaved.recordNo))];
+                        const updated = [
+                          localSaved,
+                          ...prev.filter(r => {
+                            if (!r) return false;
+                            const sameId = localSaved.id && r.id && r.id === localSaved.id;
+                            const sameRecordNo = localSaved.recordNo && r.recordNo && r.recordNo === localSaved.recordNo;
+                            return !(sameId || sameRecordNo);
+                          })
+                        ];
                         try {
                           localStorage.setItem('veri_inspection_records', JSON.stringify(updated));
                         } catch {}

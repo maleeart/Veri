@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { 
   loadInspectionTemplates, 
   saveInspectionTemplate, 
-  deleteInspectionTemplate 
+  deleteInspectionTemplate,
+  loadDeletedTemplateIds
 } from '../../../../src/lib/inspectionSheetsStorage';
 
 export const runtime = 'nodejs';
@@ -13,6 +14,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     const templates = await loadInspectionTemplates();
+    const deletedTemplateIds = await loadDeletedTemplateIds();
 
     if (id) {
       const template = templates.find(t => t.id === id);
@@ -22,10 +24,14 @@ export async function GET(request) {
       return NextResponse.json({ ok: true, template });
     }
 
-    return NextResponse.json({ ok: true, templates });
+    return NextResponse.json({ 
+      ok: true, 
+      templates, 
+      deletedTemplateIds: Array.from(deletedTemplateIds) 
+    });
   } catch (err) {
     console.error('API templates GET error:', err);
-    return NextResponse.json({ ok: false, error: err.message, templates: [] }, { status: 500 });
+    return NextResponse.json({ ok: false, error: err.message, templates: [], deletedTemplateIds: [] }, { status: 500 });
   }
 }
 

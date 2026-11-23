@@ -4,7 +4,8 @@ import {
   loadInspectionRecord, 
   saveInspectionRecord, 
   deleteInspectionRecord,
-  generateInspectionRecordNo
+  generateInspectionRecordNo,
+  loadDeletedRecordKeys
 } from '../../../../src/lib/inspectionSheetsStorage';
 
 export const runtime = 'nodejs';
@@ -31,10 +32,15 @@ export async function GET(request) {
     }
 
     const records = await listInspectionRecords();
-    return NextResponse.json({ ok: true, records });
+    const deletedRecordKeys = await loadDeletedRecordKeys();
+    return NextResponse.json({ 
+      ok: true, 
+      records, 
+      deletedRecordKeys: Array.from(deletedRecordKeys) 
+    });
   } catch (err) {
     console.error('API records GET error:', err);
-    return NextResponse.json({ ok: false, error: err.message, records: [] }, { status: 500 });
+    return NextResponse.json({ ok: false, error: err.message, records: [], deletedRecordKeys: [] }, { status: 500 });
   }
 }
 
@@ -56,18 +62,23 @@ export async function POST(request) {
 export async function DELETE(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id') || searchParams.get('recordNo');
+    const rawId = searchParams.get('id');
+    const rawRecordNo = searchParams.get('recordNo');
 
-    if (!id) {
-      return NextResponse.json({ ok: false, error: 'ต้องระบุ id หรือ recordNo' }, { status: 400 });
+    const id = (rawId && rawId !== 'undefined' && rawId !== 'null') ? rawId.trim() : null;
+    const recordNo = (rawRecordNo && rawRecordNo !== 'undefined' && rawRecordNo !== 'null') ? rawRecordNo.trim() : null;
+
+    if (!id && !recordNo) {
+      return NextResponse.json({ ok: false, error: 'ต้องระบุ id หรือ recordNo ที่ถูกต้อง' }, { status: 400 });
     }
 
-    const result = await deleteInspectionRecord(id);
-    const recordNo = searchParams.get('recordNo');
+    if (id) {
+      await deleteInspectionRecord(id);
+    }
     if (recordNo && recordNo !== id) {
       await deleteInspectionRecord(recordNo);
     }
-    return NextResponse.json({ ok: true, ...result });
+    return NextResponse.json({ ok: true, id: id || recordNo });
   } catch (err) {
     console.error('API records DELETE error:', err);
     return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
