@@ -21,6 +21,50 @@ function getTodayThaiDate() {
   return `${day} ${month} ${year}`;
 }
 
+// Compress and downscale uploaded inspection images client-side before storing
+const compressImageFile = (file, maxWidth = 900, maxHeight = 900, quality = 0.75, forceJpeg = true) => {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type.startsWith('image/')) {
+      return reject(new Error('ไฟล์ไม่ใช่รูปภาพ'));
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (forceJpeg) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, width, height);
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const format = forceJpeg ? 'image/jpeg' : (file.type === 'image/png' ? 'image/png' : 'image/jpeg');
+        const dataUrl = canvas.toDataURL(format, quality);
+        resolve(dataUrl);
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
 // Interactive Canvas Signature Pad Component
 function SignaturePad({ value, onChange, label = 'ลงลายเซ็นผู้สำรวจ/ผู้บันทึก' }) {
   const canvasRef = useRef(null);
@@ -211,36 +255,70 @@ function InspectionSheetsInner() {
   const loadData = async () => {
     setLoading(true);
     try {
+      // 1. Templates
       const resTpl = await fetch('/api/inspection-sheets/templates', { cache: 'no-store' });
       const jsonTpl = await resTpl.json();
-      if (jsonTpl.ok && Array.isArray(jsonTpl.templates)) {
-        let finalTemplates = jsonTpl.templates;
-        // Merge with locally stored templates if any
-        try {
-          const cached = localStorage.getItem('veri_inspection_templates');
-          if (cached) {
-            const localList = JSON.parse(cached);
-            if (Array.isArray(localList)) {
-              const serverIds = new Set(finalTemplates.map(t => t.id));
-              const missingOnServer = localList.filter(t => !serverIds.has(t.id));
-              if (missingOnServer.length > 0) {
-                finalTemplates = [...missingOnServer, ...finalTemplates];
-              }
+      let serverTemplates = (jsonTpl.ok && Array.isArray(jsonTpl.templates)) ? jsonTpl.templates : [];
+
+      try {
+        const cachedTpl = localStorage.getItem('veri_inspection_templates');
+        if (cachedTpl) {
+          const localList = JSON.parse(cachedTpl);
+          if (Array.isArray(localList)) {
+            const serverIds = new Set(serverTemplates.map(t => t.id));
+            const missing = localList.filter(t => !serverIds.has(t.id));
+            if (missing.length > 0) {
+              serverTemplates = [...missing, ...serverTemplates];
             }
           }
-        } catch {}
-        setTemplates(finalTemplates);
-        try {
-          localStorage.setItem('veri_inspection_templates', JSON.stringify(finalTemplates));
-        } catch {}
-      }
+        }
+        // Filter out deleted templates
+        const delTplIds = new Set(JSON.parse(localStorage.getItem('veri_deleted_template_ids') || '[]'));
+        serverTemplates = serverTemplates.filter(t => !delTplIds.has(t.id));
+      } catch {}
 
+      setTemplates(serverTemplates);
+      try {
+        localStorage.setItem('veri_inspection_templates', JSON.stringify(serverTemplates));
+      } catch {}
+
+      // 2. Records
       const resRec = await fetch('/api/inspection-sheets/records', { cache: 'no-store' });
       const jsonRec = await resRec.json();
-      if (jsonRec.ok && Array.isArray(jsonRec.records)) {
-        setRecords(jsonRec.records);
-      }
+      let serverRecords = (jsonRec.ok && Array.isArray(jsonRec.records)) ? jsonRec.records : [];
 
+      try {
+        const cachedRec = localStorage.getItem('veri_inspection_records');
+        if (cachedRec) {
+          const localRecords = JSON.parse(cachedRec);
+          if (Array.isArray(localRecords)) {
+            const serverKeys = new Set(serverRecords.map(r => r.recordNo || r.id));
+            const missing = localRecords.filter(r => !serverKeys.has(r.recordNo || r.id));
+            if (missing.length > 0) {
+              serverRecords = [...missing, ...serverRecords];
+            }
+          }
+        }
+        // Filter out deleted records
+        const delRecKeys = new Set(JSON.parse(localStorage.getItem('veri_deleted_records') || '[]'));
+        serverRecords = serverRecords.filter(r => !delRecKeys.has(r.recordNo) && !delRecKeys.has(r.id));
+      } catch {}
+
+      // Deduplicate records by recordNo / id
+      const uniqueRecordsMap = new Map();
+      serverRecords.forEach(r => {
+        const key = r.recordNo || r.id;
+        if (key && !uniqueRecordsMap.has(key)) {
+          uniqueRecordsMap.set(key, r);
+        }
+      });
+      const finalRecords = Array.from(uniqueRecordsMap.values());
+      setRecords(finalRecords);
+      try {
+        localStorage.setItem('veri_inspection_records', JSON.stringify(finalRecords));
+      } catch {}
+
+      // 3. Settings
       const resSet = await fetch('/api/inspection-sheets/settings', { cache: 'no-store' });
       const jsonSet = await resSet.json();
       if (jsonSet.ok && jsonSet.settings) {
@@ -334,6 +412,11 @@ function InspectionSheetsInner() {
           const updated = prev.filter(t => t.id !== id);
           try {
             localStorage.setItem('veri_inspection_templates', JSON.stringify(updated));
+            const delIds = JSON.parse(localStorage.getItem('veri_deleted_template_ids') || '[]');
+            if (!delIds.includes(id)) {
+              delIds.push(id);
+              localStorage.setItem('veri_deleted_template_ids', JSON.stringify(delIds));
+            }
           } catch {}
           return updated;
         });
@@ -392,7 +475,17 @@ function InspectionSheetsInner() {
       const res = await fetch(`/api/inspection-sheets/records?id=${encodeURIComponent(id || recordNo)}`, { method: 'DELETE' });
       const data = await res.json();
       if (res.ok && data.ok) {
-        setRecords(prev => prev.filter(r => (r.id !== id && r.recordNo !== recordNo)));
+        setRecords(prev => {
+          const updated = prev.filter(r => (r.id !== id && r.recordNo !== recordNo));
+          try {
+            localStorage.setItem('veri_inspection_records', JSON.stringify(updated));
+            const delRecs = JSON.parse(localStorage.getItem('veri_deleted_records') || '[]');
+            if (recordNo && !delRecs.includes(recordNo)) delRecs.push(recordNo);
+            if (id && !delRecs.includes(id)) delRecs.push(id);
+            localStorage.setItem('veri_deleted_records', JSON.stringify(delRecs));
+          } catch {}
+          return updated;
+        });
       } else {
         alert('ลบไม่สำเร็จ: ' + (data?.error || 'เกิดข้อผิดพลาด'));
       }
@@ -945,13 +1038,11 @@ function InspectionSheetsInner() {
                             style={{ background: 'none', border: 'none', color: '#93c5fd', fontSize: 11.5, cursor: 'pointer', textDecoration: 'underline' }}>
                             แก้ไขฟอร์ม
                           </button>
-                          {!tpl.isPreset && (
-                            <button
-                              onClick={() => handleDeleteTemplate(tpl.id, tpl.name)}
-                              style={{ background: 'none', border: 'none', color: '#f87171', fontSize: 11.5, cursor: 'pointer' }}>
-                              ลบ
-                            </button>
-                          )}
+                          <button
+                            onClick={() => handleDeleteTemplate(tpl.id, tpl.name)}
+                            style={{ background: 'none', border: 'none', color: '#f87171', fontSize: 11.5, cursor: 'pointer' }}>
+                            ลบ
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -1423,16 +1514,17 @@ function InspectionSheetsInner() {
                                           type="file" 
                                           accept="image/*" 
                                           style={{ display: 'none' }}
-                                          onChange={(e) => {
+                                          onChange={async (e) => {
                                             const file = e.target.files?.[0];
                                             if (file) {
-                                              const reader = new FileReader();
-                                              reader.onload = (re) => {
+                                              try {
+                                                const compressed = await compressImageFile(file, 900, 900, 0.75, true);
                                                 const rows = [...editingRecord.rows];
-                                                rows[rIdx][col.id] = re.target.result;
+                                                rows[rIdx][col.id] = compressed;
                                                 setEditingRecord({ ...editingRecord, rows });
-                                              };
-                                              reader.readAsDataURL(file);
+                                              } catch (err) {
+                                                alert('ไม่สามารถอัปโหลดรูปภาพได้: ' + (err.message || ''));
+                                              }
                                             }
                                           }}
                                         />
@@ -1527,21 +1619,38 @@ function InspectionSheetsInner() {
                       if (res.ok && json.ok) {
                         const savedRec = json.record || editingRecord;
                         setRecords(prev => {
-                          const exists = prev.some(r => (savedRec.id && r.id === savedRec.id) || (savedRec.recordNo && r.recordNo === savedRec.recordNo));
-                          return exists
-                            ? prev.map(r => ((savedRec.id && r.id === savedRec.id) || (savedRec.recordNo && r.recordNo === savedRec.recordNo)) ? savedRec : r)
-                            : [savedRec, ...prev];
+                          const updated = [savedRec, ...prev.filter(r => (r.id !== savedRec.id && r.recordNo !== savedRec.recordNo))];
+                          try {
+                            localStorage.setItem('veri_inspection_records', JSON.stringify(updated));
+                          } catch {}
+                          return updated;
                         });
                         alert(`บันทึกผลการตรวจเช็คเลขที่ ${savedRec.recordNo || ''} เรียบร้อยแล้ว`);
                         setShowFillerModal(false);
+                        setActiveTab('records');
                         loadData();
-                        // Open view directly
                         handleViewRecord(savedRec);
                       } else {
                         alert('บันทึกไม่สำเร็จ: ' + (json?.error || 'เกิดข้อผิดพลาด'));
                       }
                     } catch {
-                      alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+                      // Offline/Network fallback: save locally so work is never lost
+                      const localSaved = {
+                        ...editingRecord,
+                        id: editingRecord.id || `rec-${Date.now()}`,
+                        updatedAt: new Date().toISOString()
+                      };
+                      setRecords(prev => {
+                        const updated = [localSaved, ...prev.filter(r => (r.id !== localSaved.id && r.recordNo !== localSaved.recordNo))];
+                        try {
+                          localStorage.setItem('veri_inspection_records', JSON.stringify(updated));
+                        } catch {}
+                        return updated;
+                      });
+                      alert(`บันทึกข้อมูลผลตรวจเช็คเรียบร้อยแล้ว (เลขที่ ${localSaved.recordNo || ''})`);
+                      setShowFillerModal(false);
+                      setActiveTab('records');
+                      handleViewRecord(localSaved);
                     }
                   }}
                   style={{ background: 'var(--accent, #2563eb)', color: 'white', border: 'none', padding: '8px 22px', borderRadius: 6, fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 10px rgba(37, 99, 235, 0.4)' }}>

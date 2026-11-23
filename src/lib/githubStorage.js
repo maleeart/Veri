@@ -890,5 +890,9 @@ module.exports = {
   deleteRepairProposal,
   loadRepairSettings,
   saveRepairSettings,
+  ghReq,
+  cfg,
+  saveFileViaGitTrees,
+  deleteFilesViaGitTrees
 };
 

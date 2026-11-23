@@ -153,10 +153,14 @@ async function getGitHubHelpers() {
     const gh = await import('./githubStorage.js');
     return {
       loadJsonFile: gh.loadJsonFile,
-      saveJsonFile: gh.saveJsonFile
+      saveJsonFile: gh.saveJsonFile,
+      ghReq: gh.ghReq,
+      cfg: gh.cfg,
+      saveFileViaGitTrees: gh.saveFileViaGitTrees,
+      deleteFilesViaGitTrees: gh.deleteFilesViaGitTrees
     };
   } catch {
-    return { loadJsonFile: null, saveJsonFile: null };
+    return { loadJsonFile: null, saveJsonFile: null, ghReq: null, cfg: null, saveFileViaGitTrees: null, deleteFilesViaGitTrees: null };
   }
 }
 
@@ -255,7 +259,7 @@ export async function saveInspectionSettings(settings) {
 
 export async function loadInspectionTemplates() {
   // 1. Try memory
-  if (Array.isArray(memoryTemplates) && memoryTemplates.length > 0) {
+  if (Array.isArray(memoryTemplates)) {
     return memoryTemplates;
   }
 
@@ -265,7 +269,7 @@ export async function loadInspectionTemplates() {
   try {
     if (fs.existsSync(templatesFile)) {
       const data = JSON.parse(fs.readFileSync(templatesFile, 'utf-8'));
-      if (Array.isArray(data) && data.length > 0) {
+      if (Array.isArray(data)) {
         memoryTemplates = data;
         return data;
       }
@@ -279,7 +283,7 @@ export async function loadInspectionTemplates() {
     const { loadJsonFile } = await getGitHubHelpers();
     if (loadJsonFile) {
       const ghData = await loadJsonFile('data/inspection-sheets/templates.json');
-      if (Array.isArray(ghData) && ghData.length > 0) {
+      if (Array.isArray(ghData)) {
         memoryTemplates = ghData;
         try {
           fs.writeFileSync(templatesFile, JSON.stringify(ghData, null, 2), 'utf-8');
@@ -289,7 +293,7 @@ export async function loadInspectionTemplates() {
     }
   } catch {}
 
-  // 4. Fallback to default presets and persist
+  // 4. Fallback to default presets and persist only if file never existed
   memoryTemplates = [...defaultTemplates];
   try {
     fs.writeFileSync(templatesFile, JSON.stringify(defaultTemplates, null, 2), 'utf-8');
@@ -411,8 +415,10 @@ export async function listInspectionRecords() {
   const recordsMap = new Map();
 
   // 1. Load from memory map
-  memoryRecordsMap.forEach((rec, key) => {
-    recordsMap.set(key, rec);
+  memoryRecordsMap.forEach((rec) => {
+    if (rec && (rec.recordNo || rec.id)) {
+      recordsMap.set(rec.recordNo || rec.id, rec);
+    }
   });
 
   // 2. Scan disk / tmp
@@ -428,8 +434,8 @@ export async function listInspectionRecords() {
             if (f.endsWith('.json')) {
               try {
                 const content = JSON.parse(fs.readFileSync(path.join(ymPath, f), 'utf-8'));
-                if (content && (content.id || content.recordNo)) {
-                  const key = content.id || content.recordNo;
+                if (content && (content.recordNo || content.id)) {
+                  const key = content.recordNo || content.id;
                   recordsMap.set(key, content);
                   memoryRecordsMap.set(key, content);
                 }
@@ -441,6 +447,41 @@ export async function listInspectionRecords() {
     }
   } catch (err) {
     console.warn('listInspectionRecords disk warning:', err.message);
+  }
+
+  // 3. Scan GitHub data branch if configured
+  try {
+    const { ghReq, cfg, loadJsonFile } = await getGitHubHelpers();
+    if (ghReq && cfg && loadJsonFile) {
+      const { owner, repo, branch } = cfg();
+      const refRes = await ghReq(`/repos/${owner}/${repo}/git/ref/heads/${branch}`);
+      if (refRes.status === 200) {
+        const { object: { sha: treeSha } } = await refRes.json();
+        const treeRes = await ghReq(`/repos/${owner}/${repo}/git/trees/${treeSha}?recursive=1`);
+        if (treeRes.ok) {
+          const { tree } = await treeRes.json();
+          const items = tree.filter(item =>
+            item.type === 'blob' &&
+            item.path.startsWith('data/inspection-sheets/records/') &&
+            item.path.endsWith('.json')
+          );
+          for (const item of items) {
+            try {
+              const data = await loadJsonFile(item.path);
+              if (data && (data.recordNo || data.id)) {
+                const key = data.recordNo || data.id;
+                if (!recordsMap.has(key)) {
+                  recordsMap.set(key, data);
+                  memoryRecordsMap.set(key, data);
+                }
+              }
+            } catch {}
+          }
+        }
+      }
+    }
+  } catch (ghErr) {
+    console.warn('listInspectionRecords GitHub scan warning:', ghErr.message);
   }
 
   const list = Array.from(recordsMap.values());
@@ -458,8 +499,7 @@ export async function loadInspectionRecord(idOrRecordNo) {
 
 export async function saveInspectionRecord(record) {
   const now = new Date();
-  const dateStr = record.inspectionDate || now.toISOString().slice(0, 10);
-  const ym = dateStr.slice(0, 7);
+  const ym = now.toISOString().slice(0, 7);
 
   const settings = await loadInspectionSettings();
   let recordNo = record.recordNo;
@@ -480,8 +520,8 @@ export async function saveInspectionRecord(record) {
   };
 
   // Update memory
-  memoryRecordsMap.set(id, fullRecord);
   memoryRecordsMap.set(recordNo, fullRecord);
+  memoryRecordsMap.set(id, fullRecord);
 
   // Write to disk / tmp
   try {
@@ -496,9 +536,26 @@ export async function saveInspectionRecord(record) {
 
   // Write to GitHub
   try {
-    const { saveJsonFile } = await getGitHubHelpers();
+    const { cfg, saveJsonFile, saveFileViaGitTrees } = await getGitHubHelpers();
     if (saveJsonFile) {
-      await saveJsonFile(`data/inspection-sheets/records/${ym}/${safeRecordNo}.json`, fullRecord, `บันทึกผลการตรวจเช็ค [${recordNo}] ${fullRecord.location || ''}`);
+      const relPath = `data/inspection-sheets/records/${ym}/${safeRecordNo}.json`;
+      const commitMsg = `บันทึกผลการตรวจเช็ค [${recordNo}] ${fullRecord.location || ''}`;
+      const jsonStr = JSON.stringify(fullRecord, null, 2);
+      const byteLen = Buffer.byteLength(jsonStr, 'utf-8');
+
+      if (byteLen < 950000) {
+        try {
+          await saveJsonFile(relPath, fullRecord, commitMsg);
+        } catch (eContents) {
+          if (saveFileViaGitTrees && cfg) {
+            const { owner, repo, branch } = cfg();
+            await saveFileViaGitTrees(owner, repo, branch, relPath, fullRecord, commitMsg);
+          }
+        }
+      } else if (saveFileViaGitTrees && cfg) {
+        const { owner, repo, branch } = cfg();
+        await saveFileViaGitTrees(owner, repo, branch, relPath, fullRecord, commitMsg);
+      }
     }
   } catch (err) {
     console.warn('saveInspectionRecord GitHub warning:', err.message);
@@ -530,6 +587,7 @@ export async function deleteInspectionRecord(idOrRecordNo) {
   memoryRecordsMap.delete(safe);
 
   let deleted = false;
+  // 1. Delete from disk
   try {
     const recordsDir = getRecordsDir();
     if (fs.existsSync(recordsDir)) {
@@ -551,6 +609,35 @@ export async function deleteInspectionRecord(idOrRecordNo) {
     }
   } catch (err) {
     console.warn('deleteInspectionRecord disk warning:', err.message);
+  }
+
+  // 2. Delete from GitHub if available
+  try {
+    const { ghReq, cfg, deleteFilesViaGitTrees } = await getGitHubHelpers();
+    if (ghReq && cfg && deleteFilesViaGitTrees) {
+      const { owner, repo, branch } = cfg();
+      const refRes = await ghReq(`/repos/${owner}/${repo}/git/ref/heads/${branch}`);
+      if (refRes.status === 200) {
+        const { object: { sha: treeSha } } = await refRes.json();
+        const treeRes = await ghReq(`/repos/${owner}/${repo}/git/trees/${treeSha}?recursive=1`);
+        if (treeRes.ok) {
+          const { tree } = await treeRes.json();
+          const pathsToDelete = tree
+            .filter(item =>
+              item.type === 'blob' &&
+              item.path.startsWith('data/inspection-sheets/records/') &&
+              (item.path.endsWith(`/${safe}.json`) || item.path.includes(`/${safe}.`))
+            )
+            .map(item => item.path);
+          if (pathsToDelete.length > 0) {
+            await deleteFilesViaGitTrees(owner, repo, branch, pathsToDelete, `ลบผลการตรวจเช็ค [${idOrRecordNo}]`);
+            deleted = true;
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('deleteInspectionRecord GitHub warning:', err.message);
   }
 
   return { ok: deleted, id: idOrRecordNo };
