@@ -1,0 +1,25 @@
+{
+  "header": {
+    "companyTitle": "การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย (กฟผ.)",
+    "companySubtitle": "ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร (หบท-ธ.)",
+    "companyAddress": "โทรศัพท์ 02-436-0000 | อาคาร ท.102 สำนักงานกลาง กฟผ.",
+    "logoType": "egat",
+    "customLogoUrl": "",
+    "showLetterhead": true,
+    "bannerTheme": "white"
+  },
+  "surveyor": {
+    "name": "นายช่างเทคนิค กฟผ.",
+    "role": "ช่างเทคนิค/วิศวกรระบบ",
+    "department": "หบท-ธ. ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร",
+    "signatureUrl": ""
+  },
+  "runningNumber": {
+    "prefix": "INS-",
+    "yearType": "buddhist",
+    "nextNumber": 2,
+    "digits": 3
+  },
+  "adminPin": "8888",
+  "updatedAt": "2026-11-23T06:59:50.086Z"
+}
