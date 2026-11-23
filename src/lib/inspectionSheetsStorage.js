@@ -6,6 +6,7 @@ import os from 'os';
 let memoryTemplates = null;
 let memorySettings = null;
 const memoryRecordsMap = new Map();
+const memoryDeletedRecordKeys = new Set();
 
 // Default initial settings
 export const defaultInspectionSettings = {
@@ -16,7 +17,10 @@ export const defaultInspectionSettings = {
     logoType: 'egat',
     customLogoUrl: '',
     showLetterhead: true,
-    bannerTheme: 'white'
+    bannerTheme: 'white',
+    bannerLayout: 'bleed', // 'bleed' | 'contained'
+    bannerImageUrl: '',
+    logoSize: 'large' // 'normal' | 'large' | 'xlarge'
   },
   surveyor: {
     name: 'นายช่างเทคนิค กฟผ.',
@@ -510,7 +514,11 @@ export async function listInspectionRecords() {
     console.warn('listInspectionRecords GitHub scan warning:', ghErr.message);
   }
 
-  const list = Array.from(recordsMap.values());
+  const list = Array.from(recordsMap.values()).filter(r => 
+    !memoryDeletedRecordKeys.has(r.id) && 
+    !memoryDeletedRecordKeys.has(r.recordNo) &&
+    !memoryDeletedRecordKeys.has(String(r.recordNo || '').replace(/[/\\:*?"<>|]/g, '-'))
+  );
   return list.sort((a, b) => {
     const da = a.createdAt || a.inspectionDate || '';
     const db = b.createdAt || b.inspectionDate || '';
@@ -546,6 +554,9 @@ export async function saveInspectionRecord(record) {
   };
 
   // Update memory
+  memoryDeletedRecordKeys.delete(recordNo);
+  memoryDeletedRecordKeys.delete(id);
+  memoryDeletedRecordKeys.delete(safeRecordNo);
   memoryRecordsMap.set(recordNo, fullRecord);
   memoryRecordsMap.set(id, fullRecord);
 
@@ -609,6 +620,8 @@ export async function saveInspectionRecord(record) {
 
 export async function deleteInspectionRecord(idOrRecordNo) {
   const safe = String(idOrRecordNo).replace(/[/\\:*?"<>|]/g, '-');
+  memoryDeletedRecordKeys.add(idOrRecordNo);
+  memoryDeletedRecordKeys.add(safe);
   memoryRecordsMap.delete(idOrRecordNo);
   memoryRecordsMap.delete(safe);
 
@@ -666,5 +679,5 @@ export async function deleteInspectionRecord(idOrRecordNo) {
     console.warn('deleteInspectionRecord GitHub warning:', err.message);
   }
 
-  return { ok: deleted, id: idOrRecordNo };
+  return { ok: true, deleted: true, id: idOrRecordNo };
 }

@@ -56,13 +56,17 @@ export async function POST(request) {
 export async function DELETE(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const id = searchParams.get('id') || searchParams.get('recordNo');
 
     if (!id) {
       return NextResponse.json({ ok: false, error: 'ต้องระบุ id หรือ recordNo' }, { status: 400 });
     }
 
     const result = await deleteInspectionRecord(id);
+    const recordNo = searchParams.get('recordNo');
+    if (recordNo && recordNo !== id) {
+      await deleteInspectionRecord(recordNo);
+    }
     return NextResponse.json({ ok: true, ...result });
   } catch (err) {
     console.error('API records DELETE error:', err);

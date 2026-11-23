@@ -562,6 +562,12 @@ function HomePageInner() {
           <p className="subtitle">ระบบบันทึกการตรวจสอบ</p>
         </div>
         <div className="user-box">
+          <button 
+            className="icon-btn icon-btn--inspect" 
+            title="แบบฟอร์มตรวจเช็ค (Inspection Sheets)" 
+            onClick={() => router.push('/inspection-sheets')}>
+            📋
+          </button>
           {role !== 'visitor' && (
             <button className="notif-btn" title="สถานะคำขอ" onClick={openNotif}>
               {!notifUnread ? '📭' : '✉️'}
@@ -1153,13 +1159,12 @@ function HomePageInner() {
 
         {/* Card 6 — แบบฟอร์มตรวจเช็ค (Inspection Sheets) */}
         <button
-          className="card card--repair"
-          onClick={() => router.push('/inspection-sheets')}
-          style={{ borderLeft: '4px solid #3b82f6' }}>
+          className="card card--inspect"
+          onClick={() => router.push('/inspection-sheets')}>
           <span className="card__icon">📋</span>
           <div className="card__body">
             <span className="card__title">แบบฟอร์มตรวจเช็ค</span>
-            <span className="card__sub">สร้างฟอร์ม & บันทึกผล</span>
+            <span className="card__sub">สร้างฟอร์ม &amp; บันทึกผล</span>
           </div>
           <span className="card__arrow">›</span>
         </button>
@@ -1814,6 +1819,25 @@ function HomePageInner() {
         .card--repair .card__title { color: #fff; font-size: 15px; }
         .card--repair .card__sub   { color: rgba(255,255,255,0.85); }
         .card--repair .card__arrow { color: rgba(255,255,255,0.7); margin-left: auto; }
+
+        /* แบบฟอร์มตรวจเช็ค (Inspection Sheets) — Emerald Teal gradient */
+        .card--inspect {
+          grid-column: 1 / -1;
+          background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+          box-shadow: 0 6px 18px rgba(13,148,136,0.35);
+          min-height: 72px;
+          gap: 12px;
+        }
+        .card--inspect .card__icon  { font-size: 26px; }
+        .card--inspect .card__title { color: #fff; font-size: 15px; }
+        .card--inspect .card__sub   { color: rgba(255,255,255,0.88); }
+        .card--inspect .card__arrow { color: rgba(255,255,255,0.7); margin-left: auto; }
+
+        @media (max-width: 820px) {
+          .card--inspect {
+            display: none !important;
+          }
+        }
 
         /* History — dark */
         .card--history {
@@ -2505,6 +2529,24 @@ function HomePageInner() {
         .notif-edit-arrow { color: var(--ink-muted); }
         .notif-edit-new { color: var(--status-pass); }
         .icon-btn { background: none; border: none; font-size: 16px; cursor: pointer; padding: 4px 6px; border-radius: 8px; color: var(--ink-muted); }
+        .icon-btn--inspect {
+          background: rgba(16, 185, 129, 0.16);
+          border: 1px solid rgba(16, 185, 129, 0.45);
+          color: #34d399;
+          font-size: 17px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          padding: 0;
+          transition: all 0.15s ease;
+        }
+        .icon-btn--inspect:hover {
+          background: rgba(16, 185, 129, 0.32);
+          transform: translateY(-1px);
+        }
         .admin-badge {
           background: none;
           border: none;
