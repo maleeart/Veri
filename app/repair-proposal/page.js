@@ -338,6 +338,27 @@ function RepairProposalListInner() {
 
                   {/* Card Footer Actions */}
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, borderTop: '1px solid var(--border-hairline, #1e2e4a)', paddingTop: 12 }}>
+                    {!isApproved && (
+                      <button 
+                        onClick={() => router.push(`/repair-proposal/new?refNo=${encodeURIComponent(item.refNo)}&admin=1`)}
+                        title="สำหรับผู้ตรวจสอบรับรอง: เปิดเพื่อลงนามรับรองเอกสาร"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          background: 'rgba(245, 158, 11, 0.2)',
+                          color: '#fbbf24',
+                          fontWeight: 700,
+                          fontSize: 13,
+                          padding: '7px 14px',
+                          borderRadius: 8,
+                          border: '1px solid rgba(245, 158, 11, 0.45)',
+                          cursor: 'pointer'
+                        }}>
+                        <span>🛡️ ตรวจสอบ/ลงนามรับรอง</span>
+                      </button>
+                    )}
+
                     <button 
                       onClick={() => router.push(`/repair-proposal/new?refNo=${encodeURIComponent(item.refNo)}`)}
                       style={{

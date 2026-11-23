@@ -63,11 +63,23 @@ const defaultAdminSettings = {
     showLetterhead: true
   },
   approver: {
+    id: 'tuangpetch',
     name: 'นายตวงเพชร ชัยยานนท์',
     role: 'วศ.4 หบท-ธ.',
     signatureType: 'image',
     signatureUrl: '/assets/shared/signature-approver.png'
   },
+  approvers: [
+    {
+      id: 'tuangpetch',
+      name: 'นายตวงเพชร ชัยยานนท์',
+      role: 'วศ.4 หบท-ธ.',
+      signatureType: 'image',
+      signatureUrl: '/assets/shared/signature-approver.png',
+      isDefault: true
+    }
+  ],
+  activeApproverId: 'tuangpetch',
   runningNumber: {
     prefix: 'REP-',
     yearType: 'buddhist', // 'buddhist' | 'christian' | 'none'
@@ -339,15 +351,16 @@ function RepairProposalFormInner() {
   // Technical Specs / Substitution Conditions (Fallback for backward compatibility)
   const [substitutionSpecs, setSubstitutionSpecs] = useState('');
 
-  // Step 5: Justification & 2 Signatories (Approver default: นายตวงเพชร ชัยยานนท์)
+  // Step 4 & Status: Justification, Approval Status & Signatures
   const [justification, setJustification] = useState('');
+  const [proposalStatus, setProposalStatus] = useState('pending_approval'); // 'pending_approval' | 'approved'
+  const [approvalDecision, setApprovalDecision] = useState('pending'); // 'pending' | 'approved' | 'rejected'
   const [approverName, setApproverName] = useState('นายตวงเพชร ชัยยานนท์');
   const [approverRole, setApproverRole] = useState('วศ.4 หบท-ธ.');
-  const [approvalDecision, setApprovalDecision] = useState('approved'); // 'approved' | 'rejected'
 
   // Signatures
   const [sig1Image, setSig1Image] = useState(null); // Inspector
-  const [sig2Image, setSig2Image] = useState('/assets/shared/signature-approver.png'); // Approver Tuangpetch
+  const [sig2Image, setSig2Image] = useState(null); // Approver (stamped only when certified by Admin)
   const [approverSigMode, setApproverSigMode] = useState('image'); // 'image' | 'draw'
   const [syncingCloud, setSyncingCloud] = useState(false);
 
@@ -429,6 +442,8 @@ function RepairProposalFormInner() {
             ...parsed,
             header: migratedHeader,
             approver: { ...defaultAdminSettings.approver, ...(parsed.approver || {}) },
+            approvers: (Array.isArray(parsed.approvers) && parsed.approvers.length > 0) ? parsed.approvers : defaultAdminSettings.approvers,
+            activeApproverId: parsed.activeApproverId || defaultAdminSettings.activeApproverId,
             runningNumber: { ...defaultAdminSettings.runningNumber, ...(parsed.runningNumber || {}) },
             defaults: { ...defaultAdminSettings.defaults, ...(parsed.defaults || {}) },
             isCustomized: Boolean(parsed.isCustomized || hasLocalCustom),
@@ -479,6 +494,8 @@ function RepairProposalFormInner() {
               showLetterhead: s.header?.showLetterhead !== undefined ? s.header.showLetterhead : (loaded.header?.showLetterhead !== undefined ? loaded.header.showLetterhead : true),
             },
             approver: { ...defaultAdminSettings.approver, ...loaded.approver, ...(s.approver || {}) },
+            approvers: (Array.isArray(s.approvers) && s.approvers.length > 0) ? s.approvers : (Array.isArray(loaded.approvers) && loaded.approvers.length > 0 ? loaded.approvers : defaultAdminSettings.approvers),
+            activeApproverId: s.activeApproverId || loaded.activeApproverId || defaultAdminSettings.activeApproverId,
             runningNumber: { ...defaultAdminSettings.runningNumber, ...loaded.runningNumber, ...(s.runningNumber || {}) },
             defaults: { ...defaultAdminSettings.defaults, ...loaded.defaults, ...(s.defaults || {}) },
             isCustomized: isServerCustomized || hasLocalCustom || Boolean(bestBannerImageUrl),
@@ -510,7 +527,9 @@ function RepairProposalFormInner() {
         setDocDate(getTodayThaiDate());
         setApproverName(loaded.approver?.name || 'นายตวงเพชร ชัยยานนท์');
         setApproverRole(loaded.approver?.role || 'วศ.4 หบท-ธ.');
-        setSig2Image(loaded.approver?.signatureUrl || '/assets/shared/signature-approver.png');
+        setSig2Image(null); // Initial state: Approver hasn't certified yet
+        setProposalStatus('pending_approval');
+        setApprovalDecision('pending');
         setDepartment(loaded.defaults?.department || 'หบท-ธ. ฝ่ายบำรุงรักษาและวิศวกรรมอาคาร');
         setInspectorRole(loaded.defaults?.inspectorRole || 'วิศวกรระบบไฟฟ้าและบำรุงรักษา');
         setPriority(loaded.defaults?.priority || 'high');
@@ -559,9 +578,16 @@ function RepairProposalFormInner() {
             }
             if (data.substitutionSpecs) setSubstitutionSpecs(data.substitutionSpecs);
             if (data.justification) setJustification(data.justification);
+            const isApproved = data.status === 'approved' || data.signatures?.approver?.decision === 'approved' || (data.signatures?.approver?.signed && Boolean(data.signatures?.approver?.image));
+            setProposalStatus(isApproved ? 'approved' : 'pending_approval');
+            setApprovalDecision(isApproved ? 'approved' : (data.signatures?.approver?.decision || 'pending'));
             if (data.signatures?.approver?.name) setApproverName(data.signatures.approver.name);
             if (data.signatures?.approver?.role) setApproverRole(data.signatures.approver.role);
-            if (data.signatures?.approver?.image) setSig2Image(data.signatures.approver.image);
+            if (isApproved && data.signatures?.approver?.image) {
+              setSig2Image(data.signatures.approver.image);
+            } else {
+              setSig2Image(null);
+            }
             if (data.signatures?.surveyor?.image) setSig1Image(data.signatures.surveyor.image);
             if (data.header) {
               setAdminSettings(prev => ({
@@ -605,8 +631,9 @@ function RepairProposalFormInner() {
     setApproverName(adminSettings.approver?.name || 'นายตวงเพชร ชัยยานนท์');
     setApproverRole(adminSettings.approver?.role || 'วศ.4 หบท-ธ.');
     setSig1Image(null);
-    setSig2Image(adminSettings.approver?.signatureUrl || '/assets/shared/signature-approver.png');
-    setApprovalDecision('approved');
+    setSig2Image(null);
+    setProposalStatus('pending_approval');
+    setApprovalDecision('pending');
     setCurrentStep(0);
     setActiveView('wizard');
 
@@ -635,6 +662,7 @@ function RepairProposalFormInner() {
     setApproverName('นายตวงเพชร ชัยยานนท์');
     setApproverRole('วศ.4 หบท-ธ.');
     setSig2Image('/assets/shared/signature-approver.png');
+    setProposalStatus('approved');
     setApprovalDecision('approved');
     setCurrentStep(0);
   };
@@ -881,7 +909,7 @@ function RepairProposalFormInner() {
       docDate,
       docDateISO: new Date().toISOString().slice(0, 10),
       priority,
-      status: approvalDecision === 'approved' ? 'approved' : 'pending_approval',
+      status: proposalStatus === 'approved' ? 'approved' : 'pending_approval',
       inspector: {
         name: inspectorName,
         role: inspectorRole,
@@ -907,7 +935,9 @@ function RepairProposalFormInner() {
       justification,
       signatures: {
         surveyor: { name: inspectorName, role: inspectorRole, signed: !!sig1Image, image: sig1Image },
-        approver: { name: approverName, role: approverRole, signed: true, decision: approvalDecision, image: sig2Image }
+        approver: proposalStatus === 'approved'
+          ? { name: approverName, role: approverRole, signed: true, decision: 'approved', image: sig2Image }
+          : { name: approverName || '', role: approverRole || '', signed: false, decision: 'pending', image: null }
       }
     };
 
@@ -919,7 +949,7 @@ function RepairProposalFormInner() {
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.ok) {
-        alert(`บันทึกใบเสนอแจ้งซ่อม ${refNo} ลงระบบออนไลน์เรียบร้อยแล้ว!`);
+        alert(`บันทึกใบเสนอแจ้งซ่อม ${refNo} ลงระบบออนไลน์เรียบร้อยแล้ว!\n(สถานะ: ${proposalStatus === 'approved' ? 'อนุมัติรับรองแล้ว' : 'รอการตรวจสอบและรับรอง'})`);
         router.push('/repair-proposal');
       } else {
         alert(`บันทึกไม่สำเร็จ: ${data.error || `HTTP ${res.status} ${res.statusText}` || 'กรุณาลองใหม่อีกครั้ง'}`);
@@ -928,6 +958,110 @@ function RepairProposalFormInner() {
       alert(`เกิดข้อผิดพลาดในการเชื่อมต่อ: ${err.message}`);
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Certify or Revert Proposal as Approver (Admin only)
+  const handleCertifyDocument = async (targetRefNo, approverProfile, action = 'approve') => {
+    const isApprove = action === 'approve';
+    const profile = approverProfile || adminSettings.approver || defaultAdminSettings.approver;
+    const refToUse = (targetRefNo || refNo || '').trim();
+
+    if (!refToUse) {
+      alert('ไม่พบเลขที่เอกสาร');
+      return false;
+    }
+
+    // Update active component state if certifying the currently open proposal
+    if (refToUse === refNo.trim()) {
+      if (isApprove) {
+        setProposalStatus('approved');
+        setApprovalDecision('approved');
+        setApproverName(profile.name);
+        setApproverRole(profile.role);
+        setSig2Image(profile.signatureUrl);
+      } else {
+        setProposalStatus('pending_approval');
+        setApprovalDecision('pending');
+        setSig2Image(null);
+      }
+    }
+
+    try {
+      let targetDoc = null;
+      if (refToUse !== refNo.trim()) {
+        const resLoad = await fetch(`/api/repair-proposals?refNo=${encodeURIComponent(refToUse)}`);
+        const jsonLoad = await resLoad.json();
+        if (jsonLoad && jsonLoad.refNo) targetDoc = jsonLoad;
+      } else {
+        targetDoc = {
+          refNo: refNo.trim(),
+          fmRefNo: (fmRefNo || '').trim(),
+          jobTitle: jobTitle.trim(),
+          docDate,
+          docDateISO: new Date().toISOString().slice(0, 10),
+          priority,
+          inspector: { name: inspectorName, role: inspectorRole, department },
+          header: {
+            bannerImageUrl: adminSettings.header?.bannerImageUrl || '',
+            bannerLayout: adminSettings.header?.bannerLayout || 'bleed',
+            showLetterhead: adminSettings.header?.showLetterhead ?? true,
+          },
+          surveyPoints,
+          itemsRequested,
+          substitutionSpecs,
+          justification,
+          signatures: {
+            surveyor: { name: inspectorName, role: inspectorRole, signed: !!sig1Image, image: sig1Image }
+          }
+        };
+      }
+
+      if (targetDoc) {
+        const updatedPayload = {
+          ...targetDoc,
+          status: isApprove ? 'approved' : 'pending_approval',
+          signatures: {
+            ...(targetDoc.signatures || {}),
+            surveyor: targetDoc.signatures?.surveyor || { name: inspectorName, role: inspectorRole, signed: !!sig1Image, image: sig1Image },
+            approver: isApprove ? {
+              name: profile.name,
+              role: profile.role,
+              signed: true,
+              decision: 'approved',
+              image: profile.signatureUrl,
+              approvedAt: new Date().toISOString()
+            } : {
+              name: profile.name,
+              role: profile.role,
+              signed: false,
+              decision: 'pending',
+              image: null,
+              unapprovedAt: new Date().toISOString()
+            }
+          }
+        };
+
+        const res = await fetch('/api/repair-proposals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedPayload)
+        });
+        const resData = await res.json().catch(() => ({}));
+        if (res.ok && resData.ok) {
+          alert(isApprove
+            ? `✅ ยืนยันการตรวจสอบและลงนามรับรองเอกสาร ${refToUse} เรียบร้อยแล้ว!\nผู้รับรอง: ${profile.name} (${profile.role})`
+            : `ℹ️ ยกเลิกการรับรองเอกสาร ${refToUse} เรียบร้อยแล้ว (สถานะ: รอการตรวจสอบและรับรอง)`
+          );
+          return true;
+        } else {
+          alert(`⚠️ ไม่สามารถบันทึกการรับรองได้: ${resData?.error || 'เกิดข้อผิดพลาด'}`);
+          return false;
+        }
+      }
+    } catch (err) {
+      alert(`⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อ: ${err.message}`);
+      return false;
     }
   };
 
@@ -955,6 +1089,12 @@ function RepairProposalFormInner() {
     }
   };
 
+  useEffect(() => {
+    if (searchParams.get('admin') === '1') {
+      openAdminPanel();
+    }
+  }, [searchParams]);
+
   // Save Admin Settings
   const handleSaveAdminSettings = async (newSettings) => {
     const customized = {
@@ -975,10 +1115,10 @@ function RepairProposalFormInner() {
       } catch (e2) {}
     }
     
-    // 1. Update approver & signature immediately in active form
+    // 1. Update approver immediately in active form
     if (customized.approver?.name) setApproverName(customized.approver.name);
     if (customized.approver?.role) setApproverRole(customized.approver.role);
-    if (customized.approver?.signatureUrl) {
+    if (proposalStatus === 'approved' && customized.approver?.signatureUrl) {
       setSig2Image(customized.approver.signatureUrl);
       setApproverSigMode('image');
     }
@@ -1945,7 +2085,7 @@ function RepairProposalFormInner() {
                             {itemPhotos.length > 0 && (
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                                 {itemPhotos.map((photoSrc, pIdx) => (
-                                  <div key={pIdx} style={{ position: 'relative', width: 68, height: 68, borderRadius: 6, overflow: 'hidden', border: '1.5px solid var(--border-strong, #2d3f5e)', background: '#000' }}>
+                                  <div key={pIdx} style={{ position: 'relative', width: 68, height: 68, borderRadius: 6, overflow: 'hidden', border: '1.5px solid var(--border-strong, #2d3f5e)', background: '#ffffff' }}>
                                     <img src={photoSrc} alt={`Defect ${pIdx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     <button 
                                       type="button"
@@ -2281,7 +2421,7 @@ function RepairProposalFormInner() {
                               {itemPhotos.length > 0 && (
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                                   {itemPhotos.map((photoSrc, pIdx) => (
-                                    <div key={pIdx} style={{ position: 'relative', width: 68, height: 68, borderRadius: 6, overflow: 'hidden', border: '1.5px solid var(--border-strong, #2d3f5e)', background: '#000' }}>
+                                    <div key={pIdx} style={{ position: 'relative', width: 68, height: 68, borderRadius: 6, overflow: 'hidden', border: '1.5px solid var(--border-strong, #2d3f5e)', background: '#ffffff' }}>
                                       <img src={photoSrc} alt={`Equipment ${pIdx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                       <button 
                                         type="button"
@@ -2358,11 +2498,11 @@ function RepairProposalFormInner() {
               </div>
             )}
 
-            {/* STEP 4: Signatures (with optional justification) */}
+            {/* STEP 4: Surveyor Signature (Signatory 2 moved to Admin Settings) */}
             {currentStep === 3 && (
               <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 12, padding: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', marginBottom: 14 }}>
-                  ✍️ ส่วนลงนาม (ผู้สำรวจและวิเคราะห์ / ผู้ตรวจสอบและรับรอง)
+                  ✍️ ส่วนลงนามผู้สำรวจและวิเคราะห์
                 </h3>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 14 }}>
@@ -2402,102 +2542,31 @@ function RepairProposalFormInner() {
                     </div>
                   </div>
 
-                  {/* Sign 2: Inspector & Certifier (Default: นายตวงเพชร ชัยยานนท์) */}
-                  <div style={{ border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: 14, textAlign: 'center', background: 'var(--bg-surface-raised, #172340)' }}>
-                    <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink-primary, #eef2ff)', marginBottom: 6 }}>
-                      2. ผู้ตรวจสอบและรับรอง
-                    </div>
-                    
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: 14, marginBottom: 8, fontSize: 12 }}>
-                      <label style={{ fontWeight: 700, color: '#4ade80', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <input type="radio" name="apprDecision" checked={approvalDecision === 'approved'} onChange={() => setApprovalDecision('approved')} /> รับรอง
-                      </label>
-                      <label style={{ color: 'var(--ink-secondary, #94a3c4)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <input type="radio" name="apprDecision" checked={approvalDecision === 'rejected'} onChange={() => setApprovalDecision('rejected')} /> ไม่รับรอง
-                      </label>
-                    </div>
-
-                    {approverSigMode === 'image' ? (
-                      <div style={{ border: '1px dashed var(--border-strong, #2d3f5e)', borderRadius: 6, padding: '8px 10px', background: '#ffffff', minHeight: 95, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                        {sig2Image ? (
-                          <div>
-                            <img src={sig2Image} alt="Approver Signature" style={{ maxHeight: 60, maxWidth: 220, objectFit: 'contain' }} />
-                            <div style={{ fontSize: 10.5, color: '#15803d', fontWeight: 700, marginTop: 4 }}>
-                              ✓ รูปลายเซ็นต์ทางการของ {approverName}
-                            </div>
-                          </div>
-                        ) : (
-                          <div style={{ color: '#94a3b8', fontSize: 12, fontStyle: 'italic' }}>ยังไม่มีลายเซ็นต์ผู้ตรวจสอบและรับรอง</div>
-                        )}
-                        <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-                          <button
-                            type="button"
-                            onClick={() => setSig2Image(adminSettings.approver?.signatureUrl || '/assets/shared/signature-approver.png')}
-                            style={{ background: '#e0f2fe', border: '1px solid #bae6fd', color: '#0369a1', padding: '3px 8px', borderRadius: 4, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
-                            ใช้ลายเซ็นต์ตวงเพชร
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setApproverSigMode('draw')}
-                            style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#475569', padding: '3px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
-                            วาดเซ็นต์สด
-                          </button>
-                          <label style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#475569', padding: '3px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
-                            อัปโหลดรูป
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={async (e) => {
-                                const f = e.target.files[0];
-                                if (!f) return;
-                                try {
-                                  const compressed = await compressImageFile(f, 600, 200, 0.9);
-                                  setSig2Image(compressed);
-                                } catch (err) {
-                                  alert('ไม่สามารถโหลดรูปภาพได้: ' + err.message);
-                                }
-                              }}
-                              style={{ display: 'none' }}
-                            />
-                          </label>
+                  {/* Section 2 Info Card: Notice about Approver moving to Admin */}
+                  <div style={{ border: '1.5px dashed rgba(56, 189, 248, 0.4)', borderRadius: 8, padding: 18, background: 'rgba(56, 189, 248, 0.05)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                      <span style={{ fontSize: 26 }}>🛡️</span>
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: 13.5, color: '#38bdf8' }}>
+                          2. ผู้ตรวจสอบและรับรองความถูกต้อง
+                        </div>
+                        <div style={{ fontSize: 11.5, color: '#93c5fd' }}>
+                          ขั้นตอนลงนามรับรองย้ายไปอยู่ในเมนู <strong>Admin Settings</strong>
                         </div>
                       </div>
-                    ) : (
-                      <div>
-                        <SignaturePad 
-                          value={sig2Image} 
-                          onChange={setSig2Image} 
-                          placeholder="วาดลายเซ็นต์ผู้ตรวจสอบและรับรอง" 
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setApproverSigMode('image')}
-                          style={{ marginTop: 6, background: 'none', border: 'none', color: '#60a5fa', fontSize: 11.5, cursor: 'pointer', textDecoration: 'underline' }}>
-                          สลับไปใช้รูปลายเซ็นต์เดิม
-                        </button>
-                      </div>
-                    )}
-
-                    <div style={{ textAlign: 'left', marginTop: 10, marginBottom: 6 }}>
-                      <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)' }}>ชื่อ-นามสกุล ผู้ตรวจสอบและรับรอง:</label>
-                      <input 
-                        type="text" 
-                        value={approverName} 
-                        onChange={e => setApproverName(e.target.value)} 
-                        className="wizard-dark-input"
-                        style={{ width: '100%', padding: '6px 8px', fontSize: 12.5 }} 
-                      />
                     </div>
+                    
+                    <p style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)', lineHeight: 1.6, margin: '0 0 12px' }}>
+                      ผู้สำรวจทำหน้าที่ลงนามเฉพาะส่วนที่ 1 เท่านั้น เมื่อบันทึกเอกสารแล้ว เอกสารจะมีสถานะ <strong>"รอการตรวจสอบและรับรอง"</strong>
+                    </p>
 
-                    <div style={{ textAlign: 'left' }}>
-                      <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)' }}>ตำแหน่ง:</label>
-                      <input 
-                        type="text" 
-                        value={approverRole} 
-                        onChange={e => setApproverRole(e.target.value)} 
-                        className="wizard-dark-input"
-                        style={{ width: '100%', padding: '6px 8px', fontSize: 12.5 }} 
-                      />
+                    <div style={{ background: 'var(--bg-input, #080e1a)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: 6, padding: '10px 12px', fontSize: 11.5, color: '#cbd5e1', lineHeight: 1.5 }}>
+                      <div style={{ fontWeight: 700, color: '#fef08a', marginBottom: 3 }}>
+                        🔐 การดำเนินการของผู้ตรวจสอบ (Admin):
+                      </div>
+                      <div>• ตรวจสอบความถูกต้องและกดยืนยันลงนามรับรองผ่านเมนู Admin (PIN: 8888)</div>
+                      <div>• สามารถเลือก/เปลี่ยนผู้ลงนาม, อัปโหลดรูปลายเซ็นต์ หรือวาดสดได้ในระบบ Admin</div>
+                      <div>• ลายเซ็นต์และชื่อผู้รับรองจะปรากฏในเอกสารฉบับทางการหลังจากได้รับการยืนยันแล้วเท่านั้น</div>
                     </div>
                   </div>
                 </div>
@@ -2696,6 +2765,106 @@ function RepairProposalFormInner() {
                   <span>🖨️</span> สั่งพิมพ์ (Print)
                 </button>
               </div>
+            </div>
+
+            {/* Document Approval Status Notification Banner (Screen only, excluded from print) */}
+            <div className="no-print" style={{ marginBottom: 16 }}>
+              {proposalStatus !== 'approved' ? (
+                <div style={{
+                  background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(217, 119, 6, 0.12) 100%)',
+                  border: '1.5px solid #f59e0b',
+                  borderRadius: 10,
+                  padding: '12px 18px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 12,
+                  boxShadow: '0 4px 16px rgba(245, 158, 11, 0.15)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontSize: 26 }}>⏳</span>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: 13.5, color: '#fbbf24' }}>
+                        สถานะ: อยู่ระหว่างรอการตรวจสอบและรับรองความถูกต้อง (Pending Approval)
+                      </div>
+                      <div style={{ fontSize: 12, color: '#e2e8f0', marginTop: 2 }}>
+                        เอกสารถูกสร้างโดยผู้สำรวจแล้ว ในเอกสารฉบับพิมพ์จะยังไม่แสดงลายเซ็นต์ผู้รับรองจนกว่าผู้มีอำนาจจะกดยืนยันรับรอง
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isAdminAuth) {
+                        setShowSettingsModal(true);
+                      } else {
+                        setShowPinModal(true);
+                      }
+                    }}
+                    style={{
+                      background: '#f59e0b',
+                      border: 'none',
+                      color: '#0f172a',
+                      fontWeight: 800,
+                      fontSize: 12.5,
+                      padding: '8px 16px',
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(245, 158, 11, 0.4)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6
+                    }}>
+                    <span>🛡️</span> ตรวจสอบและลงนามรับรอง (Admin)
+                  </button>
+                </div>
+              ) : (
+                <div style={{
+                  background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(22, 163, 74, 0.12) 100%)',
+                  border: '1.5px solid #22c55e',
+                  borderRadius: 10,
+                  padding: '12px 18px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 12
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontSize: 26 }}>✅</span>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: 13.5, color: '#4ade80' }}>
+                        สถานะ: ได้รับการตรวจสอบและลงนามรับรองความถูกต้องเรียบร้อยแล้ว
+                      </div>
+                      <div style={{ fontSize: 12, color: '#cbd5e1', marginTop: 2 }}>
+                        ผู้ตรวจสอบและรับรอง: <strong style={{ color: '#ffffff' }}>{approverName}</strong> ({approverRole})
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isAdminAuth) {
+                        setShowSettingsModal(true);
+                      } else {
+                        setShowPinModal(true);
+                      }
+                    }}
+                    style={{
+                      background: 'rgba(34, 197, 94, 0.2)',
+                      border: '1px solid #22c55e',
+                      color: '#4ade80',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      padding: '6px 14px',
+                      borderRadius: 6,
+                      cursor: 'pointer'
+                    }}>
+                    ⚙️ จัดการผู้รับรองใน Admin
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Printable Container for PDF Engine */}
@@ -2983,23 +3152,33 @@ function RepairProposalFormInner() {
                   <div style={{ fontSize: 11, color: '#1e293b', fontWeight: 600 }}>{inspectorRole || 'วิศวกรผู้สำรวจและวิเคราะห์'}</div>
                 </div>
 
-                {/* Sig 2: Inspector & Certifier (Tuangpetch) */}
+                {/* Sig 2: Inspector & Certifier */}
                 <div style={{ border: '2px solid #334155', borderRadius: 6, padding: '12px 14px', textAlign: 'center', minHeight: 145, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#ffffff' }}>
                   <div style={{ fontWeight: 800, color: '#0f2e5a', marginBottom: 2, fontSize: 12.5 }}>ผู้ตรวจสอบและรับรอง</div>
-                  <div style={{ fontSize: 11, color: approvalDecision === 'approved' ? '#15803d' : '#b91c1c', fontWeight: 800 }}>
-                    {approvalDecision === 'approved' ? '⦿ ตรวจสอบและรับรองความถูกต้อง' : '⭘ ไม่รับรอง'}
+                  <div style={{ height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {proposalStatus === 'approved' ? (
+                      <span style={{ fontSize: 11, color: '#15803d', fontWeight: 800, background: '#dcfce7', padding: '1px 8px', borderRadius: 4, border: '1px solid #86efac' }}>
+                        ⦿ ตรวจสอบและรับรองความถูกต้อง
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: 10.5, color: '#b45309', fontWeight: 800, background: '#fef3c7', padding: '1px 8px', borderRadius: 4, border: '1px solid #fde68a' }}>
+                        ⏳ รอการตรวจสอบและรับรองความถูกต้อง
+                      </span>
+                    )}
                   </div>
                   <div style={{ height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {sig2Image ? (
+                    {proposalStatus === 'approved' && sig2Image ? (
                       <img src={sig2Image} alt="Approver Signature" style={{ maxHeight: 48, maxWidth: '90%', objectFit: 'contain' }} />
                     ) : (
-                      <span style={{ color: '#475569', fontWeight: 700, fontSize: 12 }}>....................................................</span>
+                      <span style={{ color: '#94a3b8', fontWeight: 700, fontSize: 12 }}>....................................................</span>
                     )}
                   </div>
                   <div style={{ borderTop: '1.5px solid #334155', paddingTop: 6, fontSize: 11.5, fontWeight: 700, color: '#0f172a' }}>
-                    ({approverName || 'ผู้ตรวจสอบและรับรอง'})
+                    {proposalStatus === 'approved' ? `(${approverName || 'ผู้ตรวจสอบและรับรอง'})` : '(....................................................)'}
                   </div>
-                  <div style={{ fontSize: 11, color: '#1e293b', fontWeight: 600 }}>{approverRole || 'วศ.4 หบท-ธ.'}</div>
+                  <div style={{ fontSize: 11, color: '#1e293b', fontWeight: 600 }}>
+                    {proposalStatus === 'approved' ? (approverRole || 'วศ.4 หบท-ธ.') : '(รอผู้ตรวจสอบและรับรองลงนาม)'}
+                  </div>
                 </div>
               </div>
             </div>
@@ -3079,10 +3258,10 @@ function RepairProposalFormInner() {
                                 </div>
                               </div>
 
-                              {/* Photos Container inside this single cell (Scale preserved, no squashing) */}
+                              {/* Photos Container inside this single cell (White background, natural scale preserved) */}
                               <div style={{ padding: 6, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
                                 {pointPhotos.length === 1 ? (
-                                  <div style={{ width: '100%', height: 140, background: '#0f172a', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                  <div style={{ width: '100%', height: 140, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                                     <img 
                                       src={pointPhotos[0]} 
                                       alt={p.building} 
@@ -3093,7 +3272,7 @@ function RepairProposalFormInner() {
                                   <div style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                                     {pointPhotos.map((photoSrc, phIdx) => (
                                       <div key={phIdx} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                        <div style={{ width: '100%', height: 135, background: '#0f172a', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                        <div style={{ width: '100%', height: 135, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                                           <img 
                                             src={photoSrc} 
                                             alt={`${p.building}-${phIdx + 1}`} 
@@ -3110,7 +3289,7 @@ function RepairProposalFormInner() {
                                   <div style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
                                     {pointPhotos.map((photoSrc, phIdx) => (
                                       <div key={phIdx} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                        <div style={{ width: '100%', height: 130, background: '#0f172a', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                        <div style={{ width: '100%', height: 130, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                                           <img 
                                             src={photoSrc} 
                                             alt={`${p.building}-${phIdx + 1}`} 
@@ -3184,10 +3363,10 @@ function RepairProposalFormInner() {
                                 )}
                               </div>
 
-                              {/* Photos Container inside this single cell (Scale preserved, no squashing) */}
+                              {/* Photos Container inside this single cell (White background, natural scale preserved) */}
                               <div style={{ padding: 6, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
                                 {itPhotos.length === 1 ? (
-                                  <div style={{ width: '100%', height: 140, background: '#0f172a', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                  <div style={{ width: '100%', height: 140, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                                     <img 
                                       src={itPhotos[0]} 
                                       alt={it.name} 
@@ -3198,7 +3377,7 @@ function RepairProposalFormInner() {
                                   <div style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                                     {itPhotos.map((photoSrc, phIdx) => (
                                       <div key={phIdx} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                        <div style={{ width: '100%', height: 135, background: '#0f172a', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                        <div style={{ width: '100%', height: 135, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                                           <img 
                                             src={photoSrc} 
                                             alt={`${it.name}-${phIdx + 1}`} 
@@ -3215,7 +3394,7 @@ function RepairProposalFormInner() {
                                   <div style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
                                     {itPhotos.map((photoSrc, phIdx) => (
                                       <div key={phIdx} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                        <div style={{ width: '100%', height: 130, background: '#0f172a', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                        <div style={{ width: '100%', height: 130, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                                           <img 
                                             src={photoSrc} 
                                             alt={`${it.name}-${phIdx + 1}`} 
@@ -3460,6 +3639,21 @@ function RepairProposalFormInner() {
         {showSettingsModal && (
           <AdminSettingsModal 
             settings={adminSettings}
+            currentProposal={{
+              refNo: refNo.trim(),
+              jobTitle: jobTitle.trim(),
+              docDate,
+              inspectorName,
+              inspectorRole,
+              status: proposalStatus,
+              surveyPoints,
+              itemsRequested,
+              signatures: {
+                surveyor: { name: inspectorName, role: inspectorRole, signed: !!sig1Image, image: sig1Image },
+                approver: { name: approverName, role: approverRole, signed: proposalStatus === 'approved', image: sig2Image }
+              }
+            }}
+            onCertifyCurrent={handleCertifyDocument}
             onClose={() => setShowSettingsModal(false)}
             onSave={handleSaveAdminSettings}
           />
@@ -3471,15 +3665,245 @@ function RepairProposalFormInner() {
 }
 
 // Subcomponent: Admin Settings Modal Dialog
-function AdminSettingsModal({ settings, onClose, onSave }) {
-  const [form, setForm] = useState(JSON.parse(JSON.stringify(settings)));
-  const [activeTab, setActiveTab] = useState('header'); // 'header' | 'approver' | 'ref' | 'defaults'
+function AdminSettingsModal({ settings, currentProposal, onCertifyCurrent, onClose, onSave }) {
+  const [form, setForm] = useState(() => {
+    const base = JSON.parse(JSON.stringify(settings || defaultAdminSettings));
+    if (!Array.isArray(base.approvers) || base.approvers.length === 0) {
+      base.approvers = [
+        {
+          id: 'tuangpetch',
+          name: base.approver?.name || 'นายตวงเพชร ชัยยานนท์',
+          role: base.approver?.role || 'วศ.4 หบท-ธ.',
+          signatureType: base.approver?.signatureType || 'image',
+          signatureUrl: base.approver?.signatureUrl || '/assets/shared/signature-approver.png',
+          isDefault: true
+        }
+      ];
+    }
+    if (!base.activeApproverId) {
+      base.activeApproverId = base.approvers[0].id;
+    }
+    return base;
+  });
+
+  const [activeTab, setActiveTab] = useState(currentProposal ? 'approval' : 'approver'); // 'approval' | 'approver' | 'header' | 'ref' | 'defaults'
+  const [proposalsList, setProposalsList] = useState([]);
+  const [loadingProposals, setLoadingProposals] = useState(false);
+  const [approvalStatusFilter, setApprovalStatusFilter] = useState('all');
+  const [selectedApproverId, setSelectedApproverId] = useState(form.activeApproverId || form.approvers?.[0]?.id || 'tuangpetch');
+
+  // Approver editing & adding states
+  const [editingApproverId, setEditingApproverId] = useState(null);
+  const [isAddingNewApprover, setIsAddingNewApprover] = useState(false);
+  const [approverDraftName, setApproverDraftName] = useState('');
+  const [approverDraftRole, setApproverDraftRole] = useState('');
+  const [approverDraftSig, setApproverDraftSig] = useState('');
+  const [approverSigMode, setApproverSigMode] = useState('image'); // 'image' | 'draw'
 
   useEffect(() => {
     if (settings) {
-      setForm(JSON.parse(JSON.stringify(settings)));
+      const base = JSON.parse(JSON.stringify(settings));
+      if (!Array.isArray(base.approvers) || base.approvers.length === 0) {
+        base.approvers = [
+          {
+            id: 'tuangpetch',
+            name: base.approver?.name || 'นายตวงเพชร ชัยยานนท์',
+            role: base.approver?.role || 'วศ.4 หบท-ธ.',
+            signatureType: base.approver?.signatureType || 'image',
+            signatureUrl: base.approver?.signatureUrl || '/assets/shared/signature-approver.png',
+            isDefault: true
+          }
+        ];
+      }
+      if (!base.activeApproverId) {
+        base.activeApproverId = base.approvers[0].id;
+      }
+      setForm(base);
+      if (!selectedApproverId) {
+        setSelectedApproverId(base.activeApproverId || base.approvers[0].id);
+      }
     }
   }, [settings]);
+
+  // Fetch proposals list for approval queue
+  const fetchProposalsList = async () => {
+    setLoadingProposals(true);
+    try {
+      const res = await fetch(`/api/repair-proposals?t=${Date.now()}`, { cache: 'no-store' });
+      const json = await res.json();
+      if (json && json.proposals) {
+        setProposalsList(json.proposals);
+      }
+    } catch (err) {
+      console.error('Fetch proposals in modal error:', err);
+    } finally {
+      setLoadingProposals(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProposalsList();
+  }, []);
+
+  // Certify proposal item from modal
+  const handleCertifyProposalItem = async (targetRefNo, action = 'approve') => {
+    const approverObj = form.approvers?.find(a => a.id === selectedApproverId) || form.approver || defaultAdminSettings.approver;
+    if (currentProposal && currentProposal.refNo === targetRefNo && onCertifyCurrent) {
+      const success = await onCertifyCurrent(targetRefNo, approverObj, action);
+      if (success) {
+        fetchProposalsList();
+      }
+      return;
+    }
+
+    try {
+      const resGet = await fetch(`/api/repair-proposals?refNo=${encodeURIComponent(targetRefNo)}`);
+      const targetDoc = await resGet.json();
+      if (!targetDoc || !targetDoc.refNo) {
+        alert('ไม่พบเอกสาร');
+        return;
+      }
+
+      const isApprove = action === 'approve';
+      const updated = {
+        ...targetDoc,
+        status: isApprove ? 'approved' : 'pending_approval',
+        signatures: {
+          ...(targetDoc.signatures || {}),
+          approver: isApprove ? {
+            name: approverObj.name,
+            role: approverObj.role,
+            signed: true,
+            decision: 'approved',
+            image: approverObj.signatureUrl,
+            approvedAt: new Date().toISOString()
+          } : {
+            name: approverObj.name,
+            role: approverObj.role,
+            signed: false,
+            decision: 'pending',
+            image: null,
+            unapprovedAt: new Date().toISOString()
+          }
+        }
+      };
+
+      const resPost = await fetch('/api/repair-proposals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated)
+      });
+      const dataPost = await resPost.json().catch(() => ({}));
+      if (resPost.ok && dataPost.ok) {
+        alert(isApprove
+          ? `✅ ยืนยันการตรวจสอบและลงนามรับรอง ${targetRefNo} สำเร็จแล้ว!\nผู้รับรอง: ${approverObj.name} (${approverObj.role})`
+          : `ℹ️ ยกเลิกการรับรอง ${targetRefNo} เรียบร้อยแล้ว (สถานะ: รอการตรวจสอบและรับรอง)`
+        );
+        fetchProposalsList();
+      } else {
+        alert('ไม่สามารถอัปเดตสถานะได้: ' + (dataPost?.error || 'เกิดข้อผิดพลาด'));
+      }
+    } catch (err) {
+      alert('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + err.message);
+    }
+  };
+
+  // Approvers management handlers
+  const handleSelectActiveApprover = (approverId) => {
+    const target = form.approvers?.find(a => a.id === approverId);
+    if (!target) return;
+    setForm(prev => ({
+      ...prev,
+      activeApproverId: approverId,
+      approver: { ...target }
+    }));
+    setSelectedApproverId(approverId);
+  };
+
+  const handleStartEditApprover = (approver) => {
+    setEditingApproverId(approver.id);
+    setIsAddingNewApprover(false);
+    setApproverDraftName(approver.name || '');
+    setApproverDraftRole(approver.role || '');
+    setApproverDraftSig(approver.signatureUrl || '');
+    setApproverSigMode('image');
+  };
+
+  const handleStartAddApprover = () => {
+    setEditingApproverId(null);
+    setIsAddingNewApprover(true);
+    setApproverDraftName('');
+    setApproverDraftRole('');
+    setApproverDraftSig('/assets/shared/signature-approver.png');
+    setApproverSigMode('image');
+  };
+
+  const handleSaveApproverDraft = () => {
+    if (!approverDraftName.trim()) {
+      alert('กรุณาระบุชื่อ-นามสกุลผู้ตรวจสอบและรับรอง');
+      return;
+    }
+    const sigUrl = approverDraftSig || '/assets/shared/signature-approver.png';
+
+    if (isAddingNewApprover) {
+      const newId = 'appr_' + Date.now();
+      const newApprover = {
+        id: newId,
+        name: approverDraftName.trim(),
+        role: approverDraftRole.trim() || 'ผู้ตรวจสอบและรับรอง',
+        signatureType: 'image',
+        signatureUrl: sigUrl,
+        isDefault: false
+      };
+      const updatedList = [...(form.approvers || []), newApprover];
+      setForm(prev => ({
+        ...prev,
+        approvers: updatedList,
+        activeApproverId: prev.activeApproverId || newId,
+        approver: prev.approver || newApprover
+      }));
+      setIsAddingNewApprover(false);
+      setEditingApproverId(null);
+    } else if (editingApproverId) {
+      const updatedList = (form.approvers || []).map(a => {
+        if (a.id === editingApproverId) {
+          return {
+            ...a,
+            name: approverDraftName.trim(),
+            role: approverDraftRole.trim(),
+            signatureUrl: sigUrl
+          };
+        }
+        return a;
+      });
+      const activeObj = updatedList.find(a => a.id === form.activeApproverId) || updatedList[0];
+      setForm(prev => ({
+        ...prev,
+        approvers: updatedList,
+        approver: activeObj
+      }));
+      setEditingApproverId(null);
+    }
+  };
+
+  const handleDeleteApprover = (approverId) => {
+    if ((form.approvers || []).length <= 1) {
+      alert('ต้องมีผู้ตรวจสอบและรับรองอย่างน้อย 1 ท่านในระบบ');
+      return;
+    }
+    if (!confirm('ยืนยันการลบผู้ลงนามท่านนี้ใช่หรือไม่?')) return;
+    const remaining = (form.approvers || []).filter(a => a.id !== approverId);
+    const newActive = remaining[0];
+    setForm(prev => ({
+      ...prev,
+      approvers: remaining,
+      activeApproverId: prev.activeApproverId === approverId ? newActive.id : prev.activeApproverId,
+      approver: prev.activeApproverId === approverId ? newActive : prev.approver
+    }));
+    if (selectedApproverId === approverId) {
+      setSelectedApproverId(newActive.id);
+    }
+  };
 
   const handleHeaderChange = (field, val) => {
     setForm(prev => ({
@@ -3631,7 +4055,7 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 14, maxWidth: 660, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 16px 50px rgba(0,0,0,0.6)', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 14, maxWidth: 750, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 16px 50px rgba(0,0,0,0.6)', display: 'flex', flexDirection: 'column' }}>
         
         {/* Modal Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid var(--border-hairline, #1e2e4a)', background: 'var(--bg-surface-raised, #172340)' }}>
@@ -3639,7 +4063,7 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
             <span style={{ fontSize: 20 }}>⚙️</span>
             <div>
               <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink-primary, #eef2ff)', margin: 0 }}>ตั้งค่าระบบแอดมิน (Admin Settings)</h2>
-              <div style={{ fontSize: 11.5, color: 'var(--ink-secondary, #94a3c4)' }}>ปรับแต่งหัวกระดาษ, ลายเซ็นต์ผู้ตรวจสอบและรับรอง, และการรันเลขที่ใบเสนอซ่อม</div>
+              <div style={{ fontSize: 11.5, color: 'var(--ink-secondary, #94a3c4)' }}>รับรองเอกสารแจ้งซ่อม, จัดการผู้ตรวจสอบและรับรอง, หัวกระดาษ, และการรันเลขที่ใบเสนอซ่อม</div>
             </div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--ink-secondary, #94a3c4)' }}>✕</button>
@@ -3648,8 +4072,9 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
         {/* Tab Switcher */}
         <div style={{ display: 'flex', borderBottom: '1px solid var(--border-hairline, #1e2e4a)', background: 'var(--bg-surface, #111d32)', overflowX: 'auto' }}>
           {[
-            { id: 'header', label: '🏢 หัวกระดาษ & โลโก้' },
+            { id: 'approval', label: '🛡️ รับรองเอกสารแจ้งซ่อม' },
             { id: 'approver', label: '✍️ ผู้ตรวจสอบและรับรอง & ลายเซ็นต์' },
+            { id: 'header', label: '🏢 หัวกระดาษ & โลโก้' },
             { id: 'ref', label: '🔢 การรันเลขที่ใบงาน' },
             { id: 'defaults', label: '⚙️ ค่าเริ่มต้นอื่นๆ' }
           ].map(tab => (
@@ -3675,7 +4100,270 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
 
         {/* Tab Content */}
         <div style={{ padding: 20, flex: 1, overflowY: 'auto' }}>
-          
+
+          {/* TAB 0: Document Approval Queue */}
+          {activeTab === 'approval' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Approver Profile Selector */}
+              <div style={{ background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 10, padding: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap', gap: 6 }}>
+                  <label style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink-primary, #eef2ff)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>✍️</span> เลือกลายเซ็นต์ผู้รับรองที่จะใช้ลงนาม:
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('approver')}
+                    style={{ background: 'none', border: 'none', color: '#60a5fa', fontSize: 11.5, cursor: 'pointer', textDecoration: 'underline', fontWeight: 600 }}>
+                    ⚙️ จัดการ/เพิ่มผู้ลงนามอื่น
+                  </button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+                  {(form.approvers || []).map((appr) => {
+                    const isSelected = selectedApproverId === appr.id;
+                    return (
+                      <div
+                        key={appr.id}
+                        onClick={() => setSelectedApproverId(appr.id)}
+                        style={{
+                          border: isSelected ? '2px solid #2563eb' : '1px solid var(--border-hairline, #1e2e4a)',
+                          background: isSelected ? 'rgba(37, 99, 235, 0.16)' : 'var(--bg-input, #080e1a)',
+                          borderRadius: 8,
+                          padding: '10px 12px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 10
+                        }}>
+                        <input
+                          type="radio"
+                          name="selectedModalApprover"
+                          checked={isSelected}
+                          onChange={() => setSelectedApproverId(appr.id)}
+                        />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {appr.name}
+                          </div>
+                          <div style={{ fontSize: 11, color: 'var(--ink-secondary, #94a3c4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {appr.role}
+                          </div>
+                        </div>
+                        {appr.signatureUrl && (
+                          <div style={{ width: 50, height: 28, background: '#ffffff', borderRadius: 4, padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #cbd5e1' }}>
+                            <img src={appr.signatureUrl} alt={appr.name} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Current Proposal Quick Certify Card (if modal opened from open proposal) */}
+              {currentProposal && currentProposal.refNo && (
+                <div style={{
+                  background: currentProposal.status === 'approved' ? 'rgba(34, 197, 94, 0.12)' : 'rgba(245, 158, 11, 0.12)',
+                  border: currentProposal.status === 'approved' ? '1.5px solid #22c55e' : '1.5px solid #f59e0b',
+                  borderRadius: 10,
+                  padding: 16
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10, marginBottom: 10 }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 18 }}>📄</span>
+                        <span style={{ fontWeight: 800, fontSize: 14, color: 'var(--ink-primary, #eef2ff)' }}>
+                          เอกสารปัจจุบัน: {currentProposal.refNo}
+                        </span>
+                        <span style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          padding: '2px 8px',
+                          borderRadius: 12,
+                          background: currentProposal.status === 'approved' ? 'rgba(34, 197, 94, 0.25)' : 'rgba(245, 158, 11, 0.25)',
+                          color: currentProposal.status === 'approved' ? '#4ade80' : '#fbbf24',
+                          border: `1px solid ${currentProposal.status === 'approved' ? '#22c55e' : '#f59e0b'}`
+                        }}>
+                          {currentProposal.status === 'approved' ? '✅ รับรองเรียบร้อยแล้ว' : '⏳ รอการตรวจสอบและรับรอง'}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 12.5, color: '#e2e8f0', marginTop: 4 }}>
+                        {currentProposal.jobTitle || 'ใบเสนอแจ้งซ่อม'} • วันที่: {currentProposal.docDate || '-'}
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)', marginTop: 2 }}>
+                        ผู้สำรวจ: {currentProposal.inspectorName || '-'} ({currentProposal.inspectorRole || '-'})
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {currentProposal.status !== 'approved' ? (
+                        <button
+                          type="button"
+                          onClick={() => handleCertifyProposalItem(currentProposal.refNo, 'approve')}
+                          style={{
+                            background: '#16a34a',
+                            border: 'none',
+                            color: 'white',
+                            fontWeight: 800,
+                            fontSize: 13,
+                            padding: '9px 18px',
+                            borderRadius: 8,
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 14px rgba(22, 163, 74, 0.4)',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6
+                          }}>
+                          <span>✓</span> ยืนยันลงนามรับรองเอกสารนี้ทันที
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleCertifyProposalItem(currentProposal.refNo, 'reject')}
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.2)',
+                            border: '1px solid rgba(239, 68, 68, 0.4)',
+                            color: '#f87171',
+                            fontWeight: 700,
+                            fontSize: 12,
+                            padding: '7px 14px',
+                            borderRadius: 6,
+                            cursor: 'pointer'
+                          }}>
+                          ↩️ ยกเลิกการรับรอง (เปลี่ยนเป็นรอตรวจสอบ)
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* All Proposals Queue */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
+                  <div style={{ fontWeight: 800, fontSize: 13.5, color: 'var(--ink-primary, #eef2ff)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>📋</span> คิวเอกสารแจ้งซ่อมทั้งหมดในระบบ ({proposalsList.length} ฉบับ)
+                  </div>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {['all', 'pending_approval', 'approved'].map((fKey) => (
+                      <button
+                        key={fKey}
+                        type="button"
+                        onClick={() => setApprovalStatusFilter(fKey)}
+                        style={{
+                          padding: '3px 10px',
+                          borderRadius: 6,
+                          fontSize: 11.5,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          background: approvalStatusFilter === fKey ? '#2563eb' : 'var(--bg-surface-raised, #172340)',
+                          color: approvalStatusFilter === fKey ? '#ffffff' : 'var(--ink-secondary, #94a3c4)',
+                          border: '1px solid var(--border-hairline, #1e2e4a)'
+                        }}>
+                        {fKey === 'all' ? 'ทั้งหมด' : (fKey === 'pending_approval' ? '⏳ รอรับรอง' : '✅ รับรองแล้ว')}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={fetchProposalsList}
+                      style={{ padding: '3px 8px', background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-hairline, #1e2e4a)', color: '#94a3c4', borderRadius: 6, cursor: 'pointer', fontSize: 12 }}>
+                      🔄
+                    </button>
+                  </div>
+                </div>
+
+                {loadingProposals ? (
+                  <div style={{ textAlign: 'center', padding: 30, color: 'var(--ink-secondary, #94a3c4)', fontSize: 13 }}>
+                    ⏳ กำลังโหลดรายการเอกสาร...
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 320, overflowY: 'auto' }}>
+                    {proposalsList
+                      .filter(p => approvalStatusFilter === 'all' || (approvalStatusFilter === 'approved' ? p.status === 'approved' : p.status !== 'approved'))
+                      .map(p => {
+                        const isApproved = p.status === 'approved';
+                        return (
+                          <div
+                            key={p.refNo}
+                            style={{
+                              background: 'var(--bg-surface-raised, #172340)',
+                              border: '1px solid var(--border-hairline, #1e2e4a)',
+                              borderRadius: 8,
+                              padding: '10px 14px',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              gap: 10
+                            }}>
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                                <span style={{ fontWeight: 800, color: '#60a5fa', fontSize: 12 }}>{p.refNo}</span>
+                                {p.fmRefNo && <span style={{ fontSize: 10.5, color: '#38bdf8' }}>(FM: {p.fmRefNo})</span>}
+                                <span style={{
+                                  fontSize: 10,
+                                  fontWeight: 800,
+                                  padding: '1px 6px',
+                                  borderRadius: 10,
+                                  background: isApproved ? 'rgba(34, 197, 94, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+                                  color: isApproved ? '#4ade80' : '#fbbf24'
+                                }}>
+                                  {isApproved ? 'รับรองแล้ว' : 'รอรับรอง'}
+                                </span>
+                              </div>
+                              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {p.jobTitle || '-'}
+                              </div>
+                              <div style={{ fontSize: 11, color: 'var(--ink-secondary, #94a3c4)', marginTop: 2 }}>
+                                ผู้สำรวจ: {p.inspector?.name || '-'} • วันที่: {p.docDate || p.docDateISO || '-'}
+                              </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                              {!isApproved ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleCertifyProposalItem(p.refNo, 'approve')}
+                                  style={{
+                                    background: '#16a34a',
+                                    border: 'none',
+                                    color: 'white',
+                                    fontWeight: 700,
+                                    fontSize: 11.5,
+                                    padding: '6px 12px',
+                                    borderRadius: 6,
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 4
+                                  }}>
+                                  <span>✓</span> ลงนามรับรอง
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleCertifyProposalItem(p.refNo, 'reject')}
+                                  style={{
+                                    background: 'none',
+                                    border: '1px solid #475569',
+                                    color: '#94a3b8',
+                                    fontSize: 11,
+                                    padding: '5px 10px',
+                                    borderRadius: 6,
+                                    cursor: 'pointer'
+                                  }}>
+                                  ยกเลิกรับรอง
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* TAB 1: Header & Letterhead */}
           {activeTab === 'header' && (
             <div>
@@ -4097,82 +4785,262 @@ function AdminSettingsModal({ settings, onClose, onSave }) {
             </div>
           )}
 
-          {/* TAB 2: Approver & Signature */}
+          {/* TAB 2: Approver & Signatories Management */}
           {activeTab === 'approver' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
-                  ชื่อ-นามสกุล ผู้ตรวจสอบและรับรองเริ่มต้น:
-                </label>
-                <input 
-                  type="text" 
-                  value={form.approver?.name} 
-                  onChange={e => handleApproverChange('name', e.target.value)} 
-                  className="wizard-dark-input"
-                  style={{ width: '100%', padding: '8px 10px', fontSize: 13 }} 
-                />
-              </div>
-
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
-                  ตำแหน่งผู้ตรวจสอบและรับรอง:
-                </label>
-                <input 
-                  type="text" 
-                  value={form.approver?.role} 
-                  onChange={e => handleApproverChange('role', e.target.value)} 
-                  className="wizard-dark-input"
-                  style={{ width: '100%', padding: '8px 10px', fontSize: 13 }} 
-                />
-              </div>
-
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 6 }}>
-                  รูปลายเซ็นต์ผู้ตรวจสอบและรับรอง:
-                </label>
-                <div style={{ border: '1px dashed var(--border-strong, #2d3f5e)', borderRadius: 6, padding: 12, textAlign: 'center', background: '#ffffff', marginBottom: 8 }}>
-                  {form.approver?.signatureUrl ? (
-                    <div>
-                      <img 
-                        src={form.approver.signatureUrl} 
-                        alt="Approver Signature" 
-                        style={{ maxHeight: 60, maxWidth: 200, objectFit: 'contain' }} 
-                      />
-                      <div style={{ fontSize: 11, color: '#15803d', fontWeight: 700, marginTop: 4 }}>
-                        ✓ รูปลายเซ็นต์ปัจจุบัน
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{ fontSize: 12, color: '#94a3b8' }}>ยังไม่มีรูปลายเซ็นต์</div>
-                  )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: 13.5, fontWeight: 800, color: 'var(--ink-primary, #eef2ff)' }}>
+                    รายชื่อผู้ตรวจสอบและรับรองที่ลงทะเบียนไว้ในระบบ
+                  </h4>
+                  <div style={{ fontSize: 11.5, color: 'var(--ink-secondary, #94a3c4)' }}>
+                    สามารถสลับผู้รับรองหลัก, แก้ไขชื่อ/ตำแหน่ง/รูปลายเซ็นต์ หรือเพิ่มผู้ลงนามท่านใหม่
+                  </div>
                 </div>
-
-                <div style={{ display: 'flex', gap: 8 }}>
+                {!isAddingNewApprover && !editingApproverId && (
                   <button
                     type="button"
-                    onClick={() => handleApproverChange('signatureUrl', '/assets/shared/signature-approver.png')}
-                    style={{ background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-strong, #2d3f5e)', color: '#60a5fa', padding: '6px 14px', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                    ใช้ลายเซ็นต์ตวงเพชร (Firepump)
+                    onClick={handleStartAddApprover}
+                    style={{
+                      background: 'var(--accent, #2563eb)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 6,
+                      padding: '6px 14px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4
+                    }}>
+                    <span>➕</span> เพิ่มผู้ลงนามท่านใหม่
                   </button>
-                  <label style={{ background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-strong, #2d3f5e)', color: 'var(--ink-primary, #eef2ff)', padding: '6px 14px', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                    อัปโหลดรูปภาพใหม่
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={async e => {
-                        const f = e.target.files[0];
-                        if (!f) return;
-                        try {
-                          const compressed = await compressImageFile(f, 600, 200, 0.9);
-                          handleApproverChange('signatureUrl', compressed);
-                        } catch (err) {
-                          alert('ไม่สามารถโหลดรูปภาพได้: ' + err.message);
-                        }
-                      }} 
-                      style={{ display: 'none' }} 
-                    />
-                  </label>
+                )}
+              </div>
+
+              {/* Add or Edit Form Drawer */}
+              {(isAddingNewApprover || editingApproverId) && (
+                <div style={{ background: 'var(--bg-surface-raised, #172340)', border: '1.5px solid #3b82f6', borderRadius: 10, padding: 16 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                    <div style={{ fontWeight: 800, fontSize: 13.5, color: '#93c5fd' }}>
+                      {isAddingNewApprover ? '➕ เพิ่มข้อมูลผู้ตรวจสอบและรับรองท่านใหม่' : '✏️ แก้ไขข้อมูลและลายเซ็นต์ผู้รับรอง'}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setIsAddingNewApprover(false); setEditingApproverId(null); }}
+                      style={{ background: 'none', border: 'none', color: '#94a3c4', cursor: 'pointer', fontSize: 16 }}>
+                      ✕
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div>
+                      <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
+                        ชื่อ-นามสกุล: *
+                      </label>
+                      <input
+                        type="text"
+                        value={approverDraftName}
+                        placeholder="เช่น นายตวงเพชร ชัยยานนท์ หรือ ชื่อ-สกุลผู้รับรอง"
+                        onChange={e => setApproverDraftName(e.target.value)}
+                        className="wizard-dark-input"
+                        style={{ width: '100%', padding: '7px 10px', fontSize: 12.5 }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
+                        ตำแหน่ง: *
+                      </label>
+                      <input
+                        type="text"
+                        value={approverDraftRole}
+                        placeholder="เช่น วศ.4 หบท-ธ. หรือ หัวหน้าแผนก"
+                        onChange={e => setApproverDraftRole(e.target.value)}
+                        className="wizard-dark-input"
+                        style={{ width: '100%', padding: '7px 10px', fontSize: 12.5 }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
+                        ลายเซ็นต์ผู้รับรอง:
+                      </label>
+
+                      {approverSigMode === 'draw' ? (
+                        <div style={{ background: 'var(--bg-input, #080e1a)', padding: 12, borderRadius: 8, border: '1px solid var(--border-strong, #2d3f5e)', textAlign: 'center' }}>
+                          <SignaturePad
+                            value={approverDraftSig}
+                            onChange={setApproverDraftSig}
+                            placeholder="วาดลายเซ็นต์สดบนหน้าจอ"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setApproverSigMode('image')}
+                            style={{ marginTop: 6, background: 'none', border: 'none', color: '#60a5fa', fontSize: 11, cursor: 'pointer', textDecoration: 'underline' }}>
+                            สลับไปใช้รูปภาพ / อัปโหลด
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <div style={{ background: '#ffffff', border: '1px dashed #cbd5e1', borderRadius: 8, padding: 10, textAlign: 'center', minHeight: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+                            {approverDraftSig ? (
+                              <img src={approverDraftSig} alt="Draft Signature" style={{ maxHeight: 60, maxWidth: 220, objectFit: 'contain' }} />
+                            ) : (
+                              <span style={{ color: '#94a3b8', fontSize: 12, fontStyle: 'italic' }}>ยังไม่มีรูปลายเซ็นต์</span>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                            <label style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-strong, #2d3f5e)', color: 'var(--ink-primary, #eef2ff)', padding: '5px 12px', borderRadius: 6, fontSize: 11.5, fontWeight: 700, cursor: 'pointer' }}>
+                              📁 อัปโหลดรูปภาพ
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={async (e) => {
+                                  const f = e.target.files[0];
+                                  if (!f) return;
+                                  try {
+                                    const compressed = await compressImageFile(f, 600, 200, 0.9);
+                                    setApproverDraftSig(compressed);
+                                  } catch (err) {
+                                    alert('ไม่สามารถโหลดรูปภาพได้: ' + err.message);
+                                  }
+                                }}
+                                style={{ display: 'none' }}
+                              />
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => setApproverSigMode('draw')}
+                              style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-strong, #2d3f5e)', color: '#60a5fa', padding: '5px 12px', borderRadius: 6, fontSize: 11.5, fontWeight: 700, cursor: 'pointer' }}>
+                              ✍️ วาดเซ็นต์สด
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setApproverDraftSig('/assets/shared/signature-approver.png')}
+                              style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-strong, #2d3f5e)', color: 'var(--ink-secondary, #94a3c4)', padding: '5px 12px', borderRadius: 6, fontSize: 11.5, fontWeight: 600, cursor: 'pointer' }}>
+                              🔄 ใช้ลายเซ็นต์ตวงเพชร
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10, borderTop: '1px solid var(--border-hairline, #1e2e4a)', paddingTop: 10 }}>
+                      <button
+                        type="button"
+                        onClick={() => { setIsAddingNewApprover(false); setEditingApproverId(null); }}
+                        style={{ padding: '6px 14px', background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-strong, #2d3f5e)', color: 'var(--ink-secondary, #94a3c4)', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}>
+                        ยกเลิก
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSaveApproverDraft}
+                        style={{ padding: '6px 18px', background: '#16a34a', border: 'none', color: 'white', borderRadius: 6, fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>
+                        💾 บันทึกผู้ลงนาม
+                      </button>
+                    </div>
+                  </div>
                 </div>
+              )}
+
+              {/* Approvers Cards List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {(form.approvers || []).map((appr) => {
+                  const isActive = (form.activeApproverId || form.approvers[0].id) === appr.id;
+                  return (
+                    <div
+                      key={appr.id}
+                      style={{
+                        background: 'var(--bg-surface-raised, #172340)',
+                        border: isActive ? '2px solid #2563eb' : '1px solid var(--border-hairline, #1e2e4a)',
+                        borderRadius: 10,
+                        padding: '14px 16px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: 14
+                      }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0, flex: 1 }}>
+                        <div style={{ width: 85, height: 46, background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 6, padding: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                          {appr.signatureUrl ? (
+                            <img src={appr.signatureUrl} alt={appr.name} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                          ) : (
+                            <span style={{ fontSize: 10, color: '#94a3b8' }}>ไม่มีลายเซ็นต์</span>
+                          )}
+                        </div>
+
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ fontWeight: 800, fontSize: 13.5, color: 'var(--ink-primary, #eef2ff)' }}>
+                              {appr.name}
+                            </span>
+                            {isActive && (
+                              <span style={{ fontSize: 10.5, fontWeight: 800, color: '#38bdf8', background: 'rgba(56, 189, 248, 0.15)', border: '1px solid rgba(56, 189, 248, 0.3)', padding: '1px 7px', borderRadius: 10 }}>
+                                ⭐ ผู้รับรองหลัก (Active)
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)', marginTop: 2 }}>
+                            ตำแหน่ง: <span style={{ color: '#e2e8f0', fontWeight: 600 }}>{appr.role}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        {!isActive && (
+                          <button
+                            type="button"
+                            onClick={() => handleSelectActiveApprover(appr.id)}
+                            style={{
+                              background: 'rgba(37, 99, 235, 0.15)',
+                              border: '1px solid rgba(59, 130, 246, 0.35)',
+                              color: '#60a5fa',
+                              padding: '5px 12px',
+                              borderRadius: 6,
+                              fontSize: 11.5,
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}>
+                            🎯 ตั้งเป็นผู้รับรองหลัก
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleStartEditApprover(appr)}
+                          style={{
+                            background: 'var(--bg-surface, #111d32)',
+                            border: '1px solid var(--border-strong, #2d3f5e)',
+                            color: 'var(--ink-primary, #eef2ff)',
+                            padding: '5px 10px',
+                            borderRadius: 6,
+                            fontSize: 11.5,
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}>
+                          ✏️ แก้ไข
+                        </button>
+                        {(form.approvers || []).length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteApprover(appr.id)}
+                            style={{
+                              background: 'rgba(239, 68, 68, 0.12)',
+                              border: '1px solid rgba(239, 68, 68, 0.3)',
+                              color: '#f87171',
+                              padding: '5px 8px',
+                              borderRadius: 6,
+                              fontSize: 11.5,
+                              cursor: 'pointer'
+                            }}>
+                            🗑️
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
