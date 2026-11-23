@@ -12,11 +12,23 @@
     "showLetterhead": true
   },
   "approver": {
+    "id": "tuangpetch",
     "name": "นายตวงเพชร ชัยยานนท์",
     "role": "วศ.4 หบท-ธ.",
     "signatureType": "image",
     "signatureUrl": "/assets/shared/signature-approver.png"
   },
+  "approvers": [
+    {
+      "id": "tuangpetch",
+      "name": "นายตวงเพชร ชัยยานนท์",
+      "role": "วศ.4 หบท-ธ.",
+      "signatureType": "image",
+      "signatureUrl": "/assets/shared/signature-approver.png",
+      "isDefault": true
+    }
+  ],
+  "activeApproverId": "tuangpetch",
   "runningNumber": {
     "prefix": "REP-",
     "yearType": "buddhist",
@@ -30,5 +42,5 @@
   },
   "isCustomized": true,
   "settingsVersion": 3,
-  "updatedAt": "2026-11-19T03:32:02.765Z"
+  "updatedAt": "2026-11-23T03:44:55.777Z"
 }
