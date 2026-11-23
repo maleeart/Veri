@@ -102,7 +102,13 @@ const sampleItemsRequested = [
     modelPart: "Schneider Electric EasyLogic PM2230 (Part No. METSEPM2230) หรือเทียบเท่า",
     qty: 9,
     unit: "ตัว",
-    purpose: "ติดตั้งเปลี่ยนทดแทน Digital Meter เดิมที่ชำรุดในตู้ Main MDB ของอาคารทั้ง 9 จุด (ท.0006, ท.0009, ท.0011, ท.0012, ท.0017, ต.0017, ต.0019, ท.0020, ต.0026)"
+    purpose: "ติดตั้งเปลี่ยนทดแทน Digital Meter เดิมที่ชำรุดในตู้ Main MDB ของอาคารทั้ง 9 จุด (ท.0006, ท.0009, ท.0011, ท.0012, ท.0017, ต.0017, ต.0019, ท.0020, ต.0026)",
+    specs: `• ขนาดมิติและการติดตั้ง: ชนิดติดตั้งหน้าตู้สวิตช์บอร์ด (Panel Mount) ขนาดหน้าปัด 96 x 96 มม. เจาะช่องตู้ 92 x 92 มม. หน้าจอ LCD พร้อมไฟ Backlit และปุ่มกดหน้าเครื่อง ≥ 4 ปุ่ม สามารถติดตั้งแทนช่องเดิมได้โดยไม่ต้องดัดแปลงโครงสร้างตู้
+• ระบบไฟฟ้าและพิกัดการวัด: รองรับระบบ 3 เฟส 4 สาย (3P4W) และ 3 เฟส 3 สาย (3P3W) ความถี่ 50/60 Hz ย่านวัดแรงดัน Phase-Phase 35–480 VAC, Phase-Neutral 20–277 VAC, Input CT 1A หรือ 5A แหล่งจ่ายไฟ Auxiliary Universal 44–277 VAC/DC
+• ฟังก์ชันการทำงานและการวัดค่า: ตรวจวัดค่าทางไฟฟ้าครบถ้วน V, I, kW, kVAR, kVA, PF, Hz, Demand และค่าฮาร์มอนิกรวม (THD ทั้งแรงดันและกระแส) รายเฟสได้ถึงอันดับที่ 31
+• ความแม่นยำและการสื่อสาร: ค่าพลังงานไฟฟ้าจริง (Active Energy - kWh) มาตรฐาน Class 0.5S ตาม IEC 62053-22 มีพอร์ตสื่อสาร RS-485 รองรับโปรโตคอล Modbus RTU สำหรับส่งข้อมูลเข้าสู่ระบบ SCADA / Energy Management เดิม
+• มาตรฐานความปลอดภัยและการรับประกัน: หน้าตู้กันน้ำและฝุ่นไม่น้อยกว่า IP54 ผ่านการรับรองมาตรฐานสากล IEC 61010-1 และรับประกันคุณภาพสินค้าไม่น้อยกว่า 1 ปี นับจากวันส่งมอบงาน`,
+    photos: []
   }
 ];
 
@@ -112,6 +118,19 @@ const sampleMeterSpecs =
 • ฟังก์ชันการทำงานและการวัดค่า: ตรวจวัดค่าทางไฟฟ้าครบถ้วน V, I, kW, kVAR, kVA, PF, Hz, Demand และค่าฮาร์มอนิกรวม (THD ทั้งแรงดันและกระแส) รายเฟสได้ถึงอันดับที่ 31
 • ความแม่นยำและการสื่อสาร: ค่าพลังงานไฟฟ้าจริง (Active Energy - kWh) มาตรฐาน Class 0.5S ตาม IEC 62053-22 มีพอร์ตสื่อสาร RS-485 รองรับโปรโตคอล Modbus RTU สำหรับส่งข้อมูลเข้าสู่ระบบ SCADA / Energy Management เดิม
 • มาตรฐานความปลอดภัยและการรับประกัน: หน้าตู้กันน้ำและฝุ่นไม่น้อยกว่า IP54 ผ่านการรับรองมาตรฐานสากล IEC 61010-1 และรับประกันคุณภาพสินค้าไม่น้อยกว่า 1 ปี นับจากวันส่งมอบงาน`;
+
+const sampleBreakerSpecs = 
+`• พิกัดกระแสและแรงดัน: Circuit Breaker ชนิด Moulded Case Circuit Breaker (MCCB) พิกัดกระแสใช้งาน In ไม่น้อยกว่า 400A ชนิด 3 โพล (3P) ทนแรงดันไม่น้อยกว่า 400/415 VAC 50 Hz
+• พิกัดตัดกระแสลัดวงจร: Breaking Capacity Icu/Ics ไม่ต่ำกว่า 36 kA ที่ 400/415 VAC ตามมาตรฐาน IEC 60947-2
+• ระบบทริปและกลไกป้องกัน: ชนิด Electronic Trip Unit ปรับตั้งค่า Overload (L) และ Short Circuit (I) ได้ พร้อมปุ่มทดสอบ Trip Test
+• มิติและการติดตั้ง: สามารถติดตั้งบนแผ่นยึดเดิมและเข้าขั้วบัสบาร์ของตู้ Main MDB ได้พอดี โดยไม่ต้องดัดแปลงโครงสร้างตู้
+• มาตรฐานและการรับประกัน: ผ่านการรับรองมาตรฐานสากล IEC 60947-2 และรับประกันคุณภาพสินค้าไม่น้อยกว่า 1 ปี`;
+
+const sampleContactorSpecs = 
+`• พิกัดและกำลังมอเตอร์: Magnetic Contactor พร้อมชุดโอเวอร์โหลดรีเลย์ รองรับกำลังมอเตอร์ไม่น้อยกว่า 22 kW / 30 HP ที่ 380-400 VAC (การใช้งานประเภท AC-3)
+• แรงดันคอยล์ควบคุม: Coil Voltage 220–240 VAC 50/60 Hz
+• หน้าสัมผัสช่วย (Auxiliary Contacts): มีหน้าสัมผัสช่วยในตัวไม่น้อยกว่า 2NO + 2NC
+• มาตรฐานความปลอดภัย: ผลิตและทดสอบตามมาตรฐาน IEC 60947-4-1 และรับประกันคุณภาพไม่น้อยกว่า 1 ปี`;
 
 // Reusable Signature Drawing Pad Component with Pointer Events
 function SignaturePad({ value, onChange, placeholder = 'เซ็นลายมือชื่อที่นี่' }) {
@@ -309,12 +328,15 @@ function RepairProposalFormInner() {
     { id: 1, building: '', location: '', symptom: '', qty: 1, action: 'เปลี่ยนทดแทน', photos: [], photo: null }
   ]);
 
-  // Step 3: Requested Items (Blank by default!)
+  // Step 3: Requested Items & Specifications (Blank by default!)
   const [itemsRequested, setItemsRequested] = useState([
-    { id: 1, name: '', modelPart: '', qty: 1, unit: 'ตัว', purpose: '' }
+    { id: 1, name: '', modelPart: '', qty: 1, unit: 'ตัว', purpose: '', specs: '', photos: [] }
   ]);
+  const [activeItemIndex, setActiveItemIndex] = useState(0);
+  const [expandedItemIndices, setExpandedItemIndices] = useState([0]);
+  const [uploadingItemPhotoIdx, setUploadingItemPhotoIdx] = useState(null);
 
-  // Step 4: Technical Specs / Substitution Conditions (Blank by default!)
+  // Technical Specs / Substitution Conditions (Fallback for backward compatibility)
   const [substitutionSpecs, setSubstitutionSpecs] = useState('');
 
   // Step 5: Justification & 2 Signatories (Approver default: นายตวงเพชร ชัยยานนท์)
@@ -574,8 +596,10 @@ function RepairProposalFormInner() {
       { id: 1, building: '', location: '', symptom: '', qty: 1, action: 'เปลี่ยนทดแทน', photos: [], photo: null }
     ]);
     setItemsRequested([
-      { id: 1, name: '', modelPart: '', qty: 1, unit: 'ตัว', purpose: '' }
+      { id: 1, name: '', modelPart: '', qty: 1, unit: 'ตัว', purpose: '', specs: '', photos: [] }
     ]);
+    setActiveItemIndex(0);
+    setExpandedItemIndices([0]);
     setSubstitutionSpecs('');
     setJustification('');
     setApproverName(adminSettings.approver?.name || 'นายตวงเพชร ชัยยานนท์');
@@ -604,6 +628,8 @@ function RepairProposalFormInner() {
     setDepartment('ฝ่ายวิศวกรรมอาคารและระบบไฟฟ้า (หบท-ธ.)');
     setSurveyPoints(sampleSurveyData);
     setItemsRequested(sampleItemsRequested);
+    setActiveItemIndex(0);
+    setExpandedItemIndices([0]);
     setSubstitutionSpecs(sampleMeterSpecs);
     setJustification('');
     setApproverName('นายตวงเพชร ชัยยานนท์');
@@ -698,65 +724,145 @@ function RepairProposalFormInner() {
 
   const addItemRequested = () => {
     const nextId = itemsRequested.length + 1;
+    const newIdx = itemsRequested.length;
     setItemsRequested([
       ...itemsRequested,
-      { id: nextId, name: '', modelPart: '', qty: 1, unit: 'ตัว', purpose: '' }
+      { id: nextId, name: '', modelPart: '', qty: 1, unit: 'ตัว', purpose: '', specs: '', photos: [] }
     ]);
+    setActiveItemIndex(newIdx);
+    setExpandedItemIndices(prev => [...prev, newIdx]);
   };
 
   const removeItemRequested = (index) => {
     if (itemsRequested.length <= 1) return;
-    setItemsRequested(itemsRequested.filter((_, i) => i !== index));
+    const next = itemsRequested.filter((_, i) => i !== index);
+    setItemsRequested(next);
+    setExpandedItemIndices(prev => prev.filter(i => i !== index).map(i => i > index ? i - 1 : i));
+    if (activeItemIndex >= next.length) {
+      setActiveItemIndex(Math.max(0, next.length - 1));
+    }
+  };
+
+  const toggleItemExpanded = (idx) => {
+    setExpandedItemIndices(prev => 
+      prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]
+    );
+  };
+
+  const expandAllItems = () => {
+    setExpandedItemIndices(itemsRequested.map((_, i) => i));
+  };
+
+  const collapseAllItems = () => {
+    setExpandedItemIndices([]);
+  };
+
+  const handleItemPhotoUpload = async (index, e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const currentItem = itemsRequested[index];
+    const currentPhotos = Array.isArray(currentItem.photos) 
+      ? [...currentItem.photos] 
+      : (currentItem.photo ? [currentItem.photo] : []);
+
+    const availableSlots = 3 - currentPhotos.length;
+    if (availableSlots <= 0) {
+      alert('สามารถแนบรูปภาพอุปกรณ์ได้สูงสุด 3 รูปต่อรายการ');
+      e.target.value = '';
+      return;
+    }
+
+    const filesToProcess = files.slice(0, availableSlots);
+    setUploadingItemPhotoIdx(index);
+    try {
+      const compressedList = await Promise.all(
+        filesToProcess.map(file => compressImageFile(file, 1000, 1000, 0.72, true))
+      );
+      const nextPhotos = [...currentPhotos, ...compressedList];
+      const next = [...itemsRequested];
+      next[index] = {
+        ...next[index],
+        photos: nextPhotos,
+        photo: nextPhotos[0] || null
+      };
+      setItemsRequested(next);
+    } catch (err) {
+      console.error('Item photo upload error:', err);
+      alert('เกิดข้อผิดพลาดในการโหลดรูปภาพ: ' + (err.message || 'กรุณาลองใหม่อีกครั้ง'));
+    } finally {
+      setUploadingItemPhotoIdx(null);
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveItemPhoto = (itemIndex, photoIndex) => {
+    const currentItem = itemsRequested[itemIndex];
+    const currentPhotos = Array.isArray(currentItem.photos) 
+      ? [...currentItem.photos] 
+      : (currentItem.photo ? [currentItem.photo] : []);
+    const nextPhotos = currentPhotos.filter((_, i) => i !== photoIndex);
+    const next = [...itemsRequested];
+    next[itemIndex] = {
+      ...next[itemIndex],
+      photos: nextPhotos,
+      photo: nextPhotos[0] || null
+    };
+    setItemsRequested(next);
   };
 
   // Equipment Presets
-  const applyEquipPreset = (type) => {
+  const applyEquipPreset = (type, targetIdx = 0) => {
     const next = [...itemsRequested];
+    const idx = (typeof targetIdx === 'number' && targetIdx >= 0 && targetIdx < next.length) ? targetIdx : 0;
     if (next.length === 0) {
-      next.push({ id: 1, name: '', modelPart: '', qty: 1, unit: 'ตัว', purpose: '' });
+      next.push({ id: 1, name: '', modelPart: '', qty: 1, unit: 'ตัว', purpose: '', specs: '', photos: [] });
     }
-    const target = next[0];
+    const target = next[idx];
 
     if (type === 'meter') {
       target.name = "Digital Power Meter (เครื่องวัดค่าไฟฟ้าดิจิทัลชนิดมัลติฟังก์ชันติดหน้าตู้ 96x96 มม.)";
       target.modelPart = "Schneider Electric EasyLogic PM2230 (Part No. METSEPM2230) หรือเทียบเท่า";
       target.unit = "ตัว";
       target.purpose = "ติดตั้งเปลี่ยนทดแทน Digital Meter เดิมที่ชำรุดในตู้ Main MDB ของอาคาร";
+      target.specs = sampleMeterSpecs;
       setSubstitutionSpecs(sampleMeterSpecs);
     } else if (type === 'breaker') {
       target.name = "Moulded Case Circuit Breaker (MCCB) พิกัด 400A 3P 36kA";
       target.modelPart = "Schneider Electric Compact NSX400F (Part No. LV432676) หรือเทียบเท่า";
       target.unit = "ตัว";
       target.purpose = "เปลี่ยนทดแทนเซอร์กิตเบรกเกอร์เมนเดิมที่ชำรุด ไม่ตัดวงจร หรือเสื่อมสภาพในตู้สวิตช์บอร์ด";
-      setSubstitutionSpecs(
-        "• พิกัดกระแสใช้งาน In ไม่น้อยกว่า 400A ชนิด 3 โพล (3P) ทนแรงดันไม่น้อยกว่า 400/415 VAC\n" +
-        "• พิกัดตัดกระแสลัดวงจร Icu/Ics ไม่ต่ำกว่า 36 kA ที่ 400/415 VAC ตามมาตรฐาน IEC 60947-2\n" +
-        "• ชุดทริปแบบอิเล็กทรอนิกส์ (Electronic Trip Unit) สามารถปรับตั้งค่า Overload (L) และ Short Circuit (I) ได้\n" +
-        "• มิติตัวเครื่องและจุดต่อขั้วสาย สามารถใส่แทนช่องเดิมได้โดยไม่ต้องดัดแปลงโครงสร้างตู้\n" +
-        "• ผ่านมาตรฐานสากล IEC 60947-2 และรับประกันคุณภาพไม่น้อยกว่า 1 ปี"
-      );
+      target.specs = sampleBreakerSpecs;
+      setSubstitutionSpecs(sampleBreakerSpecs);
     } else if (type === 'contactor') {
       target.name = "Magnetic Contactor พร้อม Thermal Overload Relay";
       target.modelPart = "Mitsubishi Electric S-T50 (Coil 220VAC) + TH-T50 หรือเทียบเท่า";
       target.unit = "ชุด";
       target.purpose = "เปลี่ยนทดแทนแมกเนติกคอนแทกเตอร์ควบคุมมอเตอร์ปั๊มน้ำเดิมที่หน้าสัมผัสไหม้ชำรุด";
-      setSubstitutionSpecs(
-        "• พิกัดกำลังมอเตอร์รองรับไม่น้อยกว่า 22 kW / 30 HP ที่ 380-400 VAC (การใช้งานประเภท AC-3)\n" +
-        "• แรงดันคอยล์ควบคุม (Coil Voltage) 220 VAC 50 Hz\n" +
-        "• มีหน้าสัมผัสช่วย (Auxiliary Contacts) 2NO + 2NC เป็นอย่างน้อย\n" +
-        "• โอเวอร์โหลดรีเลย์ปรับตั้งย่านกระแสให้เหมาะสมกับพิกัดกระแสมอเตอร์เดิม\n" +
-        "• ผ่านมาตรฐาน IEC 60947-4-1 และรับประกันคุณภาพไม่น้อยกว่า 1 ปี"
-      );
+      target.specs = sampleContactorSpecs;
+      setSubstitutionSpecs(sampleContactorSpecs);
     } else if (type === 'inverter') {
       target.name = "Variable Frequency Drive (VFD / Inverter) ขนาด 15 kW / 20 HP";
       target.modelPart = "ABB ACS580-01-033A-4 หรือ Schneider ATV320U15N4B หรือเทียบเท่า";
       target.unit = "เครื่อง";
       target.purpose = "เปลี่ยนทดแทนอินเวอร์เตอร์ขับเคลื่อนมอเตอร์ระบบปรับอากาศเดิมที่ชำรุด บอร์ดควบคุม Error";
+      target.specs = 
+`• พิกัดกำลังมอเตอร์: สำหรับขับเคลื่อนมอเตอร์เหนี่ยวนำ 3 เฟส ขนาด 15 kW (20 HP) 380-480 VAC 50 Hz
+• คุณลักษณะการควบคุม: รองรับ Scalar (V/f) และ Sensorless Vector Control พร้อม Built-in EMC Filter (C2/C3)
+• แผงควบคุมและการสื่อสาร: จอควบคุมแบบ Graphic Display ถอดเสียบได้ มีพอร์ต RS-485 รองรับ Modbus RTU
+• มาตรฐานและการรับประกัน: ผ่านการรับรองมาตรฐานสากล CE / UL และรับประกันคุณภาพสินค้าไม่น้อยกว่า 1 ปี`;
+      setSubstitutionSpecs(target.specs);
     } else if (type === 'capacitor') {
       target.name = "Power Capacitor Bank สำหรับปรับปรุงค่า Power Factor ขนาด 50 kVAR 400V";
       target.modelPart = "Schneider Electric VarPlus Can (Part No. BLRCS500A600B40) หรือเทียบเท่า";
       target.unit = "ลูก";
       target.purpose = "เปลี่ยนทดแทนคาปาซิเตอร์เดิมที่บวม เสื่อมสภาพ และค่าความจุลดลงในตู้ Cap Bank";
+      target.specs = 
+`• พิกัดขนาดและแรงดัน: ขนาดความจุไม่น้อยกว่า 50 kVAR ที่แรงดันพิกัด 400/415 VAC 50 Hz ชนิด 3 เฟส
+• โครงสร้างและความปลอดภัย: ตัวถังอะลูมิเนียมทรงกระบอก พร้อมระบบตัดวงจรเมื่อเกิดแรงดันเกินภายใน (Overpressure Disconnector)
+• การทนกระแสเกิน: ทนกระแสต่อเนื่อง (In) ได้ไม่น้อยกว่า 1.5 เท่า และ Inrush Current สูงสุด 200 เท่า
+• การสูญเสียและมาตรฐาน: ค่าการสูญเสียกำลังไฟฟ้าต่ำกว่า 0.5 W/kVAR ผลิตตามมาตรฐาน IEC 60831-1/2 และรับประกัน 1 ปี`;
+      setSubstitutionSpecs(target.specs);
     }
     setItemsRequested(next);
   };
@@ -1003,7 +1109,11 @@ function RepairProposalFormInner() {
     return 150; // default 'large'
   }, [adminSettings.header?.logoSize]);
 
-  const hasAnnex = useMemo(() => surveyPoints.some(p => Boolean((p.photos && p.photos.length > 0) || p.photo)), [surveyPoints]);
+  const hasAnnex = useMemo(() => {
+    const hasDefectPhotos = surveyPoints.some(p => Boolean((p.photos && p.photos.length > 0) || p.photo));
+    const hasItemPhotos = itemsRequested.some(it => Boolean((it.photos && it.photos.length > 0) || it.photo));
+    return hasDefectPhotos || hasItemPhotos;
+  }, [surveyPoints, itemsRequested]);
 
   // Helper to generate sanitized PDF filename: <refNo>_<jobTitle>
   const getPdfFileName = () => {
@@ -1181,10 +1291,9 @@ function RepairProposalFormInner() {
   const steps = [
     { title: 'ข้อมูลงาน', icon: '1' },
     { title: `จุดที่ชำรุด (${surveyPoints.length})`, icon: '2' },
-    { title: `อุปกรณ์ที่ขอซื้อ (${itemsRequested.length})`, icon: '3' },
-    { title: 'สเปกเบื้องต้น', icon: '4' },
-    { title: 'ส่วนลงนาม', icon: '5' },
-    { title: 'สรุป & ส่งออก', icon: '6' }
+    { title: `อุปกรณ์ & สเปก (${itemsRequested.length})`, icon: '3' },
+    { title: 'ส่วนลงนาม', icon: '4' },
+    { title: 'สรุป & ส่งออก', icon: '5' }
   ];
 
   return (
@@ -1745,6 +1854,49 @@ function RepairProposalFormInner() {
                         </div>
                       </div>
 
+                      {/* Action / Recommendation */}
+                      <div style={{ marginTop: 10 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                          <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)' }}>
+                            ข้อเสนอแนะในการดำเนินการ (Action / Recommendation) *
+                          </label>
+                          <span style={{ fontSize: 11, color: '#38bdf8' }}>แสดงในตารางผลการสำรวจ</span>
+                        </div>
+                        <input 
+                          type="text" 
+                          value={item.action || 'เปลี่ยนทดแทน'} 
+                          placeholder="เช่น เปลี่ยนทดแทน, จัดหาเพิ่มจากเดิม, ซ่อมแซม/แก้ไข" 
+                          onChange={e => handlePointChange(idx, 'action', e.target.value)} 
+                          className="wizard-dark-input"
+                          style={{ width: '100%', padding: '6px 10px', fontSize: 13, fontWeight: 700 }} 
+                        />
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                          {[
+                            { label: '🔄 เปลี่ยนทดแทน', val: 'เปลี่ยนทดแทน', bg: 'rgba(239, 68, 68, 0.18)', color: '#f87171', border: 'rgba(239, 68, 68, 0.4)' },
+                            { label: '➕ จัดหาเพิ่มจากเดิม', val: 'จัดหาเพิ่มจากเดิม', bg: 'rgba(245, 158, 11, 0.18)', color: '#fbbf24', border: 'rgba(245, 158, 11, 0.4)' },
+                            { label: '🔧 ซ่อมแซม / แก้ไข', val: 'ซ่อมแซม/แก้ไข', bg: 'rgba(59, 130, 246, 0.18)', color: '#60a5fa', border: 'rgba(59, 130, 246, 0.4)' },
+                            { label: '⚡ ปรับปรุงระบบ', val: 'ปรับปรุงระบบ', bg: 'rgba(16, 185, 129, 0.18)', color: '#34d399', border: 'rgba(16, 185, 129, 0.4)' }
+                          ].map((act, aidx) => (
+                            <span 
+                              key={aidx}
+                              onClick={() => handlePointChange(idx, 'action', act.val)}
+                              style={{ 
+                                background: (item.action || 'เปลี่ยนทดแทน') === act.val ? act.bg : 'var(--bg-input, #080e1a)', 
+                                color: (item.action || 'เปลี่ยนทดแทน') === act.val ? act.color : 'var(--ink-secondary, #94a3c4)', 
+                                border: `1px solid ${(item.action || 'เปลี่ยนทดแทน') === act.val ? act.border : 'var(--border-strong, #2d3f5e)'}`,
+                                fontSize: 11, 
+                                fontWeight: (item.action || 'เปลี่ยนทดแทน') === act.val ? 700 : 500,
+                                padding: '3px 9px', 
+                                borderRadius: 4, 
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease'
+                              }}>
+                              {act.label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
                       {/* Photo Attachment Section (Up to 3 Photos) */}
                       {(() => {
                         const itemPhotos = Array.isArray(item.photos) && item.photos.length > 0
@@ -1834,172 +1986,380 @@ function RepairProposalFormInner() {
               </div>
             )}
 
-            {/* STEP 3: Requested Items (Extensible List) */}
+            {/* STEP 3: Requested Items, Specifications & Sample Photos (Accordion Focus UI) */}
             {currentStep === 2 && (
               <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 12, padding: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                {/* Header Title & Add Button */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
                   <div>
-                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', margin: 0 }}>
-                      📦 รายการและรุ่นของอุปกรณ์ที่ต้องการ (ขอเสนอซื้อสำหรับแก้ไขงาน)
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span>📦</span> รายการอุปกรณ์, สเปก และรูปตัวอย่าง ({itemsRequested.length} รายการ)
                     </h3>
-                    <p style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)', margin: '2px 0 0' }}>
-                      สามารถเพิ่มรายการอุปกรณ์ได้หลายรายการตามต้องการ
+                    <p style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)', margin: '3px 0 0' }}>
+                      ระบุสเปกทางเทคนิคและแนบรูปตัวอย่างของแต่ละรายการ เพื่อใช้ประกอบการร่างรายละเอียดคุณลักษณะเฉพาะ (TOR)
                     </p>
                   </div>
-                  <button 
-                    onClick={addItemRequested}
-                    style={{ background: 'var(--accent, #2563eb)', color: 'white', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
-                    + เพิ่มรายการอุปกรณ์
-                  </button>
-                </div>
-
-                {/* Electrical Equipment Presets */}
-                <div style={{ background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: '10px 14px', marginBottom: 16 }}>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#93c5fd', display: 'block', marginBottom: 6 }}>
-                    ⚡ เลือกแม่แบบอุปกรณ์ไฟฟ้าสำหรับรายการที่ 1:
-                  </label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    <button type="button" onClick={() => applyEquipPreset('meter')} style={{ background: 'var(--bg-input, #080e1a)', color: '#93c5fd', border: '1px solid var(--border-strong, #2d3f5e)', padding: '5px 12px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Digital Power Meter</button>
-                    <button type="button" onClick={() => applyEquipPreset('breaker')} style={{ background: 'var(--bg-input, #080e1a)', color: '#93c5fd', border: '1px solid var(--border-strong, #2d3f5e)', padding: '5px 12px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>ACB / MCCB เบรกเกอร์</button>
-                    <button type="button" onClick={() => applyEquipPreset('contactor')} style={{ background: 'var(--bg-input, #080e1a)', color: '#93c5fd', border: '1px solid var(--border-strong, #2d3f5e)', padding: '5px 12px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Magnetic Contactor</button>
-                    <button type="button" onClick={() => applyEquipPreset('inverter')} style={{ background: 'var(--bg-input, #080e1a)', color: '#93c5fd', border: '1px solid var(--border-strong, #2d3f5e)', padding: '5px 12px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Inverter / VFD</button>
-                    <button type="button" onClick={() => applyEquipPreset('capacitor')} style={{ background: 'var(--bg-input, #080e1a)', color: '#93c5fd', border: '1px solid var(--border-strong, #2d3f5e)', padding: '5px 12px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Capacitor Bank / SPD</button>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button 
+                      type="button"
+                      onClick={addItemRequested}
+                      style={{ background: 'var(--accent, #2563eb)', color: 'white', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span>+</span> เพิ่มรายการอุปกรณ์
+                    </button>
                   </div>
                 </div>
 
-                {/* List of items */}
+                {/* Quick Navigation Tabs & Expand/Collapse All */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: '8px 12px', marginBottom: 14 }}>
+                  {/* Items Tabs Strip */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+                    <span style={{ fontSize: 11.5, fontWeight: 700, color: '#93c5fd', marginRight: 4 }}>
+                      สลับแก้ไขรายการ:
+                    </span>
+                    {itemsRequested.map((it, idx) => {
+                      const isExpanded = expandedItemIndices.includes(idx);
+                      const isActive = activeItemIndex === idx;
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setActiveItemIndex(idx);
+                            if (!expandedItemIndices.includes(idx)) {
+                              setExpandedItemIndices(prev => [...prev, idx]);
+                            }
+                          }}
+                          style={{
+                            background: isActive ? '#2563eb' : (isExpanded ? 'rgba(37, 99, 235, 0.2)' : 'var(--bg-input, #080e1a)'),
+                            color: isActive ? '#ffffff' : (isExpanded ? '#93c5fd' : 'var(--ink-secondary, #94a3c4)'),
+                            border: `1px solid ${isActive ? '#3b82f6' : (isExpanded ? 'rgba(59, 130, 246, 0.4)' : 'var(--border-strong, #2d3f5e)')}`,
+                            borderRadius: 5,
+                            padding: '4px 10px',
+                            fontSize: 11.5,
+                            fontWeight: isActive ? 800 : 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 5
+                          }}>
+                          <span>#{idx + 1}</span>
+                          <span>{it.name ? (it.name.length > 15 ? it.name.slice(0, 15) + '...' : it.name) : 'รายการใหม่'}</span>
+                          {it.specs ? <span style={{ fontSize: 10, color: isActive ? '#dcfce7' : '#34d399' }}>✓</span> : null}
+                          {it.photos && it.photos.length > 0 ? <span style={{ fontSize: 10 }}>📷</span> : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Expand / Collapse All Buttons */}
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button
+                      type="button"
+                      onClick={expandAllItems}
+                      style={{ background: 'var(--bg-input, #080e1a)', color: '#93c5fd', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 4, padding: '3px 8px', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>
+                      ▾ ขยายทั้งหมด
+                    </button>
+                    <button
+                      type="button"
+                      onClick={collapseAllItems}
+                      style={{ background: 'var(--bg-input, #080e1a)', color: 'var(--ink-secondary, #94a3c4)', border: '1px solid var(--border-strong, #2d3f5e)', borderRadius: 4, padding: '3px 8px', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>
+                      ▴ ซ่อนทั้งหมด
+                    </button>
+                  </div>
+                </div>
+
+                {/* Quick Presets Bar applied to activeItemIndex */}
+                <div style={{ background: 'rgba(37, 99, 235, 0.08)', border: '1px dashed rgba(59, 130, 246, 0.3)', borderRadius: 8, padding: '8px 12px', marginBottom: 16, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+                  <span style={{ fontSize: 11.5, fontWeight: 700, color: '#60a5fa' }}>
+                    ⚡ ใส่แม่แบบด่วนให้กับรายการที่ {activeItemIndex + 1}:
+                  </span>
+                  <button type="button" onClick={() => applyEquipPreset('meter', activeItemIndex)} style={{ background: 'var(--bg-input, #080e1a)', color: '#93c5fd', border: '1px solid var(--border-strong, #2d3f5e)', padding: '4px 9px', borderRadius: 4, fontSize: 11.5, fontWeight: 600, cursor: 'pointer' }}>Digital Power Meter</button>
+                  <button type="button" onClick={() => applyEquipPreset('breaker', activeItemIndex)} style={{ background: 'var(--bg-input, #080e1a)', color: '#93c5fd', border: '1px solid var(--border-strong, #2d3f5e)', padding: '4px 9px', borderRadius: 4, fontSize: 11.5, fontWeight: 600, cursor: 'pointer' }}>ACB / MCCB เบรกเกอร์</button>
+                  <button type="button" onClick={() => applyEquipPreset('contactor', activeItemIndex)} style={{ background: 'var(--bg-input, #080e1a)', color: '#93c5fd', border: '1px solid var(--border-strong, #2d3f5e)', padding: '4px 9px', borderRadius: 4, fontSize: 11.5, fontWeight: 600, cursor: 'pointer' }}>Magnetic Contactor</button>
+                  <button type="button" onClick={() => applyEquipPreset('inverter', activeItemIndex)} style={{ background: 'var(--bg-input, #080e1a)', color: '#93c5fd', border: '1px solid var(--border-strong, #2d3f5e)', padding: '4px 9px', borderRadius: 4, fontSize: 11.5, fontWeight: 600, cursor: 'pointer' }}>Inverter / VFD</button>
+                  <button type="button" onClick={() => applyEquipPreset('capacitor', activeItemIndex)} style={{ background: 'var(--bg-input, #080e1a)', color: '#93c5fd', border: '1px solid var(--border-strong, #2d3f5e)', padding: '4px 9px', borderRadius: 4, fontSize: 11.5, fontWeight: 600, cursor: 'pointer' }}>Capacitor Bank / SPD</button>
+                </div>
+
+                {/* Accordion Items List */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {itemsRequested.map((item, idx) => (
-                    <div key={item.id || idx} style={{ border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: 14, background: 'var(--bg-surface-raised, #172340)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                        <span style={{ fontSize: 13, fontWeight: 800, color: '#93c5fd', background: 'rgba(37, 99, 235, 0.25)', border: '1px solid rgba(59, 130, 246, 0.35)', padding: '2px 8px', borderRadius: 4 }}>
-                          รายการที่ {idx + 1} : {item.name ? item.name.slice(0, 35) + '...' : 'ระบุชื่ออุปกรณ์'}
-                        </span>
-                        {itemsRequested.length > 1 && (
-                          <button 
-                            onClick={() => removeItemRequested(idx)}
-                            style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 4, padding: '2px 8px', fontSize: 12, cursor: 'pointer' }}>
-                            ลบรายการนี้
-                          </button>
+                  {itemsRequested.map((item, idx) => {
+                    const isExpanded = expandedItemIndices.includes(idx);
+                    const isActive = activeItemIndex === idx;
+                    const itemPhotos = Array.isArray(item.photos) && item.photos.length > 0
+                      ? item.photos
+                      : (item.photo ? [item.photo] : []);
+                    const isUploadingThis = uploadingItemPhotoIdx === idx;
+
+                    return (
+                      <div 
+                        key={item.id || idx} 
+                        style={{ 
+                          border: isActive ? '1.5px solid #3b82f6' : '1px solid var(--border-hairline, #1e2e4a)', 
+                          borderRadius: 8, 
+                          overflow: 'hidden',
+                          background: 'var(--bg-surface-raised, #172340)',
+                          boxShadow: isActive ? '0 0 14px rgba(37,99,235,0.18)' : 'none'
+                        }}>
+                        {/* Accordion Bar Header */}
+                        <div 
+                          onClick={() => {
+                            setActiveItemIndex(idx);
+                            toggleItemExpanded(idx);
+                          }}
+                          style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center', 
+                            padding: '10px 14px', 
+                            background: isActive ? 'rgba(37, 99, 235, 0.16)' : 'rgba(15, 23, 42, 0.4)',
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                            borderBottom: isExpanded ? '1px solid var(--border-hairline, #1e2e4a)' : 'none'
+                          }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', flex: 1 }}>
+                            <span style={{ fontSize: 12, color: isExpanded ? '#60a5fa' : 'var(--ink-secondary, #94a3c4)' }}>
+                              {isExpanded ? '▼' : '▶'}
+                            </span>
+                            <span style={{ fontSize: 12.5, fontWeight: 800, color: '#93c5fd', background: 'rgba(37, 99, 235, 0.25)', border: '1px solid rgba(59, 130, 246, 0.35)', padding: '2px 8px', borderRadius: 4 }}>
+                              รายการที่ {idx + 1}
+                            </span>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)' }}>
+                              {item.name || '(ยังไม่ระบุชื่ออุปกรณ์)'}
+                            </span>
+                            {item.modelPart && (
+                              <span style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)' }}>
+                                ({item.modelPart})
+                              </span>
+                            )}
+                            <span style={{ fontSize: 11, background: 'var(--bg-input, #080e1a)', color: '#60a5fa', border: '1px solid var(--border-strong, #2d3f5e)', padding: '1px 6px', borderRadius: 4, fontWeight: 700 }}>
+                              {item.qty || 1} {item.unit || 'ตัว'}
+                            </span>
+                            {item.specs ? (
+                              <span style={{ fontSize: 10.5, background: 'rgba(52, 211, 153, 0.12)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.3)', padding: '1px 6px', borderRadius: 4 }}>
+                                ✓ มีสเปกเฉพาะ
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: 10.5, background: 'rgba(245, 158, 11, 0.12)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '1px 6px', borderRadius: 4 }}>
+                                ⚠️ ยังไม่ใส่สเปก
+                              </span>
+                            )}
+                            {itemPhotos.length > 0 && (
+                              <span style={{ fontSize: 10.5, background: 'rgba(96, 165, 250, 0.12)', color: '#93c5fd', border: '1px solid rgba(96, 165, 250, 0.3)', padding: '1px 6px', borderRadius: 4 }}>
+                                📷 {itemPhotos.length} รูป
+                              </span>
+                            )}
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={e => e.stopPropagation()}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActiveItemIndex(idx);
+                                toggleItemExpanded(idx);
+                              }}
+                              style={{ background: 'transparent', border: 'none', color: '#60a5fa', fontSize: 11.5, cursor: 'pointer', textDecoration: 'underline' }}>
+                              {isExpanded ? 'ย่อซ่อน' : 'คลิกเพื่อแก้ไข'}
+                            </button>
+                            {itemsRequested.length > 1 && (
+                              <button 
+                                type="button"
+                                onClick={() => removeItemRequested(idx)}
+                                style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 4, padding: '2px 8px', fontSize: 11.5, cursor: 'pointer' }}>
+                                ลบรายการนี้
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Accordion Content Body (Rendered when expanded) */}
+                        {isExpanded && (
+                          <div style={{ padding: 14 }}>
+                            {/* Part 1: Equipment Details */}
+                            <div style={{ marginBottom: 12 }}>
+                              <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
+                                รายการอุปกรณ์ / ชิ้นส่วนอะไหล่ที่ต้องการ *
+                              </label>
+                              <input 
+                                type="text" 
+                                value={item.name || ''} 
+                                placeholder="เช่น Digital Power Meter, Magnetic Contactor, เซอร์กิตเบรกเกอร์ MCCB" 
+                                onChange={e => handleItemChange(idx, 'name', e.target.value)} 
+                                className="wizard-dark-input"
+                                style={{ width: '100%', padding: '7px 10px', fontSize: 13, fontWeight: 700 }} 
+                              />
+                            </div>
+
+                            <div style={{ marginBottom: 12 }}>
+                              <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
+                                ยี่ห้อ / รุ่น / รหัสอะไหล่อ้างอิงที่ต้องการ (หรือเทียบเท่า) *
+                              </label>
+                              <input 
+                                type="text" 
+                                value={item.modelPart || ''} 
+                                placeholder="เช่น Schneider Electric EasyLogic PM2230 (Part No. METSEPM2230) หรือเทียบเท่า" 
+                                onChange={e => handleItemChange(idx, 'modelPart', e.target.value)} 
+                                className="wizard-dark-input"
+                                style={{ width: '100%', padding: '7px 10px', fontSize: 13, fontWeight: 700 }} 
+                              />
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10, marginBottom: 12 }}>
+                              <div>
+                                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>จำนวนที่ขอเสนอซื้อ *</label>
+                                <input 
+                                  type="number" 
+                                  value={item.qty || 1} 
+                                  min="1" 
+                                  onChange={e => handleItemChange(idx, 'qty', parseInt(e.target.value, 10) || 1)} 
+                                  className="wizard-dark-input"
+                                  style={{ width: '100%', padding: '7px 10px', fontSize: 13, fontWeight: 700 }} 
+                                />
+                              </div>
+                              <div>
+                                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>หน่วยนับ</label>
+                                <input 
+                                  type="text" 
+                                  value={item.unit || 'ตัว'} 
+                                  placeholder="ตัว / ชุด / เครื่อง / ชิ้น" 
+                                  onChange={e => handleItemChange(idx, 'unit', e.target.value)} 
+                                  className="wizard-dark-input"
+                                  style={{ width: '100%', padding: '7px 10px', fontSize: 13 }} 
+                                />
+                              </div>
+                              <div>
+                                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>ตำแหน่งติดตั้ง / ตู้ที่ใช้งาน</label>
+                                <input 
+                                  type="text"
+                                  value={item.purpose || ''} 
+                                  placeholder="เช่น ตู้ Main MDB หรือห้องควบคุม" 
+                                  onChange={e => handleItemChange(idx, 'purpose', e.target.value)} 
+                                  className="wizard-dark-input"
+                                  style={{ width: '100%', padding: '7px 10px', fontSize: 12.5 }} 
+                                />
+                              </div>
+                            </div>
+
+                            {/* Part 2: Equipment Sample Photo Attachment (Up to 3 Photos) */}
+                            <div style={{ background: 'var(--bg-input, #080e1a)', padding: '10px 12px', borderRadius: 8, border: '1px dashed var(--border-strong, #2d3f5e)', marginBottom: 14 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: itemPhotos.length > 0 ? 8 : 0 }}>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: itemPhotos.length > 0 ? '#60a5fa' : 'var(--ink-secondary, #94a3c4)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <span>📷 รูปถ่ายตัวอย่างอุปกรณ์ / แคตตาล็อก / เนมเพลท (ถ้ามี - {itemPhotos.length}/3 รูป)</span>
+                                  {itemPhotos.length >= 3 && (
+                                    <span style={{ fontSize: 10.5, color: '#34d399', background: 'rgba(52, 211, 153, 0.12)', padding: '1px 6px', borderRadius: 4 }}>
+                                      ครบ 3 รูปแล้ว
+                                    </span>
+                                  )}
+                                </div>
+
+                                {itemPhotos.length < 3 && (
+                                  <label style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 5,
+                                    background: isUploadingThis ? 'var(--bg-surface-raised, #172340)' : 'rgba(37, 99, 235, 0.2)',
+                                    color: isUploadingThis ? '#94a3c4' : '#93c5fd',
+                                    border: '1px solid rgba(59, 130, 246, 0.4)',
+                                    borderRadius: 5,
+                                    padding: '4px 10px',
+                                    fontSize: 11.5,
+                                    fontWeight: 700,
+                                    cursor: isUploadingThis ? 'wait' : 'pointer'
+                                  }}>
+                                    <span>{isUploadingThis ? '⏳ กำลังบีบอัด...' : '📁 + แนบรูปอุปกรณ์'}</span>
+                                    <input 
+                                      type="file" 
+                                      accept="image/*" 
+                                      multiple 
+                                      disabled={isUploadingThis}
+                                      onChange={(e) => handleItemPhotoUpload(idx, e)} 
+                                      style={{ display: 'none' }} 
+                                    />
+                                  </label>
+                                )}
+                              </div>
+
+                              {itemPhotos.length > 0 && (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                                  {itemPhotos.map((photoSrc, pIdx) => (
+                                    <div key={pIdx} style={{ position: 'relative', width: 68, height: 68, borderRadius: 6, overflow: 'hidden', border: '1.5px solid var(--border-strong, #2d3f5e)', background: '#000' }}>
+                                      <img src={photoSrc} alt={`Equipment ${pIdx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                      <button 
+                                        type="button"
+                                        onClick={() => handleRemoveItemPhoto(idx, pIdx)}
+                                        title="ลบรูปนี้"
+                                        style={{
+                                          position: 'absolute',
+                                          top: 2,
+                                          right: 2,
+                                          width: 18,
+                                          height: 18,
+                                          borderRadius: '50%',
+                                          background: 'rgba(239, 68, 68, 0.9)',
+                                          color: '#ffffff',
+                                          border: 'none',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          fontSize: 11,
+                                          cursor: 'pointer',
+                                          lineHeight: 1
+                                        }}>
+                                        ✕
+                                      </button>
+                                      <div style={{ position: 'absolute', bottom: 2, left: 3, background: 'rgba(0,0,0,0.65)', color: '#fff', fontSize: 9.5, padding: '1px 4px', borderRadius: 3, fontWeight: 700 }}>
+                                        #{pIdx + 1}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Part 3: Technical Specifications & Substitution Requirements for this Item */}
+                            <div style={{ background: 'rgba(15, 23, 42, 0.3)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 8, padding: 12 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, flexWrap: 'wrap', gap: 6 }}>
+                                <label style={{ fontSize: 12, fontWeight: 700, color: '#93c5fd', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <span>⚙️</span> สเปกเบื้องต้นและเงื่อนไขสำคัญที่ต้องใช้แทนได้ (เฉพาะของรายการที่ {idx + 1}):
+                                </label>
+                                <div style={{ display: 'flex', gap: 5 }}>
+                                  <button type="button" onClick={() => handleItemChange(idx, 'specs', sampleMeterSpecs)} style={{ background: 'var(--bg-input, #080e1a)', border: '1px solid var(--border-strong, #2d3f5e)', color: 'var(--ink-secondary, #94a3c4)', padding: '2px 8px', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>+ มิเตอร์</button>
+                                  <button type="button" onClick={() => handleItemChange(idx, 'specs', sampleBreakerSpecs)} style={{ background: 'var(--bg-input, #080e1a)', border: '1px solid var(--border-strong, #2d3f5e)', color: 'var(--ink-secondary, #94a3c4)', padding: '2px 8px', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>+ เบรกเกอร์</button>
+                                  <button type="button" onClick={() => handleItemChange(idx, 'specs', sampleContactorSpecs)} style={{ background: 'var(--bg-input, #080e1a)', border: '1px solid var(--border-strong, #2d3f5e)', color: 'var(--ink-secondary, #94a3c4)', padding: '2px 8px', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>+ แมกเนติก</button>
+                                  <button type="button" onClick={() => handleItemChange(idx, 'specs', '')} style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', padding: '2px 8px', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>ล้างสเปก</button>
+                                </div>
+                              </div>
+
+                              <textarea 
+                                rows="6" 
+                                value={item.specs || ''} 
+                                onChange={e => handleItemChange(idx, 'specs', e.target.value)} 
+                                placeholder="พิมพ์ระบุคุณลักษณะเฉพาะและเงื่อนไขสำคัญที่ต้องใช้แทนได้สำหรับรายการนี้ เช่น:
+• ขนาดมิติและการติดตั้ง: ขนาด 96x96 มม. ติดตั้งแทนช่องเดิมได้พอดี
+• พิกัดไฟฟ้าและฟังก์ชัน: ระบบ 3P4W/3P3W, Input CT 1A/5A, วัดค่า V, I, kW, kWh (Class 0.5S)
+• การเชื่อมต่อ: มีพอร์ต RS-485 Modbus RTU เข้ากับระบบเดิมได้
+• การรับประกัน: ไม่น้อยกว่า 1 ปี นับจากวันส่งมอบ"
+                                className="wizard-dark-input"
+                                style={{ width: '100%', padding: '8px 10px', fontSize: 12.5, lineHeight: 1.5 }} 
+                              />
+                              <div style={{ fontSize: 11, color: '#93c5fd', marginTop: 4 }}>
+                                💡 สเปกของรายการนี้จะถูกนำไปแสดงในหัวข้อที่ 3 ของเอกสารเต็ม เพื่อประกอบการร่างรายละเอียดคุณลักษณะเฉพาะ (TOR)
+                              </div>
+                            </div>
+                          </div>
                         )}
                       </div>
-
-                      <div style={{ marginBottom: 10 }}>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
-                          รายการอุปกรณ์ / ชิ้นส่วนอะไหล่ที่ต้องการ *
-                        </label>
-                        <input 
-                          type="text" 
-                          value={item.name || ''} 
-                          placeholder="เช่น Digital Power Meter, Magnetic Contactor, เซอร์กิตเบรกเกอร์ MCCB" 
-                          onChange={e => handleItemChange(idx, 'name', e.target.value)} 
-                          className="wizard-dark-input"
-                          style={{ width: '100%', padding: '7px 10px', fontSize: 13, fontWeight: 700 }} 
-                        />
-                      </div>
-
-                      <div style={{ marginBottom: 10 }}>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
-                          ยี่ห้อ / รุ่น / รหัสอะไหล่อ้างอิงที่ต้องการ (หรือเทียบเท่า) *
-                        </label>
-                        <input 
-                          type="text" 
-                          value={item.modelPart || ''} 
-                          placeholder="เช่น Schneider Electric EasyLogic PM2230 (Part No. METSEPM2230) หรือเทียบเท่า" 
-                          onChange={e => handleItemChange(idx, 'modelPart', e.target.value)} 
-                          className="wizard-dark-input"
-                          style={{ width: '100%', padding: '7px 10px', fontSize: 13, fontWeight: 700 }} 
-                        />
-                      </div>
-
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10, marginBottom: 10 }}>
-                        <div>
-                          <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>จำนวนที่ขอเสนอซื้อ *</label>
-                          <input 
-                            type="number" 
-                            value={item.qty || 1} 
-                            min="1" 
-                            onChange={e => handleItemChange(idx, 'qty', parseInt(e.target.value, 10) || 1)} 
-                            className="wizard-dark-input"
-                            style={{ width: '100%', padding: '7px 10px', fontSize: 13, fontWeight: 700 }} 
-                          />
-                        </div>
-                        <div>
-                          <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>หน่วยนับ</label>
-                          <input 
-                            type="text" 
-                            value={item.unit || 'ตัว'} 
-                            placeholder="ตัว / ชุด / เครื่อง / ชิ้น" 
-                            onChange={e => handleItemChange(idx, 'unit', e.target.value)} 
-                            className="wizard-dark-input"
-                            style={{ width: '100%', padding: '7px 10px', fontSize: 13 }} 
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 4 }}>
-                          ตำแหน่งติดตั้ง / พื้นที่ใช้งาน (ระบุตำแหน่ง เช่น ตู้ Main MDB อาคาร... หรือเว้นว่างได้):
-                        </label>
-                        <input 
-                          type="text"
-                          value={item.purpose || ''} 
-                          placeholder="เช่น ตู้ Main MDB ประจำอาคาร หรือตำแหน่งจุดติดตั้ง (เว้นว่างได้)" 
-                          onChange={e => handleItemChange(idx, 'purpose', e.target.value)} 
-                          className="wizard-dark-input"
-                          style={{ width: '100%', padding: '7px 10px', fontSize: 12.5 }} 
-                        />
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div style={{ background: 'rgba(37, 99, 235, 0.12)', border: '1px solid rgba(59, 130, 246, 0.35)', borderLeft: '4px solid #3b82f6', padding: '10px 14px', borderRadius: 6, fontSize: 12, color: '#93c5fd', marginTop: 14 }}>
-                  <strong style={{ color: '#ffffff' }}>💡 หมายเหตุการจัดหา:</strong> กรณีไม่มีของตรงรุ่นที่ระบุ ให้พิจารณาจัดหายี่ห้อหรือรุ่นอื่นตาม <strong>"สเปกเบื้องต้นและเงื่อนไขสำคัญที่ต้องใช้แทนได้"</strong> ในขั้นตอนถัดไป
+                  <strong style={{ color: '#ffffff' }}>💡 คำแนะนำทางวิศวกรรม:</strong> หากต้องการซ่อนรายการอื่นๆ ที่กรอกเสร็จแล้วเพื่อไม่ให้หน้าจอยาวเกินไป สามารถคลิกที่แถบหัวข้อรายการหรือปุ่ม <strong>"ย่อซ่อน"</strong> หรือเลือกดูเฉพาะรายการที่ต้องการได้จากแท็บด้านบน
                 </div>
               </div>
             )}
 
-            {/* STEP 4: Technical Specs / Substitution Criteria (Textarea only) */}
+            {/* STEP 4: Signatures (with optional justification) */}
             {currentStep === 3 && (
-              <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 12, padding: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', marginBottom: 8 }}>
-                  ⚙️ สเปกเบื้องต้นและเงื่อนไขสำคัญที่ต้องใช้แทนได้ (กรณีใช้ยี่ห้อ/รุ่นอื่นทดแทน)
-                </h3>
-
-                <div style={{ background: 'rgba(37, 99, 235, 0.12)', border: '1px solid rgba(59, 130, 246, 0.35)', borderLeft: '4px solid #3b82f6', padding: '10px 14px', borderRadius: 6, fontSize: 12.5, color: '#93c5fd', marginBottom: 14, lineHeight: 1.5 }}>
-                  <strong style={{ color: '#ffffff' }}>📌 หลักเกณฑ์ทางวิศวกรรมในการจัดหาอุปกรณ์ทดแทน:</strong><br />
-                  ในกรณีที่ฝ่ายจัดซื้อไม่สามารถจัดหาอุปกรณ์ได้ตรงตามรุ่นที่ระบุ หรือใช้ยี่ห้ออื่นทดแทน อุปกรณ์ทดแทนจะต้องมีคุณสมบัติและสเปกขั้นต่ำสอดคล้องตามเงื่อนไขที่ระบุ เพื่อให้นำมาใช้งานแทนของเดิมได้อย่างสมบูรณ์และปลอดภัย
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <label style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)' }}>
-                    ข้อกำหนดและเงื่อนไขทางเทคนิคสำคัญที่ต้องใช้แทนได้:
-                  </label>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <button type="button" onClick={() => setSubstitutionSpecs(sampleMeterSpecs)} style={{ background: 'var(--bg-surface-raised, #172340)', border: '1px solid var(--border-strong, #2d3f5e)', color: 'var(--ink-primary, #eef2ff)', padding: '4px 10px', borderRadius: 4, fontSize: 11.5, fontWeight: 600, cursor: 'pointer' }}>+ แม่แบบมิเตอร์</button>
-                    <button type="button" onClick={() => setSubstitutionSpecs('')} style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', padding: '4px 10px', borderRadius: 4, fontSize: 11.5, fontWeight: 600, cursor: 'pointer' }}>ล้างข้อความ</button>
-                  </div>
-                </div>
-
-                <textarea 
-                  rows="9" 
-                  value={substitutionSpecs} 
-                  onChange={e => setSubstitutionSpecs(e.target.value)} 
-                  placeholder="พิมพ์ระบุสเปกเบื้องต้นและเงื่อนไขสำคัญที่ต้องใช้แทนได้ เช่น:
-• ขนาดมิติและการติดตั้ง: ขนาดหน้าปัด 96x96 มม. เจาะช่อง 92x92 มม. ชนิด Panel Mount สามารถใส่แทนช่องเดิมได้พอดีโดยไม่ต้องตัดเจาะตู้
-• พิกัดแรงดัน/กระแส และระบบไฟฟ้า: รองรับระบบ 3 เฟส 4 สาย (3P4W) / 3P3W พิกัด CT 1A/5A แหล่งจ่ายไฟ Aux Universal 44-277 VAC/DC
-• ฟังก์ชันการทำงานและการวัดค่า: ตรวจวัดค่า V, I, kW, kVAR, kVA, PF, Hz, Demand และค่าฮาร์มอนิก THD ถึงอันดับที่ 31
-• ความแม่นยำและการสื่อสาร: ค่าพลังงาน Class 0.5S (IEC 62053-22) มีพอร์ต RS-485 Modbus RTU สำหรับส่งข้อมูลเข้า SCADA/BEMS
-• ความปลอดภัยและการรับประกัน: หน้าตู้กันน้ำฝุ่น IP54 ผ่าน IEC 61010-1 และรับประกันคุณภาพไม่น้อยกว่า 1 ปี"
-                  className="wizard-dark-input"
-                  style={{ width: '100%', padding: '10px 12px', fontSize: 13, lineHeight: 1.5 }} 
-                />
-              </div>
-            )}
-
-            {/* STEP 5: Signatures (with optional justification) */}
-            {currentStep === 4 && (
               <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 12, padding: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', marginBottom: 14 }}>
                   ✍️ ส่วนลงนาม (ผู้สำรวจและวิเคราะห์ / ผู้ตรวจสอบและรับรอง)
@@ -2164,8 +2524,8 @@ function RepairProposalFormInner() {
               </div>
             )}
 
-            {/* STEP 6: Summary & Export */}
-            {currentStep === 5 && (
+            {/* STEP 5: Summary & Export */}
+            {currentStep === 4 && (
               <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 12, padding: 24, textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}>
                 <div style={{ fontSize: 40, marginBottom: 8 }}>✅</div>
                 <h2 style={{ fontSize: 18, color: 'var(--ink-primary, #eef2ff)', margin: '0 0 6px', fontWeight: 800 }}>ตรวจสอบข้อมูลและพร้อมบันทึกหรือส่งออกเอกสาร</h2>
@@ -2564,12 +2924,30 @@ function RepairProposalFormInner() {
                 <span>หน้า 2 / {hasAnnex ? 3 : 2}</span>
               </div>
 
-              {/* Section 3: Technical Specifications & Substitution Criteria */}
+              {/* Section 3: Technical Specifications & Substitution Criteria (Per-item specifications) */}
               <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a', borderBottom: '2.5px solid #0f2e5a', paddingBottom: 4, marginBottom: 8 }}>
                 3. ข้อกำหนดคุณลักษณะเฉพาะและเงื่อนไขสำคัญที่ต้องใช้แทนได้ (กรณีใช้ยี่ห้อ/รุ่นอื่นทดแทน)
               </div>
-              <div style={{ background: '#f8fafc', border: '1.5px solid #475569', borderRadius: 4, padding: '10px 14px', fontSize: 11, marginBottom: 14, lineHeight: 1.6, whiteSpace: 'pre-line', color: '#0f172a', fontWeight: 500 }}>
-                {substitutionSpecs || 'ไม่มีข้อกำหนดเพิ่มเติม (จัดหาตามรุ่นที่ระบุหรือเทียบเท่า)'}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14 }}>
+                {itemsRequested.map((it, idx) => {
+                  const itemSpecText = it.specs?.trim() || (idx === 0 ? substitutionSpecs?.trim() : '') || 'จัดหาตามรุ่นที่ระบุหรือเทียบเท่าที่มีคุณสมบัติทางเทคนิคเข้ากันได้กับระบบเดิม';
+                  return (
+                    <div key={idx} style={{ background: '#f8fafc', border: '1.5px solid #475569', borderRadius: 4, padding: '9px 12px', fontSize: 11, lineHeight: 1.6, color: '#0f172a' }}>
+                      <div style={{ fontWeight: 800, color: '#0f2e5a', marginBottom: 4, fontSize: 11.5, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>3.{idx + 1}</span>
+                        <span>{it.name || `รายการที่ ${idx + 1}`}</span>
+                        {it.modelPart && (
+                          <span style={{ fontWeight: 600, color: '#475569' }}>
+                            (รุ่นอ้างอิง: {it.modelPart})
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ whiteSpace: 'pre-line', fontWeight: 500, paddingLeft: 6, color: '#1e293b' }}>
+                        {itemSpecText}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Section 4: Justification (Optional - Only rendered if custom justification is provided) */}
@@ -2631,43 +3009,83 @@ function RepairProposalFormInner() {
               <div className="a4-print-page" style={{ background: '#ffffff', borderRadius: 8, padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.4)', color: '#0f172a' }}>
                 {/* Official Page 3 Header for Attachment Document */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid #cbd5e1', paddingBottom: 4, marginBottom: 12, fontSize: 11, color: '#475569', fontWeight: 700 }}>
-                  <span>เอกสารแนบใบเสนอแจ้งซ่อมเลขที่: <strong style={{ color: '#0f2e5a' }}>{refNo || '-'}</strong>{fmRefNo ? ` (FM: ${fmRefNo})` : ''} (ภาคผนวกภาพถ่ายสภาพหน้างาน)</span>
+                  <span>เอกสารแนบใบเสนอแจ้งซ่อมเลขที่: <strong style={{ color: '#0f2e5a' }}>{refNo || '-'}</strong>{fmRefNo ? ` (FM: ${fmRefNo})` : ''} (ภาคผนวกภาพถ่ายประกอบ)</span>
                   <span>หน้า 3 / 3</span>
                 </div>
 
                 <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f2e5a', borderBottom: '2.5px solid #0f2e5a', paddingBottom: 4, marginBottom: 8 }}>
-                  ภาคผนวก: ภาพถ่ายประกอบผลการตรวจสอบและสำรวจสภาพอุปกรณ์หน้างาน
+                  ภาคผนวก: ภาพถ่ายประกอบการสำรวจสภาพหน้างาน และตัวอย่างอุปกรณ์ที่ขอเสนอซื้อ
                 </div>
-                <p style={{ fontSize: 11.5, color: '#0f172a', fontWeight: 600, marginBottom: 12, lineHeight: 1.4 }}>
-                  หลักฐานภาพถ่ายสภาพตู้สวิตช์บอร์ด Main MDB และอุปกรณ์เดิม ณ จุดติดตั้งที่ตรวจพบความชำรุดเสียหาย:
-                </p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                  {surveyPoints.map((p, pIdx) => {
-                    const pointPhotos = (Array.isArray(p.photos) && p.photos.length > 0) ? p.photos : (p.photo ? [p.photo] : []);
-                    return pointPhotos.map((photoSrc, phIdx) => (
-                      <div key={`${pIdx}-${phIdx}`} style={{ border: '1.5px solid #475569', borderRadius: 6, overflow: 'hidden', background: '#ffffff' }}>
-                        <div style={{ width: '100%', height: 140, background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <img src={photoSrc} alt={p.building} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        </div>
-                        <div style={{ padding: '8px 10px', fontSize: 11 }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                            <span style={{ fontWeight: 800, color: '#ffffff', background: '#0284c7', padding: '2px 7px', borderRadius: 4, fontSize: 10.5 }}>
-                              {p.building || `จุดที่ ${pIdx + 1}`}
-                            </span>
-                            {pointPhotos.length > 1 && (
-                              <span style={{ fontSize: 10, color: '#64748b', fontWeight: 700 }}>
-                                รูปที่ {phIdx + 1}/{pointPhotos.length}
-                              </span>
-                            )}
+                {/* Annex Part A: Defect Points Photos */}
+                {surveyPoints.some(p => Boolean((p.photos && p.photos.length > 0) || p.photo)) && (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#0369a1', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span>📷</span> 1. ภาพถ่ายสภาพตู้สวิตช์บอร์ดและอุปกรณ์เดิม ณ จุดติดตั้งที่ตรวจพบความชำรุดเสียหาย:
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                      {surveyPoints.map((p, pIdx) => {
+                        const pointPhotos = (Array.isArray(p.photos) && p.photos.length > 0) ? p.photos : (p.photo ? [p.photo] : []);
+                        return pointPhotos.map((photoSrc, phIdx) => (
+                          <div key={`${pIdx}-${phIdx}`} style={{ border: '1.5px solid #475569', borderRadius: 6, overflow: 'hidden', background: '#ffffff' }}>
+                            <div style={{ width: '100%', height: 130, background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <img src={photoSrc} alt={p.building} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            </div>
+                            <div style={{ padding: '6px 8px', fontSize: 10.5 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
+                                <span style={{ fontWeight: 800, color: '#ffffff', background: '#0284c7', padding: '1px 6px', borderRadius: 3, fontSize: 10 }}>
+                                  {p.building || `จุดที่ ${pIdx + 1}`}
+                                </span>
+                                {pointPhotos.length > 1 && (
+                                  <span style={{ fontSize: 9.5, color: '#64748b', fontWeight: 700 }}>
+                                    รูปที่ {phIdx + 1}/{pointPhotos.length}
+                                  </span>
+                                )}
+                              </div>
+                              <div style={{ color: '#0f172a', fontWeight: 700, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.symptom || '-'}</div>
+                              <div style={{ color: '#334155', fontSize: 9.5, fontWeight: 600, marginTop: 1 }}>ตำแหน่ง: {p.location || 'Main MDB'}</div>
+                            </div>
                           </div>
-                          <div style={{ color: '#0f172a', fontWeight: 700, marginTop: 4 }}>{p.symptom || '-'}</div>
-                          <div style={{ color: '#334155', fontSize: 10, fontWeight: 600, marginTop: 2 }}>ตำแหน่ง: {p.location || 'Main MDB'}</div>
-                        </div>
-                      </div>
-                    ));
-                  })}
-                </div>
+                        ));
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Annex Part B: Equipment Reference & Model Photos */}
+                {itemsRequested.some(it => Boolean((it.photos && it.photos.length > 0) || it.photo)) && (
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#15803d', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6, borderTop: surveyPoints.some(p => Boolean((p.photos && p.photos.length > 0) || p.photo)) ? '1.5px dashed #cbd5e1' : 'none', paddingTop: surveyPoints.some(p => Boolean((p.photos && p.photos.length > 0) || p.photo)) ? 14 : 0 }}>
+                      <span>📦</span> 2. ภาพถ่ายตัวอย่างอุปกรณ์, แคตตาล็อก หรือเนมเพลทของรุ่นที่ขอเสนอซื้อ:
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                      {itemsRequested.map((it, itIdx) => {
+                        const itPhotos = (Array.isArray(it.photos) && it.photos.length > 0) ? it.photos : (it.photo ? [it.photo] : []);
+                        return itPhotos.map((photoSrc, phIdx) => (
+                          <div key={`it-${itIdx}-${phIdx}`} style={{ border: '1.5px solid #475569', borderRadius: 6, overflow: 'hidden', background: '#ffffff' }}>
+                            <div style={{ width: '100%', height: 130, background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <img src={photoSrc} alt={it.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            </div>
+                            <div style={{ padding: '6px 8px', fontSize: 10.5 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
+                                <span style={{ fontWeight: 800, color: '#ffffff', background: '#15803d', padding: '1px 6px', borderRadius: 3, fontSize: 10 }}>
+                                  รายการที่ {itIdx + 1}
+                                </span>
+                                {itPhotos.length > 1 && (
+                                  <span style={{ fontSize: 9.5, color: '#64748b', fontWeight: 700 }}>
+                                    รูปที่ {phIdx + 1}/{itPhotos.length}
+                                  </span>
+                                )}
+                              </div>
+                              <div style={{ color: '#0f172a', fontWeight: 700, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.name || '-'}</div>
+                              <div style={{ color: '#334155', fontSize: 9.5, fontWeight: 600, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>รุ่น: {it.modelPart || '-'}</div>
+                            </div>
+                          </div>
+                        ));
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
