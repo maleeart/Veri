@@ -229,13 +229,16 @@ function PmPageInner() {
             </div>
             <div className="pm-hdr-actions">
               <button className="pm-btn-home" onClick={() => router.push('/')}>
-                🏠 หน้าแรก
+                <span className="btn-txt-full">🏠 หน้าแรก</span>
+                <span className="btn-txt-short">🏠 หน้าแรก</span>
               </button>
               <button className="pm-btn-home" onClick={() => router.push('/admin')} title="ดูภาพรวมและแนวโน้มแต่ละระบบ">
-                📈 ภาพรวมระบบ
+                <span className="btn-txt-full">📈 ภาพรวมระบบ</span>
+                <span className="btn-txt-short">📈 ภาพรวม</span>
               </button>
               <button className="pm-refresh" title="รีเฟรชข้อมูล" onClick={load} disabled={loading}>
-                🔄 รีเฟรช
+                <span className="btn-txt-full">🔄 รีเฟรช</span>
+                <span className="btn-txt-short">🔄 รีเฟรช</span>
               </button>
             </div>
           </div>
@@ -247,28 +250,40 @@ function PmPageInner() {
                 <span className="kpi-icon">⚙️</span>
                 <div className="kpi-content">
                   <span className="kpi-num">{kpis.total}</span>
-                  <span className="kpi-lbl">รายการ PM ทั้งหมด</span>
+                  <span className="kpi-lbl">
+                    <span className="kpi-lbl-full">รายการ PM ทั้งหมด</span>
+                    <span className="kpi-lbl-short">PM ทั้งหมด</span>
+                  </span>
                 </div>
               </div>
               <div className="kpi-card kpi-card--ok">
                 <span className="kpi-icon">✅</span>
                 <div className="kpi-content">
                   <span className="kpi-num">{kpis.ok}</span>
-                  <span className="kpi-lbl">สถานะปกติ</span>
+                  <span className="kpi-lbl">
+                    <span className="kpi-lbl-full">สถานะปกติ</span>
+                    <span className="kpi-lbl-short">สถานะปกติ</span>
+                  </span>
                 </div>
               </div>
               <div className="kpi-card kpi-card--due">
                 <span className="kpi-icon">🟡</span>
                 <div className="kpi-content">
                   <span className="kpi-num">{kpis.due}</span>
-                  <span className="kpi-lbl">ใกล้ครบกำหนด (เตือน)</span>
+                  <span className="kpi-lbl">
+                    <span className="kpi-lbl-full">ใกล้ครบกำหนด (เตือน)</span>
+                    <span className="kpi-lbl-short">ใกล้ครบ (เตือน)</span>
+                  </span>
                 </div>
               </div>
               <div className="kpi-card kpi-card--overdue">
                 <span className="kpi-icon">🔴</span>
                 <div className="kpi-content">
                   <span className="kpi-num">{kpis.overdue}</span>
-                  <span className="kpi-lbl">เกินกำหนด (ค้างทำ)</span>
+                  <span className="kpi-lbl">
+                    <span className="kpi-lbl-full">เกินกำหนด (ค้างทำ)</span>
+                    <span className="kpi-lbl-short">เกินกำหนด</span>
+                  </span>
                 </div>
               </div>
             </div>
@@ -295,16 +310,19 @@ function PmPageInner() {
                 return (
                   <Fragment key={row.name}>
                     <div className="ov-row">
-                      <span className="ov-icon">{row.icon}</span>
-                      <div className="ov-info">
-                        <div className="ov-title-line">
-                          <span className="ov-name">{row.name}</span>
-                          <span className="ov-cycle">{row.cycle}</span>
+                      <div className="ov-main-block">
+                        <span className="ov-icon">{row.icon}</span>
+                        <div className="ov-info">
+                          <div className="ov-title-line">
+                            <span className="ov-name">{row.name}</span>
+                            <span className="ov-cycle">{row.cycle}</span>
+                          </div>
+                          <span className="ov-sub">บันทึกล่าสุด: {row.last ? fmtDate(row.last) : '—'}</span>
                         </div>
-                        <span className="ov-sub">บันทึกล่าสุด: {row.last ? fmtDate(row.last) : '—'}</span>
+                        <span className={`chip ${row.chip.cls} ov-chip--mob`}>{row.chip.txt}</span>
                       </div>
                       <div className="ov-actions">
-                        <span className={`chip ${row.chip.cls}`}>{row.chip.txt}</span>
+                        <span className={`chip ${row.chip.cls} ov-chip--desk`}>{row.chip.txt}</span>
                         {row.type && (
                           <button className="ov-exp" onClick={() => toggleOv(row.type)}>
                             {exp ? '▲ ซ่อนอาคาร' : '▼ ดูอาคาร'}
@@ -726,6 +744,180 @@ function PmPageInner() {
         :global(.st--overdue) { background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.35); }
         :global(.st--due)     { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.35); }
         :global(.st--never)   { background: rgba(148, 163, 184, 0.12); color: #94a3b8; border-color: rgba(148, 163, 184, 0.25); }
+
+        .btn-txt-short { display: none; }
+        .btn-txt-full { display: inline; }
+        .kpi-lbl-short { display: none; }
+        .kpi-lbl-full { display: inline; }
+        .ov-chip--mob { display: none; }
+        .ov-chip--desk { display: inline-flex; }
+        .ov-main-block { display: contents; }
+
+        @media (max-width: 680px) {
+          .pm-main {
+            padding: 14px 12px 60px;
+          }
+          .pm-hdr {
+            margin-bottom: 16px;
+          }
+          .pm-hdr-top {
+            gap: 12px;
+            margin-bottom: 12px;
+          }
+          .pm-title-row {
+            gap: 8px;
+          }
+          .pm-title {
+            font-size: 18px;
+          }
+          .pm-badge {
+            font-size: 10px;
+            padding: 2px 7px;
+          }
+          .pm-sub {
+            font-size: 11.5px;
+            line-height: 1.35;
+          }
+          .pm-hdr-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+            width: 100%;
+          }
+          .pm-btn-home, .pm-refresh {
+            padding: 6px 4px;
+            font-size: 11.5px;
+            justify-content: center;
+            text-align: center;
+          }
+          .btn-txt-full { display: none; }
+          .btn-txt-short { display: inline; }
+
+          .pm-kpi-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+          }
+          .kpi-card {
+            padding: 10px 10px;
+            gap: 8px;
+            border-radius: 12px;
+          }
+          .kpi-icon {
+            font-size: 20px;
+            width: 24px;
+          }
+          .kpi-num {
+            font-size: 19px;
+          }
+          .kpi-lbl {
+            font-size: 10.5px;
+            margin-top: 2px;
+          }
+          .kpi-lbl-full { display: none; }
+          .kpi-lbl-short { display: inline; }
+
+          .pm-sec-head {
+            margin: 20px 2px 10px;
+          }
+          .pm-sec-title {
+            font-size: 14px;
+          }
+          .sec-tag {
+            font-size: 10px;
+            padding: 1px 6px;
+          }
+          .pm-sec-sub {
+            font-size: 11px;
+          }
+
+          .ov-table {
+            border-radius: 14px;
+          }
+          .ov-row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+            padding: 11px 12px;
+          }
+          .ov-main-block {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            width: 100%;
+          }
+          .ov-icon {
+            font-size: 20px;
+            width: 24px;
+            padding-top: 2px;
+          }
+          .ov-info {
+            gap: 4px;
+          }
+          .ov-title-line {
+            gap: 4px;
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .ov-name {
+            font-size: 13.5px;
+            line-height: 1.25;
+          }
+          .ov-cycle {
+            font-size: 10px;
+            padding: 1px 6px;
+          }
+          .ov-sub {
+            font-size: 11px;
+          }
+          .ov-chip--mob {
+            display: inline-flex;
+            font-size: 10.5px;
+            padding: 3px 7px;
+            flex-shrink: 0;
+            margin-left: auto;
+          }
+          .ov-chip--desk {
+            display: none;
+          }
+          .ov-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            border-top: 1px dashed var(--border-hairline);
+            padding-top: 7px;
+            margin-top: 2px;
+          }
+          .ov-exp, .ov-go {
+            flex: 1;
+            text-align: center;
+            justify-content: center;
+            padding: 6px 10px;
+            font-size: 11.5px;
+          }
+
+          .ov-blds {
+            padding: 10px 12px 14px;
+            gap: 6px;
+          }
+          .ov-blds-hd {
+            font-size: 11px;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+          }
+          .bld-legend {
+            font-size: 10px;
+          }
+          .ov-blds-list {
+            gap: 5px;
+          }
+          .bld {
+            font-size: 10.5px;
+            padding: 3px 7px;
+            border-radius: 6px;
+          }
+        }
       `}</style>
     </div>
   );
@@ -849,6 +1041,30 @@ function MachineBlock({ machine, items: itemsProp, entry, canWrite, onPost }) {
           padding: 4px 10px;
           white-space: nowrap;
           border: 1px solid transparent;
+        }
+        @media (max-width: 640px) {
+          .mb-hd {
+            padding: 11px 12px;
+            gap: 10px;
+          }
+          .mb-ico {
+            font-size: 20px;
+            width: 24px;
+          }
+          .mb-name {
+            font-size: 13px;
+          }
+          .mb-loc {
+            font-size: 10px;
+            padding: 1px 5px;
+          }
+          .mb-count-sub {
+            font-size: 10.5px;
+          }
+          .chip {
+            font-size: 10.5px;
+            padding: 3px 7px;
+          }
         }
       `}</style>
     </section>
@@ -1001,6 +1217,32 @@ function SetupForm({ machine, items, canWrite, onPost }) {
         .setup-btn:disabled {
           opacity: 0.5;
           cursor: default;
+        }
+        @media (max-width: 640px) {
+          .setup {
+            padding: 6px 12px 14px;
+          }
+          .srow {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 6px;
+            padding: 8px 0;
+          }
+          .srow-info {
+            width: 100%;
+            min-width: 0;
+            justify-content: space-between;
+          }
+          .srow-ctl {
+            width: 100%;
+            justify-content: space-between;
+          }
+          .dinp {
+            flex: 1;
+            max-width: 140px;
+            padding: 5px 8px;
+            font-size: 12px;
+          }
         }
       `}</style>
     </div>
@@ -1206,6 +1448,59 @@ function ItemRow({ machineId, item, last, canWrite, onPost }) {
         .ir-btn:disabled {
           opacity: 0.5;
           cursor: default;
+        }
+        @media (max-width: 640px) {
+          .ir {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 7px;
+            padding: 9px 12px;
+          }
+          .ir-main {
+            min-width: 0;
+            width: 100%;
+            gap: 2px;
+          }
+          .ir-title-row {
+            justify-content: space-between;
+            gap: 6px;
+          }
+          .ir-lbl {
+            font-size: 12.5px;
+          }
+          .ir-badge {
+            font-size: 9.5px;
+            padding: 1px 5px;
+          }
+          .ir-detail {
+            font-size: 11px;
+            line-height: 1.35;
+          }
+          .ir-right {
+            width: 100%;
+            justify-content: space-between;
+            gap: 6px;
+            border-top: 1px dashed var(--border-hairline);
+            padding-top: 6px;
+          }
+          .ir-act {
+            flex: 1;
+            justify-content: flex-end;
+            gap: 6px;
+          }
+          .ir-date {
+            max-width: 130px;
+            font-size: 11px;
+            padding: 4px 6px;
+          }
+          .ir-btn {
+            font-size: 11px;
+            padding: 5px 9px;
+          }
+          .chip {
+            font-size: 10.5px;
+            padding: 3px 7px;
+          }
         }
       `}</style>
     </div>

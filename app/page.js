@@ -1182,7 +1182,10 @@ function HomePageInner() {
           <span className="foot-ico">🔧</span>
           <div className="foot-body">
             <span className="foot-title">สถานะ PM</span>
-            <span className="foot-sub">สรุปทุกระบบ · รอบเปลี่ยน/ตรวจใหญ่ · กดดูรายอาคาร</span>
+            <span className="foot-sub">
+              <span className="foot-sub--desk">สรุปทุกระบบ · รอบเปลี่ยน/ตรวจใหญ่ · กดดูรายอาคาร</span>
+              <span className="foot-sub--mob">สรุปทุกระบบ · รอบเปลี่ยน &amp; ตรวจใหญ่</span>
+            </span>
           </div>
           <span className="foot-arrow">›</span>
         </button>
@@ -2576,6 +2579,175 @@ function HomePageInner() {
           outline: none;
         }
         .admin-input:focus { border-color: var(--accent); }
+
+        .foot-sub--mob { display: none; }
+        .foot-sub--desk { display: inline; }
+
+        @media (max-width: 640px) {
+          .foot-sub--mob { display: inline; }
+          .foot-sub--desk { display: none; }
+
+          .grid {
+            padding: 12px 12px 0;
+            gap: 10px;
+          }
+          .card:not(.card--fpg) {
+            padding: 10px 10px;
+            gap: 8px;
+            min-height: 68px;
+          }
+          .card:not(.card--fpg) .card__arrow {
+            display: none !important;
+          }
+          .card:not(.card--fpg) .card__icon {
+            font-size: 20px;
+            width: 24px;
+          }
+          .card:not(.card--fpg) .card__title {
+            font-size: 12px;
+            line-height: 1.25;
+            white-space: normal;
+            word-break: break-word;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+          }
+          .card:not(.card--fpg) .card__sub {
+            font-size: 10px;
+            line-height: 1.2;
+            opacity: 0.85;
+          }
+          .card--fpg {
+            padding: 12px 14px;
+            min-height: 72px;
+            gap: 12px;
+          }
+          .card--fpg .card__title {
+            font-size: 14.5px;
+          }
+          .card--fpg .card__sub {
+            font-size: 11px;
+          }
+          .card--repair {
+            padding: 12px 14px;
+            min-height: 68px;
+            gap: 10px;
+          }
+          .card--repair .card__title {
+            font-size: 14px;
+          }
+          .card--repair .card__sub {
+            font-size: 11px;
+          }
+          .header {
+            padding: 12px 14px 10px;
+            gap: 10px;
+          }
+          .header .logo {
+            width: 34px;
+            height: 34px;
+          }
+          .header .title {
+            font-size: 16px;
+            line-height: 1.2;
+          }
+          .header .subtitle {
+            font-size: 11px;
+          }
+          .user-box {
+            gap: 6px;
+          }
+          .home-foot {
+            padding: 4px 12px 20px;
+            gap: 8px;
+          }
+          .foot-bar {
+            padding: 11px 12px;
+            gap: 10px;
+          }
+          .foot-title {
+            font-size: 13.5px;
+          }
+          .foot-sub {
+            font-size: 11px;
+            line-height: 1.25;
+          }
+          .foot-ico {
+            font-size: 20px;
+            width: 22px;
+          }
+          .recent-header {
+            padding: 10px 12px;
+            gap: 10px;
+          }
+          .tl-row {
+            padding: 9px 12px;
+            gap: 8px;
+          }
+          .tl-icon {
+            font-size: 16px;
+            width: 20px;
+          }
+          .tl-hdr {
+            gap: 4px;
+          }
+          .tl-label {
+            font-size: 12px;
+            max-width: 140px;
+          }
+          .tl-when {
+            font-size: 10px;
+          }
+          .tl-detail {
+            font-size: 10.5px;
+          }
+          .tl-actions {
+            gap: 4px;
+          }
+          .btn-tl {
+            padding: 4px 7px;
+            font-size: 10.5px;
+            border-radius: 6px;
+          }
+          .report-view {
+            padding: 14px 12px;
+          }
+          .report-cats {
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            padding-bottom: 6px;
+            -webkit-overflow-scrolling: touch;
+          }
+          .report-cat {
+            padding: 6px 12px;
+            font-size: 12px;
+            flex-shrink: 0;
+          }
+          .report-row {
+            padding: 9px 10px;
+            gap: 8px;
+          }
+          .report-row-icon {
+            font-size: 18px;
+            width: 22px;
+          }
+          .report-row-type {
+            font-size: 12.5px;
+          }
+          .report-row-loc {
+            font-size: 11px;
+          }
+          .report-row-date {
+            font-size: 10px;
+          }
+          .hist-actions .btn-dl,
+          .hist-actions .btn-edit,
+          .hist-actions .btn-del {
+            padding: 4px 7px;
+            font-size: 11px;
+          }
+        }
       `}</style>
     </div>
   );
