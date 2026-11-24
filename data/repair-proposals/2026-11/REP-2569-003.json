@@ -5,7 +5,7 @@
   "docDate": "18 พฤศจิกายน 2569",
   "docDateISO": "2026-11-19",
   "priority": "high",
-  "status": "approved",
+  "status": "pending_approval",
   "inspector": {
     "name": "ธนวิชญ์ เล็บครุฑ",
     "role": "ช่างไฟฟ้า",
@@ -53,9 +53,13 @@
     "approver": {
       "name": "นายตวงเพชร ชัยยานนท์",
       "role": "วศ.4 หบท-ธ.",
-      "signed": true,
-      "decision": "approved",
-      "image": "/assets/shared/signature-approver.png"
+      "signed": false,
+      "decision": "pending",
+      "image": null,
+      "unapprovedAt": "2026-11-24T08:54:29.930Z"
     }
-  }
+  },
+  "_path": "data/repair-proposals/2026-11/REP-2569-003.json",
+  "_sha": "52956a0a75ea40332d70b9f41cd4a78ec6481658",
+  "_source": "github"
 }
