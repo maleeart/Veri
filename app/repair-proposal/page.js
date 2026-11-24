@@ -258,14 +258,13 @@ function RepairProposalListInner() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {filteredProposals.map((item) => {
               const pointCount = item.surveyPoints?.length || 0;
-              const itemsCount = item.itemsRequested?.length || 1;
-              const firstItem = item.itemsRequested?.[0];
-              const equipName = itemsCount > 1 
-                ? `${itemsCount} รายการ: ${firstItem?.name || ''}` 
-                : (firstItem?.name || item.bomName || 'อุปกรณ์/อะไหล่');
-              const equipModel = firstItem?.modelPart || item.bomModelPart || item.bomModel || '-';
-              const equipQty = firstItem?.qty || item.bomQty || pointCount;
-              const equipUnit = firstItem?.unit || item.bomUnit || 'ตัว';
+              const itemsList = (item.itemsRequested && item.itemsRequested.length > 0)
+                ? item.itemsRequested
+                : [{
+                    name: item.bomName || 'อุปกรณ์/อะไหล่',
+                    qty: item.bomQty || pointCount || 1,
+                    unit: item.bomUnit || 'ตัว'
+                  }];
               const isApproved = item.status === 'approved';
 
               return (
@@ -336,15 +335,29 @@ function RepairProposalListInner() {
                   {/* Card Body */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14, margin: '14px 0' }}>
                     <div style={{ background: 'var(--bg-surface-raised, #172340)', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border-hairline, #1e2e4a)' }}>
-                      <div style={{ fontSize: 11.5, color: 'var(--ink-secondary, #94a3c4)', fontWeight: 600 }}>📦 อุปกรณ์/อะไหล่ที่ขอจัดซื้อทดแทน:</div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', marginTop: 2 }}>
-                        {equipName}
+                      <div style={{ fontSize: 11.5, color: 'var(--ink-secondary, #94a3c4)', fontWeight: 600, marginBottom: 8 }}>
+                        📦 รายการอุปกรณ์ที่ขอจัดซื้อทดแทน ({itemsList.length} รายการ):
                       </div>
-                      <div style={{ fontSize: 12, color: '#60a5fa', fontWeight: 600, marginTop: 2 }}>
-                        {equipModel}
-                      </div>
-                      <div style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)', marginTop: 2 }}>
-                        จำนวน: <strong style={{ color: 'var(--ink-primary, #eef2ff)' }}>{equipQty} {equipUnit}</strong>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {itemsList.map((it, idx) => (
+                          <div 
+                            key={it.id || idx} 
+                            style={{ 
+                              display: 'flex', 
+                              justifyContent: 'space-between', 
+                              alignItems: 'baseline', 
+                              gap: 12,
+                              paddingBottom: idx < itemsList.length - 1 ? 5 : 0,
+                              borderBottom: idx < itemsList.length - 1 ? '1px dashed rgba(255,255,255,0.08)' : 'none'
+                            }}>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink-primary, #eef2ff)', wordBreak: 'break-word', flex: 1 }}>
+                              {itemsList.length > 1 ? `${idx + 1}. ` : ''}{it.name || 'อุปกรณ์/อะไหล่'}
+                            </span>
+                            <span style={{ fontSize: 12.5, fontWeight: 700, color: '#60a5fa', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                              {it.qty ?? 1} {it.unit || 'ตัว'}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </div>
 
