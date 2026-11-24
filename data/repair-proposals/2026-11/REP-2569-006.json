@@ -88,7 +88,7 @@
     {
       "id": 5,
       "name": "ท่อขาว UPVC  25 มิล (1\")",
-      "modelPart": "",
+      "modelPart": "UPVC 25มิล 1125 UPC",
       "qty": 10,
       "unit": "เมตร",
       "purpose": "",
@@ -101,7 +101,7 @@
     {
       "id": 6,
       "name": "แคล้มก้ามปู  UPVC 25 มิล  ",
-      "modelPart": "",
+      "modelPart": "UPVC 25มิล U280/25 UPC",
       "qty": 10,
       "unit": "ตัว",
       "purpose": "",
@@ -114,7 +114,7 @@
     {
       "id": 7,
       "name": "ข้อต่อตรง  UPVC 25 มิล",
-      "modelPart": "",
+      "modelPart": "UPVC 25มิล U242/25 UPC",
       "qty": 10,
       "unit": "ตัว",
       "purpose": "",
@@ -127,7 +127,7 @@
     {
       "id": 8,
       "name": "คอนเนคเตอร์ UPVC 25 มิล + cable gland",
-      "modelPart": "",
+      "modelPart": "U258/25+U281/25 UPC",
       "qty": 10,
       "unit": "คู่",
       "purpose": "",
@@ -140,7 +140,7 @@
     {
       "id": 9,
       "name": "ข้อต่อโค้ง UPVC 25 มิล",
-      "modelPart": "",
+      "modelPart": "UPVC 25มิล U244/25 UPC",
       "qty": 10,
       "unit": "ตัว",
       "purpose": "",
@@ -153,7 +153,7 @@
     {
       "id": 10,
       "name": "หางปลาแฉกหุ้ม YF4-4  4 sq.mm.",
-      "modelPart": "",
+      "modelPart": "YF4-4 สีดำ T-LUG",
       "qty": 1,
       "unit": "ถุง",
       "purpose": "",
@@ -166,7 +166,7 @@
     {
       "id": 11,
       "name": "หางปลากลมเปลือย รุ่นหนา 2 ชั้น TL16-6 TEC 16 sq.mm.",
-      "modelPart": "",
+      "modelPart": "TL16-6 TEC",
       "qty": 1,
       "unit": "ถุง",
       "purpose": "",
