@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Fragment, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Sidenav from '../components/Sidenav';
 import { useCanWrite } from '../lib/useCanWrite';
 import { itemsForType, GROUP_LABELS, pmStatus, nextDue, daysSince, LIGHT_SYSTEMS } from '../lib/pmSchedule';
@@ -65,6 +66,8 @@ export default function PmPage() {
 
 function PmPageInner() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === 'admin';
   const canWrite = useCanWrite();
   const [dates, setDates] = useState(null);
   const [machines, setMachines] = useState(null);
@@ -232,10 +235,12 @@ function PmPageInner() {
                 <span className="btn-txt-full">🏠 หน้าแรก</span>
                 <span className="btn-txt-short">🏠 หน้าแรก</span>
               </button>
-              <button className="pm-btn-home" onClick={() => router.push('/admin')} title="ดูภาพรวมและแนวโน้มแต่ละระบบ">
-                <span className="btn-txt-full">📈 ภาพรวมระบบ</span>
-                <span className="btn-txt-short">📈 ภาพรวม</span>
-              </button>
+              {isAdmin && (
+                <button className="pm-btn-home pm-btn-admin-only" onClick={() => router.push('/admin')} title="ดูภาพรวมและแนวโน้มแต่ละระบบ">
+                  <span className="btn-txt-full">📈 ภาพรวมระบบ</span>
+                  <span className="btn-txt-short">📈 ภาพรวม</span>
+                </button>
+              )}
               <button className="pm-refresh" title="รีเฟรชข้อมูล" onClick={load} disabled={loading}>
                 <span className="btn-txt-full">🔄 รีเฟรช</span>
                 <span className="btn-txt-short">🔄 รีเฟรช</span>
@@ -779,16 +784,20 @@ function PmPageInner() {
             line-height: 1.35;
           }
           .pm-hdr-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             width: 100%;
           }
           .pm-btn-home, .pm-refresh {
-            padding: 6px 4px;
-            font-size: 11.5px;
+            flex: 1;
+            padding: 8px 10px;
+            font-size: 12px;
             justify-content: center;
             text-align: center;
+          }
+          .pm-btn-admin-only {
+            display: none !important;
           }
           .btn-txt-full { display: none; }
           .btn-txt-short { display: inline; }

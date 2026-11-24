@@ -450,7 +450,32 @@ function AdminInner() {
   ];
 
   const pendingCount = SIMPLE_ROWS.filter(r => r.done === false).length
-    + PM_TYPES.filter(({ type }) => pmData && (pmData[type].overdue > 0 || pmData[type].due > 0)).length;
+  useEffect(() => {
+    if (status !== 'loading' && !isAdmin) {
+      router.replace('/');
+    }
+  }, [status, isAdmin, router]);
+
+  if (status === 'loading') {
+    return (
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-muted)' }}>
+        กำลังโหลด...
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24, textAlign: 'center' }}>
+        <span style={{ fontSize: 44 }}>🔒</span>
+        <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--ink-primary)' }}>เฉพาะผู้ดูแลระบบ (Admin) เท่านั้น</h2>
+        <p style={{ color: 'var(--ink-muted)', fontSize: 13, margin: 0 }}>คุณไม่มีสิทธิ์เข้าถึงหน้านี้ กำลังพากลับหน้าแรก...</p>
+        <button onClick={() => router.replace('/')} style={{ marginTop: 8, padding: '8px 16px', borderRadius: 10, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          กลับหน้าแรก
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="sn-shell">
@@ -1541,6 +1566,183 @@ function AdminInner() {
         }
         .dm-btn-confirm:hover:not(:disabled) { background: #ef4444; }
         .dm-btn-confirm:disabled, .dm-btn-cancel:disabled { opacity: .5; cursor: default; }
+
+        @media (max-width: 768px) {
+          .adm-hdr {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            padding: 14px 14px 12px;
+          }
+          .adm-hdr-left {
+            gap: 8px;
+          }
+          .adm-title {
+            font-size: 17px;
+          }
+          .adm-sub {
+            font-size: 11px;
+          }
+          .adm-hdr-actions {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+          }
+          .adm-tabs-pills {
+            flex: 1;
+            overflow-x: auto;
+            gap: 2px;
+            padding: 2px;
+          }
+          .tab-pill {
+            padding: 5px 8px;
+            font-size: 11px;
+            white-space: nowrap;
+          }
+          .adm-btn-home {
+            padding: 5px 8px;
+            font-size: 11px;
+            white-space: nowrap;
+          }
+          .adm-refresh {
+            width: 32px;
+            height: 32px;
+            font-size: 15px;
+            flex-shrink: 0;
+          }
+
+          .dash {
+            padding: 14px 12px 48px;
+            gap: 16px;
+          }
+          .stat-row {
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+          }
+          .stat-card {
+            padding: 12px 14px;
+            gap: 4px;
+            border-radius: 12px;
+          }
+          .sc-num {
+            font-size: 24px;
+          }
+          .sc-lbl {
+            font-size: 11px;
+          }
+          .sc-icon {
+            font-size: 20px;
+            top: 10px;
+            right: 10px;
+          }
+
+          .action-table {
+            border-radius: 14px;
+          }
+          .action-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+          }
+          .ar-icon {
+            font-size: 20px;
+            width: 24px;
+          }
+          .ar-info {
+            flex: 1;
+            min-width: 130px;
+          }
+          .ar-name {
+            font-size: 13px;
+          }
+          .ar-schedule {
+            font-size: 10.5px;
+          }
+          .ar-status {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            border-top: 1px dashed var(--border-hairline);
+            padding-top: 6px;
+            margin-top: 2px;
+          }
+          .ar-btn {
+            margin-left: auto;
+            padding: 5px 12px;
+            font-size: 11.5px;
+          }
+          .pm-detail-panel {
+            padding: 10px 12px;
+          }
+          .pm-tag {
+            font-size: 10.5px;
+            padding: 3px 7px;
+          }
+
+          .req-row {
+            padding: 12px 12px;
+            gap: 6px;
+          }
+          .req-foot {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 6px;
+          }
+          .req-btns {
+            width: 100%;
+          }
+          .req-btn {
+            flex: 1;
+            text-align: center;
+          }
+
+          .quick-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+          }
+          .quick-card {
+            padding: 10px 12px;
+            gap: 8px;
+          }
+
+          .users-wrap {
+            padding: 14px 12px 48px;
+          }
+          .section {
+            padding: 14px;
+          }
+          .add-row {
+            flex-direction: column;
+            gap: 8px;
+          }
+          .add-row .btn {
+            width: 100%;
+          }
+
+          .filters-card {
+            padding: 12px 14px;
+          }
+          .filters-grid {
+            grid-template-columns: 1fr;
+            gap: 8px;
+          }
+          .rep-row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+            padding: 12px;
+          }
+          .rep-actions {
+            width: 100%;
+            justify-content: flex-end;
+          }
+        }
       `}</style>
     </div>
   );

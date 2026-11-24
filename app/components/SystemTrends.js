@@ -1384,6 +1384,64 @@ export default function SystemTrends() {
           font-size: 12px;
           cursor: pointer;
         }
+
+        @media (max-width: 768px) {
+          .system-trends {
+            padding: 12px 10px;
+            border-radius: 14px;
+          }
+          .st-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+          }
+          .st-tabs {
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            width: 100%;
+            padding-bottom: 4px;
+            -webkit-overflow-scrolling: touch;
+          }
+          .st-tab {
+            padding: 6px 10px;
+            font-size: 11.5px;
+            flex-shrink: 0;
+          }
+          .metric-bar {
+            padding: 8px 10px;
+            gap: 6px;
+          }
+          .metric-pills {
+            gap: 5px;
+          }
+          .metric-pill {
+            padding: 4px 8px;
+            font-size: 11px;
+          }
+          .legend-items {
+            gap: 5px;
+          }
+          .legend-btn {
+            padding: 4px 8px;
+            font-size: 11px;
+          }
+          .chart-shell {
+            padding: 10px 8px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+          }
+          .chart-svg {
+            min-width: 580px;
+          }
+          .insights-grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+          }
+          .pm-overview-grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+          }
+        }
       `}</style>
     </section>
   );

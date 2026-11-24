@@ -1042,9 +1042,11 @@ function HomePageInner() {
                 <span>⚙️</span> ตั้งค่าระบบ
               </button>
             )}
-            <button className="dh-btn-dash" onClick={() => router.push('/admin')} title="ไปหน้าภาพรวมระบบ">
-              <span>📈</span> ภาพรวมระบบ
-            </button>
+            {isAdmin && (
+              <button className="dh-btn-dash" onClick={() => router.push('/admin')} title="ไปหน้าภาพรวมระบบ">
+                <span>📈</span> ภาพรวมระบบ
+              </button>
+            )}
             <button className="dh-btn-report" onClick={() => router.push('/?view=report')} title="ดูรายงานทั้งหมด">
               <span>📊</span> รายงาน
             </button>
