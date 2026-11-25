@@ -4,12 +4,42 @@ import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidenav from '../components/Sidenav';
 
+function getDocYear(item) {
+  if (!item) return null;
+  if (item.docDate) {
+    const match = String(item.docDate).match(/(25\d{2}|20\d{2})/);
+    if (match) {
+      let y = parseInt(match[1], 10);
+      if (y < 2500) y += 543;
+      return String(y);
+    }
+  }
+  if (item.docDateISO) {
+    const y = parseInt(String(item.docDateISO).slice(0, 4), 10);
+    if (!isNaN(y)) return String(y > 2500 ? y : y + 543);
+  }
+  if (item.refNo) {
+    const matchRef = String(item.refNo).match(/^REP-(\d{2})-/i);
+    if (matchRef) {
+      return '25' + matchRef[1];
+    }
+  }
+  if (item.createdAt) {
+    const y = new Date(item.createdAt).getFullYear();
+    if (!isNaN(y)) return String(y > 2500 ? y : y + 543);
+  }
+  return null;
+}
+
 function RepairProposalListInner() {
   const router = useRouter();
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedDoc, setSelectedDoc] = useState('all');
+  const [selectedBuilding, setSelectedBuilding] = useState('all');
+  const [selectedYear, setSelectedYear] = useState('all');
   const [deletingRef, setDeletingRef] = useState(null);
 
   // Fetch proposals from API
@@ -52,21 +82,86 @@ function RepairProposalListInner() {
     }
   };
 
+  // Available options for dropdown filters
+  const availableDocs = useMemo(() => {
+    return proposals.map(p => ({
+      refNo: p.refNo,
+      jobTitle: p.jobTitle || 'ไม่มีชื่อระบุ',
+      date: p.docDate || p.docDateISO || ''
+    }));
+  }, [proposals]);
+
+  const availableBuildings = useMemo(() => {
+    const set = new Set();
+    proposals.forEach(p => {
+      p.surveyPoints?.forEach(sp => {
+        if (sp.building && sp.building.trim()) {
+          set.add(sp.building.trim());
+        }
+      });
+    });
+    return Array.from(set).sort();
+  }, [proposals]);
+
+  const availableYears = useMemo(() => {
+    const set = new Set();
+    proposals.forEach(p => {
+      const y = getDocYear(p);
+      if (y) set.add(y);
+    });
+    return Array.from(set).sort().reverse();
+  }, [proposals]);
+
+  const hasActiveFilter = selectedDoc !== 'all' || statusFilter !== 'all' || selectedBuilding !== 'all' || selectedYear !== 'all' || search.trim() !== '';
+
+  const handleResetFilters = () => {
+    setSelectedDoc('all');
+    setStatusFilter('all');
+    setSelectedBuilding('all');
+    setSelectedYear('all');
+    setSearch('');
+  };
+
   // Filtered proposals
   const filteredProposals = useMemo(() => {
     return proposals.filter(item => {
-      const q = search.trim().toLowerCase();
-      const matchSearch = !q || 
-        (item.refNo && item.refNo.toLowerCase().includes(q)) ||
-        (item.fmRefNo && item.fmRefNo.toLowerCase().includes(q)) ||
-        (item.jobTitle && item.jobTitle.toLowerCase().includes(q)) ||
-        (item.inspector?.name && item.inspector.name.toLowerCase().includes(q)) ||
-        (item.surveyPoints && item.surveyPoints.some(sp => sp.building && sp.building.toLowerCase().includes(q)));
+      // 1. Doc selection filter
+      if (selectedDoc !== 'all' && item.refNo !== selectedDoc) {
+        return false;
+      }
 
-      const matchStatus = statusFilter === 'all' || item.status === statusFilter;
-      return matchSearch && matchStatus;
+      // 2. Status filter
+      if (statusFilter !== 'all' && item.status !== statusFilter) {
+        return false;
+      }
+
+      // 3. Building filter
+      if (selectedBuilding !== 'all') {
+        const hasBuilding = item.surveyPoints?.some(sp => sp.building && sp.building.trim() === selectedBuilding);
+        if (!hasBuilding) return false;
+      }
+
+      // 4. Year filter
+      if (selectedYear !== 'all') {
+        const itemYear = getDocYear(item);
+        if (itemYear !== selectedYear) return false;
+      }
+
+      // 5. Search text query
+      const q = search.trim().toLowerCase();
+      if (q) {
+        const matchSearch =
+          (item.refNo && item.refNo.toLowerCase().includes(q)) ||
+          (item.fmRefNo && item.fmRefNo.toLowerCase().includes(q)) ||
+          (item.jobTitle && item.jobTitle.toLowerCase().includes(q)) ||
+          (item.inspector?.name && item.inspector.name.toLowerCase().includes(q)) ||
+          (item.surveyPoints && item.surveyPoints.some(sp => sp.building && sp.building.toLowerCase().includes(q)));
+        if (!matchSearch) return false;
+      }
+
+      return true;
     });
-  }, [proposals, search, statusFilter]);
+  }, [proposals, selectedDoc, statusFilter, selectedBuilding, selectedYear, search]);
 
   // Statistics
   const totalCount = proposals.length;
@@ -168,60 +263,242 @@ function RepairProposalListInner() {
           </div>
         </div>
 
-        {/* Filter and Search Bar */}
-        <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px solid var(--border-hairline, #1e2e4a)', borderRadius: 12, padding: '14px 18px', marginBottom: 20, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
-          <div style={{ display: 'flex', gap: 10, flex: 1, minWidth: 260 }}>
-            <input 
-              type="text" 
-              placeholder="🔍 ค้นหาเลขที่ใบแจ้งซ่อม, ชื่องาน, รหัสอาคาร, หรือชื่อผู้แจ้ง..." 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '9px 14px',
-                borderRadius: 8,
-                border: '1px solid var(--border-strong, #2d3f5e)',
-                background: 'var(--bg-input, #080e1a)',
-                color: 'var(--ink-primary, #eef2ff)',
-                fontSize: 13,
-                outline: 'none'
-              }}
-            />
+        {/* Filter and Search Bar with Dropdown Lists */}
+        <div style={{ 
+          background: 'var(--bg-surface, #111d32)', 
+          border: '1px solid var(--border-hairline, #1e2e4a)', 
+          borderRadius: 12, 
+          padding: '16px 18px', 
+          marginBottom: 20, 
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12
+        }}>
+          {/* Row 1: Search input + Actions */}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', gap: 10, flex: 1, minWidth: 260 }}>
+              <div style={{ position: 'relative', width: '100%' }}>
+                <input 
+                  type="text" 
+                  placeholder="🔍 ค้นหาเลขที่ใบแจ้งซ่อม, ชื่องาน, รหัสอาคาร, หรือชื่อผู้แจ้ง..." 
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '9px 32px 9px 14px',
+                    borderRadius: 8,
+                    border: '1px solid var(--border-strong, #2d3f5e)',
+                    background: 'var(--bg-input, #080e1a)',
+                    color: 'var(--ink-primary, #eef2ff)',
+                    fontSize: 13,
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearch('')}
+                    title="ล้างข้อความค้นหา"
+                    style={{
+                      position: 'absolute',
+                      right: 10,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--ink-secondary, #94a3c4)',
+                      cursor: 'pointer',
+                      fontSize: 12,
+                      padding: 2
+                    }}>
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              {hasActiveFilter && (
+                <button
+                  onClick={handleResetFilters}
+                  title="ล้างตัวกรองทั้งหมดกลับสู่ค่าเริ่มต้น"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '8px 13px',
+                    borderRadius: 8,
+                    border: '1px solid rgba(239, 68, 68, 0.45)',
+                    background: 'rgba(239, 68, 68, 0.12)',
+                    color: '#f87171',
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s'
+                  }}>
+                  <span>✕</span>
+                  <span>ล้างตัวกรอง</span>
+                </button>
+              )}
+
+              <button 
+                onClick={fetchProposals}
+                title="รีเฟรชข้อมูล"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '8px 12px',
+                  background: 'var(--bg-surface-raised, #172340)',
+                  border: '1px solid var(--border-strong, #2d3f5e)',
+                  borderRadius: 8,
+                  color: 'var(--ink-primary, #eef2ff)',
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  fontWeight: 600
+                }}>
+                <span>🔄</span>
+                <span>รีเฟรช</span>
+              </button>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span style={{ fontSize: 12, color: 'var(--ink-secondary, #94a3c4)', fontWeight: 600 }}>สถานะ:</span>
-            <select 
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              style={{
-                padding: '8px 12px',
-                borderRadius: 8,
-                border: '1px solid var(--border-strong, #2d3f5e)',
-                background: 'var(--bg-input, #080e1a)',
-                color: 'var(--ink-primary, #eef2ff)',
-                fontSize: 13,
-                cursor: 'pointer',
-                outline: 'none'
-              }}>
-              <option value="all" style={{ background: '#0c1220', color: '#eef2ff' }}>ทั้งหมด ({totalCount})</option>
-              <option value="pending_approval" style={{ background: '#0c1220', color: '#eef2ff' }}>รออนุมัติ ({pendingCount})</option>
-              <option value="approved" style={{ background: '#0c1220', color: '#eef2ff' }}>อนุมัติแล้ว ({approvedCount})</option>
-            </select>
-            <button 
-              onClick={fetchProposals}
-              title="รีเฟรชข้อมูล"
-              style={{
-                padding: '8px 12px',
-                background: 'var(--bg-surface-raised, #172340)',
-                border: '1px solid var(--border-strong, #2d3f5e)',
-                borderRadius: 8,
-                color: 'var(--ink-primary, #eef2ff)',
-                cursor: 'pointer',
-                fontSize: 13
-              }}>
-              🔄
-            </button>
+          {/* Row 2: Dropdown List Filters */}
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+            gap: 12, 
+            paddingTop: 12, 
+            borderTop: '1px solid var(--border-hairline, #1e2e4a)' 
+          }}>
+            {/* Dropdown 1: Select Document */}
+            <div>
+              <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 5 }}>
+                📄 เลือกดูเอกสาร / ชื่องาน:
+              </label>
+              <select
+                value={selectedDoc}
+                onChange={(e) => setSelectedDoc(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  borderRadius: 8,
+                  border: selectedDoc !== 'all' ? '1.5px solid var(--accent, #3b82f6)' : '1px solid var(--border-strong, #2d3f5e)',
+                  background: selectedDoc !== 'all' ? 'rgba(59, 130, 246, 0.12)' : 'var(--bg-input, #080e1a)',
+                  color: 'var(--ink-primary, #eef2ff)',
+                  fontSize: 12.5,
+                  cursor: 'pointer',
+                  outline: 'none',
+                  textOverflow: 'ellipsis'
+                }}>
+                <option value="all" style={{ background: '#0c1220', color: '#eef2ff' }}>
+                  -- เอกสารทั้งหมด ({totalCount} ฉบับ) --
+                </option>
+                {availableDocs.map((d) => (
+                  <option key={d.refNo} value={d.refNo} style={{ background: '#0c1220', color: '#eef2ff' }}>
+                    {d.refNo} : {d.jobTitle && d.jobTitle.length > 36 ? d.jobTitle.slice(0, 36) + '...' : d.jobTitle}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Dropdown 2: Approval Status */}
+            <div>
+              <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 5 }}>
+                🛡️ สถานะการอนุมัติ:
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  borderRadius: 8,
+                  border: statusFilter !== 'all' ? '1.5px solid var(--accent, #3b82f6)' : '1px solid var(--border-strong, #2d3f5e)',
+                  background: statusFilter !== 'all' ? 'rgba(59, 130, 246, 0.12)' : 'var(--bg-input, #080e1a)',
+                  color: 'var(--ink-primary, #eef2ff)',
+                  fontSize: 12.5,
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}>
+                <option value="all" style={{ background: '#0c1220', color: '#eef2ff' }}>ทุกสถานะ ({totalCount})</option>
+                <option value="pending_approval" style={{ background: '#0c1220', color: '#eef2ff' }}>⏳ รอพิจารณาอนุมัติ ({pendingCount})</option>
+                <option value="approved" style={{ background: '#0c1220', color: '#eef2ff' }}>✅ อนุมัติเรียบร้อย ({approvedCount})</option>
+              </select>
+            </div>
+
+            {/* Dropdown 3: Building */}
+            <div>
+              <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 5 }}>
+                🏢 อาคาร / สถานที่สำรวจ:
+              </label>
+              <select
+                value={selectedBuilding}
+                onChange={(e) => setSelectedBuilding(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  borderRadius: 8,
+                  border: selectedBuilding !== 'all' ? '1.5px solid var(--accent, #3b82f6)' : '1px solid var(--border-strong, #2d3f5e)',
+                  background: selectedBuilding !== 'all' ? 'rgba(59, 130, 246, 0.12)' : 'var(--bg-input, #080e1a)',
+                  color: 'var(--ink-primary, #eef2ff)',
+                  fontSize: 12.5,
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}>
+                <option value="all" style={{ background: '#0c1220', color: '#eef2ff' }}>
+                  -- ทุกอาคาร ({availableBuildings.length} อาคาร) --
+                </option>
+                {availableBuildings.map((b) => (
+                  <option key={b} value={b} style={{ background: '#0c1220', color: '#eef2ff' }}>
+                    🏢 {b}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Dropdown 4: Year */}
+            <div>
+              <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 5 }}>
+                📅 ปี พ.ศ. เอกสาร:
+              </label>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  borderRadius: 8,
+                  border: selectedYear !== 'all' ? '1.5px solid var(--accent, #3b82f6)' : '1px solid var(--border-strong, #2d3f5e)',
+                  background: selectedYear !== 'all' ? 'rgba(59, 130, 246, 0.12)' : 'var(--bg-input, #080e1a)',
+                  color: 'var(--ink-primary, #eef2ff)',
+                  fontSize: 12.5,
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}>
+                <option value="all" style={{ background: '#0c1220', color: '#eef2ff' }}>
+                  -- ทุกปี พ.ศ. ({availableYears.length} ปี) --
+                </option>
+                {availableYears.map((y) => (
+                  <option key={y} value={y} style={{ background: '#0c1220', color: '#eef2ff' }}>
+                    📅 ปี พ.ศ. {y}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Row 3: Result Summary Info */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, color: 'var(--ink-secondary, #94a3c4)', paddingTop: 2, flexWrap: 'wrap', gap: 6 }}>
+            <div>
+              แสดงผลลัพธ์ <strong style={{ color: 'var(--ink-primary, #eef2ff)' }}>{filteredProposals.length}</strong> จากทั้งหมด {totalCount} รายการ
+              {hasActiveFilter && (
+                <span style={{ color: '#60a5fa', marginLeft: 6, fontWeight: 600 }}>
+                  (กำลังใช้งานตัวกรอง)
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -233,26 +510,47 @@ function RepairProposalListInner() {
           </div>
         ) : filteredProposals.length === 0 ? (
           <div style={{ background: 'var(--bg-surface, #111d32)', border: '1px dashed var(--border-strong, #2d3f5e)', borderRadius: 12, padding: '60px 20px', textAlign: 'center' }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
-            <h3 style={{ fontSize: 18, color: 'var(--ink-primary, #eef2ff)', margin: '0 0 6px' }}>ยังไม่มีรายการใบเสนอแจ้งซ่อม</h3>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>{hasActiveFilter ? '🔍' : '📋'}</div>
+            <h3 style={{ fontSize: 18, color: 'var(--ink-primary, #eef2ff)', margin: '0 0 6px' }}>
+              {hasActiveFilter ? 'ไม่พบเอกสารใบเสนอซ่อมที่ตรงกับตัวกรอง' : 'ยังไม่มีรายการใบเสนอแจ้งซ่อม'}
+            </h3>
             <p style={{ fontSize: 13, color: 'var(--ink-secondary, #94a3c4)', margin: '0 0 16px' }}>
-              สามารถเริ่มต้นสร้างใบเสนอแจ้งซ่อมฉบับแรก หรือเปิดตัวอย่างได้ทันที
+              {hasActiveFilter 
+                ? 'ลองปรับเปลี่ยนการเลือก หรือกดล้างตัวกรองเพื่อดูรายการทั้งหมด'
+                : 'สามารถเริ่มต้นสร้างใบเสนอแจ้งซ่อมฉบับแรก หรือเปิดตัวอย่างได้ทันที'}
             </p>
-            <button 
-              onClick={() => router.push('/repair-proposal/new')}
-              style={{
-                background: 'var(--accent, #2563eb)',
-                color: 'white',
-                fontWeight: 600,
-                fontSize: 14,
-                padding: '10px 20px',
-                borderRadius: 8,
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)'
-              }}>
-              ➕ สร้างใบเสนอซ่อมฉบับใหม่
-            </button>
+            {hasActiveFilter ? (
+              <button 
+                onClick={handleResetFilters}
+                style={{
+                  background: 'var(--bg-surface-raised, #172340)',
+                  color: 'var(--ink-primary, #eef2ff)',
+                  border: '1px solid var(--border-strong, #2d3f5e)',
+                  fontWeight: 600,
+                  fontSize: 14,
+                  padding: '10px 20px',
+                  borderRadius: 8,
+                  cursor: 'pointer'
+                }}>
+                🔄 ล้างตัวกรองทั้งหมด
+              </button>
+            ) : (
+              <button 
+                onClick={() => router.push('/repair-proposal/new')}
+                style={{
+                  background: 'var(--accent, #2563eb)',
+                  color: 'white',
+                  fontWeight: 600,
+                  fontSize: 14,
+                  padding: '10px 20px',
+                  borderRadius: 8,
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)'
+                }}>
+                ➕ สร้างใบเสนอซ่อมฉบับใหม่
+              </button>
+            )}
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
