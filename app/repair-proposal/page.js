@@ -31,6 +31,83 @@ function getDocYear(item) {
   return null;
 }
 
+function compareRefNo(aRef, bRef) {
+  if (!aRef && !bRef) return 0;
+  if (!aRef) return 1;
+  if (!bRef) return -1;
+  return String(aRef).localeCompare(String(bRef), undefined, { numeric: true, sensitivity: 'base' });
+}
+
+function getDocTimestamp(item) {
+  if (!item) return 0;
+  if (item.createdAt) {
+    const t = new Date(item.createdAt).getTime();
+    if (!isNaN(t)) return t;
+  }
+  if (item.docDateISO) {
+    const t = new Date(item.docDateISO).getTime();
+    if (!isNaN(t)) return t;
+  }
+  if (item.docDate) {
+    const m = String(item.docDate).match(/(\d{1,2})\s*([^\s\d]+)\s*(\d{4})/);
+    if (m) {
+      let day = parseInt(m[1], 10);
+      let monthName = m[2];
+      let year = parseInt(m[3], 10);
+      if (year > 2500) year -= 543;
+      const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+      let monthIdx = thaiMonths.findIndex(tm => monthName.includes(tm.replace('.', '')));
+      if (monthIdx === -1) monthIdx = 0;
+      return new Date(year, monthIdx, day).getTime();
+    }
+  }
+  return 0;
+}
+
+function formatShortDate(item) {
+  if (!item) return '';
+  if (item.docDate) return item.docDate;
+  if (item.docDateISO) {
+    const parts = item.docDateISO.split('-');
+    if (parts.length === 3) {
+      const y = parseInt(parts[0], 10) + 543;
+      return `${parseInt(parts[2], 10)}/${parseInt(parts[1], 10)}/${y}`;
+    }
+    return item.docDateISO;
+  }
+  if (item.createdAt) {
+    try {
+      const d = new Date(item.createdAt);
+      return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch {}
+  }
+  return '';
+}
+
+function sortProposals(items, sortBy) {
+  return [...items].sort((a, b) => {
+    if (sortBy === 'ref_asc') {
+      let cmp = compareRefNo(a.refNo, b.refNo);
+      if (cmp === 0) cmp = getDocTimestamp(a) - getDocTimestamp(b);
+      return cmp;
+    }
+    if (sortBy === 'date_desc') {
+      let cmp = getDocTimestamp(b) - getDocTimestamp(a);
+      if (cmp === 0) cmp = compareRefNo(b.refNo, a.refNo);
+      return cmp;
+    }
+    if (sortBy === 'date_asc') {
+      let cmp = getDocTimestamp(a) - getDocTimestamp(b);
+      if (cmp === 0) cmp = compareRefNo(a.refNo, b.refNo);
+      return cmp;
+    }
+    // default: ref_desc (เลขที่ใบงาน ล่าสุด -> เก่าสุด)
+    let cmp = compareRefNo(b.refNo, a.refNo);
+    if (cmp === 0) cmp = getDocTimestamp(b) - getDocTimestamp(a);
+    return cmp;
+  });
+}
+
 function RepairProposalListInner() {
   const router = useRouter();
   const [proposals, setProposals] = useState([]);
@@ -40,6 +117,7 @@ function RepairProposalListInner() {
   const [selectedDoc, setSelectedDoc] = useState('all');
   const [selectedBuilding, setSelectedBuilding] = useState('all');
   const [selectedYear, setSelectedYear] = useState('all');
+  const [sortBy, setSortBy] = useState('ref_desc');
   const [deletingRef, setDeletingRef] = useState(null);
 
   // Fetch proposals from API
@@ -84,12 +162,36 @@ function RepairProposalListInner() {
 
   // Available options for dropdown filters
   const availableDocs = useMemo(() => {
-    return proposals.map(p => ({
+    const list = proposals.map(p => ({
       refNo: p.refNo,
       jobTitle: p.jobTitle || 'ไม่มีชื่อระบุ',
-      date: p.docDate || p.docDateISO || ''
+      date: p.docDate || p.docDateISO || '',
+      displayDate: formatShortDate(p),
+      item: p
     }));
-  }, [proposals]);
+
+    return list.sort((a, b) => {
+      if (sortBy === 'ref_asc') {
+        let cmp = compareRefNo(a.refNo, b.refNo);
+        if (cmp === 0) cmp = getDocTimestamp(a.item) - getDocTimestamp(b.item);
+        return cmp;
+      }
+      if (sortBy === 'date_desc') {
+        let cmp = getDocTimestamp(b.item) - getDocTimestamp(a.item);
+        if (cmp === 0) cmp = compareRefNo(b.refNo, a.refNo);
+        return cmp;
+      }
+      if (sortBy === 'date_asc') {
+        let cmp = getDocTimestamp(a.item) - getDocTimestamp(b.item);
+        if (cmp === 0) cmp = compareRefNo(a.refNo, b.refNo);
+        return cmp;
+      }
+      // default: ref_desc
+      let cmp = compareRefNo(b.refNo, a.refNo);
+      if (cmp === 0) cmp = getDocTimestamp(b.item) - getDocTimestamp(a.item);
+      return cmp;
+    });
+  }, [proposals, sortBy]);
 
   const availableBuildings = useMemo(() => {
     const set = new Set();
@@ -112,7 +214,7 @@ function RepairProposalListInner() {
     return Array.from(set).sort().reverse();
   }, [proposals]);
 
-  const hasActiveFilter = selectedDoc !== 'all' || statusFilter !== 'all' || selectedBuilding !== 'all' || selectedYear !== 'all' || search.trim() !== '';
+  const hasActiveFilter = selectedDoc !== 'all' || statusFilter !== 'all' || selectedBuilding !== 'all' || selectedYear !== 'all' || search.trim() !== '' || sortBy !== 'ref_desc';
 
   const handleResetFilters = () => {
     setSelectedDoc('all');
@@ -120,11 +222,12 @@ function RepairProposalListInner() {
     setSelectedBuilding('all');
     setSelectedYear('all');
     setSearch('');
+    setSortBy('ref_desc');
   };
 
-  // Filtered proposals
+  // Filtered and sorted proposals
   const filteredProposals = useMemo(() => {
-    return proposals.filter(item => {
+    const matched = proposals.filter(item => {
       // 1. Doc selection filter
       if (selectedDoc !== 'all' && item.refNo !== selectedDoc) {
         return false;
@@ -161,7 +264,9 @@ function RepairProposalListInner() {
 
       return true;
     });
-  }, [proposals, selectedDoc, statusFilter, selectedBuilding, selectedYear, search]);
+
+    return sortProposals(matched, sortBy);
+  }, [proposals, selectedDoc, statusFilter, selectedBuilding, selectedYear, search, sortBy]);
 
   // Statistics
   const totalCount = proposals.length;
@@ -367,15 +472,49 @@ function RepairProposalListInner() {
           {/* Row 2: Dropdown List Filters */}
           <div style={{ 
             display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', 
             gap: 12, 
             paddingTop: 12, 
             borderTop: '1px solid var(--border-hairline, #1e2e4a)' 
           }}>
-            {/* Dropdown 1: Select Document */}
+            {/* Dropdown 1: Sort By */}
             <div>
               <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 5 }}>
-                📄 เลือกดูเอกสาร / ชื่องาน:
+                🔃 เลือกดู โดยเรียงลำดับ จาก:
+              </label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  borderRadius: 8,
+                  border: sortBy !== 'ref_desc' ? '1.5px solid var(--accent, #3b82f6)' : '1px solid var(--border-strong, #2d3f5e)',
+                  background: sortBy !== 'ref_desc' ? 'rgba(59, 130, 246, 0.12)' : 'var(--bg-input, #080e1a)',
+                  color: 'var(--ink-primary, #eef2ff)',
+                  fontSize: 12.5,
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}>
+                <option value="ref_desc" style={{ background: '#0c1220', color: '#eef2ff' }}>
+                  🔢 เลขที่ใบงาน (ล่าสุด → เก่าสุด)
+                </option>
+                <option value="ref_asc" style={{ background: '#0c1220', color: '#eef2ff' }}>
+                  🔢 เลขที่ใบงาน (เก่าสุด → ล่าสุด)
+                </option>
+                <option value="date_desc" style={{ background: '#0c1220', color: '#eef2ff' }}>
+                  📅 วันที่สร้าง (ล่าสุด → เก่าสุด)
+                </option>
+                <option value="date_asc" style={{ background: '#0c1220', color: '#eef2ff' }}>
+                  📅 วันที่สร้าง (เก่าสุด → ล่าสุด)
+                </option>
+              </select>
+            </div>
+
+            {/* Dropdown 2: Select / Filter Document */}
+            <div>
+              <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-secondary, #94a3c4)', display: 'block', marginBottom: 5 }}>
+                📄 กรองดูเอกสารเฉพาะฉบับ:
               </label>
               <select
                 value={selectedDoc}
@@ -393,11 +532,11 @@ function RepairProposalListInner() {
                   textOverflow: 'ellipsis'
                 }}>
                 <option value="all" style={{ background: '#0c1220', color: '#eef2ff' }}>
-                  -- เอกสารทั้งหมด ({totalCount} ฉบับ) --
+                  -- แสดงเอกสารทั้งหมด ({totalCount} ฉบับ) --
                 </option>
                 {availableDocs.map((d) => (
                   <option key={d.refNo} value={d.refNo} style={{ background: '#0c1220', color: '#eef2ff' }}>
-                    {d.refNo} : {d.jobTitle && d.jobTitle.length > 36 ? d.jobTitle.slice(0, 36) + '...' : d.jobTitle}
+                    {d.refNo} {d.displayDate ? `(${d.displayDate})` : ''} : {d.jobTitle && d.jobTitle.length > 28 ? d.jobTitle.slice(0, 28) + '...' : d.jobTitle}
                   </option>
                 ))}
               </select>
