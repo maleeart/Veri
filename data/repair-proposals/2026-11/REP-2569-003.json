@@ -3,7 +3,7 @@
   "fmRefNo": "",
   "jobTitle": "แบตเตอรี่สำรองไฟฟ้าในระบบแจ้งเหตุเพลิงไหม้",
   "docDate": "18 พฤศจิกายน 2569",
-  "docDateISO": "2026-11-19",
+  "docDateISO": "2026-11-25",
   "priority": "high",
   "status": "pending_approval",
   "inspector": {
@@ -55,11 +55,7 @@
       "role": "วศ.4 หบท-ธ.",
       "signed": false,
       "decision": "pending",
-      "image": null,
-      "unapprovedAt": "2026-11-24T08:54:29.930Z"
+      "image": null
     }
-  },
-  "_path": "data/repair-proposals/2026-11/REP-2569-003.json",
-  "_sha": "52956a0a75ea40332d70b9f41cd4a78ec6481658",
-  "_source": "github"
+  }
 }
